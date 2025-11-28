@@ -15,7 +15,7 @@ public class UserDto : BaseDto
     /// <summary>
     ///     性别
     /// </summary>
-    public GenderType? Gender { get; set; }
+    public GenderType? UserGender { get; set; }
 
     /// <summary>
     ///     昵称
@@ -25,10 +25,10 @@ public class UserDto : BaseDto
     /// <summary>
     ///     电话
     /// </summary>
-    public string? Phone { get; set; }
+    public string? UserPhone { get; set; }
 
     /// <summary>
     ///     邮箱
     /// </summary>
-    public string? Email { get; set; }
+    public string? UserEmail { get; set; }
 }

@@ -44,13 +44,17 @@ namespace Infrastructure.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("constant");
 
-                    b.Property<Guid?>("CreatedBy")
+                    b.Property<Guid?>("CreateBy")
                         .HasColumnType("uuid")
-                        .HasColumnName("created_by");
+                        .HasColumnName("create_by");
 
-                    b.Property<DateTime>("CreatedTime")
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name");
+
+                    b.Property<DateTime>("CreateTime")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_time");
+                        .HasColumnName("create_time");
 
                     b.Property<int?>("FixedIndexInTab")
                         .HasColumnType("integer")
@@ -117,6 +121,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("update_by");
 
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name");
+
                     b.Property<DateTime?>("UpdateTime")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("update_time");
@@ -135,10 +143,13 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("CreatedBy")
+                    b.Property<Guid?>("CreateBy")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("CreatedTime")
+                    b.Property<string>("CreateName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CreateTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("ExpiresAt")
@@ -160,6 +171,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<Guid?>("UpdateBy")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdateTime")
                         .HasColumnType("timestamp with time zone");
@@ -190,13 +204,17 @@ namespace Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("code");
 
-                    b.Property<Guid?>("CreatedBy")
+                    b.Property<Guid?>("CreateBy")
                         .HasColumnType("uuid")
-                        .HasColumnName("created_by");
+                        .HasColumnName("create_by");
 
-                    b.Property<DateTime>("CreatedTime")
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name");
+
+                    b.Property<DateTime>("CreateTime")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_time");
+                        .HasColumnName("create_time");
 
                     b.Property<string>("Desc")
                         .HasColumnType("varchar(200)")
@@ -214,6 +232,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("UpdateBy")
                         .HasColumnType("uuid")
                         .HasColumnName("update_by");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name");
 
                     b.Property<DateTime?>("UpdateTime")
                         .HasColumnType("timestamp with time zone")
@@ -257,13 +279,17 @@ namespace Infrastructure.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid?>("CreatedBy")
+                    b.Property<Guid?>("CreateBy")
                         .HasColumnType("uuid")
-                        .HasColumnName("created_by");
+                        .HasColumnName("create_by");
 
-                    b.Property<DateTime>("CreatedTime")
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name");
+
+                    b.Property<DateTime>("CreateTime")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_time");
+                        .HasColumnName("create_time");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -295,6 +321,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("UpdateBy")
                         .HasColumnType("uuid")
                         .HasColumnName("update_by");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name");
 
                     b.Property<DateTime?>("UpdateTime")
                         .HasColumnType("timestamp with time zone")

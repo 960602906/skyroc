@@ -1,7 +1,9 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application;
 using Infrastructure;
 using Infrastructure.Data;
+using SkyRoc.Converter;
 using WebAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,9 +32,15 @@ builder.Services.AddAuthenticationServices(configuration);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        // 添加自定义日期时间转换器
+        options.JsonSerializerOptions.Converters.Add(new CustomDateTimeConverter());
+        options.JsonSerializerOptions.Converters.Add(new NullableCustomDateTimeConverter());
         // 忽略空值
         options.JsonSerializerOptions.DefaultIgnoreCondition =
             JsonIgnoreCondition.WhenWritingNull;
+        // 其他 JSON 配置（可选）
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; // 驼峰命名
+        options.JsonSerializerOptions.WriteIndented = true; // 格式化输出（开发环境）
     });
 
 // 添加 Swagger

@@ -52,7 +52,9 @@ public class MenuService(
         if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
         var menu = mapper.Map<Menu>(request);
         var userId = currentUserService.GetUserId();
-        menu.CreatedBy = userId;
+        var userName = currentUserService.GetUserName();
+        menu.CreateBy = userId;
+        menu.CreateName = userName;
         try
         {
             await menuRepository.AddAsync(menu);
@@ -151,7 +153,9 @@ public class MenuService(
             throw new NotFoundException("菜单不存在");
         mapper.Map(request, menu);
         var userId = currentUserService.GetUserId();
+        var userName = currentUserService.GetUserName();
         menu.UpdateBy = userId;
+        menu.UpdateName = userName;
         try
         {
             await menuRepository.UpdateAsync(menu);

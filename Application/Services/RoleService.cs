@@ -56,7 +56,9 @@ public class RoleService(
         if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
         var role = mapper.Map<Role>(request);
         var userId = currentUserService.GetUserId();
-        role.CreatedBy = userId;
+        var userName = currentUserService.GetUserName();
+        role.CreateBy = userId;
+        role.CreateName = userName;
         try
         {
             await roleRepository.AddAsync(role);
@@ -110,7 +112,9 @@ public class RoleService(
         if (role is null) throw new NotFoundException("角色不存在");
         mapper.Map(request, role);
         var userId = currentUserService.GetUserId();
+        var userName = currentUserService.GetUserName();
         role.UpdateBy = userId;
+        role.UpdateName = userName;
         try
         {
             await roleRepository.UpdateAsync(role);

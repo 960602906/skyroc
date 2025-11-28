@@ -10,17 +10,17 @@ public class RoleDto : BaseDto
     /// <summary>
     ///     角色名称
     /// </summary>
-    public string? Name { get; set; }
+    public string? RoleName { get; set; }
 
     /// <summary>
     ///     角色编码
     /// </summary>
-    public string? Code { get; set; }
+    public string? RoleCode { get; set; }
 
     /// <summary>
     ///     角色描述
     /// </summary>
-    public string? Desc { get; set; }
+    public string? RoleDesc { get; set; }
 
     /// <summary>
     ///     角色拥有的菜单权限集合

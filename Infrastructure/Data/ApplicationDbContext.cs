@@ -38,7 +38,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                     break;
                 }
                 case EntityState.Added:
-                    entry.Entity.CreatedTime = DateTime.UtcNow;
+                    entry.Entity.CreateTime = DateTime.UtcNow;
                     break;
             }
 

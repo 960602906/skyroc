@@ -14,7 +14,7 @@ public class UserQueryParameters : PagedQueryParameters
     /// <summary>
     ///     性别
     /// </summary>
-    public GenderType? Gender { get; set; }
+    public GenderType? UserGender { get; set; }
 
     /// <summary>
     ///     昵称
@@ -24,12 +24,12 @@ public class UserQueryParameters : PagedQueryParameters
     /// <summary>
     ///     电话
     /// </summary>
-    public string? Phone { get; set; }
+    public string? UserPhone { get; set; }
 
     /// <summary>
     ///     邮箱
     /// </summary>
-    public string? Email { get; set; }
+    public string? UserEmail { get; set; }
     
     /// <summary>
     ///  启用状态
@@ -44,10 +44,10 @@ public class UserQueryParameters : PagedQueryParameters
     {
         return u =>
             (string.IsNullOrWhiteSpace(UserName) || u.Username.Contains(UserName.Trim())) &&
-            (string.IsNullOrWhiteSpace(Email) || u.Email.Contains(Email.Trim())) &&
+            (string.IsNullOrWhiteSpace(UserEmail) || u.Email.Contains(UserEmail.Trim())) &&
             (string.IsNullOrWhiteSpace(NickName) || u.NickName.Contains(NickName.Trim())) &&
-            (string.IsNullOrWhiteSpace(Phone) ||    u.Phone != null &&  u.Phone.Equals(Phone.Trim())) &&
-            (!Gender.HasValue || u.Gender.Equals(Gender)) &&
+            (string.IsNullOrWhiteSpace(UserPhone) ||    u.Phone != null &&  u.Phone.Equals(UserPhone.Trim())) &&
+            (!UserGender.HasValue || u.Gender.Equals(UserGender)) &&
             (!Status.HasValue || u.Status == Status.Value);
     }
 }

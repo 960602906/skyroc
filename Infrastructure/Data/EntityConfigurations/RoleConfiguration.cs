@@ -39,14 +39,18 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
 
 
         // 审计字段配置
-        builder.Property(x => x.CreatedTime)
-            .HasColumnName("created_time")
+        builder.Property(x => x.CreateTime)
+            .HasColumnName("create_time")
             .HasColumnType("timestamp with time zone")
             .IsRequired();
 
-        builder.Property(x => x.CreatedBy)
-            .HasColumnName("created_by")
+        builder.Property(x => x.CreateBy)
+            .HasColumnName("create_by")
             .HasColumnType("uuid");
+        
+        builder.Property(x => x.CreateName)
+            .HasColumnName("create_name")
+            .HasColumnType("varchar(50)");
 
         builder.Property(x => x.UpdateTime)
             .HasColumnName("update_time")
@@ -55,6 +59,10 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(x => x.UpdateBy)
             .HasColumnName("update_by")
             .HasColumnType("uuid");
+        
+        builder.Property(x => x.UpdateName)
+            .HasColumnName("update_name")
+            .HasColumnType("varchar(50)");
         
         builder.Property(x => x.Status)
             .HasColumnName("status")

@@ -10,7 +10,11 @@ public class UserMappingProfile : Profile
     public UserMappingProfile()
     {
         // ==================== User Mappings ====================
-        CreateMap<User, UserDto>();
+        CreateMap<User, UserDto>()
+            .ForMember(u => u.UserName, opt => opt.MapFrom(src =>src.Username))
+            .ForMember(u => u.UserGender, opt => opt.MapFrom(src => src.Gender))
+            .ForMember(u => u.UserEmail, opt => opt.MapFrom(src => src.Email))
+            .ForMember(u => u.UserPhone, opt => opt.MapFrom(src => src.Phone));
         CreateMap<User, UserInfoDto>()
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Username))

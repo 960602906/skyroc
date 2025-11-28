@@ -52,7 +52,9 @@ public class UserService(
         var user = mapper.Map<User>(request);
         if (request.Password != null) user.PasswordHash = PasswordHasher.Hash(request.Password);
         var userId = currentUserService.GetUserId();
-        user.CreatedBy = userId;
+        var userName = currentUserService.GetUserName();
+        user.CreateBy = userId;
+        user.CreateName = userName;
         try
         {
             await userRepository.AddAsync(user);
@@ -116,7 +118,9 @@ public class UserService(
         if (user is null) throw new NotFoundException("用户不存在");
         mapper.Map(request, user);
         var userId = currentUserService.GetUserId();
+        var userName = currentUserService.GetUserName();
         user.UpdateBy = userId;
+        user.UpdateName = userName;
         try
         {
             await userRepository.UpdateAsync(user);
