@@ -71,3 +71,4 @@ C:\Users\96060\RiderProjects\SkyRoc\SkyRoc\obj\Debug\net9.0\ref\SkyRoc.dll
 C:\Users\96060\RiderProjects\SkyRoc\SkyRoc\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Abstractions.dll
 C:\Users\96060\RiderProjects\SkyRoc\SkyRoc\bin\Debug\net9.0\SkyRoc.xml
 C:\Users\96060\RiderProjects\SkyRoc\SkyRoc\obj\Debug\net9.0\SkyRoc.xml
+C:\Users\96060\RiderProjects\SkyRoc\SkyRoc\obj\Debug\net9.0\swae.build.ex.cache
