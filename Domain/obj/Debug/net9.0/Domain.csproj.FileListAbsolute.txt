@@ -1,0 +1,15 @@
+C:\Users\96060\RiderProjects\SkyRoc\Domain\bin\Debug\net9.0\Domain.deps.json
+C:\Users\96060\RiderProjects\SkyRoc\Domain\bin\Debug\net9.0\Domain.dll
+C:\Users\96060\RiderProjects\SkyRoc\Domain\bin\Debug\net9.0\Domain.pdb
+C:\Users\96060\RiderProjects\SkyRoc\Domain\bin\Debug\net9.0\Common.dll
+C:\Users\96060\RiderProjects\SkyRoc\Domain\bin\Debug\net9.0\Common.pdb
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\Domain.csproj.AssemblyReference.cache
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\Domain.AssemblyInfoInputs.cache
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\Domain.AssemblyInfo.cs
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\Domain.csproj.CoreCompileInputs.cache
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\Domain.csproj.Up2Date
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\Domain.dll
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\refint\Domain.dll
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\Domain.pdb
+C:\Users\96060\RiderProjects\SkyRoc\Domain\obj\Debug\net9.0\ref\Domain.dll
