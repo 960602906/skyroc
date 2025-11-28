@@ -1,0 +1,210 @@
+﻿
+#==========================================
+# C# WebAPI 项目 .gitignore 配置
+#==========================================
+
+#------------------------------------------
+# Visual Studio 编译输出
+#------------------------------------------
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+#------------------------------------------
+# Visual Studio 缓存/临时文件
+#------------------------------------------
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Mono Auto Generated Files
+mono_crash.*
+
+#------------------------------------------
+# Build Results
+#------------------------------------------
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+# DNX
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+#------------------------------------------
+# NuGet Packages
+#------------------------------------------
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# NuGet Symbol Packages
+*.snupkg
+
+# NuGet v3 的项目缓存
+project.lock.json
+project.assets.json
+
+#------------------------------------------
+# .NET Core
+#------------------------------------------
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+#------------------------------------------
+# Rider
+#------------------------------------------
+.idea/
+*.sln.iml
+
+#------------------------------------------
+# User-specific files
+#------------------------------------------
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+#------------------------------------------
+# 测试结果
+#------------------------------------------
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# xUnit
+*.xunit.xml
+
+#------------------------------------------
+# 发布文件
+#------------------------------------------
+publish/
+*.Publish.xml
+*.pubxml
+*.publishproj
+
+# Microsoft Azure Web App publish settings
+*.azurePubxml
+# 注意: 如果需要在 Azure 发布，注释掉下一行
+*.pubxml
+*.publishproj
+
+#------------------------------------------
+# 数据库文件
+#------------------------------------------
+*.mdf
+*.ldf
+*.ndf
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+#------------------------------------------
+# 配置文件（包含敏感信息）
+#------------------------------------------
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+!appsettings.json
+
+# Connection strings
+ConnectionStrings.config
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+#------------------------------------------
+# 日志文件
+#------------------------------------------
+*.log
+logs/
+*.log.*
+
+#------------------------------------------
+# 其他
+#------------------------------------------
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Mac
+.DS_Store
+
+# JetBrains Rider
+.idea/
+
+# Backup & report files
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+ServiceFabricBackup/
+*.rptproj.bak
+
+# Node modules (如果使用前端工具)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 临时文件
+*.tmp
+*.temp
+~$*
+
+#------------------------------------------
+# 自定义忽略（根据项目需要）
+#------------------------------------------
+# Swagger 生成的文件（如果不想提交）
+# wwwroot/swagger/
+
+# 上传文件目录
+wwwroot/uploads/
+wwwroot/temp/
+
+# 缓存目录
+.cache/
