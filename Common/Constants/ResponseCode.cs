@@ -22,12 +22,17 @@ public enum ResponseCode
     ///     请求参数错误
     /// </summary>
     BadRequest = 400,
-
+    
     /// <summary>
     ///     未授权（未登录）
     /// </summary>
     Unauthorized = 401,
-
+    
+    /// <summary>
+    ///     认证失败
+    /// </summary>
+    AuthenticationFailed = 402,
+    
     /// <summary>
     ///     无权限访问
     /// </summary>

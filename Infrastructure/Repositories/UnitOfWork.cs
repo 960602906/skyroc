@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Repositories;
 
-public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
+public sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
 {
     private readonly ApplicationDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     private bool _disposed;
@@ -139,7 +139,7 @@ public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
     /// <summary>
     ///     受保护的 Dispose 方法
     /// </summary>
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_disposed)
             return;
@@ -156,7 +156,7 @@ public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
     /// <summary>
     ///     异步释放核心资源
     /// </summary>
-    protected virtual async ValueTask DisposeAsyncCore()
+    private async ValueTask DisposeAsyncCore()
     {
         if (_disposed)
             return;
