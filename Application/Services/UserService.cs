@@ -1,4 +1,5 @@
-﻿using Application.DTOs.User;
+﻿using Application.DTOs.Role;
+using Application.DTOs.User;
 using Application.Exceptions;
 using Application.Extensions;
 using Application.interfaces;
@@ -80,11 +81,16 @@ public class UserService(
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <exception cref="NotFoundException"></exception>
     public async Task<UserDto> GetUserByIdAsync(Guid id)
     {
         var user = await userRepository.GetByIdAsync(id);
-        return user is null ? throw new NotFoundException("用户不存在") : mapper.Map<UserDto>(user);
+        if (user is null) throw new NotFoundException("用户不存在");
+        var role = await roleRepository.GetRolesByUserIdAsync(id);
+        var userDto = mapper.Map<UserDto>(user);
+        var roleDto = mapper.Map<List<RoleDto>>(role);
+        userDto.Role = roleDto.FirstOrDefault();
+        return userDto;
     }
 
     /// <summary>

@@ -15,7 +15,7 @@ public class DbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext
     {
         // 获取连接字符串
         var connectionString =
-            "Host=localhost;Port=5432;Database=sky_roc;Username=postgres;Password=123456;Pooling=true;Maximum Pool Size=20;";
+            "Host=mrqin1997.pg.polardb.rds.aliyuncs.com;Port=5432;Database=sky_roc;Username=mr_qin;Password=MrQin19971014;Pooling=true;Maximum Pool Size=20;";
 
         if (string.IsNullOrEmpty(connectionString))
             throw new InvalidOperationException(

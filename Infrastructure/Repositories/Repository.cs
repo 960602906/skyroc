@@ -10,12 +10,12 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
 {
     protected readonly DbSet<T> DbSet = context.Set<T>();
 
-    public async Task<bool> ExistsAsync(Guid id)
+    public  async Task<bool> ExistsAsync(Guid id)
     {
         return await DbSet.AnyAsync(e => e.Id == id);
     }
 
-    public async Task<T?> GetByIdAsync(Guid id)
+    public virtual async Task<T?> GetByIdAsync(Guid id)
     {
         return await DbSet.FindAsync(id);
     }

@@ -19,12 +19,21 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
     {
         return await DbSet.Where(r => ids.Contains(r.Id)).ToListAsync();
     }
-
+    /// <summary>
+    ///  根据用户名查找用户
+    /// </summary>
+    /// <param name="username"></param>
+    /// <returns></returns>
     public Task<User?> FindByUsernameAsync(string username)
     {
         return DbSet.Where(u => u.Username == username).FirstOrDefaultAsync();
     }
-
+    
+    /// <summary>
+    ///  删除用户的指定角色
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="roleIds"></param>
     public async Task DeleteByUserIdAndRoleIdsAsync(Guid userId, IEnumerable<Guid> roleIds)
     {
         var userRoles = await _dbSetUserRole
@@ -33,7 +42,11 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
         _dbSetUserRole.RemoveRange(userRoles);
         await _context.SaveChangesAsync();
     }
-
+    /// <summary>
+    ///  添加用户的指定角色
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="roleIds"></param>
     public async Task AddByUserIdAndRoleIdsAsync(Guid userId, IEnumerable<Guid> roleIds)
     {
         var userRoles = roleIds.Select(roleId => new UserRole

@@ -1,4 +1,5 @@
-﻿using Common.Constants;
+﻿using Application.DTOs.Role;
+using Common.Constants;
 
 namespace Application.DTOs.User;
 
@@ -31,4 +32,9 @@ public class UserDto : BaseDto
     ///     邮箱
     /// </summary>
     public string? UserEmail { get; set; }
+    
+    /// <summary>
+    ///  角色列表
+    /// </summary>
+    public RoleDto? Role { get; set; }
 }
