@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.OpenApi.Models;
 
-namespace WebAPI.Extensions;
+namespace SkyRoc.Extensions;
 
 /// <summary>
 ///     Swagger 配置扩展

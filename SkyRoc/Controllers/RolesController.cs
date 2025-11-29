@@ -6,7 +6,7 @@ using Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebAPI.Controllers;
+namespace SkyRoc.Controllers;
 
 /// <summary>
 ///     角色管理控制器

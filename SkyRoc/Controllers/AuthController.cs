@@ -4,7 +4,7 @@ using Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebAPI.Controllers;
+namespace SkyRoc.Controllers;
 
 /// <summary>
 ///     认证控制器

@@ -4,7 +4,7 @@ using Application;
 using Infrastructure;
 using Infrastructure.Data;
 using SkyRoc.Converter;
-using WebAPI.Extensions;
+using SkyRoc.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

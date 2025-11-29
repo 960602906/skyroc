@@ -4,7 +4,7 @@ using Application.Exceptions;
 using Common.Constants;
 using Common.Models;
 
-namespace WebAPI.Middleware;
+namespace SkyRoc.Middleware;
 
 /// <summary>
 ///     全局异常处理中间件

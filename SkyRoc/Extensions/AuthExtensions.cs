@@ -3,7 +3,7 @@ using Common.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-namespace WebAPI.Extensions;
+namespace SkyRoc.Extensions;
 
 /// <summary>
 ///     鉴权扩展

@@ -1,6 +1,6 @@
-using WebAPI.Middleware;
+using SkyRoc.Middleware;
 
-namespace WebAPI.Extensions;
+namespace SkyRoc.Extensions;
 
 /// <summary>
 ///     中间件扩展方法
