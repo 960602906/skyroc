@@ -91,13 +91,26 @@ public class RolesController(IRoleService roleService) : ControllerBase
         await roleService.DeleteRoleAsync(id);
         return Ok(ApiResponse<string>.Ok("Role deleted successfully"));
     }
+    
+    /// <summary>
+    ///  批量删除角色
+    /// </summary>
+    /// <param name="roleIds"></param>
+    /// <returns></returns>
+    [HttpDelete("batchDelete")]
+    public async Task<IActionResult> BatchDeleteRoles(List<Guid> roleIds)
+    {
+        await roleService.DeleteAllRolesAsync(roleIds);
+        return  Ok(ApiResponse<string>.Ok("Roles deleted successfully"));
+    }
+    
 
     /// <summary>
     ///     为角色分配菜单
     /// </summary>
     /// <param name="dto"></param>
     /// <returns></returns>
-    [HttpPost("/assignMenus")]
+    [HttpPost("assignMenus")]
     public async Task<IActionResult> AssignMenus([FromBody] AssignMenusDto dto)
     {
         await roleService.AssignMenusToRoleAsync(dto.RoleId, dto.MenuIds);
@@ -109,7 +122,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// </summary>
     /// <param name="dto"></param>
     /// <returns></returns>
-    [HttpPost("/unassignRoles")]
+    [HttpPost("unassignRoles")]
     public async Task<IActionResult> UnAssignMenus([FromBody] AssignMenusDto dto)
     {
         await roleService.RemoveMenusFromRoleAsync(dto.RoleId, dto.MenuIds);

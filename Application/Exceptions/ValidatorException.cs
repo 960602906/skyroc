@@ -7,7 +7,7 @@ namespace Application.Exceptions;
 /// </summary>
 public class ValidationException() : Exception("发生一个或多个验证错误。")
 {
-    public new string? Message;
+    public new readonly string? Message;
 
     public ValidationException(IEnumerable<ValidationFailure> failures)
         : this()

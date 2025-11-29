@@ -27,6 +27,11 @@ public class UserService(
     IValidator<UpdateUserDto> updateUserValidator,
     ILogger<UserService> logger) : IUserService
 {
+    /// <summary>
+    ///  分页查询
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
     public async Task<PagedResult<UserDto>> GetPagedMenusAsync(UserQueryParameters parameters)
     {
         // 调用通用分页方法
@@ -50,11 +55,11 @@ public class UserService(
         var validationResult = await createUserValidator.ValidateAsync(request);
         if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
         var user = mapper.Map<User>(request);
-        if (request.Password != null) user.PasswordHash = PasswordHasher.Hash(request.Password);
         var userId = currentUserService.GetUserId();
         var userName = currentUserService.GetUserName();
         user.CreateBy = userId;
         user.CreateName = userName;
+        user.PasswordHash = PasswordHasher.Hash(user.Phone ?? "123456");
         try
         {
             await userRepository.AddAsync(user);
@@ -121,10 +126,15 @@ public class UserService(
         var userName = currentUserService.GetUserName();
         user.UpdateBy = userId;
         user.UpdateName = userName;
+      
         try
         {
             await userRepository.UpdateAsync(user);
             await unitOfWork.SaveChangesAsync();
+            if (request.RoleId is not null)
+            {
+              await AssignRolesToUserAsync(user.Id, [request.RoleId.Value]);
+            }
             logger.LogInformation("用户更新成功-Id:{UserId},Email:{Email}, ModifiedBy:{ModifiedBy}", user.Id, user.Email,
                 userId);
         }
@@ -134,6 +144,8 @@ public class UserService(
                 user.Email, userId, e.Message);
             throw new BusinessException("用户更新失败", e);
         }
+       
+        
     }
 
     /// <summary>
@@ -147,6 +159,43 @@ public class UserService(
         if (!exists) throw new NotFoundException("用户不存在");
         await userRepository.DeleteAsync(id);
         await unitOfWork.SaveChangesAsync();
+    }
+    
+    /// <summary>
+    ///  批量删除user
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <exception cref="BusinessException"></exception>
+    public async Task DeleteUsersAsync(List<Guid> ids)
+    {
+        if (ids.Count == 0)
+        {
+            throw new BusinessException("角色ID列表不能为空");
+        }
+        // 开启事务
+        await unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var user = await userRepository.GetByIdAsync(ids);
+            var userList = user.ToList();
+            var idList = ids.ToList();
+            if (userList.Count != idList.Count)
+            {
+                throw new BusinessException("部分用户不存在");
+            }
+            // 删除用户
+            await userRepository.DeleteRangeAsync(userList);
+        }
+        catch (Exception e)
+        {
+            // 回滚事务
+            await unitOfWork.RollbackTransactionAsync();
+            logger.LogError(e, "批量删除用户失败: {UserIds}", ids);
+            throw new BusinessException("批量删除用户失败");
+        }
+        await unitOfWork.SaveChangesAsync();
+        await unitOfWork.CommitTransactionAsync();
+        
     }
 
     /// <summary>

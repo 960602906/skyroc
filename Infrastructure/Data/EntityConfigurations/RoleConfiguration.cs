@@ -73,6 +73,10 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.HasIndex(x => x.Name)
             .IsUnique()
             .HasDatabaseName("idx_role_name");
+        
+        builder.HasIndex(x => x.Code)
+            .IsUnique()
+            .HasDatabaseName("idx_role_code");
 
         // 关系配置
         builder.HasMany(x => x.UserRoles)

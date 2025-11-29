@@ -12,7 +12,7 @@ public class CreateUserDto
     /// <summary>
     ///     性别
     /// </summary>
-    public GenderType? Gender { get; set; }
+    public GenderType? UserGender { get; set; }
 
     /// <summary>
     ///     昵称
@@ -22,20 +22,22 @@ public class CreateUserDto
     /// <summary>
     ///     电话
     /// </summary>
-    public string? Phone { get; set; }
+    public string? UserPhone { get; set; }
 
     /// <summary>
     ///     邮箱
     /// </summary>
-    public string? Email { get; set; }
+    public string? UserEmail { get; set; }
 
     /// <summary>
     ///     密码
     /// </summary>
     public string? Password { get; set; }
-
+    
+    public Status? Status { get; set; }
+    
     /// <summary>
-    ///     分配的角色 ID 集合
+    ///     分配的角色 ID 
     /// </summary>
-    public IEnumerable<Guid>? RoleIds { get; set; } = [];
+    public Guid? RoleId { get; set; }
 }

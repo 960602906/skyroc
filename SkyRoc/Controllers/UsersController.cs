@@ -87,13 +87,25 @@ public class UsersController(IUserService userService) : ControllerBase
         await userService.DeleteUserAsync(id);
         return Ok(ApiResponse<string>.Ok("User deleted successfully"));
     }
+    
+    /// <summary>
+    ///  批量删除用户
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
+    [HttpDelete("batchDelete")]
+    public async Task<IActionResult> BatchDelete(List<Guid> ids)
+    {
+        await userService.DeleteUsersAsync(ids);
+        return Ok(ApiResponse<string>.Ok("User deleted successfully"));
+    }
 
     /// <summary>
     ///     为用户分配角色
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPost("/assignRoles")]
+    [HttpPost("assignRoles")]
     public async Task<IActionResult> AssignRoles([FromBody] AssignRolesDto request)
     {
         await userService.AssignRolesToUserAsync(request.UserId, request.RoleIds);
@@ -105,7 +117,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpDelete("/unassignRoles")]
+    [HttpDelete("unassignRoles")]
     public async Task<IActionResult> UnassignRoles([FromBody] AssignRolesDto request)
     {
         await userService.RemoveRolesFromUserAsync(request.UserId, request.RoleIds);

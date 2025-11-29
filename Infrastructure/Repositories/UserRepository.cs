@@ -9,6 +9,16 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
 {
     private readonly ApplicationDbContext _context = context;
     private readonly DbSet<UserRole> _dbSetUserRole = context.Set<UserRole>();
+    
+    /// <summary>
+    ///  批量获取实体
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
+    public async Task<IEnumerable<User>> GetByIdAsync(IEnumerable<Guid> ids)
+    {
+        return await DbSet.Where(r => ids.Contains(r.Id)).ToListAsync();
+    }
 
     public Task<User?> FindByUsernameAsync(string username)
     {

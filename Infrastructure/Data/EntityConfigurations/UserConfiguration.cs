@@ -88,7 +88,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.Username)
             .IsUnique()
             .HasDatabaseName("idx_user_username");
-
+        
         builder.HasIndex(x => x.Email)
             .IsUnique()
             .HasDatabaseName("idx_user_email");

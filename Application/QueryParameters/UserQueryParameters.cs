@@ -34,7 +34,7 @@ public class UserQueryParameters : PagedQueryParameters
     /// <summary>
     ///  启用状态
     /// </summary>
-    public Status? Status { get; set; }
+    public Status? UserStatus { get; set; }
 
     /// <summary>
     ///     查询表达式
@@ -46,8 +46,8 @@ public class UserQueryParameters : PagedQueryParameters
             (string.IsNullOrWhiteSpace(UserName) || u.Username.Contains(UserName.Trim())) &&
             (string.IsNullOrWhiteSpace(UserEmail) || u.Email.Contains(UserEmail.Trim())) &&
             (string.IsNullOrWhiteSpace(NickName) || u.NickName.Contains(NickName.Trim())) &&
-            (string.IsNullOrWhiteSpace(UserPhone) ||    u.Phone != null &&  u.Phone.Equals(UserPhone.Trim())) &&
+            (string.IsNullOrWhiteSpace(UserPhone) ||  u.Phone != null &&  u.Phone.Equals(UserPhone.Trim())) &&
             (!UserGender.HasValue || u.Gender.Equals(UserGender)) &&
-            (!Status.HasValue || u.Status == Status.Value);
+            (!UserStatus.HasValue || u.Status == UserStatus.Value);
     }
 }

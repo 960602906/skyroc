@@ -40,6 +40,12 @@ public interface IRoleService
     ///     删除角色
     /// </summary>
     Task DeleteRoleAsync(Guid id);
+    
+    /// <summary>
+    ///  批量删除角色
+    /// </summary>
+    /// <returns></returns>
+    Task DeleteAllRolesAsync(List<Guid> roleIds);
 
     /// <summary>
     ///     给角色分配菜单权限
