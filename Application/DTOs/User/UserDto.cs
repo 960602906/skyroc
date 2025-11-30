@@ -33,6 +33,8 @@ public class UserDto : BaseDto
     /// </summary>
     public string? UserEmail { get; set; }
     
+    public Guid? RoleId { get; set; }
+    
     /// <summary>
     ///  角色列表
     /// </summary>

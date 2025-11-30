@@ -18,7 +18,19 @@ public class MenuMappingProfile : Profile
         
         CreateMap<Menu, MenuTreeDto>()
             .ForMember(m => m.I18nKey, opt => opt.MapFrom(src => src.I18NKey))
-            .ForMember(m => m.Children, opt => opt.Condition(src => src.Children.Count != 0));
+            .ForMember(m => m.Children, opt => opt.Condition(src => src.Children.Count != 0));;
+        
+        CreateMap<List<Menu>, List<MenuTreeDto>>()
+            .ConvertUsing((src, dest, ctx) => 
+            {
+                // 先映射所有
+                var allDos = src.Select(m => ctx.Mapper.Map<MenuTreeDto>(m)).ToList();
+                // 再过滤掉有 parentId 的顶层节点
+                var rootDos = allDos.Where(m => m.ParentId is null)
+                    .OrderBy(m => m.Order).ToList();
+        
+                return rootDos;
+            });
         
         CreateMap<CreateMenuDto, Menu>();
         CreateMap<UpdateMenuDto, Menu>();

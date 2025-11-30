@@ -98,17 +98,19 @@ public class MenuService(
     {
         var menus = await menuRepository.GetAllAsync();
         return mapper.Map<List<MenuTreeDto>>(menus);
+        
+      
     }
 
     /// <summary>
     ///     获取树形菜单
     /// </summary>
     /// <returns></returns>
-    public async Task<IEnumerable<MenuDto>> GetMenuTreeAsync()
+    public async Task<List<MenuTreeDto>> GetMenuTreeAsync()
     {
         var menus = await menuRepository.GetAllAsync();
         // 构建菜单树的逻辑
-        return mapper.Map<IEnumerable<MenuDto>>(menus);
+        return mapper.Map<List<MenuTreeDto>>(menus);
     }
 
     /// <summary>
@@ -117,24 +119,24 @@ public class MenuService(
     /// <param name="roleId"></param>
     /// <returns></returns>
     /// <exception cref="NotFoundException"></exception>
-    public async Task<IEnumerable<MenuDto>> GetMenusByRoleIdAsync(Guid roleId)
+    public async Task<List<MenuDto>> GetMenusByRoleIdAsync(Guid roleId)
     {
         var role = await roleRepository.GetByIdAsync(roleId);
         if (role is null)
             throw new NotFoundException("菜单不存在");
         var menus = await menuRepository.GetMenusByRoleIdAsync(roleId);
         // 构建菜单树的逻辑
-        return mapper.Map<IEnumerable<MenuDto>>(menus);
+        return mapper.Map<List<MenuDto>>(menus);
     }
 
-    public async Task<IEnumerable<MenuDto>> GetMenuTreeByRoleIdAsync(Guid roleId)
+    public async Task<List<MenuDto>> GetMenuTreeByRoleIdAsync(Guid roleId)
     {
         var role = await roleRepository.GetByIdAsync(roleId);
         if (role is null)
             throw new NotFoundException("菜单不存在");
         var menus = await menuRepository.GetMenusByRoleIdAsync(roleId);
         // 构建菜单树的逻辑
-        return mapper.Map<IEnumerable<MenuDto>>(menus);
+        return mapper.Map<List<MenuDto>>(menus);
     }
 
     /// <summary>

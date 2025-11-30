@@ -40,17 +40,17 @@ public interface IMenuService
     /// <summary>
     ///     获取菜单树形结构
     /// </summary>
-    Task<IEnumerable<MenuDto>> GetMenuTreeAsync();
+    Task<List<MenuTreeDto>> GetMenuTreeAsync();
 
     /// <summary>
     ///     根据角色 ID 获取菜单列表
     /// </summary>
-    Task<IEnumerable<MenuDto>> GetMenusByRoleIdAsync(Guid roleId);
+    Task<List<MenuDto>> GetMenusByRoleIdAsync(Guid roleId);
 
     /// <summary>
     ///     根据角色 ID 获取菜单树形结构
     /// </summary>
-    Task<IEnumerable<MenuDto>> GetMenuTreeByRoleIdAsync(Guid roleId);
+    Task<List<MenuDto>> GetMenuTreeByRoleIdAsync(Guid roleId);
 
     /// <summary>
     ///     更新菜单

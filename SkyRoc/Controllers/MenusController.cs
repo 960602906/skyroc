@@ -50,7 +50,13 @@ public class MenusController(
     public async Task<IActionResult> GetAllMenusTreeAsync()
     {
         var menus = await menuService.GetAllMenusTreeAsync();
-        return Ok(ApiResponse<List<MenuTreeDto>>.Ok(menus));
+        return Ok(ApiResponse<PagedResult<MenuTreeDto>>.Ok(new PagedResult<MenuTreeDto>
+        {
+            Current = 1,
+            Size = menus.Count,
+            Total = menus.Count,
+            Records = menus
+        }));
     }
     
     /// <summary>

@@ -21,9 +21,9 @@ public class RoleDto : BaseDto
     ///     角色描述
     /// </summary>
     public string? RoleDesc { get; set; }
-
+    
     /// <summary>
     ///     角色拥有的菜单权限集合
     /// </summary>
-    public IEnumerable<MenuDto> Menus { get; set; } = [];
+    public List<MenuDto>? Menus { get; set; }
 }
