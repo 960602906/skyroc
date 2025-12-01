@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Common.Constants;
 using Common.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -78,9 +79,8 @@ public static class AuthExtensions
     {
         //✅ 不要 context.NoResult()，让流程继续
         // ✅ 不要直接 WriteAsJsonAsync，让后续中间件处理
-        var logger = context.HttpContext.RequestServices
-            .GetRequiredService<ILogger<JwtBearerHandler>>();
-        logger.LogWarning("Token invalid");
+
+
         await Task.CompletedTask;
     }
 
@@ -97,13 +97,69 @@ public static class AuthExtensions
             "Authorization challenge for path: {Path}",
             context.Request.Path);
         context.HandleResponse();
-        if (!context.Response.HasStarted)
+        // 检查响应是否已经开始（避免重复写入）
+        if (context.Response.HasStarted) await Task.CompletedTask;
+
+        context.Response.ContentType = "application/json; charset=utf-8";
+        
+        // 判断异常类型，区分不同的认证失败原因
+        if (context.AuthenticateFailure != null)
         {
-            // var token = context.Request.Headers["Authorization"].ToString();
-            context.Response.ContentType = "application/json; charset=utf-8";
-            var result = ApiResponse<string>.Unauthorized("认证失败，请提供有效的 Token");
-            await context.Response.WriteAsJsonAsync(result);
+            await HandleAuthenticationFailure(context, context.AuthenticateFailure);
         }
+        
+        // 如果没有异常，说明未提供令牌
+        var authHeader = context.Request.Headers.Authorization.ToString();
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            var noToken  = ApiResponse<string>.Unauthorized("认证失败,未提供认证令牌");
+            await context.Response.WriteAsJsonAsync(noToken);
+        }
+        // 其他情况（令牌格式错误等）
+        var result = ApiResponse<string>.Unauthorized("认证失败，令牌格式错误或无效");
+        await context.Response.WriteAsJsonAsync(result);
+    }
+
+    /// <summary>
+    /// 处理认证失败异常
+    /// </summary>
+    private static Task HandleAuthenticationFailure(JwtBearerChallengeContext context, Exception exception)
+    {
+        return exception switch
+        {
+            // ⭐ 1. 令牌过期 - 最常见的情况
+            SecurityTokenExpiredException expiredException => context.Response.WriteAsJsonAsync(new ApiResponse<string>
+            {
+                Code = ResponseCode.Unauthorized,
+                Msg = "令牌已过期，请重新登录或刷新令牌",
+            }),
+            // 5. 发行者无效
+            SecurityTokenInvalidIssuerException => context.Response.WriteAsJsonAsync(new ApiResponse<string>
+            {
+                Code = ResponseCode.Unauthorized,
+                Msg = "令牌发行者无效",
+              
+            }),
+            // 6. 受众无效
+            SecurityTokenInvalidAudienceException => context.Response.WriteAsJsonAsync(new ApiResponse<string>
+            {
+                Code = ResponseCode.Unauthorized,
+                Msg = "令牌受众无效",
+            }),
+            // 7. 其他安全令牌异常
+            SecurityTokenException => context.Response.WriteAsJsonAsync(new ApiResponse<string>
+            {
+                Code = ResponseCode.Unauthorized,
+                Msg = exception.Message,
+            }),
+            // 8. 其他未知异常
+            _ => context.Response.WriteAsJsonAsync(new  ApiResponse<string>
+            {
+                Code = ResponseCode.InternalError,
+                Msg = "认证过程中出现未知错误",
+            })
+        };
+
     }
 
     /// <summary>

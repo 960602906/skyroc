@@ -9,37 +9,75 @@ namespace Infrastructure.Repositories;
 public class Repository<T>(ApplicationDbContext context) : IRepository<T> where T : BaseEntity
 {
     protected readonly DbSet<T> DbSet = context.Set<T>();
-
-    public  async Task<bool> ExistsAsync(Guid id)
+    
+    /// <summary>
+    ///  根据id验证是否存在
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public virtual async Task<bool> ExistsAsync(Guid id)
     {
         return await DbSet.AnyAsync(e => e.Id == id);
     }
-
+    
+    /// <summary>
+    ///  根据ID获取实体
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public virtual async Task<T?> GetByIdAsync(Guid id)
     {
         return await DbSet.FindAsync(id);
     }
-
-    public async Task<T?> GetByConditionAsync(Expression<Func<T, bool>> predicate)
+    
+    /// <summary>
+    ///  根据条件获取单个实体
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
+    public virtual async Task<T?> GetByConditionAsync(Expression<Func<T, bool>> predicate)
     {
         return await DbSet.Where(predicate).FirstOrDefaultAsync();
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    /// <summary>
+    ///  获取所有实体
+    /// </summary>
+    /// <returns></returns>
+    public virtual async Task<IEnumerable<T>> GetAllAsync()
     {
         return await DbSet.ToListAsync();
     }
-
-    public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+    
+    /// <summary>
+    ///  条件查询
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
+    public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
     {
         return await DbSet.Where(predicate).ToListAsync();
     }
-
-    public Task<T?> FirstFindAsync(Expression<Func<T, bool>> predicate)
+    
+    /// <summary>
+    /// 条件查询第一个实体
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
+    public virtual Task<T?> FirstFindAsync(Expression<Func<T, bool>> predicate)
     {
         return DbSet.Where(predicate).FirstOrDefaultAsync();
     }
-
+    
+    /// <summary>
+    ///  分页查询
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <param name="pageNumber"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="orderBy"></param>
+    /// <param name="isDescending"></param>
+    /// <returns></returns>
     public async Task<(IEnumerable<T> Data, int Total)> GetPagedAsync(
         Expression<Func<T, bool>>? predicate,
         int pageNumber,
@@ -59,13 +97,21 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
             .ToListAsync();
         return (data, total);
     }
-
-    public async Task AddAsync(T entity)
+    
+    /// <summary>
+    ///  添加实体
+    /// </summary>
+    /// <param name="entity"></param>
+    public virtual async Task AddAsync(T entity)
     {
         await DbSet.AddAsync(entity);
         await context.SaveChangesAsync();
     }
-
+    
+    /// <summary>
+    ///  批量添加实体
+    /// </summary>
+    /// <param name="entities"></param>
     public async Task AddRangeAsync(IEnumerable<T> entities)
     {
         await DbSet.AddRangeAsync(entities);
@@ -99,7 +145,7 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
             await context.SaveChangesAsync();
         }
     }
-
+    
     public async Task DeleteRangeAsync(IEnumerable<T> entities)
     {
         DbSet.RemoveRange(entities);
