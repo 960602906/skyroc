@@ -177,7 +177,14 @@ public class MenuService(
         var menu = await menuRepository.GetByIdAsync(id);
         if (menu is null)
             throw new NotFoundException("菜单不存在");
-        await menuRepository.DeleteAsync(menu);
-        await unitOfWork.SaveChangesAsync();
+        try
+        {
+            await menuRepository.DeleteAsync(menu);
+        }
+        catch(InvalidOperationException e)
+        {
+            throw new BusinessException(e.Message, e);
+        }
+       
     }
 }

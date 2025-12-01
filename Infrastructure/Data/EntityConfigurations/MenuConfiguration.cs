@@ -68,7 +68,7 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         
         builder.Property(x => x.IconType)
             .HasColumnName("icon_type")
-            .HasColumnType("varchar(50)");
+            .HasColumnType("integer");
         
         builder.Property(x => x.Order)
             .HasColumnName("order")
@@ -151,7 +151,8 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
             .WithMany(x => x.Children)
             .HasForeignKey(x => x.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
-
+        
+        // 
         builder.HasMany(x => x.RoleMenus)
             .WithOne(x => x.Menu)
             .HasForeignKey(x => x.MenuId)

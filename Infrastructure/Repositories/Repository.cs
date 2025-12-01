@@ -78,7 +78,7 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     /// <param name="orderBy"></param>
     /// <param name="isDescending"></param>
     /// <returns></returns>
-    public async Task<(IEnumerable<T> Data, int Total)> GetPagedAsync(
+    public virtual async Task<(IEnumerable<T> Data, int Total)> GetPagedAsync(
         Expression<Func<T, bool>>? predicate,
         int pageNumber,
         int pageSize,
@@ -112,31 +112,31 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     ///  批量添加实体
     /// </summary>
     /// <param name="entities"></param>
-    public async Task AddRangeAsync(IEnumerable<T> entities)
+    public virtual async Task AddRangeAsync(IEnumerable<T> entities)
     {
         await DbSet.AddRangeAsync(entities);
         await context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(T entity)
+    public virtual async Task UpdateAsync(T entity)
     {
         DbSet.Update(entity);
         await context.SaveChangesAsync();
     }
 
-    public async Task UpdateRangeAsync(IEnumerable<T> entities)
+    public virtual async Task UpdateRangeAsync(IEnumerable<T> entities)
     {
         DbSet.UpdateRange(entities);
         await context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(T entity)
+    public virtual async Task DeleteAsync(T entity)
     {
         DbSet.Remove(entity);
         await context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid id)
+    public virtual async Task DeleteAsync(Guid id)
     {
         var entity = await DbSet.FindAsync(id);
         if (entity is not null)
@@ -146,13 +146,13 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         }
     }
     
-    public async Task DeleteRangeAsync(IEnumerable<T> entities)
+    public virtual async Task DeleteRangeAsync(IEnumerable<T> entities)
     {
         DbSet.RemoveRange(entities);
         await context.SaveChangesAsync();
     }
 
-    public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
+    public virtual async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
     {
         var result = await DbSet.Where(predicate).AnyAsync();
         return result;
