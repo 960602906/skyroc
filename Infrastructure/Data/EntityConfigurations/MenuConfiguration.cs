@@ -33,6 +33,18 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
             .HasColumnType("varchar(100)")
             .IsRequired();
 
+        builder.Property(x => x.MenuType)
+            .HasColumnName("menu_type")
+            .HasColumnType("integer");
+
+        builder.Property(x => x.Layout)
+            .HasColumnName("layout")
+            .HasColumnType("varchar(100)");
+
+        builder.Property(x => x.Redirect)
+            .HasColumnName("redirect")
+            .HasColumnType("varchar(100)");
+        
         builder.Property(x => x.Component)
             .HasColumnName("component")
             .HasColumnType("varchar(100)");

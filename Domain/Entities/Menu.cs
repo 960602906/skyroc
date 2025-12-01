@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities;
+﻿using Common.Constants;
+
+namespace Domain.Entities;
 
 /// <summary>
 ///     菜单实体
@@ -15,7 +17,22 @@ public sealed class Menu : BaseEntity
     ///     路由路径
     /// </summary>
     public required string Path { get; set; }
-
+    
+    /// <summary>
+    ///  菜单类型
+    /// </summary>
+    public MenuType? MenuType { get; set; }
+    
+    /// <summary>
+    ///  布局组件
+    /// </summary>
+    public string? Layout { get; set; }
+    
+    /// <summary>
+    ///  重定向
+    /// </summary>
+    public string? Redirect { get; set; }
+    
     /// <summary>
     ///     只有第一级或最后一级路由才有该属性，作为布局组件或者页面组件
     /// </summary>

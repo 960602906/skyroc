@@ -82,9 +82,17 @@ namespace Infrastructure.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("keep_alive");
 
+                    b.Property<string>("Layout")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("layout");
+
                     b.Property<string>("LocalIcon")
                         .HasColumnType("varchar(100)")
                         .HasColumnName("local_icon");
+
+                    b.Property<int?>("MenuType")
+                        .HasColumnType("integer")
+                        .HasColumnName("menu_type");
 
                     b.Property<bool?>("MultiTab")
                         .HasColumnType("boolean")
@@ -107,6 +115,10 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(100)")
                         .HasColumnName("path");
+
+                    b.Property<string>("Redirect")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("redirect");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
