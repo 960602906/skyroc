@@ -14,10 +14,18 @@ public class MenuMappingProfile : Profile
     {
         // ==================== Menu Mappings ====================
         CreateMap<Menu, MenuDto>()
-            .ForMember(m => m.I18nKey, opt => opt.MapFrom(src => src.I18NKey));
+            .ForMember(m => m.I18nKey, opt => opt.MapFrom(src => src.I18NKey))
+            .ForMember(m => m.MenuName, opt => opt.MapFrom(src => src.Title))
+            .ForMember(m => m.RouteName, opt => opt.MapFrom(src => src.Name))
+            .ForMember(m => m.RoutePath, opt => opt.MapFrom(src => src.Path))
+            .ForMember(x => x.Page, opt => opt.MapFrom(src => src.Component));
         
         CreateMap<Menu, MenuTreeDto>()
             .ForMember(m => m.I18nKey, opt => opt.MapFrom(src => src.I18NKey))
+            .ForMember(m => m.MenuName, opt => opt.MapFrom(src => src.Title))
+            .ForMember(m => m.RouteName, opt => opt.MapFrom(src => src.Name))
+            .ForMember(m => m.RoutePath, opt => opt.MapFrom(src => src.Path))
+            .ForMember(x => x.Page, opt => opt.MapFrom(src => src.Component))
             .ForMember(m => m.Children, opt => opt.Condition(src => src.Children.Count != 0));;
         
         CreateMap<List<Menu>, List<MenuTreeDto>>()
@@ -32,8 +40,18 @@ public class MenuMappingProfile : Profile
                 return rootDos;
             });
         
-        CreateMap<CreateMenuDto, Menu>();
-        CreateMap<UpdateMenuDto, Menu>();
+        CreateMap<CreateMenuDto, Menu>()
+            .ForMember(x => x.I18NKey, opt => opt.MapFrom(src => src.I18NKey))
+            .ForMember(x => x.Title, opt => opt.MapFrom(src => src.MenuName))
+            .ForMember(x => x.Name, opt => opt.MapFrom(src => src.MenuName))
+            .ForMember(x => x.Path, opt => opt.MapFrom(src => src.RoutePath))
+            .ForMember(x => x.Component, opt => opt.MapFrom(src => src.Page));
+        CreateMap<UpdateMenuDto, Menu>()
+            .ForMember(x => x.I18NKey, opt => opt.MapFrom(src => src.I18NKey))
+            .ForMember(x => x.Title, opt => opt.MapFrom(src => src.MenuName))
+            .ForMember(x => x.Name, opt => opt.MapFrom(src => src.RouteName))
+            .ForMember(x => x.Path, opt => opt.MapFrom(src => src.RoutePath))
+            .ForMember(x => x.Component, opt => opt.MapFrom(src => src.Page));
 
         
         // ==================== Route Mappings ====================

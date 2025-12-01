@@ -1,4 +1,6 @@
-﻿namespace Application.DTOs.Menu;
+﻿using Common.Constants;
+
+namespace Application.DTOs.Menu;
 
 /// <summary>
 ///     更新菜单 DTO - 用于接收更新菜单的请求
@@ -11,24 +13,36 @@ public class UpdateMenuDto
     public Guid Id { get; set; }
 
     /// <summary>
+    ///  菜单类型
+    /// </summary>
+    public MenuType? MenuType { get; set; }
+    
+    /// <summary>
     ///     菜单名称
     /// </summary>
-    public string? Name { get; set; }
+    public string? MenuName { get; set; }
 
+    /// <summary>
+    ///  路由名称
+    /// </summary>
+    public string? RouteName { get; set; }
+    
     /// <summary>
     ///     路由路径
     /// </summary>
-    public string? Path { get; set; }
-
+    public string? RoutePath { get; set; }
+    
+    /// <summary>
+    ///  布局组件
+    /// </summary>
+    public string? Layout { get; set; }
+    
     /// <summary>
     ///     只有第一级或最后一级路由才有该属性，作为布局组件或者页面组件
     /// </summary>
-    public string? Component { get; set; }
+    public string? Page { get; set; }
 
-    /// <summary>
-    ///     菜单名称
-    /// </summary>
-    public string? Title { get; set; }
+
 
     /// <summary>
     ///     国际化键值
@@ -59,7 +73,12 @@ public class UpdateMenuDto
     ///     本地图标
     /// </summary>
     public string? LocalIcon { get; set; }
-
+    
+    /// <summary>
+    ///  图标类型
+    /// </summary>
+    public string? IconType { get; set; }
+    
     /// <summary>
     ///     路由的外部链接。如果设置，点击菜单时会跳转到外部链接而不是路由路径
     /// </summary>
@@ -84,4 +103,14 @@ public class UpdateMenuDto
     ///     若设置，路由将在标签页中固定显示，其值表示固定标签页的顺序（首页是特殊的，它将自动保持 fixed）
     /// </summary>
     public int? FixedIndexInTab { get; set; }
+    
+    /// <summary>
+    ///   父级菜单ID
+    /// </summary>
+    public Guid? ParentId { get; set; }
+    
+    /// <summary>
+    ///  状态
+    /// </summary>
+    public Status? Status { get; set; }
 }

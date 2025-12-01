@@ -65,7 +65,11 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.Property(x => x.LocalIcon)
             .HasColumnName("local_icon")
             .HasColumnType("varchar(100)");
-
+        
+        builder.Property(x => x.IconType)
+            .HasColumnName("icon_type")
+            .HasColumnType("varchar(50)");
+        
         builder.Property(x => x.Order)
             .HasColumnName("order")
             .HasColumnType("integer");

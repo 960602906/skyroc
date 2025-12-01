@@ -76,6 +76,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("icon");
 
+                    b.Property<string>("IconType")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("icon_type");
+
                     b.Property<bool>("KeepAlive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
