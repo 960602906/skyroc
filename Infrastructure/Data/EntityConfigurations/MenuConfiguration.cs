@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Common.Constants;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -65,10 +66,10 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.Property(x => x.LocalIcon)
             .HasColumnName("local_icon")
             .HasColumnType("varchar(100)");
-        
+
         builder.Property(x => x.IconType)
-            .HasColumnName("icon_type")
-            .HasColumnType("integer");
+            .HasColumnName("icon_type");
+            // .HasColumnType("integer");
         
         builder.Property(x => x.Order)
             .HasColumnName("order")
