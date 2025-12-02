@@ -152,6 +152,12 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         await context.SaveChangesAsync();
     }
 
+    public virtual async Task DeleteRangeAsync(IEnumerable<Guid> guids)
+    {
+        var entities = await DbSet.Where(e => guids.Contains(e.Id)).ToListAsync();
+        await DeleteRangeAsync(entities);
+    }
+
     public virtual async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
     {
         var result = await DbSet.Where(predicate).AnyAsync();

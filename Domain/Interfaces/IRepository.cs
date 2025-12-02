@@ -74,20 +74,25 @@ public interface IRepository<TEntity>
     Task UpdateRangeAsync(IEnumerable<TEntity> entities);
 
     /// <summary>
-    ///     删除实体 (硬删除)
+    ///     删除实体 
     /// </summary>
     Task DeleteAsync(TEntity entity);
 
     /// <summary>
-    ///     根据ID删除实体 (硬删除)
+    ///     根据ID删除实体 
     /// </summary>
     Task DeleteAsync(Guid id);
 
     /// <summary>
-    ///     批量删除实体 (硬删除)
+    ///     批量删除实体 
     /// </summary>
     Task DeleteRangeAsync(IEnumerable<TEntity> entities);
-
+    
+    /// <summary>
+    ///     批量删除实体 
+    /// </summary>
+    Task DeleteRangeAsync(IEnumerable<Guid> guids);
+    
     /// <summary>
     ///     检查实体是否存在
     /// </summary>

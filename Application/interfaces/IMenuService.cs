@@ -61,4 +61,11 @@ public interface IMenuService
     ///     删除菜单
     /// </summary>
     Task DeleteMenuAsync(Guid id);
+    
+    /// <summary>
+    ///  批量删除菜单
+    /// </summary>
+    /// <param name="menuIds"></param>
+    /// <returns></returns>
+    Task DeleteMenusAsync(List<Guid> menuIds);
 }

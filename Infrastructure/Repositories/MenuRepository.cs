@@ -8,6 +8,17 @@ namespace Infrastructure.Repositories;
 public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(context), IMenuRepository
 {
     private readonly DbSet<RoleMenu> _dbSetRoleMenu = context.Set<RoleMenu>();
+    
+    /// <summary>
+    ///  批量删除实体
+    /// </summary>
+    /// <param name="guids"></param>
+    /// <returns></returns>
+    public override Task DeleteRangeAsync(IEnumerable<Guid> guids)
+    {
+        var guidList = guids.ToList();
+        return guidList.Count == 0 ? throw new Exception("There are no menus in the database.") : DeleteRangeAsync(DbSet.Where(m => guidList.Contains(m.Id)));
+    }
 
     /// <summary>
     ///     批量删除菜单
@@ -120,7 +131,6 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
     {
         var menus = await DbSet
             .Where(m => menuIds.Contains(m.Id))
-            .AsNoTracking()
             .ToListAsync();
 
         // 计算每个菜单的深度

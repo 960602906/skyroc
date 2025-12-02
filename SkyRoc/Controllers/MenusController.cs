@@ -106,4 +106,16 @@ public class MenusController(
         await menuService.DeleteMenuAsync(id);
         return Ok(ApiResponse<string>.Ok("Menu deleted successfully"));
     }
+    
+    /// <summary>
+    ///  批量删除菜单
+    /// </summary>
+    /// <param name="menuIds"></param>
+    /// <returns></returns>
+    [HttpDelete("batchDelete")]
+    public async Task<IActionResult> BatchDelete([FromBody] List<Guid> menuIds)
+    {
+        await menuService.DeleteMenusAsync(menuIds);
+        return Ok(ApiResponse<string>.Ok("Menus deleted successfully"));
+    }
 }

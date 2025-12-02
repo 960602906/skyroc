@@ -89,7 +89,7 @@ public class MenuService(
         var menus = await menuRepository.GetAllAsync();
         return mapper.Map<List<MenuDto>>(menus);
     }
-    
+
     /// <summary>
     ///     获取所有菜单树形结构
     /// </summary>
@@ -98,8 +98,6 @@ public class MenuService(
     {
         var menus = await menuRepository.GetAllAsync();
         return mapper.Map<List<MenuTreeDto>>(menus);
-        
-      
     }
 
     /// <summary>
@@ -172,6 +170,12 @@ public class MenuService(
         }
     }
 
+    /// <summary>
+    ///     删除菜单
+    /// </summary>
+    /// <param name="id"></param>
+    /// <exception cref="NotFoundException"></exception>
+    /// <exception cref="BusinessException"></exception>
     public async Task DeleteMenuAsync(Guid id)
     {
         var menu = await menuRepository.GetByIdAsync(id);
@@ -181,10 +185,26 @@ public class MenuService(
         {
             await menuRepository.DeleteAsync(menu);
         }
-        catch(InvalidOperationException e)
+        catch (InvalidOperationException e)
         {
             throw new BusinessException(e.Message, e);
         }
-       
+    }
+
+    /// <summary>
+    ///     批量删除菜单
+    /// </summary>
+    /// <param name="menuIds"></param>
+    /// <exception cref="BusinessException"></exception>
+    public async Task DeleteMenusAsync(List<Guid> menuIds)
+    {
+        try
+        {
+            await menuRepository.DeleteRangeAsync(menuIds);
+        }
+        catch (InvalidOperationException e)
+        {
+            throw new BusinessException(e.Message, e);
+        }
     }
 }
