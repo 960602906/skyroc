@@ -24,6 +24,16 @@ public class RoutesDto
     ///     只有第一级或最后一级路由才有该属性，作为布局组件或者页面组件
     /// </summary>
     public string? Component { get; set; }
+    
+    /// <summary>
+    ///  布局组件
+    /// </summary>
+    public string? Layout { get; set; }
+    
+    /// <summary>
+    ///  重定向
+    /// </summary>
+    public string? Redirect { get; set; }
 
     /// <summary>
     ///     元信息
