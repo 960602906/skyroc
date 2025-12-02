@@ -70,7 +70,7 @@ public class CreateMenuDto
     /// <summary>
     ///  图标类型
     /// </summary>
-    public string? IconType { get; set; }
+    public IconType? IconType { get; set; }
     
     /// <summary>
     ///     路由的外部链接。如果设置，点击菜单时会跳转到外部链接而不是路由路径
