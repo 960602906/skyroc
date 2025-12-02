@@ -12,17 +12,17 @@ public class UpdateRoleDto
     /// <summary>
     ///     角色名称
     /// </summary>
-    public string? RoleName { get; set; }
+    public string? Name { get; set; }
 
     /// <summary>
     ///     角色编码
     /// </summary>
-    public string? RoleCode { get; set; }
+    public string? Code { get; set; }
 
     /// <summary>
     ///     角色描述
     /// </summary>
-    public string? RoleDesc { get; set; }
+    public string? Desc { get; set; }
     
     public Status? Status { get; set; }
 }

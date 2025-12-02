@@ -32,15 +32,31 @@ builder.Services.AddAuthenticationServices(configuration);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // 添加自定义日期时间转换器
-        options.JsonSerializerOptions.Converters.Add(new CustomDateTimeConverter());
-        options.JsonSerializerOptions.Converters.Add(new NullableCustomDateTimeConverter());
-        // 忽略空值
-        options.JsonSerializerOptions.DefaultIgnoreCondition =
-            JsonIgnoreCondition.WhenWritingNull;
-        // 其他 JSON 配置（可选）
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; // 驼峰命名
-        options.JsonSerializerOptions.WriteIndented = true; // 格式化输出（开发环境）
+        var jsonOptions = options.JsonSerializerOptions;
+        // 1. 枚举转数字（核心配置）
+        /*jsonOptions.Converters.Add(new EnumToNumberConverterFactory());*/
+        // 2. 属性命名策略
+        jsonOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        // 3. 忽略null值属性
+        jsonOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        // 4. 允许尾随逗号
+        jsonOptions.AllowTrailingCommas = true;
+        // 5. 只读属性序列化
+        jsonOptions.IncludeFields = false;
+        // 6. 大小写不敏感
+        jsonOptions.PropertyNameCaseInsensitive = true;
+        // 7. 数字处理
+        jsonOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
+        // 8. 循环引用处理（.NET 9.0新特性）
+        jsonOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        // 9. 最大深度限制
+        jsonOptions.MaxDepth = 64;
+        // 10.添加自定义日期时间转换器
+        jsonOptions.Converters.Add(new CustomDateTimeConverter());
+        jsonOptions.Converters.Add(new NullableCustomDateTimeConverter());
+    
+        // 11.格式化输出（开发环境）
+        jsonOptions.WriteIndented = true; // 格式化输出（开发环境）
     });
 
 // 添加 Swagger

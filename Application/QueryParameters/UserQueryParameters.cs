@@ -9,12 +9,12 @@ public class UserQueryParameters : PagedQueryParameters
     /// <summary>
     ///     用户名
     /// </summary>
-    public string? UserName { get; set; }
+    public string? Username { get; set; }
 
     /// <summary>
     ///     性别
     /// </summary>
-    public GenderType? UserGender { get; set; }
+    public GenderType? Gender { get; set; }
 
     /// <summary>
     ///     昵称
@@ -24,17 +24,17 @@ public class UserQueryParameters : PagedQueryParameters
     /// <summary>
     ///     电话
     /// </summary>
-    public string? UserPhone { get; set; }
+    public string? Phone { get; set; }
 
     /// <summary>
     ///     邮箱
     /// </summary>
-    public string? UserEmail { get; set; }
+    public string? Email { get; set; }
     
     /// <summary>
     ///  启用状态
     /// </summary>
-    public Status? UserStatus { get; set; }
+    public Status? Status { get; set; }
 
     /// <summary>
     ///     查询表达式
@@ -43,11 +43,11 @@ public class UserQueryParameters : PagedQueryParameters
     public Expression<Func<User, bool>> QueryBuild()
     {
         return u =>
-            (string.IsNullOrWhiteSpace(UserName) || u.Username.Contains(UserName.Trim())) &&
-            (string.IsNullOrWhiteSpace(UserEmail) || u.Email.Contains(UserEmail.Trim())) &&
+            (string.IsNullOrWhiteSpace(Username) || u.Username.Contains(Username.Trim())) &&
+            (string.IsNullOrWhiteSpace(Email) || u.Email.Contains(Email.Trim())) &&
             (string.IsNullOrWhiteSpace(NickName) || u.NickName.Contains(NickName.Trim())) &&
-            (string.IsNullOrWhiteSpace(UserPhone) ||  u.Phone != null &&  u.Phone.Equals(UserPhone.Trim())) &&
-            (!UserGender.HasValue || u.Gender.Equals(UserGender)) &&
-            (!UserStatus.HasValue || u.Status == UserStatus.Value);
+            (string.IsNullOrWhiteSpace(Phone) ||  u.Phone != null &&  u.Phone.Equals(Phone.Trim())) &&
+            (!Gender.HasValue || u.Gender.Equals(Gender)) &&
+            (!Status.HasValue || u.Status == Status.Value);
     }
 }

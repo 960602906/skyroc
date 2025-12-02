@@ -12,12 +12,12 @@ public class RoleQueryParameters : PagedQueryParameters
     /// <summary>
     ///     角色名称
     /// </summary>
-    public string? RoleName { get; set; }
+    public string? Name { get; set; }
 
     /// <summary>
     ///     角色编码
     /// </summary>
-    public string? RoleCode { get; set; }
+    public string? Code { get; set; }
     
     /// <summary>
     ///  启用状态
@@ -31,8 +31,8 @@ public class RoleQueryParameters : PagedQueryParameters
     public Expression<Func<Role, bool>> QueryBuild()
     {
         return r =>
-            (string.IsNullOrWhiteSpace(RoleName) || r.Name.Contains(RoleName.Trim())) &&
-            (string.IsNullOrWhiteSpace(RoleCode) || r.Code.Contains(RoleCode.Trim())) &&
+            (string.IsNullOrWhiteSpace(Name) || r.Name.Contains(Name.Trim())) &&
+            (string.IsNullOrWhiteSpace(Code) || r.Code.Contains(Code.Trim())) &&
             (!Status.HasValue || r.Status == Status.Value);
     }
 }

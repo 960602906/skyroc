@@ -20,17 +20,17 @@ public class UpdateMenuDto
     /// <summary>
     ///     菜单名称
     /// </summary>
-    public string? MenuName { get; set; }
+    public string? Title { get; set; }
 
     /// <summary>
     ///  路由名称
     /// </summary>
-    public string? RouteName { get; set; }
+    public string? Name { get; set; }
     
     /// <summary>
     ///     路由路径
     /// </summary>
-    public string? RoutePath { get; set; }
+    public string? Path { get; set; }
     
     /// <summary>
     ///  布局组件
@@ -40,10 +40,8 @@ public class UpdateMenuDto
     /// <summary>
     ///     只有第一级或最后一级路由才有该属性，作为布局组件或者页面组件
     /// </summary>
-    public string? Page { get; set; }
-
-
-
+    public string? Component { get; set; }
+    
     /// <summary>
     ///     国际化键值
     /// </summary>

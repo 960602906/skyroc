@@ -11,12 +11,12 @@ public class UserDto : BaseDto
     /// <summary>
     ///     用户名
     /// </summary>
-    public string? UserName { get; set; }
+    public string? Username { get; set; }
 
     /// <summary>
     ///     性别
     /// </summary>
-    public GenderType? UserGender { get; set; }
+    public GenderType? Gender { get; set; }
 
     /// <summary>
     ///     昵称
@@ -26,12 +26,12 @@ public class UserDto : BaseDto
     /// <summary>
     ///     电话
     /// </summary>
-    public string? UserPhone { get; set; }
+    public string? Phone { get; set; }
 
     /// <summary>
     ///     邮箱
     /// </summary>
-    public string? UserEmail { get; set; }
+    public string? Email { get; set; }
     
     public Guid? RoleId { get; set; }
     

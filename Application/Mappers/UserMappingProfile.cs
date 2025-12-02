@@ -10,26 +10,14 @@ public class UserMappingProfile : Profile
     public UserMappingProfile()
     {
         // ==================== User Mappings ====================
-        CreateMap<User, UserDto>()
-            .ForMember(u => u.UserName, opt => opt.MapFrom(src =>src.Username))
-            .ForMember(u => u.UserGender, opt => opt.MapFrom(src => src.Gender))
-            .ForMember(u => u.UserEmail, opt => opt.MapFrom(src => src.Email))
-            .ForMember(u => u.UserPhone, opt => opt.MapFrom(src => src.Phone));
+        CreateMap<User, UserDto>();
         CreateMap<User, UserInfoDto>()
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Username))
             .ForMember(dest => dest.Roles, opt => opt.Ignore()) // 角色需要单独处理
             .ForMember(dest => dest.Buttons, opt => opt.Ignore()); // 按钮权限需要单独处理
-        CreateMap<CreateUserDto, User>()
-            .ForMember(u => u.Username, opt => opt.MapFrom(src => src.UserName))
-            .ForMember(u => u.Email, opt => opt.MapFrom(src => src.UserEmail))
-            .ForMember(u => u.Gender, opt => opt.MapFrom(src => src.UserGender))
-            .ForMember(u => u.Phone, opt => opt.MapFrom(src => src.UserPhone));
-        CreateMap<UpdateUserDto, User>()
-            .ForMember(u => u.Username, opt => opt.MapFrom(src => src.UserName))
-            .ForMember(u => u.Email, opt => opt.MapFrom(src => src.UserEmail))
-            .ForMember(u => u.Gender, opt => opt.MapFrom(src => src.UserGender))
-            .ForMember(u => u.Phone, opt => opt.MapFrom(src => src.UserPhone)); // 密码不在更新DTO中// Add user-related mapping configurations here
+        CreateMap<CreateUserDto, User>();
+        CreateMap<UpdateUserDto, User>(); // 密码不在更新DTO中// Add user-related mapping configurations here
         CreateMap<ChangePasswordDto, User>()
             .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.NewPassword)); // 假设有密码哈希逻辑
     }
