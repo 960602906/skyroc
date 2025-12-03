@@ -16,6 +16,7 @@ namespace Application.Services;
 public class MenuService(
     IMenuRepository menuRepository,
     IRoleRepository roleRepository,
+    IMenuButtonService menuButtonService,
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
@@ -60,6 +61,11 @@ public class MenuService(
             await menuRepository.AddAsync(menu);
             await unitOfWork.SaveChangesAsync();
             logger.LogInformation("菜单创建成功-Id:{MenuId},Name:{Name}, CreatedBy:{CreatedBy}", menu.Id, menu.Name, userId);
+            if(request.Buttons is { Count: > 0 })
+            {
+                // 创建菜单按钮
+                await menuButtonService.ReplaceMenuButtonsAsync(menu.Id, request.Buttons);
+            }
             return mapper.Map<MenuDto>(menu);
         }
         catch (Exception e)
@@ -126,7 +132,13 @@ public class MenuService(
         // 构建菜单树的逻辑
         return mapper.Map<List<MenuDto>>(menus);
     }
-
+    
+    /// <summary>
+    ///      根据角色id获取菜单树形结构
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <returns></returns>
+    /// <exception cref="NotFoundException"></exception>
     public async Task<List<MenuDto>> GetMenuTreeByRoleIdAsync(Guid roleId)
     {
         var role = await roleRepository.GetByIdAsync(roleId);
@@ -162,6 +174,10 @@ public class MenuService(
             await unitOfWork.SaveChangesAsync();
             logger.LogInformation("菜单更新成功-Id:{MenuId},Name:{Name}, ModifiedBy:{ModifiedBy}", menu.Id, menu.Name,
                 userId);
+            if (request.Buttons is { Count: > 0 })
+            {
+                await  menuButtonService.ReplaceMenuButtonsAsync(menu.Id, request.Buttons);
+            }
         }
         catch (Exception e)
         {

@@ -21,7 +21,7 @@ public interface IMenuButtonService
     /// <summary>
     ///     批量创建菜单按钮
     /// </summary>
-    Task<IEnumerable<MenuButtonDto>> CreateMenuButtonsAsync(Guid menuId, IEnumerable<CreateMenuButtonDto> menuButtons);
+    Task<List<MenuButtonDto>> CreateMenuButtonsAsync(Guid menuId, List<CreateMenuButtonDto> menuButtons);
 
     /// <summary>
     ///     更新菜单按钮
@@ -30,15 +30,15 @@ public interface IMenuButtonService
     /// <param name="menuButton"></param>
     /// <returns></returns>
     Task<MenuButtonDto> UpdateMenuButtonAsync(Guid menuId, UpdateMenuButtonDto menuButton);
-
+    
     /// <summary>
-    ///     批量更新菜单按钮
+    ///  批量替换菜单按钮
     /// </summary>
     /// <param name="menuId"></param>
     /// <param name="menuButtons"></param>
     /// <returns></returns>
-    Task<IEnumerable<MenuButtonDto>> UpdateMenuButtonsAsync(Guid menuId, IEnumerable<UpdateMenuButtonDto> menuButtons);
-
+    Task<List<MenuButtonDto>> ReplaceMenuButtonsAsync(Guid menuId, List<CreateMenuButtonDto> menuButtons);
+    
     /// <summary>
     ///     删除菜单按钮
     /// </summary>

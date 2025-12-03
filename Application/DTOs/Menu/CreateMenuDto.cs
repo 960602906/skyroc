@@ -1,4 +1,5 @@
-﻿using Common.Constants;
+﻿using Application.DTOs.MenuButton;
+using Common.Constants;
 
 namespace Application.DTOs.Menu;
 
@@ -99,7 +100,12 @@ public class CreateMenuDto
     ///     父级菜单ID
     /// </summary>
     public Guid? ParentId { get; set; }
-
+    
+    /// <summary>
+    ///  菜单按钮权限
+    /// </summary>
+    public List<CreateMenuButtonDto>? Buttons { get; set; }
+    
     /// <summary>
     ///     状态
     /// </summary>

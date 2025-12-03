@@ -9,6 +9,13 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
 {
     private readonly DbSet<RoleMenu> _dbSetRoleMenu = context.Set<RoleMenu>();
 
+    public override async Task<Menu?> GetByIdAsync(Guid id)
+    {
+       return  await DbSet
+            .Include(m => m.Buttons)
+            .FirstOrDefaultAsync(m => m.Id == id);
+    }
+
     /// <summary>
     ///     批量删除实体
     /// </summary>

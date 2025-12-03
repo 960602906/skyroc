@@ -20,14 +20,17 @@ public class MenuButtonConfiguration : IEntityTypeConfiguration<MenuButton>
             .HasDefaultValueSql("gen_random_uuid()") // PostgreSQL
             .ValueGeneratedOnAdd();
         builder.Property(mb => mb.Code)
+            .HasColumnName("code")
             .IsRequired()
             .HasMaxLength(100)
             .HasComment("按钮编码");
         builder.Property(mb => mb.Desc)
+            .HasColumnName("desc")
             .IsRequired()
             .HasMaxLength(500)
             .HasComment("按钮描述");
         builder.Property(mb => mb.MenuId)
+            .HasColumnName("menu_id")
             .IsRequired()
             .HasComment("所属菜单ID");
         // 公共字段

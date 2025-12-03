@@ -153,6 +153,73 @@ namespace Infrastructure.Migrations
                     b.ToTable("sys_menu", "public");
                 });
 
+            modelBuilder.Entity("Domain.Entities.MenuButton", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("code")
+                        .HasComment("按钮编码");
+
+                    b.Property<Guid?>("CreateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("create_by");
+
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("create_time");
+
+                    b.Property<string>("Desc")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("desc")
+                        .HasComment("按钮描述");
+
+                    b.Property<Guid>("MenuId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("menu_id")
+                        .HasComment("所属菜单ID");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("UpdateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("update_by");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("update_time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuId")
+                        .HasDatabaseName("idx_menu_buttons_menuId");
+
+                    b.HasIndex("MenuId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("idx_menu_buttons_menu_id_code");
+
+                    b.ToTable("sys_menu_button", "public");
+                });
+
             modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -399,6 +466,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("Domain.Entities.MenuButton", b =>
+                {
+                    b.HasOne("Domain.Entities.Menu", "Menu")
+                        .WithMany("Buttons")
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Menu");
+                });
+
             modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
@@ -450,6 +528,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Menu", b =>
                 {
+                    b.Navigation("Buttons");
+
                     b.Navigation("Children");
 
                     b.Navigation("RoleMenus");

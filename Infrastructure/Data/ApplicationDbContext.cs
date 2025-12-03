@@ -61,7 +61,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     ///     菜单表
     /// </summary>
     public DbSet<Menu> Menus { get; set; }
-
+    
+    /// <summary>
+    ///  菜单按钮表
+    /// </summary>
+    public DbSet<MenuButton> MenuButtons { get; set; }
+    
     /// <summary>
     ///     用户角色关联表
     /// </summary>
