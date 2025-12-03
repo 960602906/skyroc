@@ -9,9 +9,9 @@ namespace Infrastructure.Repositories;
 public class Repository<T>(ApplicationDbContext context) : IRepository<T> where T : BaseEntity
 {
     protected readonly DbSet<T> DbSet = context.Set<T>();
-    
+
     /// <summary>
-    ///  根据id验证是否存在
+    ///     根据id验证是否存在
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -19,9 +19,9 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     {
         return await DbSet.AnyAsync(e => e.Id == id);
     }
-    
+
     /// <summary>
-    ///  根据ID获取实体
+    ///     根据ID获取实体
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -29,9 +29,9 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     {
         return await DbSet.FindAsync(id);
     }
-    
+
     /// <summary>
-    ///  根据条件获取单个实体
+    ///     根据条件获取单个实体
     /// </summary>
     /// <param name="predicate"></param>
     /// <returns></returns>
@@ -41,16 +41,16 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     }
 
     /// <summary>
-    ///  获取所有实体
+    ///     获取所有实体
     /// </summary>
     /// <returns></returns>
     public virtual async Task<IEnumerable<T>> GetAllAsync()
     {
         return await DbSet.ToListAsync();
     }
-    
+
     /// <summary>
-    ///  条件查询
+    ///     条件查询
     /// </summary>
     /// <param name="predicate"></param>
     /// <returns></returns>
@@ -58,9 +58,9 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     {
         return await DbSet.Where(predicate).ToListAsync();
     }
-    
+
     /// <summary>
-    /// 条件查询第一个实体
+    ///     条件查询第一个实体
     /// </summary>
     /// <param name="predicate"></param>
     /// <returns></returns>
@@ -68,9 +68,9 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     {
         return DbSet.Where(predicate).FirstOrDefaultAsync();
     }
-    
+
     /// <summary>
-    ///  分页查询
+    ///     分页查询
     /// </summary>
     /// <param name="predicate"></param>
     /// <param name="pageNumber"></param>
@@ -97,9 +97,9 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
             .ToListAsync();
         return (data, total);
     }
-    
+
     /// <summary>
-    ///  添加实体
+    ///     添加实体
     /// </summary>
     /// <param name="entity"></param>
     public virtual async Task AddAsync(T entity)
@@ -107,9 +107,9 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         await DbSet.AddAsync(entity);
         await context.SaveChangesAsync();
     }
-    
+
     /// <summary>
-    ///  批量添加实体
+    ///     批量添加实体
     /// </summary>
     /// <param name="entities"></param>
     public virtual async Task AddRangeAsync(IEnumerable<T> entities)
@@ -145,7 +145,7 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
             await context.SaveChangesAsync();
         }
     }
-    
+
     public virtual async Task DeleteRangeAsync(IEnumerable<T> entities)
     {
         DbSet.RemoveRange(entities);

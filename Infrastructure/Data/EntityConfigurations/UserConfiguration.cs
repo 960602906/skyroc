@@ -62,7 +62,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.CreateBy)
             .HasColumnName("create_by")
             .HasColumnType("uuid");
-        
+
         builder.Property(x => x.CreateName)
             .HasColumnName("create_name")
             .HasColumnType("varchar(50)");
@@ -74,11 +74,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.UpdateBy)
             .HasColumnName("update_by")
             .HasColumnType("uuid");
-        
+
         builder.Property(x => x.UpdateName)
             .HasColumnName("update_name")
             .HasColumnType("varchar(50)");
-        
+
         builder.Property(x => x.Status)
             .HasColumnName("status")
             .HasColumnType("integer")
@@ -88,7 +88,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.Username)
             .IsUnique()
             .HasDatabaseName("idx_user_username");
-        
+
         builder.HasIndex(x => x.Email)
             .IsUnique()
             .HasDatabaseName("idx_user_email");

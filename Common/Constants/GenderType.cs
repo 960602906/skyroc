@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Common.Constants;
+﻿namespace Common.Constants;
 
 /// <summary>
 ///     性别
@@ -17,5 +15,3 @@ public enum GenderType
     /// </summary>
     Female = 2
 }
-
-

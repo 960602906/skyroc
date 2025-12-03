@@ -40,9 +40,9 @@ public interface IRoleService
     ///     删除角色
     /// </summary>
     Task DeleteRoleAsync(Guid id);
-    
+
     /// <summary>
-    ///  批量删除角色
+    ///     批量删除角色
     /// </summary>
     /// <returns></returns>
     Task DeleteAllRolesAsync(List<Guid> roleIds);

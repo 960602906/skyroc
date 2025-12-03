@@ -1,42 +1,271 @@
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('aa30ee84-f19d-4572-b958-95db25b26551', 'multi-menu', '/multi-menu', 'page.(base)_multi-menu', 'multi-menu', 'route.(base)_multi-menu', 5, 'f', 't', NULL, NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:09.334608+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('a8a14363-ec12-4d9c-8dda-4aa1ca5e8501', 'multi-menu_first', '/multi-menu/first', 'page.(base)_multi-menu_first', 'multi-menu_first', 'route.(base)_multi-menu_first', NULL, 'f', 't', NULL, NULL, NULL, 'f', NULL, 'f', NULL, 'aa30ee84-f19d-4572-b958-95db25b26551', '2025-11-28 06:09:09.742644+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('6bb3172b-03a2-446d-b84f-3fd776c18581', 'multi-menu_first_child', '/multi-menu/first/child', 'page.(base)_multi-menu_first_child', 'multi-menu_first_child', 'route.(base)_multi-menu_first_child', NULL, 'f', 't', NULL, NULL, NULL, 'f', NULL, 'f', NULL, 'a8a14363-ec12-4d9c-8dda-4aa1ca5e8501', '2025-11-28 06:09:09.776546+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('2620182c-b95d-46ed-a219-fc8afda07c93', 'multi-menu_second', '/multi-menu/second', 'page.(base)_multi-menu_second', '(base)_multi-menu_second', 'route.(base)_multi-menu_second', NULL, 'f', 'f', NULL, NULL, NULL, 'f', NULL, 'f', NULL, 'aa30ee84-f19d-4572-b958-95db25b26551', '2025-11-28 06:09:09.776547+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('e50a2bd7-0e9c-4477-83f1-5f9510c7a656', 'multi-menu_second_child', '/multi-menu/second/child', 'page.(base)_multi-menu_second_child', '(base)_multi-menu_second_child', 'route.(base)_multi-menu_second_child', NULL, 'f', 'f', NULL, NULL, NULL, 'f', NULL, 'f', NULL, '2620182c-b95d-46ed-a219-fc8afda07c93', '2025-11-28 06:09:09.805857+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('5db0bc6f-c8af-423f-bb62-d947c89732f1', 'multi-menu_second_child_home', '/multi-menu/second/child/home', 'page.(base)_multi-menu_second_child_home', '(base)_multi-menu_second_child_home', 'route.(base)_multi-menu_second_child_home', NULL, 'f', 'f', NULL, NULL, NULL, 'f', NULL, 'f', NULL, 'e50a2bd7-0e9c-4477-83f1-5f9510c7a656', '2025-11-28 06:09:09.82424+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('9f902e55-bdfa-4ce4-ae82-ba1f58ffbed5', 'about', '/about', 'page.(base)_about', 'about', 'route.(base)_about', 9, 'f', 'f', 'fluent:book-information-24-regular', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:09.824238+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('6a422ab9-afaa-429e-b83e-53dddc4fe1b1', 'function', '/function', 'page.(base)_function', 'function', 'route.(base)_function', 6, 'f', 'f', 'icon-park-outline:all-application', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:09.858396+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('68758408-cdac-40ea-bd6f-d4bfd252e4a7', 'function_hide-child', '/function/hide-child', 'page.(base)_function_hide-child', 'function_hide-child', 'route.(base)_function_hide-child', 2, 'f', 'f', 'material-symbols:filter-list-off', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.874788+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('88be0037-23e1-4d83-a47b-c294c09ef95d', 'function_event-bus', '/function/event-bus', 'page.(base)_function_event-bus', 'function_event-bus', 'route.(base)_function_event-bus', NULL, 'f', 'f', 'ant-design:send-outlined', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.874789+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('7302e071-3989-43b5-94f7-456eeebf213b', 'function_hide-child_two', '/function/hide-child/two', 'page.(base)_function_hide-child_two', 'function_hide-child_two', 'route.(base)_function_hide-child_two', NULL, 'f', 'f', NULL, NULL, NULL, 't', '/function/hide-child', 'f', NULL, '68758408-cdac-40ea-bd6f-d4bfd252e4a7', '2025-11-28 06:09:09.893785+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('ff0f6d04-b424-4542-a282-0f59480641aa', 'function_super-page', '/function/super-page', 'page.(base)_function_super-page', 'function_super-page', 'route.(base)_function_super-page', 5, 'f', 'f', 'ic:round-supervisor-account', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('72945e35-96b2-4c2c-b551-3e0b639d5a25', 'function_request', '/function/request', 'page.(base)_function_request', 'function_request', 'route.(base)_function_request', 3, 'f', 'f', 'carbon:network-overlay', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('dff0edbe-0624-4dfe-b15f-3e8a4a015451', 'function_tab', '/function/tab', 'page.(base)_function_tab', 'function_tab', 'route.(base)_function_tab', 1, 't', 'f', 'ic:round-tab', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('513554ab-91d0-4f67-8dfa-a1d1e8d70ae0', 'function_multi-tab', '/function/multi-tab', 'page.(base)_function_multi-tab', 'function_multi-tab', 'route.(base)_function_multi-tab', NULL, 'f', 'f', 'ic:round-tab', NULL, NULL, 't', '/function/tab', 't', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('c3405768-46c6-4bec-89a8-3564e02716bf', 'function_toggle-auth', '/function/toggle-auth', 'page.(base)_function_toggle-auth', 'function_toggle-auth', 'route.(base)_function_toggle-auth', 4, 'f', 'f', 'ic:round-construction', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('7704f85b-c462-42fd-9431-fb590023a57f', 'function_hide-child_one', '/function/hide-child/one', 'page.(base)_function_hide-child_one', 'function_hide-child_one', 'route.(base)_function_hide-child_one', NULL, 'f', 'f', NULL, NULL, NULL, 't', '/function/hide-child', 'f', NULL, '68758408-cdac-40ea-bd6f-d4bfd252e4a7', '2025-11-28 06:09:09.893784+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('47ff83be-d727-468e-8fc4-0779ce6a4f41', 'function_hide-child_three', '/function/hide-child/three', 'page.(base)_function_hide-child_three', 'function_hide-child_three', 'route.(base)_function_hide-child_three', NULL, 'f', 'f', NULL, NULL, NULL, 't', '/function/hide-child', 'f', NULL, '68758408-cdac-40ea-bd6f-d4bfd252e4a7', '2025-11-28 06:09:09.893783+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('eca08dfd-5dcb-4818-bd4b-b3cba441651a', 'home', '/home', 'page.(base)_home', 'home', 'route.(base)_home', 1, 'f', 'f', 'mdi:monitor-dashboard', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:09.923452+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('5fd4b339-72d5-42a7-8d59-fb6ef2964aa9', 'manage', '/manage', 'page.(base)_manage', 'manage', 'route.(base)_manage', 8, 'f', 'f', 'carbon:cloud-service-management', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:09.923448+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('ac0c222e-ca2f-494f-8b58-ff638a54c88d', 'manage_role', '/manage/role', 'page.(base)_manage_role', 'manage_role', 'route.(base)_manage_role', 2, 'f', 'f', 'carbon:user-role', NULL, NULL, 'f', NULL, 'f', NULL, '5fd4b339-72d5-42a7-8d59-fb6ef2964aa9', '2025-11-28 06:09:10.113777+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('9b0b1622-0eb1-4a79-bae0-4b41a4b1aa58', 'manage_user', '/manage/user', 'page.(base)_manage_user', 'manage_user', 'route.(base)_manage_user', 1, 't', 'f', 'ic:round-manage-accounts', NULL, NULL, 'f', NULL, 'f', NULL, '5fd4b339-72d5-42a7-8d59-fb6ef2964aa9', '2025-11-28 06:09:10.126206+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('38d8ca38-d321-435e-9346-becc34450233', 'manage_role_[...slug]', '/manage/role/*', 'page.(base)_manage_role_[...slug]', '(base)_manage_role_[...slug]', 'route.(base)_manage_role_[...slug]', NULL, 'f', 'f', NULL, NULL, NULL, 't', NULL, 'f', NULL, 'ac0c222e-ca2f-494f-8b58-ff638a54c88d', '2025-11-28 06:09:10.126207+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('2bff2ca5-52ec-4177-b058-80bcd79b2a2c', 'manage_user_[id]', '/manage/user/:id', 'page.(base)_manage_user_[id]', '(base)_manage_user_[id]', 'route.(base)_manage_user_[id]', NULL, 'f', 'f', NULL, NULL, NULL, 't', '/manage/user', 'f', NULL, '9b0b1622-0eb1-4a79-bae0-4b41a4b1aa58', '2025-11-28 06:09:10.141103+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('2bee2a92-85e9-4c62-8550-0f093f0b9c48', 'projects', '/projects', 'page.(base)_projects', '(base)_projects', 'route.(base)_projects', 7, 'f', 'f', 'hugeicons:align-box-top-center', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:10.158914+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('4ac0a4ef-53f2-4c36-b763-1e097f6c9fc4', 'projects_[pid]', '/projects/:pid', 'page.(base)_projects_[pid]', '(base)_projects_[pid]', 'route.(base)_projects_[pid]', NULL, 'f', 'f', 'material-symbols-light:attachment', NULL, NULL, 'f', NULL, 'f', NULL, '2bee2a92-85e9-4c62-8550-0f093f0b9c48', '2025-11-28 06:09:10.172742+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('bec9139d-35c7-4007-953f-74af7caab488', 'projects_[pid]_edit', '/projects/:pid/edit', 'page.(base)_projects_[pid]_edit', '(base)_projects_[pid]_edit', 'route.(base)_projects_[pid]_edit', NULL, 'f', 'f', 'material-symbols-light:assistant-on-hub-outline', NULL, NULL, 'f', NULL, 'f', NULL, '4ac0a4ef-53f2-4c36-b763-1e097f6c9fc4', '2025-11-28 06:09:10.189739+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('38ec6936-7376-481a-b9e4-b6cf0d134ad3', 'projects_[pid]_edit_[id]', '/projects/:pid/edit/:id', 'page.(base)_projects_[pid]_edit_[id]', '(base)_projects_[pid]_edit_[id]', 'route.(base)_projects_[pid]_edit_[id]', NULL, 'f', 'f', NULL, NULL, NULL, 'f', NULL, 'f', NULL, 'bec9139d-35c7-4007-953f-74af7caab488', '2025-11-28 06:09:10.267748+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('8edbd429-25d0-4fec-b47f-ab87484c298b', 'user-center', '/user-center', 'page.(base)_user-center', 'user-center', 'route.(base)_user-center', NULL, 'f', 'f', NULL, NULL, NULL, 't', NULL, 'f', NULL, NULL, '2025-11-28 06:09:10.293679+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('0824362e-6b51-4aed-9216-cd1b99e85bae', 'exception', '/exception', NULL, 'exception', 'route.exception', 4, 'f', 'f', 'ant-design:exception-outlined', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:10.311059+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('1d3d4e86-9250-492b-a987-8f2104ec1960', 'exception_404', '/exception/404', 'page.404', 'exception_404', 'route.exception_404', NULL, 'f', 'f', 'ic:baseline-web-asset-off', NULL, NULL, 'f', NULL, 'f', NULL, '0824362e-6b51-4aed-9216-cd1b99e85bae', '2025-11-28 06:09:10.32776+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('b5c2d1fe-a14e-4ac0-92c9-ed4092eb1583', 'exception_403', '/exception/403', 'page.403', 'exception_403', 'route.exception_403', NULL, 'f', 'f', 'ic:baseline-block', NULL, NULL, 'f', NULL, 'f', NULL, '0824362e-6b51-4aed-9216-cd1b99e85bae', '2025-11-28 06:09:10.32776+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('ff688f70-eb91-4f8a-a840-b43ace4d8477', 'exception_500', '/exception/500', 'page.500', 'exception_500', 'route.exception_500', NULL, 'f', 'f', 'ic:baseline-wifi-off', NULL, NULL, 'f', NULL, 'f', NULL, '0824362e-6b51-4aed-9216-cd1b99e85bae', '2025-11-28 06:09:10.327759+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('b8f21050-f5d4-4452-862b-625af1674b5b', 'document', '/document', NULL, 'document', 'route.document', 2, 'f', 'f', 'mdi:file-document-multiple-outline', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:10.355854+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('72fe8f81-213a-48e2-8770-72a6bbfc5a45', 'document_unocss', '/document/unocss', 'page.iframe-page', 'document_unocss', 'route.document_unocss', 5, 'f', 'f', 'logos:unocss', NULL, 'https://unocss.dev/', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371716+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('5c680b9a-17a5-457b-8c75-b9cb17cb80d4', 'document_procomponents', '/document/procomponents', 'page.iframe-page', 'document_procomponents', 'route.document_procomponents', 8, 'f', 'f', 'logos:ant-design', NULL, 'https://pro-components.antdigital.dev/', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371715+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('2b4cb058-659e-4926-ae22-a1a589c595f9', 'document_project', '/document/project', 'page.iframe-page', 'document_project', 'route.document_project', 1, 'f', 'f', NULL, 'logo', 'https://admin-docs.skyroc.me  ', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('0c7b393a-6686-4f5a-a145-54bf3127988e', 'document_vite', '/document/vite', 'page.iframe-page', 'document_vite', 'route.document_vite', 4, 'f', 'f', 'logos:vitejs', NULL, 'https://cn.vitejs.dev/', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371716+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('93ad8b46-4776-4779-813a-28244a4c4fc3', 'document_project-link', '/document/project-link', NULL, 'document_project-link', 'route.document_project-link', 2, 'f', 'f', NULL, 'logo', 'https://admin-docs.skyroc.me  ', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('42df9de2-7c50-4569-8427-e686dc7a6af0', 'document_antd', '/document/antd', 'page.iframe-page', 'document_antd', 'route.document_antd', 7, 'f', 'f', 'logos:ant-design', NULL, 'https://ant.design/index-cn', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371716+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('bcb1362a-3b71-4148-9929-acbc3f709891', 'document_react', '/document/react', 'page.iframe-page', 'document_react', 'route.document_react', 3, 'f', 'f', 'logos:react', NULL, 'https://react.dev/', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
-INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant", "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab", "parent_id", "created_time", "created_by", "update_time", "update_by", "status") VALUES ('f3407b0c-5906-4285-be5e-8fb54825927d', 'document_ui', '/document/ui', 'page.iframe-page', 'document_ui', 'route.document_ui', 0, 'f', 'f', NULL, 'logo', 'https://ui-play.skyroc.me/button', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('aa30ee84-f19d-4572-b958-95db25b26551', 'multi-menu', '/multi-menu', 'page.(base)_multi-menu', 'multi-menu',
+        'route.(base)_multi-menu', 5, 'f', 't', NULL, NULL, NULL, 'f', NULL, 'f', NULL, NULL,
+        '2025-11-28 06:09:09.334608+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('a8a14363-ec12-4d9c-8dda-4aa1ca5e8501', 'multi-menu_first', '/multi-menu/first', 'page.(base)_multi-menu_first',
+        'multi-menu_first', 'route.(base)_multi-menu_first', NULL, 'f', 't', NULL, NULL, NULL, 'f', NULL, 'f', NULL,
+        'aa30ee84-f19d-4572-b958-95db25b26551', '2025-11-28 06:09:09.742644+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('6bb3172b-03a2-446d-b84f-3fd776c18581', 'multi-menu_first_child', '/multi-menu/first/child',
+        'page.(base)_multi-menu_first_child', 'multi-menu_first_child', 'route.(base)_multi-menu_first_child', NULL,
+        'f', 't', NULL, NULL, NULL, 'f', NULL, 'f', NULL, 'a8a14363-ec12-4d9c-8dda-4aa1ca5e8501',
+        '2025-11-28 06:09:09.776546+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('2620182c-b95d-46ed-a219-fc8afda07c93', 'multi-menu_second', '/multi-menu/second',
+        'page.(base)_multi-menu_second', '(base)_multi-menu_second', 'route.(base)_multi-menu_second', NULL, 'f', 'f',
+        NULL, NULL, NULL, 'f', NULL, 'f', NULL, 'aa30ee84-f19d-4572-b958-95db25b26551', '2025-11-28 06:09:09.776547+00',
+        NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('e50a2bd7-0e9c-4477-83f1-5f9510c7a656', 'multi-menu_second_child', '/multi-menu/second/child',
+        'page.(base)_multi-menu_second_child', '(base)_multi-menu_second_child', 'route.(base)_multi-menu_second_child',
+        NULL, 'f', 'f', NULL, NULL, NULL, 'f', NULL, 'f', NULL, '2620182c-b95d-46ed-a219-fc8afda07c93',
+        '2025-11-28 06:09:09.805857+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('5db0bc6f-c8af-423f-bb62-d947c89732f1', 'multi-menu_second_child_home', '/multi-menu/second/child/home',
+        'page.(base)_multi-menu_second_child_home', '(base)_multi-menu_second_child_home',
+        'route.(base)_multi-menu_second_child_home', NULL, 'f', 'f', NULL, NULL, NULL, 'f', NULL, 'f', NULL,
+        'e50a2bd7-0e9c-4477-83f1-5f9510c7a656', '2025-11-28 06:09:09.82424+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('9f902e55-bdfa-4ce4-ae82-ba1f58ffbed5', 'about', '/about', 'page.(base)_about', 'about', 'route.(base)_about',
+        9, 'f', 'f', 'fluent:book-information-24-regular', NULL, NULL, 'f', NULL, 'f', NULL, NULL,
+        '2025-11-28 06:09:09.824238+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('6a422ab9-afaa-429e-b83e-53dddc4fe1b1', 'function', '/function', 'page.(base)_function', 'function',
+        'route.(base)_function', 6, 'f', 'f', 'icon-park-outline:all-application', NULL, NULL, 'f', NULL, 'f', NULL,
+        NULL, '2025-11-28 06:09:09.858396+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('68758408-cdac-40ea-bd6f-d4bfd252e4a7', 'function_hide-child', '/function/hide-child',
+        'page.(base)_function_hide-child', 'function_hide-child', 'route.(base)_function_hide-child', 2, 'f', 'f',
+        'material-symbols:filter-list-off', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1',
+        '2025-11-28 06:09:09.874788+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('88be0037-23e1-4d83-a47b-c294c09ef95d', 'function_event-bus', '/function/event-bus',
+        'page.(base)_function_event-bus', 'function_event-bus', 'route.(base)_function_event-bus', NULL, 'f', 'f',
+        'ant-design:send-outlined', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1',
+        '2025-11-28 06:09:09.874789+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('7302e071-3989-43b5-94f7-456eeebf213b', 'function_hide-child_two', '/function/hide-child/two',
+        'page.(base)_function_hide-child_two', 'function_hide-child_two', 'route.(base)_function_hide-child_two', NULL,
+        'f', 'f', NULL, NULL, NULL, 't', '/function/hide-child', 'f', NULL, '68758408-cdac-40ea-bd6f-d4bfd252e4a7',
+        '2025-11-28 06:09:09.893785+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('ff0f6d04-b424-4542-a282-0f59480641aa', 'function_super-page', '/function/super-page',
+        'page.(base)_function_super-page', 'function_super-page', 'route.(base)_function_super-page', 5, 'f', 'f',
+        'ic:round-supervisor-account', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1',
+        '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('72945e35-96b2-4c2c-b551-3e0b639d5a25', 'function_request', '/function/request', 'page.(base)_function_request',
+        'function_request', 'route.(base)_function_request', 3, 'f', 'f', 'carbon:network-overlay', NULL, NULL, 'f',
+        NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('dff0edbe-0624-4dfe-b15f-3e8a4a015451', 'function_tab', '/function/tab', 'page.(base)_function_tab',
+        'function_tab', 'route.(base)_function_tab', 1, 't', 'f', 'ic:round-tab', NULL, NULL, 'f', NULL, 'f', NULL,
+        '6a422ab9-afaa-429e-b83e-53dddc4fe1b1', '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('513554ab-91d0-4f67-8dfa-a1d1e8d70ae0', 'function_multi-tab', '/function/multi-tab',
+        'page.(base)_function_multi-tab', 'function_multi-tab', 'route.(base)_function_multi-tab', NULL, 'f', 'f',
+        'ic:round-tab', NULL, NULL, 't', '/function/tab', 't', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1',
+        '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('c3405768-46c6-4bec-89a8-3564e02716bf', 'function_toggle-auth', '/function/toggle-auth',
+        'page.(base)_function_toggle-auth', 'function_toggle-auth', 'route.(base)_function_toggle-auth', 4, 'f', 'f',
+        'ic:round-construction', NULL, NULL, 'f', NULL, 'f', NULL, '6a422ab9-afaa-429e-b83e-53dddc4fe1b1',
+        '2025-11-28 06:09:09.893786+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('7704f85b-c462-42fd-9431-fb590023a57f', 'function_hide-child_one', '/function/hide-child/one',
+        'page.(base)_function_hide-child_one', 'function_hide-child_one', 'route.(base)_function_hide-child_one', NULL,
+        'f', 'f', NULL, NULL, NULL, 't', '/function/hide-child', 'f', NULL, '68758408-cdac-40ea-bd6f-d4bfd252e4a7',
+        '2025-11-28 06:09:09.893784+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('47ff83be-d727-468e-8fc4-0779ce6a4f41', 'function_hide-child_three', '/function/hide-child/three',
+        'page.(base)_function_hide-child_three', 'function_hide-child_three', 'route.(base)_function_hide-child_three',
+        NULL, 'f', 'f', NULL, NULL, NULL, 't', '/function/hide-child', 'f', NULL,
+        '68758408-cdac-40ea-bd6f-d4bfd252e4a7', '2025-11-28 06:09:09.893783+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('eca08dfd-5dcb-4818-bd4b-b3cba441651a', 'home', '/home', 'page.(base)_home', 'home', 'route.(base)_home', 1,
+        'f', 'f', 'mdi:monitor-dashboard', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:09.923452+00',
+        NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('5fd4b339-72d5-42a7-8d59-fb6ef2964aa9', 'manage', '/manage', 'page.(base)_manage', 'manage',
+        'route.(base)_manage', 8, 'f', 'f', 'carbon:cloud-service-management', NULL, NULL, 'f', NULL, 'f', NULL, NULL,
+        '2025-11-28 06:09:09.923448+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('ac0c222e-ca2f-494f-8b58-ff638a54c88d', 'manage_role', '/manage/role', 'page.(base)_manage_role', 'manage_role',
+        'route.(base)_manage_role', 2, 'f', 'f', 'carbon:user-role', NULL, NULL, 'f', NULL, 'f', NULL,
+        '5fd4b339-72d5-42a7-8d59-fb6ef2964aa9', '2025-11-28 06:09:10.113777+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('9b0b1622-0eb1-4a79-bae0-4b41a4b1aa58', 'manage_user', '/manage/user', 'page.(base)_manage_user', 'manage_user',
+        'route.(base)_manage_user', 1, 't', 'f', 'ic:round-manage-accounts', NULL, NULL, 'f', NULL, 'f', NULL,
+        '5fd4b339-72d5-42a7-8d59-fb6ef2964aa9', '2025-11-28 06:09:10.126206+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('38d8ca38-d321-435e-9346-becc34450233', 'manage_role_[...slug]', '/manage/role/*',
+        'page.(base)_manage_role_[...slug]', '(base)_manage_role_[...slug]', 'route.(base)_manage_role_[...slug]', NULL,
+        'f', 'f', NULL, NULL, NULL, 't', NULL, 'f', NULL, 'ac0c222e-ca2f-494f-8b58-ff638a54c88d',
+        '2025-11-28 06:09:10.126207+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('2bff2ca5-52ec-4177-b058-80bcd79b2a2c', 'manage_user_[id]', '/manage/user/:id', 'page.(base)_manage_user_[id]',
+        '(base)_manage_user_[id]', 'route.(base)_manage_user_[id]', NULL, 'f', 'f', NULL, NULL, NULL, 't',
+        '/manage/user', 'f', NULL, '9b0b1622-0eb1-4a79-bae0-4b41a4b1aa58', '2025-11-28 06:09:10.141103+00', NULL, NULL,
+        NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('2bee2a92-85e9-4c62-8550-0f093f0b9c48', 'projects', '/projects', 'page.(base)_projects', '(base)_projects',
+        'route.(base)_projects', 7, 'f', 'f', 'hugeicons:align-box-top-center', NULL, NULL, 'f', NULL, 'f', NULL, NULL,
+        '2025-11-28 06:09:10.158914+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('4ac0a4ef-53f2-4c36-b763-1e097f6c9fc4', 'projects_[pid]', '/projects/:pid', 'page.(base)_projects_[pid]',
+        '(base)_projects_[pid]', 'route.(base)_projects_[pid]', NULL, 'f', 'f', 'material-symbols-light:attachment',
+        NULL, NULL, 'f', NULL, 'f', NULL, '2bee2a92-85e9-4c62-8550-0f093f0b9c48', '2025-11-28 06:09:10.172742+00', NULL,
+        NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('bec9139d-35c7-4007-953f-74af7caab488', 'projects_[pid]_edit', '/projects/:pid/edit',
+        'page.(base)_projects_[pid]_edit', '(base)_projects_[pid]_edit', 'route.(base)_projects_[pid]_edit', NULL, 'f',
+        'f', 'material-symbols-light:assistant-on-hub-outline', NULL, NULL, 'f', NULL, 'f', NULL,
+        '4ac0a4ef-53f2-4c36-b763-1e097f6c9fc4', '2025-11-28 06:09:10.189739+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('38ec6936-7376-481a-b9e4-b6cf0d134ad3', 'projects_[pid]_edit_[id]', '/projects/:pid/edit/:id',
+        'page.(base)_projects_[pid]_edit_[id]', '(base)_projects_[pid]_edit_[id]',
+        'route.(base)_projects_[pid]_edit_[id]', NULL, 'f', 'f', NULL, NULL, NULL, 'f', NULL, 'f', NULL,
+        'bec9139d-35c7-4007-953f-74af7caab488', '2025-11-28 06:09:10.267748+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('8edbd429-25d0-4fec-b47f-ab87484c298b', 'user-center', '/user-center', 'page.(base)_user-center', 'user-center',
+        'route.(base)_user-center', NULL, 'f', 'f', NULL, NULL, NULL, 't', NULL, 'f', NULL, NULL,
+        '2025-11-28 06:09:10.293679+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('0824362e-6b51-4aed-9216-cd1b99e85bae', 'exception', '/exception', NULL, 'exception', 'route.exception', 4, 'f',
+        'f', 'ant-design:exception-outlined', NULL, NULL, 'f', NULL, 'f', NULL, NULL, '2025-11-28 06:09:10.311059+00',
+        NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('1d3d4e86-9250-492b-a987-8f2104ec1960', 'exception_404', '/exception/404', 'page.404', 'exception_404',
+        'route.exception_404', NULL, 'f', 'f', 'ic:baseline-web-asset-off', NULL, NULL, 'f', NULL, 'f', NULL,
+        '0824362e-6b51-4aed-9216-cd1b99e85bae', '2025-11-28 06:09:10.32776+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('b5c2d1fe-a14e-4ac0-92c9-ed4092eb1583', 'exception_403', '/exception/403', 'page.403', 'exception_403',
+        'route.exception_403', NULL, 'f', 'f', 'ic:baseline-block', NULL, NULL, 'f', NULL, 'f', NULL,
+        '0824362e-6b51-4aed-9216-cd1b99e85bae', '2025-11-28 06:09:10.32776+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('ff688f70-eb91-4f8a-a840-b43ace4d8477', 'exception_500', '/exception/500', 'page.500', 'exception_500',
+        'route.exception_500', NULL, 'f', 'f', 'ic:baseline-wifi-off', NULL, NULL, 'f', NULL, 'f', NULL,
+        '0824362e-6b51-4aed-9216-cd1b99e85bae', '2025-11-28 06:09:10.327759+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('b8f21050-f5d4-4452-862b-625af1674b5b', 'document', '/document', NULL, 'document', 'route.document', 2, 'f',
+        'f', 'mdi:file-document-multiple-outline', NULL, NULL, 'f', NULL, 'f', NULL, NULL,
+        '2025-11-28 06:09:10.355854+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('72fe8f81-213a-48e2-8770-72a6bbfc5a45', 'document_unocss', '/document/unocss', 'page.iframe-page',
+        'document_unocss', 'route.document_unocss', 5, 'f', 'f', 'logos:unocss', NULL, 'https://unocss.dev/', 'f', NULL,
+        'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371716+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('5c680b9a-17a5-457b-8c75-b9cb17cb80d4', 'document_procomponents', '/document/procomponents', 'page.iframe-page',
+        'document_procomponents', 'route.document_procomponents', 8, 'f', 'f', 'logos:ant-design', NULL,
+        'https://pro-components.antdigital.dev/', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b',
+        '2025-11-28 06:09:10.371715+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('2b4cb058-659e-4926-ae22-a1a589c595f9', 'document_project', '/document/project', 'page.iframe-page',
+        'document_project', 'route.document_project', 1, 'f', 'f', NULL, 'logo', 'https://admin-docs.skyroc.me  ', 'f',
+        NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('0c7b393a-6686-4f5a-a145-54bf3127988e', 'document_vite', '/document/vite', 'page.iframe-page', 'document_vite',
+        'route.document_vite', 4, 'f', 'f', 'logos:vitejs', NULL, 'https://cn.vitejs.dev/', 'f', NULL, 'f', NULL,
+        'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371716+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('93ad8b46-4776-4779-813a-28244a4c4fc3', 'document_project-link', '/document/project-link', NULL,
+        'document_project-link', 'route.document_project-link', 2, 'f', 'f', NULL, 'logo',
+        'https://admin-docs.skyroc.me  ', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b',
+        '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('42df9de2-7c50-4569-8427-e686dc7a6af0', 'document_antd', '/document/antd', 'page.iframe-page', 'document_antd',
+        'route.document_antd', 7, 'f', 'f', 'logos:ant-design', NULL, 'https://ant.design/index-cn', 'f', NULL, 'f',
+        NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371716+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('bcb1362a-3b71-4148-9929-acbc3f709891', 'document_react', '/document/react', 'page.iframe-page',
+        'document_react', 'route.document_react', 3, 'f', 'f', 'logos:react', NULL, 'https://react.dev/', 'f', NULL,
+        'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
+INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
+                        "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
+                        "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
+VALUES ('f3407b0c-5906-4285-be5e-8fb54825927d', 'document_ui', '/document/ui', 'page.iframe-page', 'document_ui',
+        'route.document_ui', 0, 'f', 'f', NULL, 'logo', 'https://ui-play.skyroc.me/button', 'f', NULL, 'f', NULL,
+        'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);

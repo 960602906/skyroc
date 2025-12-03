@@ -19,32 +19,30 @@ public static class DbSeeder
     private static async Task SeedUser(ApplicationDbContext context)
     {
         // 检查是否已有数据
-        if (await context.Users.AnyAsync())
-        {
-            return;
-        }
+        if (await context.Users.AnyAsync()) return;
         var users = new List<User>
         {
             new()
-            { 
+            {
                 Username = "admin",
                 NickName = "系统管理员",
                 Email = "960602906@qq.com",
                 Gender = GenderType.Male,
-                PasswordHash = PasswordHasher.Hash("123456"),
+                PasswordHash = PasswordHasher.Hash("123456")
             },
             new()
-            { 
+            {
                 Username = "user",
                 NickName = "普通用户",
                 Email = "960602606qq.com",
-                Gender =  GenderType.Female,
-                PasswordHash = PasswordHasher.Hash("123456"),
+                Gender = GenderType.Female,
+                PasswordHash = PasswordHasher.Hash("123456")
             }
         };
         context.Users.AddRange(users);
         await context.SaveChangesAsync();
     }
+
     private static async Task SeedRoles(ApplicationDbContext context)
     {
         if (await context.Roles.AnyAsync()) return;
@@ -61,24 +59,24 @@ public static class DbSeeder
                 Name = "用户",
                 Code = "User",
                 Desc = "普通用户，拥有基本权限"
-            },
+            }
         };
         context.Roles.AddRange(roles);
         await context.SaveChangesAsync();
     }
-    
+
     private static async Task SeedMenu(ApplicationDbContext context)
     {
         if (await context.Menus.AnyAsync()) return;
-         var multi = new Menu
+        var multi = new Menu
         {
             Name = "multi-menu",
             Path = "/multi-menu",
             Component = "page.(base)_multi-menu",
             Title = "multi-menu",
             I18NKey = "route.(base)_multi-menu",
-            Order = 5, 
-            Constant = true,
+            Order = 5,
+            Constant = true
         };
         await context.Menus.AddAsync(multi);
         await context.SaveChangesAsync();
@@ -90,7 +88,7 @@ public static class DbSeeder
             Title = "multi-menu_first",
             I18NKey = "route.(base)_multi-menu_first",
             Constant = true,
-            ParentId = multi.Id,
+            ParentId = multi.Id
         };
         await context.Menus.AddAsync(first);
         await context.SaveChangesAsync();
@@ -102,7 +100,7 @@ public static class DbSeeder
             Title = "multi-menu_first_child",
             I18NKey = "route.(base)_multi-menu_first_child",
             Constant = true,
-            ParentId = first.Id,
+            ParentId = first.Id
         };
         await context.Menus.AddRangeAsync(firstChildren);
         var second = new Menu
@@ -123,7 +121,7 @@ public static class DbSeeder
             Component = "page.(base)_multi-menu_second_child",
             Title = "(base)_multi-menu_second_child",
             I18NKey = "route.(base)_multi-menu_second_child",
-            ParentId = second.Id,
+            ParentId = second.Id
         };
         await context.Menus.AddAsync(secondChildren);
         await context.SaveChangesAsync();
@@ -134,10 +132,10 @@ public static class DbSeeder
             Component = "page.(base)_multi-menu_second_child_home",
             Title = "(base)_multi-menu_second_child_home",
             I18NKey = "route.(base)_multi-menu_second_child_home",
-            ParentId = secondChildren.Id,
+            ParentId = secondChildren.Id
         };
         await context.Menus.AddAsync(secondChildrenHome);
-        await context.Menus.AddAsync(new()
+        await context.Menus.AddAsync(new Menu
         {
             Name = "about",
             Path = "/about",
@@ -145,11 +143,11 @@ public static class DbSeeder
             Title = "about",
             I18NKey = "route.(base)_about",
             Icon = "fluent:book-information-24-regular",
-            Order = 9,
+            Order = 9
         });
         await context.SaveChangesAsync();
         await FunctionMenu(context);
-       var home = new Menu
+        var home = new Menu
         {
             Name = "home",
             Path = "/home",
@@ -160,7 +158,7 @@ public static class DbSeeder
             Order = 1
         };
         context.Menus.Add(home);
-       var manage =  new Menu
+        var manage = new Menu
         {
             Name = "manage",
             Path = "/manage",
@@ -168,15 +166,15 @@ public static class DbSeeder
             Title = "manage",
             I18NKey = "route.(base)_manage",
             Icon = "carbon:cloud-service-management",
-            Order = 8,
+            Order = 8
         };
-       context.Menus.Add(manage);
-       await context.SaveChangesAsync();
-       await ManageMenu(context);
-       await ProjectsMenu(context);
-       await UserCenterMenu(context);
-       await ExceptionMenu(context);
-       await DocumentMenu(context);
+        context.Menus.Add(manage);
+        await context.SaveChangesAsync();
+        await ManageMenu(context);
+        await ProjectsMenu(context);
+        await UserCenterMenu(context);
+        await ExceptionMenu(context);
+        await DocumentMenu(context);
     }
 
     private static async Task FunctionMenu(ApplicationDbContext context)
@@ -189,7 +187,7 @@ public static class DbSeeder
             Title = "function",
             I18NKey = "route.(base)_function",
             Icon = "icon-park-outline:all-application",
-            Order = 6,
+            Order = 6
         };
         context.Menus.Add(function);
         await context.SaveChangesAsync();
@@ -239,7 +237,7 @@ public static class DbSeeder
                 Title = "function_hide-child_three",
                 I18NKey = "route.(base)_function_hide-child_three",
                 HideInMenu = true,
-                ActiveMenu =  "/function/hide-child",
+                ActiveMenu = "/function/hide-child",
                 ParentId = functionChild.Id
             },
             new()
@@ -252,11 +250,10 @@ public static class DbSeeder
                 HideInMenu = true,
                 ActiveMenu = "/function/hide-child",
                 ParentId = functionChild.Id
-            },
-            
+            }
         };
         context.Menus.AddRange(functionChildChild);
-        var functionHy= new List<Menu>()
+        var functionHy = new List<Menu>
         {
             new()
             {
@@ -267,7 +264,7 @@ public static class DbSeeder
                 I18NKey = "route.(base)_function_multi-tab",
                 Icon = "ic:round-tab",
                 MultiTab = true,
-                HideInMenu =  true,
+                HideInMenu = true,
                 ActiveMenu = "/function/tab",
                 ParentId = function.Id
             },
@@ -315,7 +312,7 @@ public static class DbSeeder
                 Icon = "ic:round-construction",
                 Order = 4,
                 ParentId = function.Id
-            },
+            }
         };
         context.Menus.AddRange(functionHy);
         await context.SaveChangesAsync();

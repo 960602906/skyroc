@@ -17,22 +17,22 @@ public sealed class Menu : BaseEntity
     ///     路由路径
     /// </summary>
     public required string Path { get; set; }
-    
+
     /// <summary>
-    ///  菜单类型
+    ///     菜单类型
     /// </summary>
     public MenuType? MenuType { get; set; }
-    
+
     /// <summary>
-    ///  布局组件
+    ///     布局组件
     /// </summary>
     public string? Layout { get; set; }
-    
+
     /// <summary>
-    ///  重定向
+    ///     重定向
     /// </summary>
     public string? Redirect { get; set; }
-    
+
     /// <summary>
     ///     只有第一级或最后一级路由才有该属性，作为布局组件或者页面组件
     /// </summary>
@@ -74,10 +74,10 @@ public sealed class Menu : BaseEntity
     public string? LocalIcon { get; set; }
 
     /// <summary>
-    ///  图标类型
+    ///     图标类型
     /// </summary>
     public IconType? IconType { get; set; }
-    
+
     /// <summary>
     ///     路由的外部链接。如果设置，点击菜单时会跳转到外部链接而不是路由路径
     /// </summary>
@@ -118,6 +118,11 @@ public sealed class Menu : BaseEntity
     ///     导航属性：子菜单
     /// </summary>
     public ICollection<Menu> Children { get; private set; } = new List<Menu>();
+
+    /// <summary>
+    ///     导航属性：菜单按钮 (一对多)
+    /// </summary>
+    public ICollection<MenuButton> Buttons { get; private set; } = new List<MenuButton>();
 
     /// <summary>
     ///     导航属性：角色菜单关联 (多对多)

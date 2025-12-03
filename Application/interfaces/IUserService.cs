@@ -45,14 +45,14 @@ public interface IUserService
     ///     删除用户
     /// </summary>
     Task DeleteUserAsync(Guid id);
-    
+
     /// <summary>
-    ///  批量删除用户
+    ///     批量删除用户
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
     Task DeleteUsersAsync(List<Guid> ids);
-    
+
     /// <summary>
     ///     给用户分配角色
     /// </summary>

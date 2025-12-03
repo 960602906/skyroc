@@ -47,7 +47,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     public async Task<IActionResult> GetRoutes()
     {
         var routes = await authService.GetRoutesAsync();
-        return Ok(ApiResponse<object>.Ok(new { routes,Home = "/home" }));
+        return Ok(ApiResponse<object>.Ok(new { routes, Home = "/home" }));
     }
 
     /// <summary>

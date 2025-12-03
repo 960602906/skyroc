@@ -41,9 +41,9 @@ public class MenusController(
         var menus = await menuService.GetAllMenusAsync();
         return Ok(ApiResponse<List<MenuDto>>.Ok(menus));
     }
-    
+
     /// <summary>
-    ///   查询菜单树
+    ///     查询菜单树
     /// </summary>
     /// <returns></returns>
     [HttpGet("tree")]
@@ -58,7 +58,7 @@ public class MenusController(
             Records = menus
         }));
     }
-    
+
     /// <summary>
     ///     根据id 获取菜单
     /// </summary>
@@ -106,9 +106,9 @@ public class MenusController(
         await menuService.DeleteMenuAsync(id);
         return Ok(ApiResponse<string>.Ok("Menu deleted successfully"));
     }
-    
+
     /// <summary>
-    ///  批量删除菜单
+    ///     批量删除菜单
     /// </summary>
     /// <param name="menuIds"></param>
     /// <returns></returns>

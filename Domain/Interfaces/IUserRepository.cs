@@ -5,12 +5,12 @@ namespace Domain.Interfaces;
 public interface IUserRepository : IRepository<User>
 {
    /// <summary>
-   ///  根据id 批量获取实体
+   ///     根据id 批量获取实体
    /// </summary>
    /// <param name="ids"></param>
    /// <returns></returns>
    Task<IEnumerable<User>> GetByIdAsync(IEnumerable<Guid> ids);
-   
+
    /// <summary>
    ///     根据用户名查找用户
    /// </summary>

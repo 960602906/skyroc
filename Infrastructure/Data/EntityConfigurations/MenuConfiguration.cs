@@ -1,5 +1,4 @@
-﻿using Common.Constants;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -45,7 +44,7 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.Property(x => x.Redirect)
             .HasColumnName("redirect")
             .HasColumnType("varchar(100)");
-        
+
         builder.Property(x => x.Component)
             .HasColumnName("component")
             .HasColumnType("varchar(100)");
@@ -69,8 +68,8 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
 
         builder.Property(x => x.IconType)
             .HasColumnName("icon_type");
-            // .HasColumnType("integer");
-        
+        // .HasColumnType("integer");
+
         builder.Property(x => x.Order)
             .HasColumnName("order")
             .HasColumnType("integer");
@@ -95,8 +94,8 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.Property(x => x.HideInMenu)
             .HasColumnName("hide_in_menu")
             .HasColumnType("boolean");
-        
-        builder.Property(x=> x.ActiveMenu)
+
+        builder.Property(x => x.ActiveMenu)
             .HasColumnName("active_menu")
             .HasColumnType("varchar(200)");
 
@@ -121,7 +120,7 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.Property(x => x.CreateBy)
             .HasColumnName("create_by")
             .HasColumnType("uuid");
-        
+
         builder.Property(x => x.CreateName)
             .HasColumnName("create_name")
             .HasColumnType("varchar(50)");
@@ -133,8 +132,8 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.Property(x => x.UpdateBy)
             .HasColumnName("update_by")
             .HasColumnType("uuid");
-        
-            builder.Property(x => x.UpdateName)
+
+        builder.Property(x => x.UpdateName)
             .HasColumnName("update_name")
             .HasColumnType("varchar(50)");
 
@@ -152,11 +151,17 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
             .WithMany(x => x.Children)
             .HasForeignKey(x => x.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
         // 
         builder.HasMany(x => x.RoleMenus)
             .WithOne(x => x.Menu)
             .HasForeignKey(x => x.MenuId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // 配置与 MenuButton 的一对多关系
+        builder.HasMany(m => m.Buttons)
+            .WithOne(mb => mb.Menu)
+            .HasForeignKey(mb => mb.MenuId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

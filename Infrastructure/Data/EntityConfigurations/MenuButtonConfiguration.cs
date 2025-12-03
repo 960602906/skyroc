@@ -5,40 +5,32 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace Infrastructure.Data.EntityConfigurations;
 
 /// <summary>
-///     Role 实体映射配置
+///     Menu 实体映射配置
 /// </summary>
-public class RoleConfiguration : IEntityTypeConfiguration<Role>
+public class MenuButtonConfiguration : IEntityTypeConfiguration<MenuButton>
 {
-    public void Configure(EntityTypeBuilder<Role> builder)
+    public void Configure(EntityTypeBuilder<MenuButton> builder)
     {
         // 表名
-        builder.ToTable("sys_role", "public");
-
-        // 主键
-        builder.HasKey(x => x.Id);
-        builder.Property(x => x.Id)
+        builder.ToTable("sys_menu_button", "public");
+        builder.HasKey(mb => mb.Id);
+        builder.Property(mb => mb.Id)
             .HasColumnName("id")
             .HasColumnType("uuid")
             .HasDefaultValueSql("gen_random_uuid()") // PostgreSQL
             .ValueGeneratedOnAdd();
-
-        // 属性配置
-        builder.Property(x => x.Name)
-            .HasColumnName("name")
-            .HasColumnType("varchar(50)")
-            .IsRequired();
-
-        builder.Property(x => x.Code)
-            .HasColumnName("code")
-            .HasColumnType("varchar(50)")
-            .IsRequired();
-
-        builder.Property(x => x.Desc)
-            .HasColumnName("desc")
-            .HasColumnType("varchar(200)");
-
-
-        // 审计字段配置
+        builder.Property(mb => mb.Code)
+            .IsRequired()
+            .HasMaxLength(100)
+            .HasComment("按钮编码");
+        builder.Property(mb => mb.Desc)
+            .IsRequired()
+            .HasMaxLength(500)
+            .HasComment("按钮描述");
+        builder.Property(mb => mb.MenuId)
+            .IsRequired()
+            .HasComment("所属菜单ID");
+        // 公共字段
         builder.Property(x => x.CreateTime)
             .HasColumnName("create_time")
             .HasColumnType("timestamp with time zone")
@@ -68,25 +60,17 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
             .HasColumnName("status")
             .HasColumnType("integer")
             .IsRequired();
-
-        // 唯一索引
-        builder.HasIndex(x => x.Name)
+        // 配置与 Menu 的关系 (一对多)
+        builder.HasOne(mb => mb.Menu)
+            .WithMany(m => m.Buttons)
+            .HasForeignKey(mb => mb.MenuId)
+            .OnDelete(DeleteBehavior.Cascade); // 删除菜单时级联删除按钮
+        // 创建索引
+        builder.HasIndex(mb => mb.MenuId)
+            .HasDatabaseName("idx_menu_buttons_menuId");
+        // 同一个菜单下的按钮编码必须唯一
+        builder.HasIndex(mb => new { mb.MenuId, mb.Code })
             .IsUnique()
-            .HasDatabaseName("idx_role_name");
-
-        builder.HasIndex(x => x.Code)
-            .IsUnique()
-            .HasDatabaseName("idx_role_code");
-
-        // 关系配置
-        builder.HasMany(x => x.UserRoles)
-            .WithOne(x => x.Role)
-            .HasForeignKey(x => x.RoleId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(x => x.RoleMenus)
-            .WithOne(x => x.Role)
-            .HasForeignKey(x => x.RoleId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasDatabaseName("idx_menu_buttons_menu_id_code");
     }
 }

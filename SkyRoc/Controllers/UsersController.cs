@@ -87,9 +87,9 @@ public class UsersController(IUserService userService) : ControllerBase
         await userService.DeleteUserAsync(id);
         return Ok(ApiResponse<string>.Ok("User deleted successfully"));
     }
-    
+
     /// <summary>
-    ///  批量删除用户
+    ///     批量删除用户
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>

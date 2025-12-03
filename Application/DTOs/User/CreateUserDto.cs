@@ -33,11 +33,11 @@ public class CreateUserDto
     ///     密码
     /// </summary>
     public string? Password { get; set; }
-    
+
     public Status? Status { get; set; }
-    
+
     /// <summary>
-    ///     分配的角色 ID 
+    ///     分配的角色 ID
     /// </summary>
     public Guid? RoleId { get; set; }
 }

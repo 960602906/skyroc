@@ -11,7 +11,7 @@ public class CreateUserValidator : AbstractValidator<CreateUserDto>
             .NotEmpty().WithMessage("用户名不能为空")
             .Length(3, 50).WithMessage("用户名长度必须在3-50之间")
             .Matches(@"^[a-zA-Z0-9_-]+$").WithMessage("用户名只能包含字母、数字、下划线和连字符");
-    
+
         RuleFor(x => x.Gender)
             .NotEmpty().WithMessage("性别不能为空")
             .IsInEnum().WithMessage("性别值不正确");

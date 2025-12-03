@@ -15,29 +15,30 @@ public class MenuMappingProfile : Profile
         // ==================== Menu Mappings ====================
         CreateMap<Menu, MenuDto>()
             .ForMember(m => m.I18nKey, opt => opt.MapFrom(src => src.I18NKey));
-        
+
         CreateMap<Menu, MenuTreeDto>()
             .ForMember(m => m.I18nKey, opt => opt.MapFrom(src => src.I18NKey))
-            .ForMember(m => m.Children, opt => opt.Condition(src => src.Children.Count != 0));;
-        
+            .ForMember(m => m.Children, opt => opt.Condition(src => src.Children.Count != 0));
+        ;
+
         CreateMap<List<Menu>, List<MenuTreeDto>>()
-            .ConvertUsing((src, dest, ctx) => 
+            .ConvertUsing((src, dest, ctx) =>
             {
                 // 先映射所有
                 var allDos = src.Select(m => ctx.Mapper.Map<MenuTreeDto>(m)).ToList();
                 // 再过滤掉有 parentId 的顶层节点
                 var rootDos = allDos.Where(m => m.ParentId is null)
                     .OrderBy(m => m.Order).ToList();
-        
+
                 return rootDos;
             });
-        
+
         CreateMap<CreateMenuDto, Menu>()
             .ForMember(x => x.I18NKey, opt => opt.MapFrom(src => src.I18NKey));
         CreateMap<UpdateMenuDto, Menu>()
             .ForMember(x => x.I18NKey, opt => opt.MapFrom(src => src.I18NKey));
 
-        
+
         // ==================== Route Mappings ====================
         CreateMap<Menu, RoutesHandleDto>()
             .ForMember(m => m.I18nKey, opt => opt.MapFrom(src => src.I18NKey));
@@ -45,14 +46,14 @@ public class MenuMappingProfile : Profile
             .ForMember(m => m.Handle, opt => opt.MapFrom(src => src))
             .ForMember(m => m.Children, opt => opt.Condition(src => src.Children.Count != 0));
         CreateMap<List<Menu>, List<RoutesDto>>()
-            .ConvertUsing((src, dest, ctx) => 
+            .ConvertUsing((src, dest, ctx) =>
             {
                 // 先映射所有
                 var allDos = src.Select(m => ctx.Mapper.Map<RoutesDto>(m)).ToList();
                 // 再过滤掉有 parentId 的顶层节点
                 var rootDos = allDos.Where(m => m.ParentId is null)
                     .OrderBy(m => m.Handle.Order).ToList();
-        
+
                 return rootDos;
             });
     }

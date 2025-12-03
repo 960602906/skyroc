@@ -21,12 +21,12 @@ public abstract class BaseDto
     ///     创建人ID (可选)
     /// </summary>
     public Guid? CreateBy { get; set; }
-    
+
     /// <summary>
-    ///   创建人名称 (可选)
+    ///     创建人名称 (可选)
     /// </summary>
-    public string?  CreateName { get; set; }
-    
+    public string? CreateName { get; set; }
+
     /// <summary>
     ///     最后修改时间
     /// </summary>
@@ -36,10 +36,12 @@ public abstract class BaseDto
     ///     最后修改人ID (可选)
     /// </summary>
     public Guid? UpdateBy { get; set; }
+
     /// <summary>
-    ///  最后修改人名称 (可选)
+    ///     最后修改人名称 (可选)
     /// </summary>
-    public string?  UpdateName { get; set; }
+    public string? UpdateName { get; set; }
+
     /// <summary>
     ///     启用禁用状态
     /// </summary>

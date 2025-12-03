@@ -22,7 +22,5 @@ public class UpdateMenuValidator : AbstractValidator<UpdateMenuDto>
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("路由路径不能为空")
             .Length(1, 100).WithMessage("菜单标题长度必须在1-100之间");
-
-   
     }
 }

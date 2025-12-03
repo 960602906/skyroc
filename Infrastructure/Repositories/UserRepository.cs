@@ -9,9 +9,9 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
 {
     private readonly ApplicationDbContext _context = context;
     private readonly DbSet<UserRole> _dbSetUserRole = context.Set<UserRole>();
-    
+
     /// <summary>
-    ///  批量获取实体
+    ///     批量获取实体
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
@@ -19,8 +19,9 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
     {
         return await DbSet.Where(r => ids.Contains(r.Id)).ToListAsync();
     }
+
     /// <summary>
-    ///  根据用户名查找用户
+    ///     根据用户名查找用户
     /// </summary>
     /// <param name="username"></param>
     /// <returns></returns>
@@ -28,9 +29,9 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
     {
         return DbSet.Where(u => u.Username == username).FirstOrDefaultAsync();
     }
-    
+
     /// <summary>
-    ///  删除用户的指定角色
+    ///     删除用户的指定角色
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="roleIds"></param>
@@ -42,8 +43,9 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
         _dbSetUserRole.RemoveRange(userRoles);
         await _context.SaveChangesAsync();
     }
+
     /// <summary>
-    ///  添加用户的指定角色
+    ///     添加用户的指定角色
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="roleIds"></param>

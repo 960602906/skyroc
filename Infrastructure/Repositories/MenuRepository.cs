@@ -8,16 +8,18 @@ namespace Infrastructure.Repositories;
 public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(context), IMenuRepository
 {
     private readonly DbSet<RoleMenu> _dbSetRoleMenu = context.Set<RoleMenu>();
-    
+
     /// <summary>
-    ///  批量删除实体
+    ///     批量删除实体
     /// </summary>
     /// <param name="guids"></param>
     /// <returns></returns>
     public override Task DeleteRangeAsync(IEnumerable<Guid> guids)
     {
         var guidList = guids.ToList();
-        return guidList.Count == 0 ? throw new Exception("There are no menus in the database.") : DeleteRangeAsync(DbSet.Where(m => guidList.Contains(m.Id)));
+        return guidList.Count == 0
+            ? throw new Exception("There are no menus in the database.")
+            : DeleteRangeAsync(DbSet.Where(m => guidList.Contains(m.Id)));
     }
 
     /// <summary>
@@ -39,7 +41,7 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
         var allDescendants = await GetAllDescendantsAsync(menuIdSet);
         menuIdSet.UnionWith(allDescendants);
         // 3️⃣ 按树形结构排序：先删子菜单，再删父菜单
-        var sortedMenus = await SortMenusByHierarchyAsync(menuIdSet, true);
+        var sortedMenus = await SortMenusByHierarchyAsync(menuIdSet);
         await base.DeleteRangeAsync(sortedMenus);
     }
 
@@ -78,6 +80,11 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
         await base.DeleteAsync(entity);
     }
 
+    /// <summary>
+    ///     根据角色ID获取菜单ID列表
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<Guid>> GetMenuIdsByRoleIdAsync(Guid roleId)
     {
         return await _dbSetRoleMenu

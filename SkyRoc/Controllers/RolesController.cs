@@ -91,9 +91,9 @@ public class RolesController(IRoleService roleService) : ControllerBase
         await roleService.DeleteRoleAsync(id);
         return Ok(ApiResponse<string>.Ok("Role deleted successfully"));
     }
-    
+
     /// <summary>
-    ///  批量删除角色
+    ///     批量删除角色
     /// </summary>
     /// <param name="roleIds"></param>
     /// <returns></returns>
@@ -101,9 +101,9 @@ public class RolesController(IRoleService roleService) : ControllerBase
     public async Task<IActionResult> BatchDeleteRoles(List<Guid> roleIds)
     {
         await roleService.DeleteAllRolesAsync(roleIds);
-        return  Ok(ApiResponse<string>.Ok("Roles deleted successfully"));
+        return Ok(ApiResponse<string>.Ok("Roles deleted successfully"));
     }
-    
+
 
     /// <summary>
     ///     为角色分配菜单

@@ -30,9 +30,9 @@ public class UserQueryParameters : PagedQueryParameters
     ///     邮箱
     /// </summary>
     public string? Email { get; set; }
-    
+
     /// <summary>
-    ///  启用状态
+    ///     启用状态
     /// </summary>
     public Status? Status { get; set; }
 
@@ -46,7 +46,7 @@ public class UserQueryParameters : PagedQueryParameters
             (string.IsNullOrWhiteSpace(Username) || u.Username.Contains(Username.Trim())) &&
             (string.IsNullOrWhiteSpace(Email) || u.Email.Contains(Email.Trim())) &&
             (string.IsNullOrWhiteSpace(NickName) || u.NickName.Contains(NickName.Trim())) &&
-            (string.IsNullOrWhiteSpace(Phone) ||  u.Phone != null &&  u.Phone.Equals(Phone.Trim())) &&
+            (string.IsNullOrWhiteSpace(Phone) || (u.Phone != null && u.Phone.Equals(Phone.Trim()))) &&
             (!Gender.HasValue || u.Gender.Equals(Gender)) &&
             (!Status.HasValue || u.Status == Status.Value);
     }

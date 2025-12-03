@@ -32,11 +32,11 @@ public class UserDto : BaseDto
     ///     邮箱
     /// </summary>
     public string? Email { get; set; }
-    
+
     public Guid? RoleId { get; set; }
-    
+
     /// <summary>
-    ///  角色列表
+    ///     角色列表
     /// </summary>
     public RoleDto? Role { get; set; }
 }

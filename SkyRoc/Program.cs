@@ -54,7 +54,7 @@ builder.Services.AddControllers()
         // 10.添加自定义日期时间转换器
         jsonOptions.Converters.Add(new CustomDateTimeConverter());
         jsonOptions.Converters.Add(new NullableCustomDateTimeConverter());
-    
+
         // 11.格式化输出（开发环境）
         jsonOptions.WriteIndented = true; // 格式化输出（开发环境）
     });

@@ -142,9 +142,9 @@ public class RoleService(
         await roleRepository.DeleteAsync(role);
         await unitOfWork.SaveChangesAsync();
     }
-    
+
     /// <summary>
-    ///  批量删除角色
+    ///     批量删除角色
     /// </summary>
     /// <param name="roleIds"></param>
     /// <returns></returns>
@@ -152,20 +152,14 @@ public class RoleService(
     public async Task DeleteAllRolesAsync(List<Guid> roleIds)
     {
         // 1. 参数验证
-        if (roleIds.Count == 0)
-        {
-            throw new BusinessException("角色ID列表不能为空");
-        }
+        if (roleIds.Count == 0) throw new BusinessException("角色ID列表不能为空");
         // 开启事务
         await unitOfWork.BeginTransactionAsync();
         try
         {
             var roles = await roleRepository.GetByIdsAsync(roleIds);
             var rolesList = roles.ToList();
-            if (roleIds.Count != rolesList.Count)
-            {
-                throw new BusinessException("部分角色不存在");
-            }
+            if (roleIds.Count != rolesList.Count) throw new BusinessException("部分角色不存在");
             // 4. 删除角色
             await roleRepository.DeleteRangeAsync(rolesList);
         }
@@ -173,10 +167,11 @@ public class RoleService(
         {
             // 回滚事务
             await unitOfWork.RollbackTransactionAsync();
-        
+
             logger.LogError(e, "批量删除角色失败: {RoleIds}", roleIds);
             throw new BusinessException("批量删除角色失败");
         }
+
         await unitOfWork.SaveChangesAsync();
         await unitOfWork.CommitTransactionAsync();
     }

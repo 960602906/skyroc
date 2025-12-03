@@ -30,13 +30,13 @@ public interface IMenuService
     ///     获取所有菜单
     /// </summary>
     Task<List<MenuDto>> GetAllMenusAsync();
-    
+
     /// <summary>
-    ///   获取所有菜单树形结构
+    ///     获取所有菜单树形结构
     /// </summary>
     /// <returns></returns>
     Task<List<MenuTreeDto>> GetAllMenusTreeAsync();
-    
+
     /// <summary>
     ///     获取菜单树形结构
     /// </summary>
@@ -61,9 +61,9 @@ public interface IMenuService
     ///     删除菜单
     /// </summary>
     Task DeleteMenuAsync(Guid id);
-    
+
     /// <summary>
-    ///  批量删除菜单
+    ///     批量删除菜单
     /// </summary>
     /// <param name="menuIds"></param>
     /// <returns></returns>

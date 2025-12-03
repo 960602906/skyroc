@@ -15,6 +15,5 @@ public class CreateRoleValidator : AbstractValidator<CreateRoleDto>
         RuleFor(x => x.Code)
             .NotEmpty().WithMessage("角色编码不能为空")
             .Length(1, 255).WithMessage("角色编码长度必须在1-255之间");
-      
     }
 }

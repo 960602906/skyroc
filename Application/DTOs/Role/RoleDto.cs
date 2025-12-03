@@ -21,7 +21,7 @@ public class RoleDto : BaseDto
     ///     角色描述
     /// </summary>
     public string? Desc { get; set; }
-    
+
     /// <summary>
     ///     角色拥有的菜单权限集合
     /// </summary>

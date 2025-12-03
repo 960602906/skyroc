@@ -18,9 +18,9 @@ public class RoleQueryParameters : PagedQueryParameters
     ///     角色编码
     /// </summary>
     public string? Code { get; set; }
-    
+
     /// <summary>
-    ///  启用状态
+    ///     启用状态
     /// </summary>
     public Status? Status { get; set; }
 

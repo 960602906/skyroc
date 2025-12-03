@@ -8,15 +8,15 @@ namespace Application.DTOs.Menu;
 public class MenuDto : BaseDto
 {
     /// <summary>
-    ///  菜单类型
+    ///     菜单类型
     /// </summary>
     public MenuType? MenuType { get; set; }
-    
+
     /// <summary>
     ///     菜单名称
     /// </summary>
     public string? Title { get; set; }
-    
+
     /// <summary>
     ///     路由名称
     /// </summary>
@@ -26,15 +26,17 @@ public class MenuDto : BaseDto
     ///     路由路径
     /// </summary>
     public string? Path { get; set; }
-    
+
     /// <summary>
     ///     只有第一级或最后一级路由才有该属性，作为布局组件或者页面组件
     /// </summary>
     public string? Component { get; set; }
+
     /// <summary>
-    ///  布局组件
+    ///     布局组件
     /// </summary>
     public string? Layout { get; set; }
+
     /// <summary>
     ///     国际化键值
     /// </summary>
@@ -64,9 +66,9 @@ public class MenuDto : BaseDto
     ///     本地图标
     /// </summary>
     public string? LocalIcon { get; set; }
-    
+
     /// <summary>
-    ///  图标类型
+    ///     图标类型
     /// </summary>
     public IconType? IconType { get; set; }
 

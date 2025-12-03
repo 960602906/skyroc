@@ -29,7 +29,7 @@ public class UserService(
     ILogger<UserService> logger) : IUserService
 {
     /// <summary>
-    ///  分页查询
+    ///     分页查询
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>
@@ -133,15 +133,12 @@ public class UserService(
         var userName = currentUserService.GetUserName();
         user.UpdateBy = userId;
         user.UpdateName = userName;
-      
+
         try
         {
             await userRepository.UpdateAsync(user);
             await unitOfWork.SaveChangesAsync();
-            if (request.RoleId is not null)
-            {
-              await AssignRolesToUserAsync(user.Id, [request.RoleId.Value]);
-            }
+            if (request.RoleId is not null) await AssignRolesToUserAsync(user.Id, [request.RoleId.Value]);
             logger.LogInformation("用户更新成功-Id:{UserId},Email:{Email}, ModifiedBy:{ModifiedBy}", user.Id, user.Email,
                 userId);
         }
@@ -151,8 +148,6 @@ public class UserService(
                 user.Email, userId, e.Message);
             throw new BusinessException("用户更新失败", e);
         }
-       
-        
     }
 
     /// <summary>
@@ -167,18 +162,15 @@ public class UserService(
         await userRepository.DeleteAsync(id);
         await unitOfWork.SaveChangesAsync();
     }
-    
+
     /// <summary>
-    ///  批量删除user
+    ///     批量删除user
     /// </summary>
     /// <param name="ids"></param>
     /// <exception cref="BusinessException"></exception>
     public async Task DeleteUsersAsync(List<Guid> ids)
     {
-        if (ids.Count == 0)
-        {
-            throw new BusinessException("角色ID列表不能为空");
-        }
+        if (ids.Count == 0) throw new BusinessException("角色ID列表不能为空");
         // 开启事务
         await unitOfWork.BeginTransactionAsync();
         try
@@ -186,10 +178,7 @@ public class UserService(
             var user = await userRepository.GetByIdAsync(ids);
             var userList = user.ToList();
             var idList = ids.ToList();
-            if (userList.Count != idList.Count)
-            {
-                throw new BusinessException("部分用户不存在");
-            }
+            if (userList.Count != idList.Count) throw new BusinessException("部分用户不存在");
             // 删除用户
             await userRepository.DeleteRangeAsync(userList);
         }
@@ -200,9 +189,9 @@ public class UserService(
             logger.LogError(e, "批量删除用户失败: {UserIds}", ids);
             throw new BusinessException("批量删除用户失败");
         }
+
         await unitOfWork.SaveChangesAsync();
         await unitOfWork.CommitTransactionAsync();
-        
     }
 
     /// <summary>
@@ -262,9 +251,9 @@ public class UserService(
     {
         await userRepository.DeleteByUserIdAndRoleIdsAsync(userId, roleIds);
     }
-    
+
     /// <summary>
-    ///  更新用户密码
+    ///     更新用户密码
     /// </summary>
     /// <param name="id"></param>
     /// <param name="request"></param>
@@ -280,9 +269,9 @@ public class UserService(
         await userRepository.UpdateAsync(user);
         await unitOfWork.SaveChangesAsync();
     }
-    
+
     /// <summary>
-    ///  禁用用户
+    ///     禁用用户
     /// </summary>
     /// <param name="id"></param>
     /// <exception cref="NotFoundException"></exception>

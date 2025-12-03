@@ -24,6 +24,4 @@ public interface IMenuRepository : IRepository<Menu>
     /// <param name="ids"></param>
     /// <returns></returns>
     Task<IEnumerable<Menu>> GetByIdsAsync(IEnumerable<Guid> ids);
-    
-
 }

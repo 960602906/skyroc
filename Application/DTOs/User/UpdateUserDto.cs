@@ -33,15 +33,16 @@ public class UpdateUserDto
     ///     邮箱
     /// </summary>
     public string? Email { get; set; }
+
     /// <summary>
     ///     密码
     /// </summary>
     public string? Password { get; set; }
-    
+
     public Status? Status { get; set; }
-    
+
     /// <summary>
-    ///     分配的角色 ID 
+    ///     分配的角色 ID
     /// </summary>
     public Guid? RoleId { get; set; }
 }
