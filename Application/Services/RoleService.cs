@@ -84,7 +84,7 @@ public class RoleService(
         if (role is null) throw new NotFoundException("角色不存在");
         var roleDto = mapper.Map<RoleDto>(role);
         var menus = await menuRepository.GetMenusByRoleIdAsync(role.Id);
-        roleDto.Menus = mapper.Map<List<MenuDto>>(menus);
+        roleDto.MenuIds = menus.Select(m => m.Id.ToString()).ToList();
         return roleDto;
     }
 

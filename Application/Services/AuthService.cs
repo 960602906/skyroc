@@ -124,7 +124,12 @@ public class AuthService(
     /// <returns></returns>
     public async Task<List<RoutesDto>> GetRoutesAsync()
     {
-        var menus = await menuRepository.GetAllAsync();
+        var userId = currentUserService.GetUserId();
+        if (userId is null) throw new BusinessException("用户未登录");
+        var roles = await roleRepository.GetRolesByUserIdAsync(userId.Value);
+        var role = roles.FirstOrDefault();
+        if (role is null) throw new NotFoundException("用户角色不存在");
+        var menus = await menuRepository.GetMenusByRoleIdAsync(role.Id);
         return mapper.Map<List<RoutesDto>>(menus);
     }
 }
