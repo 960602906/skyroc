@@ -1,3 +1,5 @@
+using Application.DTOs.MenuButton;
+
 namespace Application.DTOs.Auth;
 
 /// <summary>
@@ -44,7 +46,12 @@ public class RoutesDto
     ///     父菜单ID (支持无限级菜单)
     /// </summary>
     public Guid? ParentId { get; set; }
-
+    
+    /// <summary>
+    ///  菜单按钮权限
+    /// </summary>
+    public List<MenuButtonDto>? Buttons { get; set; }
+    
     /// <summary>
     ///     子菜单集合
     /// </summary>

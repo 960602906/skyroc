@@ -104,7 +104,9 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
     {
         return await _dbSetRoleMenu
             .Where(r => r.RoleId == roleId && r.Menu != null)
-            .Select(r => r.Menu!)
+            .Include(m => m.Menu)
+            .ThenInclude(m =>  m.Buttons)
+            .Select(r => r.Menu)
             .ToListAsync();
     }
 

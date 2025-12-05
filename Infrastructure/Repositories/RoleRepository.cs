@@ -23,7 +23,11 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
             .Select(ur => ur.RoleId)
             .ToListAsync();
     }
-
+    /// <summary>
+    /// 根据用户id获取角色列表
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<Role>> GetRolesByUserIdAsync(Guid userId)
     {
         return await _dbSetUserRole

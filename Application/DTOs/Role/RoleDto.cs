@@ -25,5 +25,5 @@ public class RoleDto : BaseDto
     /// <summary>
     ///     角色拥有的菜单权限集合
     /// </summary>
-    public List<string>? MenuIds { get; set; }
+    public List<MenuDto>? Menu { get; set; }
 }
