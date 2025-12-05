@@ -23,5 +23,5 @@ public class MenuButton : BaseEntity
     /// <summary>
     ///     所属菜单
     /// </summary>
-    public Menu Menu { get; set; }
+    public required Menu Menu { get; set; }
 }

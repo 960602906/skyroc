@@ -15,8 +15,7 @@ namespace SkyRoc.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 public class MenusController(
-    IMenuService menuService,
-    ICurrentUserService currentUserService
+    IMenuService menuService
 ) : ControllerBase
 {
     /// <summary>
