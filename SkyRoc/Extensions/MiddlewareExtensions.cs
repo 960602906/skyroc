@@ -15,11 +15,5 @@ public static class MiddlewareExtensions
         return app.UseMiddleware<ExceptionHandlingMiddleware>();
     }
 
-    /// <summary>
-    /// 使用请求日志中间件
-    /// </summary>
-    // public static IApplicationBuilder UseRequestLogging(this IApplicationBuilder app)
-    // {
-    //     return app.UseMiddleware<RequestLoggingMiddleware>();
-    // }
+   
 }

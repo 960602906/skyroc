@@ -196,7 +196,7 @@ public class RoleService(
         var menusList = menus.ToList();
         if (menuIdList.Count != menusList.Count)
         {
-            var invalidRoles = menuIdList.Except(menusList.Select(x => x.Id));
+            var invalidRoles = menuIdList.Except(menusList.Select(x => x!.Id));
             throw new ArgumentException($"Roles not found: {string.Join(", ", invalidRoles)}");
         }
 

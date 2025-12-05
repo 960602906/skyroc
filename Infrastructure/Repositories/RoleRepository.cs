@@ -7,7 +7,6 @@ namespace Infrastructure.Repositories;
 
 public class RoleRepository(ApplicationDbContext context) : Repository<Role>(context), IRoleRepository
 {
-    private readonly ApplicationDbContext _context = context;
     private readonly DbSet<RoleMenu> _dbSetRoleMenu = context.Set<RoleMenu>();
     private readonly DbSet<UserRole> _dbSetUserRole = context.Set<UserRole>();
 
@@ -43,7 +42,6 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
             .Where(r => r.RoleId == roleId && menuIds.Contains(r.MenuId))
             .ToListAsync();
         _dbSetRoleMenu.RemoveRange(roleMenus);
-        await _context.SaveChangesAsync();
     }
 
     public async Task AddByRoleIdAndMenuIdsAsync(Guid roleId, IEnumerable<Guid> menuIds)
@@ -54,6 +52,5 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
             MenuId = menuId
         });
         await _dbSetRoleMenu.AddRangeAsync(roleMenus);
-        await _context.SaveChangesAsync();
     }
 }

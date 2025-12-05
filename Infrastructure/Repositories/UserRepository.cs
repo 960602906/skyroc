@@ -7,7 +7,6 @@ namespace Infrastructure.Repositories;
 
 public class UserRepository(ApplicationDbContext context) : Repository<User>(context), IUserRepository
 {
-    private readonly ApplicationDbContext _context = context;
     private readonly DbSet<UserRole> _dbSetUserRole = context.Set<UserRole>();
 
     /// <summary>
@@ -41,7 +40,6 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
             .Where(ur => ur.UserId == userId && roleIds.Contains(ur.RoleId))
             .ToListAsync();
         _dbSetUserRole.RemoveRange(userRoles);
-        await _context.SaveChangesAsync();
     }
 
     /// <summary>
@@ -57,6 +55,5 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
             RoleId = roleId
         });
         await _dbSetUserRole.AddRangeAsync(userRoles);
-        await _context.SaveChangesAsync();
     }
 }

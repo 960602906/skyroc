@@ -100,17 +100,17 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Menu>> GetMenusByRoleIdAsync(Guid roleId)
+    public async Task<IEnumerable<Menu?>> GetMenusByRoleIdAsync(Guid roleId)
     {
         return await _dbSetRoleMenu
             .Where(r => r.RoleId == roleId && r.Menu != null)
-            .Include(m => m.Menu)
-            .ThenInclude(m =>  m.Buttons)
+            .Include(r => r.Menu)
+            .ThenInclude(menu => menu!.Buttons)
             .Select(r => r.Menu)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Menu>> GetByIdsAsync(IEnumerable<Guid> ids)
+    public async Task<IEnumerable<Menu?>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         return await DbSet
             .Where(x => ids.Contains(x.Id))

@@ -14,10 +14,14 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddHttpContextAccessor();
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("__SET_IN_ENV__"))
+            throw new InvalidOperationException(
+                "ConnectionStrings:DefaultConnection is not configured. Set it via environment variable 'ConnectionStrings__DefaultConnection'.");
         // 在此处注册基础设施层的服务，例如数据库上下文、存储库等
         // 配置DbContext
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(connectionString));
         // .EnableSensitiveDataLogging() // 显示具体冲突的 ID
         // .LogTo(Console.WriteLine)); // 将日志输出到控制台
         //注册仓储和工作单元

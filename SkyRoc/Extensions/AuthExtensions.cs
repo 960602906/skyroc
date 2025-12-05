@@ -2,6 +2,8 @@
 using Common.Constants;
 using Common.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace SkyRoc.Extensions;
@@ -25,6 +27,9 @@ public static class AuthExtensions
         var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>();
 
         if (jwtSettings is null) throw new Exception("JwtSettings is null");
+        if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey) || jwtSettings.SecretKey.Contains("__SET_IN_ENV__"))
+            throw new InvalidOperationException(
+                "JwtSettings:SecretKey is not configured. Set it via environment variable 'JwtSettings__SecretKey'.");
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
         services.AddAuthentication(options =>
             {
@@ -97,26 +102,27 @@ public static class AuthExtensions
             "Authorization challenge for path: {Path}",
             context.Request.Path);
         context.HandleResponse();
-        // 检查响应是否已经开始（避免重复写入）
-        if (context.Response.HasStarted) await Task.CompletedTask;
+        if (context.Response.HasStarted)
+            return;
 
         context.Response.ContentType = "application/json; charset=utf-8";
 
-        // 判断异常类型，区分不同的认证失败原因
         if (context.AuthenticateFailure != null)
+        {
             await HandleAuthenticationFailure(context, context.AuthenticateFailure);
+            return;
+        }
 
-        // 如果没有异常，说明未提供令牌
         var authHeader = context.Request.Headers.Authorization.ToString();
         if (string.IsNullOrEmpty(authHeader))
         {
-            var noToken = ApiResponse<string>.Unauthorized("认证失败,未提供认证令牌");
-            await context.Response.WriteAsJsonAsync(noToken);
+            await context.Response.WriteAsJsonAsync(
+                ApiResponse<string>.Unauthorized("认证失败,未提供认证令牌"));
+            return;
         }
 
-        // 其他情况（令牌格式错误等）
-        var result = ApiResponse<string>.Unauthorized("认证失败，令牌格式错误或无效");
-        await context.Response.WriteAsJsonAsync(result);
+        await context.Response.WriteAsJsonAsync(
+            ApiResponse<string>.Unauthorized("认证失败，令牌格式错误或无效"));
     }
 
     /// <summary>
@@ -178,8 +184,9 @@ public static class AuthExtensions
     /// </summary>
     private static Task OnTokenValidated(TokenValidatedContext context)
     {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
         var userName = context.Principal?.Identity?.Name ?? "Unknown";
-        Console.WriteLine($"Token validated for: {userName}");
+        logger.LogDebug("JWT validated for user {UserName}", userName);
         return Task.CompletedTask;
     }
 
@@ -191,8 +198,13 @@ public static class AuthExtensions
         var accessToken = context.Request.Query["access_token"];
         var path = context.HttpContext.Request.Path;
         // SignalR 场景：从查询字符串读取 Token
-        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs")) context.Token = accessToken;
-        Console.WriteLine($"Received message: {accessToken}");
+        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+        {
+            context.Token = accessToken;
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogDebug("JWT read from query string for hub path {Path}", path);
+        }
+
         return Task.CompletedTask;
     }
 }

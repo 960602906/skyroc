@@ -105,7 +105,6 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     public virtual async Task AddAsync(T entity)
     {
         await DbSet.AddAsync(entity);
-        await context.SaveChangesAsync();
     }
 
     /// <summary>
@@ -115,25 +114,24 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     public virtual async Task AddRangeAsync(IEnumerable<T> entities)
     {
         await DbSet.AddRangeAsync(entities);
-        await context.SaveChangesAsync();
     }
 
-    public virtual async Task UpdateAsync(T entity)
+    public virtual Task UpdateAsync(T entity)
     {
         DbSet.Update(entity);
-        await context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
-    public virtual async Task UpdateRangeAsync(IEnumerable<T> entities)
+    public virtual Task UpdateRangeAsync(IEnumerable<T> entities)
     {
         DbSet.UpdateRange(entities);
-        await context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
-    public virtual async Task DeleteAsync(T entity)
+    public virtual Task DeleteAsync(T entity)
     {
         DbSet.Remove(entity);
-        await context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
     public virtual async Task DeleteAsync(Guid id)
@@ -142,14 +140,13 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         if (entity is not null)
         {
             DbSet.Remove(entity);
-            await context.SaveChangesAsync();
         }
     }
 
-    public virtual async Task DeleteRangeAsync(IEnumerable<T> entities)
+    public virtual Task DeleteRangeAsync(IEnumerable<T> entities)
     {
         DbSet.RemoveRange(entities);
-        await context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
     public virtual async Task DeleteRangeAsync(IEnumerable<Guid> guids)

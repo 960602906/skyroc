@@ -10,12 +10,12 @@ public class MenuButtonDto
     /// <summary>
     ///     按钮编码
     /// </summary>
-    public string Code { get; init; }
+    public string? Code { get; init; }
 
     /// <summary>
     ///     按钮描述
     /// </summary>
-    public string Desc { get; init; }
+    public string? Desc { get; init; }
 
     /// <summary>
     ///     关联的菜单id
