@@ -16,6 +16,11 @@ public class User : BaseEntity
     ///     性别
     /// </summary>
     public required GenderType Gender { get; set; }
+    
+    /// <summary>
+    /// 部门ID ⭐ 新增
+    /// </summary>
+    public Guid? DepartmentId { get; set; }
 
     /// <summary>
     ///     昵称
@@ -36,7 +41,10 @@ public class User : BaseEntity
     ///     密码哈希值
     /// </summary>
     public required string PasswordHash { get; set; }
-
+    
+    // 导航属性
+    public virtual Department? Department { get; set; } // ⭐ 新增
+    
     /// <summary>
     ///     导航属性：用户角色关联 (多对多)
     /// </summary>
@@ -45,5 +53,5 @@ public class User : BaseEntity
     /// <summary>
     ///     导航属性 刷新令牌集合（✅ 添加这行）
     /// </summary>
-    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
