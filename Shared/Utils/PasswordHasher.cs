@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace Common.Utils;
+namespace Shared.Utils;
 
 /// <summary>
 ///     密码哈希服务

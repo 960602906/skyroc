@@ -1,4 +1,4 @@
-﻿using Common.Constants;
+﻿using Shared.Constants;
 
 namespace Application.DTOs.Role;
 

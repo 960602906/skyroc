@@ -1,6 +1,6 @@
 ﻿using Application.DTOs.User;
 using Application.QueryParameters;
-using Common.Constants;
+using Shared.Constants;
 
 namespace Application.interfaces;
 

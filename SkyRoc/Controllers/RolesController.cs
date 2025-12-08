@@ -1,10 +1,10 @@
 ﻿using Application.DTOs.Role;
 using Application.interfaces;
 using Application.QueryParameters;
-using Common.Constants;
-using Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Common;
+using Shared.Constants;
 
 namespace SkyRoc.Controllers;
 

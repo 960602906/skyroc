@@ -1,4 +1,4 @@
-﻿namespace Common.Constants;
+﻿namespace Shared.Constants;
 
 /// <summary>
 ///     菜单类型枚举

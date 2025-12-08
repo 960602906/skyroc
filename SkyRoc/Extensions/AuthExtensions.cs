@@ -1,8 +1,8 @@
 ﻿using System.Text;
-using Common.Constants;
-using Common.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Common;
+using Shared.Constants;
 
 namespace SkyRoc.Extensions;
 

@@ -1,6 +1,6 @@
 using Application.QueryParameters;
 using AutoMapper;
-using Common.Constants;
+using Shared.Constants;
 
 namespace Application.Extensions;
 

@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Exceptions;
-using Common.Constants;
-using Common.Models;
+using Shared.Common;
+using Shared.Constants;
 
 namespace SkyRoc.Middleware;
 

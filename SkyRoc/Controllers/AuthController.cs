@@ -1,8 +1,8 @@
 ﻿using Application.DTOs.Auth;
 using Application.interfaces;
-using Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Common;
 
 namespace SkyRoc.Controllers;
 

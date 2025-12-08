@@ -3,10 +3,10 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Application.interfaces;
-using Common.Models;
 using Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Common;
 
 namespace Application.Services;
 

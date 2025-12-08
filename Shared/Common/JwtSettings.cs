@@ -1,4 +1,4 @@
-﻿namespace Common.Models;
+﻿namespace Shared.Common;
 
 /// <summary>
 ///     JWT 配置类
