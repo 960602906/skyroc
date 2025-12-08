@@ -46,7 +46,8 @@ public class DepartmentConfiguration:IEntityTypeConfiguration<Department>
             .HasColumnName("parent_id");
         builder.Property(x => x.LeaderId)
             .HasColumnName("leader_id");
-        
+        builder.Property(x => x.LeaderName)
+            .HasColumnName("leader_name");
         // 公共字段
         builder.Property(x => x.CreateTime)
             .HasColumnName("create_time")

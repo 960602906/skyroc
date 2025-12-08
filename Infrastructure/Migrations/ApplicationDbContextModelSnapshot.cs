@@ -59,6 +59,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("leader_id");
 
+                    b.Property<string>("LeaderName")
+                        .HasColumnType("text")
+                        .HasColumnName("leader_name");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)

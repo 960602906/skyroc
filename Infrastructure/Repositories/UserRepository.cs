@@ -59,4 +59,14 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
         await _dbSetUserRole.AddRangeAsync(userRoles);
         await _context.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public async Task<IEnumerable<User>> GetByDepartmentIdsAsync(List<Guid> ids)
+    {
+        return await DbSet.Where(r => ids.Contains(r.DepartmentId ?? Guid.Empty)).ToListAsync();
+    }
 }
