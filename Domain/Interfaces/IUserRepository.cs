@@ -2,7 +2,7 @@
 
 namespace Domain.Interfaces;
 
-public interface IUserRepository : IRepository<User>
+public interface IUserRepository : IRepository<User>, IProjectableRepository<User>
 {
    /// <summary>
    ///     根据id 批量获取实体

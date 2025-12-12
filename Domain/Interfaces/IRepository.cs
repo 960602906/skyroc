@@ -27,10 +27,10 @@ public interface IRepository<TEntity>
     Task<TEntity?> GetByConditionAsync(Expression<Func<TEntity, bool>> predicate);
 
     /// <summary>
-    ///     获取所有实体 (不包含删除的)
+    ///     获取所有实体 
     /// </summary>
     Task<IEnumerable<TEntity>> GetAllAsync();
-
+    
     /// <summary>
     ///     条件查询
     /// </summary>
