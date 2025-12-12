@@ -10,12 +10,21 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
     private readonly ApplicationDbContext _context = context;
     private readonly DbSet<RoleMenu> _dbSetRoleMenu = context.Set<RoleMenu>();
     private readonly DbSet<UserRole> _dbSetUserRole = context.Set<UserRole>();
-
+    /// <summary>
+    /// 根据多个 ID 获取角色列
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<Role>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         return await DbSet.Where(r => ids.Contains(r.Id)).ToListAsync();
     }
-
+    
+    /// <summary>
+    /// 根据用户ID获取角色ID列表
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<Guid>> GetRoleIdsByUserIdAsync(Guid userId)
     {
         return await _dbSetUserRole
@@ -36,7 +45,11 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
             .ToListAsync();
     }
 
-
+    /// <summary>
+    /// 删除角色的指定菜单
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="menuIds"></param>
     public async Task DeleteByRoleIdAndMenuIdsAsync(Guid roleId, IEnumerable<Guid> menuIds)
     {
         var roleMenus = await _dbSetRoleMenu
@@ -45,7 +58,12 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
         _dbSetRoleMenu.RemoveRange(roleMenus);
         await _context.SaveChangesAsync();
     }
-
+    
+    /// <summary>
+    /// 添加角色的指定菜单
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="menuIds"></param>
     public async Task AddByRoleIdAndMenuIdsAsync(Guid roleId, IEnumerable<Guid> menuIds)
     {
         var roleMenus = menuIds.Select(menuId => new RoleMenu

@@ -8,7 +8,12 @@ namespace Infrastructure.Repositories;
 public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(context), IMenuRepository
 {
     private readonly DbSet<RoleMenu> _dbSetRoleMenu = context.Set<RoleMenu>();
-
+    
+    /// <summary>
+    /// 根据ID获取实体
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public override async Task<Menu?> GetByIdAsync(Guid id)
     {
        return  await DbSet
@@ -99,7 +104,12 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
             .Select(r => r.MenuId)
             .ToListAsync();
     }
-
+    
+    /// <summary>
+    /// 根据角色ID获取菜单列表
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<Menu?>> GetMenusByRoleIdAsync(Guid roleId)
     {
         return await _dbSetRoleMenu
@@ -109,7 +119,12 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
             .Select(r => r.Menu)
             .ToListAsync();
     }
-
+    
+    /// <summary>
+    /// 根据多个 ID 获取菜单列表
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<Menu?>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         return await DbSet

@@ -17,7 +17,7 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
     /// <returns></returns>
     public async Task<IEnumerable<User>> GetByIdAsync(IEnumerable<Guid> ids)
     {
-        return await DbSet.Where(r => ids.Contains(r.Id)).ToListAsync();
+        return await DbSet.AsNoTracking().Where(r => ids.Contains(r.Id)).ToListAsync();
     }
 
     /// <summary>
