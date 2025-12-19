@@ -21,7 +21,6 @@ public sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try

@@ -16,7 +16,7 @@ namespace Application.Services;
 public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
 {
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
-
+    private readonly JwtSecurityTokenHandler _tokenHandler = new();
     /// <summary>
     ///     生成访问令牌
     /// </summary>
@@ -44,7 +44,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
             expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
             signingCredentials: credentials
         );
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return _tokenHandler.WriteToken(token);
     }
 
     /// <summary>
@@ -67,11 +67,10 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
     /// <exception cref="NotImplementedException"></exception>
     public bool ValidateToken(string token)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
         try
         {
-            tokenHandler.ValidateToken(token, new TokenValidationParameters
+            _tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -97,11 +96,10 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
     /// <returns></returns>
     public int? GetUserIdFromToken(string token)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
         try
         {
-            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            var principal = _tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
