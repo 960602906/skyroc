@@ -1,10 +1,10 @@
 ﻿using System.Text;
-using Common.Constants;
-using Common.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Common;
+using Shared.Constants;
 
 namespace SkyRoc.Extensions;
 

@@ -1,6 +1,6 @@
-﻿using Common.Constants;
+﻿using Shared.Constants;
 
-namespace Common.Models;
+namespace Shared.Common;
 
 /// <summary>
 ///     API 统一响应模型

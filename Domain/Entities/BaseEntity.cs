@@ -1,4 +1,5 @@
-﻿using Common.Constants;
+﻿
+using Shared.Constants;
 
 namespace Domain.Entities;
 

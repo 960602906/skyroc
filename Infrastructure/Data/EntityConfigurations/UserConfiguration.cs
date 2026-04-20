@@ -92,6 +92,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.Email)
             .IsUnique()
             .HasDatabaseName("idx_user_email");
+        
+        // ⭐ 新增：部门外键
+        builder.HasOne(x => x.Department)
+            .WithMany(x => x.Users)
+            .HasForeignKey(x => x.DepartmentId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // 关系配置
         builder.HasMany(x => x.UserRoles)

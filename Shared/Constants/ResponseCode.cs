@@ -1,4 +1,4 @@
-﻿namespace Common.Constants;
+﻿namespace Shared.Constants;
 
 /// <summary>
 ///     API 响应状态码

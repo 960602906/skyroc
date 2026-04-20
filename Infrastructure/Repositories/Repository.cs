@@ -46,7 +46,7 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     /// <returns></returns>
     public virtual async Task<IEnumerable<T>> GetAllAsync()
     {
-        return await DbSet.ToListAsync();
+        return await DbSet.AsNoTracking().ToListAsync();
     }
 
     /// <summary>
@@ -92,6 +92,7 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         var total = await query.CountAsync();
         if (orderBy != null) query = isDescending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
         var data = await query
+            .AsNoTracking()
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -154,13 +155,23 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         var entities = await DbSet.Where(e => guids.Contains(e.Id)).ToListAsync();
         await DeleteRangeAsync(entities);
     }
-
+    
+    /// <summary>
+    /// 检查实体是否存在
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
     public virtual async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
     {
         var result = await DbSet.Where(predicate).AnyAsync();
         return result;
     }
-
+    
+    /// <summary>
+    /// 获取满足条件的记录数
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
     public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null)
     {
         var count = await DbSet.CountAsync(predicate ?? (_ => true));

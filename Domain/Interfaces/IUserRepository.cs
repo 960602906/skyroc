@@ -2,7 +2,7 @@
 
 namespace Domain.Interfaces;
 
-public interface IUserRepository : IRepository<User>
+public interface IUserRepository : IRepository<User>, IProjectableRepository<User>
 {
    /// <summary>
    ///     根据id 批量获取实体
@@ -33,4 +33,11 @@ public interface IUserRepository : IRepository<User>
    /// <param name="roleIds"></param>
    /// <returns></returns>
    Task AddByUserIdAndRoleIdsAsync(Guid userId, IEnumerable<Guid> roleIds);
+   
+   /// <summary>
+   ///  根据部门id查找用户
+   /// </summary>
+   /// <param name="ids"></param>
+   /// <returns></returns>
+   Task<IEnumerable<User>> GetByDepartmentIdsAsync(List<Guid> ids);
 }

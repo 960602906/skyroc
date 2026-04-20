@@ -76,6 +76,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     ///     角色菜单关联表
     /// </summary>
     public DbSet<RoleMenu> RoleMenus { get; set; }
+    
+    /// <summary>
+    ///  部门表
+    /// </summary>
+    public DbSet<Department> Departments { get; set; }
+    
+    /// <summary>
+    ///  操作日志表
+    /// </summary>
+    public DbSet<OperationLog>  OperationLogs { get; set; }
 
     #endregion
 }

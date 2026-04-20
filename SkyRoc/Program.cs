@@ -23,7 +23,7 @@ var configuration = builder.Configuration;
 builder.Services.AddInfrastructureServices(configuration);
 
 // 添加应用层服务
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(configuration);
 
 //添加鉴权服务
 builder.Services.AddAuthenticationServices(configuration);

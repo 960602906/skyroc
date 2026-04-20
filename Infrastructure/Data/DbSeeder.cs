@@ -1,7 +1,7 @@
-﻿using Common.Constants;
-using Common.Utils;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Shared.Constants;
+using Shared.Utils;
 
 namespace Infrastructure.Data;
 

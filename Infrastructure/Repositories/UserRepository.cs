@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using System.Linq.Expressions;
+using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
     /// <returns></returns>
     public async Task<IEnumerable<User>> GetByIdAsync(IEnumerable<Guid> ids)
     {
-        return await DbSet.Where(r => ids.Contains(r.Id)).ToListAsync();
+        return await DbSet.AsNoTracking().Where(r => ids.Contains(r.Id)).ToListAsync();
     }
 
     /// <summary>
@@ -55,5 +56,67 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
             RoleId = roleId
         });
         await _dbSetUserRole.AddRangeAsync(userRoles);
+    }
+
+    /// <summary>
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public async Task<IEnumerable<User>> GetByDepartmentIdsAsync(List<Guid> ids)
+    {
+        return await DbSet.Where(r => ids.Contains(r.DepartmentId ?? Guid.Empty)).ToListAsync();
+    }
+    
+    /// <summary>
+    /// 根据ID获取实体
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="selector"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public async Task<TEntity?> GetByIdAsync<TEntity>(Guid id, Expression<Func<User, TEntity>> selector)
+    {
+        return  await DbSet.AsNoTracking().Where(r => r.Id == id).Select(selector).FirstOrDefaultAsync();
+    }
+    
+    /// <summary>
+    /// 查询所有数据并投影
+    /// </summary>
+    /// <param name="selector"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(Expression<Func<User, TEntity>> selector)
+    {
+        return await DbSet.AsNoTracking().Select(selector).ToListAsync();
+    }
+    
+    /// <summary>
+    /// 分页查询并且投影
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <param name="pageNumber"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="orderBy"></param>
+    /// <param name="isDescending"></param>
+    /// <param name="selector"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public async Task<(IEnumerable<TEntity> Data, int Total)> GetPagedAsync<TEntity>(Expression<Func<User, bool>>? predicate, int pageNumber, int pageSize, Expression<Func<User, object>>? orderBy = null,
+        bool isDescending = false, Expression<Func<User, TEntity>>? selector = null)
+    {
+        var query = DbSet.AsNoTracking();
+        // 不需要手动过滤 IsDeleted，全局过滤器已处理 ✅
+        if (predicate != null)
+            query = query.Where(predicate);
+        var total = await query.CountAsync();
+        if (orderBy != null) query = isDescending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
+        var data = await query
+            .AsNoTracking()
+            .Select(selector ?? (_ => default!))
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        return (data, total);
     }
 }

@@ -2,11 +2,11 @@
 using Application.Exceptions;
 using Application.interfaces;
 using AutoMapper;
-using Common.Models;
-using Common.Utils;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.Extensions.Options;
+using Shared.Common;
+using Shared.Utils;
 
 namespace Application.Services;
 

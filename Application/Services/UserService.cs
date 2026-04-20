@@ -5,12 +5,12 @@ using Application.Extensions;
 using Application.interfaces;
 using Application.QueryParameters;
 using AutoMapper;
-using Common.Constants;
-using Common.Utils;
 using Domain.Entities;
 using Domain.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Shared.Constants;
+using Shared.Utils;
 using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services;

@@ -1,5 +1,5 @@
 ﻿using Application.DTOs.Role;
-using Common.Constants;
+using Shared.Constants;
 
 namespace Application.DTOs.User;
 

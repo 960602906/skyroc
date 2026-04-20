@@ -1,4 +1,4 @@
-﻿namespace Common.Constants;
+﻿namespace Shared.Constants;
 
 /// <summary>
 ///     图标类型枚举
