@@ -13,13 +13,7 @@ public class DbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext
     /// </summary>
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        // 获取连接字符串
-        var connectionString =
-            "Host=ep-lucky-silence-anqhgkr0-pooler.c-6.us-east-1.aws.neon.tech; Database=neondb; Username=neondb_owner; Password=npg_hv6YNATa1pbF; SSL Mode=Require;Trust Server Certificate=true;";
-
-        if (string.IsNullOrEmpty(connectionString))
-            throw new InvalidOperationException(
-                "未找到连接字符串 'DefaultConnection'。请确保 appsettings.json 中包含此配置。");
+        const string connectionString = "Host=ep-still-firefly-aotz0lef-pooler.c-2.ap-southeast-1.aws.neon.tech; Database=neondb; Username=neondb_owner; Password=npg_aYwABE7F4HxP; SSL Mode=Require; Trust Server Certificate=true;";
 
         // 配置 DbContext
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
