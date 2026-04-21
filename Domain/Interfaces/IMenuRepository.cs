@@ -16,7 +16,7 @@ public interface IMenuRepository : IRepository<Menu>
     /// </summary>
     /// <param name="roleId"></param>
     /// <returns></returns>
-    Task<IEnumerable<Menu?>> GetMenusByRoleIdAsync(Guid roleId);
+    Task<IEnumerable<Menu>> GetMenusByRoleIdAsync(Guid roleId);
 
     /// <summary>
     ///     根据多个 ID 获取菜单列表

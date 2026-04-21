@@ -110,13 +110,11 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
     /// </summary>
     /// <param name="roleId"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<Menu?>> GetMenusByRoleIdAsync(Guid roleId)
+    public async Task<IEnumerable<Menu>> GetMenusByRoleIdAsync(Guid roleId)
     {
-        return await _dbSetRoleMenu
-            .Where(r => r.RoleId == roleId && r.Menu != null)
-            .Include(m => m.Menu)
-            .ThenInclude(m =>  m.Buttons)
-            .Select(r => r.Menu)
+        return await DbSet
+            .Where(m => m.RoleMenus.Any(rm => rm.RoleId == roleId))
+            .Include(m => m.Buttons)
             .ToListAsync();
     }
     
