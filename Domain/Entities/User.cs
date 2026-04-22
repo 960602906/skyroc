@@ -49,9 +49,4 @@ public class User : BaseEntity
     ///     导航属性：用户角色关联 (多对多)
     /// </summary>
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-
-    /// <summary>
-    ///     导航属性 刷新令牌集合（✅ 添加这行）
-    /// </summary>
-    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs.Auth;
+using Domain.Entities;
 
 namespace Application.interfaces;
 
@@ -8,9 +9,9 @@ namespace Application.interfaces;
 public interface IJwtService
 {
     /// <summary>
-    ///     生成访问令牌
+    ///     生成访问令牌（含 jti / 过期时间）
     /// </summary>
-    string GenerateAccessToken(User user, List<string> roles);
+    AccessTokenResult GenerateAccessToken(User user, List<string> roles);
 
     /// <summary>
     ///     生成刷新令牌
@@ -25,5 +26,5 @@ public interface IJwtService
     /// <summary>
     ///     从令牌中获取用户 ID
     /// </summary>
-    int? GetUserIdFromToken(string token);
+    Guid? GetUserIdFromToken(string token);
 }

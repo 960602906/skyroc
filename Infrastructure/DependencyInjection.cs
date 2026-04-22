@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Domain.Interfaces;
+using Infrastructure.Caching;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +19,8 @@ public static class DependencyInjection
         if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("__SET_IN_ENV__"))
             throw new InvalidOperationException(
                 "ConnectionStrings:DefaultConnection is not configured. Set it via environment variable 'ConnectionStrings__DefaultConnection'.");
-        // 在此处注册基础设施层的服务，例如数据库上下文、存储库等
-        // 配置DbContext
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString));
-        // .EnableSensitiveDataLogging() // 显示具体冲突的 ID
-        // .LogTo(Console.WriteLine)); // 将日志输出到控制台
-        //注册仓储和工作单元
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         var assembly = Assembly.GetExecutingAssembly();
         services.Scan(scan => scan
@@ -34,6 +30,8 @@ public static class DependencyInjection
                 .Where(type => type.Name.EndsWith("Repository") && !type.IsAbstract))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
+
+        services.AddRedisServices(configuration);
         return services;
     }
 }
