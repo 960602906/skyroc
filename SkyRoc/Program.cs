@@ -103,5 +103,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 // 使用控制器路由
 app.MapControllers();
+// 健康检查端点
+app.MapHealthChecks("/health");
 
 app.Run();

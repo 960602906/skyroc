@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Application.DTOs.Auth;
 using Application.interfaces;
 using Domain.Entities;
 using Microsoft.Extensions.Options;
@@ -11,46 +12,40 @@ using Shared.Common;
 namespace Application.Services;
 
 /// <summary>
-///     jwt 服务
+///     JWT 服务
 /// </summary>
 public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
 {
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
-    /// <summary>
-    ///     生成访问令牌
-    /// </summary>
-    /// <param name="user"></param>
-    /// <param name="roles"></param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    public string GenerateAccessToken(User user, List<string> roles)
+
+    public AccessTokenResult GenerateAccessToken(User user, List<string> roles)
     {
+        var jti = Guid.NewGuid().ToString("N");
+        var expiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes);
+
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.Username),
             new(ClaimTypes.Email, user.Email),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Jti, jti)
         };
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-        // 添加角色声明
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(
             _jwtSettings.Issuer,
             _jwtSettings.Audience,
             claims,
-            expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
+            expires: expiresAt,
             signingCredentials: credentials
         );
-        return _tokenHandler.WriteToken(token);
+
+        return new AccessTokenResult(_tokenHandler.WriteToken(token), jti, expiresAt);
     }
 
-    /// <summary>
-    ///     刷新令牌
-    /// </summary>
-    /// <returns></returns>
     public string GenerateRefreshToken()
     {
         var randomNumber = new byte[32];
@@ -59,12 +54,6 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
         return Convert.ToBase64String(randomNumber);
     }
 
-    /// <summary>
-    ///     验证令牌
-    /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
     public bool ValidateToken(string token)
     {
         var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
@@ -80,7 +69,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
                 ValidAudience = _jwtSettings.Audience,
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
-            }, out var validatedToken);
+            }, out _);
             return true;
         }
         catch
@@ -89,12 +78,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
         }
     }
 
-    /// <summary>
-    ///     从令牌中获取用户 ID
-    /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
-    public int? GetUserIdFromToken(string token)
+    public Guid? GetUserIdFromToken(string token)
     {
         var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
         try
@@ -109,9 +93,9 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
                 ValidAudience = _jwtSettings.Audience,
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
-            }, out var validatedToken);
+            }, out _);
             var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId)) return userId;
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)) return userId;
             return null;
         }
         catch
