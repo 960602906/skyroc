@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.User;
 using Application.QueryParameters;
+using Shared.Common;
 using Shared.Constants;
 
 namespace Application.interfaces;
@@ -14,36 +15,43 @@ public interface IUserService
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>
+    [Cacheable(KeyPrefix = "user:page", Seconds = 300, Buckets = ["user"])]
     Task<PagedResult<UserDto>> GetPagedMenusAsync(UserQueryParameters parameters);
 
     /// <summary>
     ///     创建用户
     /// </summary>
+    [CacheEvict("user")]
     Task<UserDto> CreateUserAsync(CreateUserDto request);
 
     /// <summary>
     ///     根据 ID 获取用户
     /// </summary>
+    [Cacheable(KeyPrefix = "user:id", Seconds = 600, Buckets = ["user"])]
     Task<UserDto> GetUserByIdAsync(Guid id);
 
     /// <summary>
     ///     根据邮箱获取用户
     /// </summary>
+    [Cacheable(KeyPrefix = "user:email", Seconds = 600, Buckets = ["user"])]
     Task<UserDto?> GetUserByEmailAsync(string email);
 
     /// <summary>
     ///     获取所有用户
     /// </summary>
+    [Cacheable(KeyPrefix = "user:all", Seconds = 300, Buckets = ["user"])]
     Task<IEnumerable<UserDto>> GetAllUsersAsync();
 
     /// <summary>
     ///     更新用户
     /// </summary>
+    [CacheEvict("user")]
     Task UpdateUserAsync(Guid id, UpdateUserDto request);
 
     /// <summary>
     ///     删除用户
     /// </summary>
+    [CacheEvict("user")]
     Task DeleteUserAsync(Guid id);
 
     /// <summary>
@@ -51,25 +59,30 @@ public interface IUserService
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
+    [CacheEvict("user")]
     Task DeleteUsersAsync(List<Guid> ids);
 
     /// <summary>
     ///     给用户分配角色
     /// </summary>
+    [CacheEvict("user")]
     Task AssignRolesToUserAsync(Guid userId, IEnumerable<Guid> roleIds);
 
     /// <summary>
     ///     移除用户的角色
     /// </summary>
+    [CacheEvict("user")]
     Task RemoveRolesFromUserAsync(Guid userId, IEnumerable<Guid> roleIds);
 
     /// <summary>
     ///     更新用户密码
     /// </summary>
+    [CacheEvict("user")]
     Task UpdatePasswordAsync(Guid id, ChangePasswordDto request);
 
     /// <summary>
     ///     禁用用户
     /// </summary>
+    [CacheEvict("user")]
     Task DeactivateUserAsync(Guid id);
 }

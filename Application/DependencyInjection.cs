@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using Application.Caching;
+using Application.interfaces;
 using Application.Mappers;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -44,6 +46,18 @@ public static class DependencyInjection
     }
 
     /// <summary>
+    ///     为需要缓存的查询接口套上 DynamicProxy 装饰器
+    /// </summary>
+    private static IServiceCollection AddQueryCachingConfiguration(this IServiceCollection services)
+    {
+        services.AddMethodCaching();
+        services.DecorateWithCaching<IUserService>();
+        services.DecorateWithCaching<IMenuService>();
+        services.DecorateWithCaching<IRoleService>();
+        return services;
+    }
+
+    /// <summary>
     ///     注册所有应用层服务
     /// </summary>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services,
@@ -52,6 +66,7 @@ public static class DependencyInjection
         services.AddAutoServiceConfiguration();
         services.AddAutoMapperConfiguration();
         services.AddAuthFluentValidationConfiguration();
+        services.AddQueryCachingConfiguration();
         return services;
     }
 }
