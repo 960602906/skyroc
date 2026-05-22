@@ -172,7 +172,6 @@ public class RoleService(
             throw new BusinessException("批量删除角色失败");
         }
 
-        await unitOfWork.SaveChangesAsync();
         await unitOfWork.CommitTransactionAsync();
     }
 
@@ -223,12 +222,12 @@ public class RoleService(
             throw new BusinessException("分配菜单失败");
         }
 
-        await unitOfWork.SaveChangesAsync();
         await unitOfWork.CommitTransactionAsync();
     }
 
     public async Task RemoveMenusFromRoleAsync(Guid roleId, IEnumerable<Guid> menuIds)
     {
         await roleRepository.DeleteByRoleIdAndMenuIdsAsync(roleId, menuIds);
+        await unitOfWork.SaveChangesAsync();
     }
 }

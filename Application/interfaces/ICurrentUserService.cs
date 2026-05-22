@@ -24,10 +24,16 @@ public interface ICurrentUserService
     string? GetEmail();
 
     /// <summary>
-    ///     角色
+    ///     当前角色 ID
     /// </summary>
     /// <returns></returns>
     string? GetRole();
+
+    /// <summary>
+    ///     当前用户所有角色编码
+    /// </summary>
+    /// <returns></returns>
+    IReadOnlyList<string> GetRoles();
 
     /// <summary>
     ///     是否存在

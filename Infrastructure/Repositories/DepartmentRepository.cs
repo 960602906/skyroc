@@ -2,14 +2,11 @@
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
-public class DepartmentRepository(
-    ApplicationDbContext context,
-    ILogger<DepartmentRepository> logger
-    ): Repository<Department>(context), IDepartmentRepository
+public class DepartmentRepository(ApplicationDbContext context)
+    : Repository<Department>(context), IDepartmentRepository
 {
     private readonly DbSet<User> _dbSetUser = context.Set<User>();
 
@@ -93,7 +90,7 @@ public class DepartmentRepository(
     public async Task<bool> ExistsByNameAsync(string name, Guid? parentId, Guid? excludeId = null)
     {
         var query = DbSet
-            .Where(x => x.Name == name);
+            .Where(x => x.Name == name && x.ParentId == parentId);
         if (excludeId.HasValue)
         {
             query = query.Where(x => x.Id != excludeId.Value);
@@ -130,7 +127,7 @@ public class DepartmentRepository(
     public async Task<bool> HasChildrenAsync(Guid departmentId)
     {
         return await  DbSet
-            .Where(x => x.Id == departmentId)
+            .Where(x => x.ParentId == departmentId)
             .AnyAsync();
     }
 

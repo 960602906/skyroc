@@ -18,7 +18,7 @@ public class MenuButtonService(
     IUnitOfWork unitOfWork,
     IValidator<CreateMenuButtonDto> createMenuButtonValidator,
     IValidator<UpdateMenuButtonDto> updateMenuButtonValidator,
-    ILogger<MenuService> logger
+    ILogger<MenuButtonService> logger
 ) : IMenuButtonService
 {
     /// <summary>
@@ -51,6 +51,7 @@ public class MenuButtonService(
         try
         {
             await menuButtonRepository.AddAsync(menuButton);
+            await unitOfWork.SaveChangesAsync();
             logger.LogInformation("菜单按钮创建成功，菜单按钮ID：{MenuButtonId}", menuButton.Id);
             return mapper.Map<MenuButtonDto>(menuButton);
         }
@@ -73,7 +74,7 @@ public class MenuButtonService(
     {
         var requestList = requests.ToList();
         // 严重输入
-        if (requestList.Count != 0)
+        if (requestList.Count == 0)
         {
             logger.LogWarning("没有提供任何菜单按钮数据");
             throw new BusinessException("没有提供任何菜单按钮数据");
@@ -150,6 +151,7 @@ public class MenuButtonService(
         try
         {
             await menuButtonRepository.AddRangeAsync(menuButtons);
+            await unitOfWork.SaveChangesAsync();
 
             logger.LogInformation("批量创建菜单按钮成功，菜单ID：{MenuId}，共创建 {Count} 个按钮",
                 menuId, menuButtons.Count);
@@ -220,6 +222,7 @@ public class MenuButtonService(
         try
         {
             await menuButtonRepository.UpdateAsync(existingButton);
+            await unitOfWork.SaveChangesAsync();
 
             logger.LogInformation("更新菜单按钮成功，按钮ID：{ButtonId}，菜单ID：{MenuId}",
                 existingButton.Id, menuId);
@@ -248,6 +251,7 @@ public class MenuButtonService(
         try
         {
             await menuButtonRepository.DeleteAsync(menuButton);
+            await unitOfWork.SaveChangesAsync();
         }
         catch (InvalidOperationException e)
         {

@@ -25,7 +25,15 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
 
     public string? GetRole()
     {
-        return httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
+        return httpContextAccessor.HttpContext?.User?.FindFirst("current_role_id")?.Value;
+    }
+
+    public IReadOnlyList<string> GetRoles()
+    {
+        return httpContextAccessor.HttpContext?.User?
+            .FindAll(ClaimTypes.Role)
+            .Select(claim => claim.Value)
+            .ToList() ?? [];
     }
 
     public bool HasClaim(string claimType, string claimValue)

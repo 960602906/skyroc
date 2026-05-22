@@ -60,7 +60,7 @@ public class UserService(
         var userName = currentUserService.GetUserName();
         user.CreateBy = userId;
         user.CreateName = userName;
-        user.PasswordHash = PasswordHasher.Hash(user.Phone ?? "123456");
+        user.PasswordHash = PasswordHasher.Hash(string.IsNullOrWhiteSpace(request.Password) ? "123456" : request.Password);
         try
         {
             await userRepository.AddAsync(user);
@@ -190,7 +190,6 @@ public class UserService(
             throw new BusinessException("批量删除用户失败");
         }
 
-        await unitOfWork.SaveChangesAsync();
         await unitOfWork.CommitTransactionAsync();
     }
 
@@ -238,7 +237,6 @@ public class UserService(
             throw new BusinessException("分配角色失败");
         }
 
-        await unitOfWork.SaveChangesAsync();
         await unitOfWork.CommitTransactionAsync();
     }
 
@@ -250,6 +248,7 @@ public class UserService(
     public async Task RemoveRolesFromUserAsync(Guid userId, IEnumerable<Guid> roleIds)
     {
         await userRepository.DeleteByUserIdAndRoleIdsAsync(userId, roleIds);
+        await unitOfWork.SaveChangesAsync();
     }
 
     /// <summary>

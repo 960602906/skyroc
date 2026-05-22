@@ -30,9 +30,11 @@ public class AuthService(
         if (!PasswordHasher.Verify(user.PasswordHash, request.Password)) throw new BusinessException("密码错误");
 
         var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
-        var roleList = roles.Select(r => r.Id.ToString()).ToList();
+        var roleList = roles.ToList();
+        var roleCodes = roleList.Select(r => r.Code).ToList();
+        var currentRoleId = roleList.FirstOrDefault()?.Id.ToString();
 
-        var access = jwtService.GenerateAccessToken(user, roleList);
+        var access = jwtService.GenerateAccessToken(user, roleCodes, currentRoleId);
         var refreshToken = jwtService.GenerateRefreshToken();
         var refreshExpire = TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
 
@@ -41,7 +43,7 @@ public class AuthService(
             UserId = user.Id,
             Username = user.Username,
             Email = user.Email,
-            Roles = roleList.ToArray(),
+            Roles = roleCodes.ToArray(),
             Jti = access.Jti,
             LoginTime = DateTime.UtcNow,
             ExpiresAt = access.ExpiresAt
@@ -76,9 +78,11 @@ public class AuthService(
         if (user is null) return null;
 
         var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
-        var roleList = roles.Select(r => r.Id.ToString()).ToList();
+        var roleList = roles.ToList();
+        var roleCodes = roleList.Select(r => r.Code).ToList();
+        var currentRoleId = roleList.FirstOrDefault()?.Id.ToString();
 
-        var access = jwtService.GenerateAccessToken(user, roleList);
+        var access = jwtService.GenerateAccessToken(user, roleCodes, currentRoleId);
         var newRefresh = jwtService.GenerateRefreshToken();
         var refreshExpire = TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
 
@@ -89,7 +93,7 @@ public class AuthService(
             UserId = user.Id,
             Username = user.Username,
             Email = user.Email,
-            Roles = roleList.ToArray(),
+            Roles = roleCodes.ToArray(),
             Jti = access.Jti,
             LoginTime = DateTime.UtcNow,
             ExpiresAt = access.ExpiresAt
@@ -133,7 +137,10 @@ public class AuthService(
         var userId = currentUserService.GetUserId();
         if (userId is null) throw new BusinessException("用户未登录");
         var user = await userRepository.GetByIdAsync(userId.Value);
-        return user is null ? throw new NotFoundException("用户不存在") : mapper.Map<UserInfoDto>(user);
+        if (user is null) throw new NotFoundException("用户不存在");
+        var userInfo = mapper.Map<UserInfoDto>(user);
+        userInfo.Roles = currentUserService.GetRoles().ToList();
+        return userInfo;
     }
 
     /// <summary>

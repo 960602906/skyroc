@@ -15,6 +15,7 @@ namespace Application.Services;
 public class DepartmentService(
     IDepartmentRepository departmentRepository,
     IUserRepository userRepository,
+    IUnitOfWork unitOfWork,
     ILogger<DepartmentService> logger,
     IMapper mapper,
     ICurrentUserService currentUserService,
@@ -68,6 +69,7 @@ public class DepartmentService(
         department.CreateBy = userId;
         department.CreateName = userName;
         await departmentRepository.AddAsync(department);
+        await unitOfWork.SaveChangesAsync();
         return mapper.Map<DepartmentDto>(department);
     }
 
@@ -75,7 +77,7 @@ public class DepartmentService(
     {
         var validationResult = await updateDepartmentValidator.ValidateAsync(dto);
         if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
-        var code = await departmentRepository.ExistsByCodeAsync(dto.Code!);
+        var code = await departmentRepository.ExistsByCodeAsync(dto.Code!, id);
         if (code)
         {
             throw new BusinessException("部门代码已经存在");
@@ -88,6 +90,7 @@ public class DepartmentService(
         department.UpdateBy = userId;
         department.UpdateName  = userName;
         await departmentRepository.UpdateAsync(department);
+        await unitOfWork.SaveChangesAsync();
         return  mapper.Map<DepartmentDto>(department);
     }
     /// <summary>
@@ -100,6 +103,7 @@ public class DepartmentService(
         var isChildren = await departmentRepository.HasChildrenAsync(id);
         if (isChildren) throw new BusinessException("部门下还有子部门，不能删除");
         await departmentRepository.DeleteAsync(id);
+        await unitOfWork.SaveChangesAsync();
         logger.LogInformation($"删除部门成功: {department.Name}({department.Code})");
         return true;
     }
@@ -123,6 +127,7 @@ public class DepartmentService(
            }
        }
        await departmentRepository.DeleteRangeAsync(ids.ToArray());
+       await unitOfWork.SaveChangesAsync();
        logger.LogInformation($"批量删除部门成功: {ids.Count} 个部门");
        return true;
     }
@@ -136,6 +141,7 @@ public class DepartmentService(
         if (department is null) throw new BusinessException("部门id 不存在");
         department.Status = status;
         await departmentRepository.UpdateAsync(department);
+        await unitOfWork.SaveChangesAsync();
         logger.LogInformation($"部门状态变更成功: {department.Name}({department.Code})={department.Status}");
         return  mapper.Map<DepartmentDto>(department);
     }

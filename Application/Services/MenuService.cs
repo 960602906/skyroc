@@ -200,6 +200,7 @@ public class MenuService(
         try
         {
             await menuRepository.DeleteAsync(menu);
+            await unitOfWork.SaveChangesAsync();
         }
         catch (InvalidOperationException e)
         {
@@ -217,6 +218,7 @@ public class MenuService(
         try
         {
             await menuRepository.DeleteRangeAsync(menuIds);
+            await unitOfWork.SaveChangesAsync();
         }
         catch (InvalidOperationException e)
         {

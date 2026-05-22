@@ -19,7 +19,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
-    public AccessTokenResult GenerateAccessToken(User user, List<string> roles)
+    public AccessTokenResult GenerateAccessToken(User user, List<string> roleCodes, string? currentRoleId)
     {
         var jti = Guid.NewGuid().ToString("N");
         var expiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes);
@@ -31,7 +31,10 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
             new(ClaimTypes.Email, user.Email),
             new(JwtRegisteredClaimNames.Jti, jti)
         };
-        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        claims.AddRange(roleCodes.Select(roleCode => new Claim(ClaimTypes.Role, roleCode)));
+
+        if (!string.IsNullOrWhiteSpace(currentRoleId))
+            claims.Add(new Claim("current_role_id", currentRoleId));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
