@@ -1,0 +1,76 @@
+using Application.DTOs.MenuButton;
+using Application.interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Shared.Common;
+
+namespace SkyRoc.Controllers;
+
+/// <summary>
+///     菜单按钮管理控制器
+/// </summary>
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class MenuButtonsController(IMenuButtonService menuButtonService) : ControllerBase
+{
+    /// <summary>
+    ///     根据 id 获取菜单按钮
+    /// </summary>
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var menuButton = await menuButtonService.GetMenuButtonAsync(id);
+        return Ok(ApiResponse<MenuButtonDto>.Ok(menuButton));
+    }
+
+    /// <summary>
+    ///     创建菜单按钮
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateMenuButtonDto dto)
+    {
+        var menuButton = await menuButtonService.CreateMenuButtonAsync(dto);
+        return Ok(ApiResponse<MenuButtonDto>.Ok(menuButton));
+    }
+
+    /// <summary>
+    ///     批量创建菜单按钮
+    /// </summary>
+    [HttpPost("batch")]
+    public async Task<IActionResult> BatchCreate([FromQuery] Guid menuId, [FromBody] List<CreateMenuButtonDto> dtos)
+    {
+        var menuButtons = await menuButtonService.CreateMenuButtonsAsync(menuId, dtos);
+        return Ok(ApiResponse<List<MenuButtonDto>>.Ok(menuButtons));
+    }
+
+    /// <summary>
+    ///     更新菜单按钮
+    /// </summary>
+    [HttpPut]
+    public async Task<IActionResult> Update([FromQuery] Guid menuId, [FromBody] UpdateMenuButtonDto dto)
+    {
+        var menuButton = await menuButtonService.UpdateMenuButtonAsync(menuId, dto);
+        return Ok(ApiResponse<MenuButtonDto>.Ok(menuButton, "Menu button updated successfully"));
+    }
+
+    /// <summary>
+    ///     批量替换菜单按钮
+    /// </summary>
+    [HttpPut("replace")]
+    public async Task<IActionResult> Replace([FromQuery] Guid menuId, [FromBody] List<CreateMenuButtonDto> dtos)
+    {
+        var menuButtons = await menuButtonService.ReplaceMenuButtonsAsync(menuId, dtos);
+        return Ok(ApiResponse<List<MenuButtonDto>>.Ok(menuButtons));
+    }
+
+    /// <summary>
+    ///     删除菜单按钮
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await menuButtonService.DeleteMenuButtonAsync(id);
+        return Ok(ApiResponse<string>.Ok("Menu button deleted successfully"));
+    }
+}
