@@ -1,4 +1,6 @@
-﻿using Shared.Constants;
+using Application.Serialization;
+using Shared.Constants;
+using System.Text.Json.Serialization;
 
 namespace Application.DTOs;
 
@@ -15,6 +17,7 @@ public abstract class BaseDto
     /// <summary>
     ///     创建时间
     /// </summary>
+    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? CreateTime { get; set; }
 
     /// <summary>
@@ -30,6 +33,7 @@ public abstract class BaseDto
     /// <summary>
     ///     最后修改时间
     /// </summary>
+    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? UpdateTime { get; set; }
 
     /// <summary>

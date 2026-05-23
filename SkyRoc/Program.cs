@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using Application;
 using Infrastructure;
 using Infrastructure.Data;
-using SkyRoc.Converter;
 using SkyRoc.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,11 +50,7 @@ builder.Services.AddControllers()
         jsonOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         // 9. 最大深度限制
         jsonOptions.MaxDepth = 64;
-        // 10.添加自定义日期时间转换器
-        jsonOptions.Converters.Add(new CustomDateTimeConverter());
-        jsonOptions.Converters.Add(new NullableCustomDateTimeConverter());
-
-        // 11.格式化输出（开发环境）
+        // 10.格式化输出（开发环境）
         jsonOptions.WriteIndented = true; // 格式化输出（开发环境）
     });
 
