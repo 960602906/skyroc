@@ -149,27 +149,26 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 ## Redis 缓存与降级说明
 
-缓存抽象位于 [ICacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Shared/Common/ICacheService.cs:1)，当前默认由 [ResilientCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/ResilientCacheService.cs:1) 提供实现。
+缓存抽象位于 [ICacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Shared/Common/ICacheService.cs:1)，当前会在应用启动时根据 Redis 是否可用，选择 [RedisCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/RedisCacheService.cs:1) 或 [MemoryCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/MemoryCacheService.cs:1) 作为实现。
 
 当前行为如下：
 
-- 如果 `Redis:Enabled=true` 且启动时能建立连接，项目会以 Redis 作为主缓存
-- 如果 Redis 在运行过程中出现连接失败、超时或连接对象失效，缓存操作会自动回退到本机内存缓存
+- 如果 `Redis:Enabled=true` 且启动时能建立连接，项目会直接使用 Redis 缓存
 - 如果 Redis 在启动时不可达，或者显式配置 `Redis:Enabled=false`，项目会直接以纯内存模式启动
+- 启动完成后不会在每个缓存请求上再次探测 Redis，也不会在运行时自动切换缓存实现
 
 需要特别注意：
 
-- 这里的降级是为了保证登录、刷新令牌、注销等依赖 Token 缓存的流程尽量不中断
-- 内存降级仅在当前进程内生效，不跨实例、不跨进程共享
-- Redis 恢复后，降级期间写入内存的数据不会自动回灌 Redis
-- 因此在多实例部署场景下，内存降级只能作为兜底，不适合作为长期运行形态
+- 这里的启动期切换是为了保证登录、刷新令牌、注销等依赖 Token 缓存的流程尽量不中断
+- 内存缓存仅在当前进程内生效，不跨实例、不跨进程共享
+- 如果应用是以内存模式启动，后续即使 Redis 恢复，也不会自动切回 Redis，需重启应用
+- 因此在多实例部署场景下，内存模式只能作为兜底，不适合作为长期运行形态
 
 相关实现可参考：
 
 - [RedisServiceCollectionExtensions.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/RedisServiceCollectionExtensions.cs:1)
 - [RedisCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/RedisCacheService.cs:1)
 - [MemoryCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/MemoryCacheService.cs:1)
-- [ResilientCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/ResilientCacheService.cs:1)
 
 ## 测试
 
@@ -179,7 +178,7 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 - 部门树映射测试
 - 菜单树映射测试
-- Redis 运行时降级测试
+- Redis 启动时缓存选择测试
 
 运行测试：
 
@@ -189,8 +188,7 @@ dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
 
 ## 当前已知情况
 
-- Redis 故障时，业务缓存会回退到内存，但如果当前实例是以 Redis 模式启动的，`/health` 仍然会如实反映 Redis 健康状态，可能返回非 `Healthy`
-- 内存降级数据不会自动同步回 Redis，多实例场景下仍需谨慎评估一致性
+- 如果当前实例是以内存模式启动的，内存缓存数据不会自动同步回 Redis，多实例场景下仍需谨慎评估一致性
 - `appsettings.json` 当前仍保留数据库连接串，建议迁移到环境变量或 Secret Manager
 - 项目已有 `OperationLog` 实体与仓储，但还没有完整操作审计链路
 - 缓存拦截器基础设施已经存在，但业务层尚未大规模接入 `Cacheable` / `CacheEvict`

@@ -13,7 +13,7 @@ public class RedisCacheService(
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> options,
     ILogger<RedisCacheService> logger)
-    : IRedisCacheService
+    : ICacheService
 {
     private static readonly JsonSerializerOptions JsonOpts = new()
     {

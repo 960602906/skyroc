@@ -1,7 +1,7 @@
 namespace Shared.Common;
 
 /// <summary>
-///     通用缓存服务抽象（Redis 优先，不可用时降级内存）
+///     通用缓存服务抽象（启动时根据 Redis 可用性选择实现）
 /// </summary>
 public interface ICacheService
 {

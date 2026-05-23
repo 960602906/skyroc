@@ -11,10 +11,9 @@ public static class RedisServiceCollectionExtensions
 {
     /// <summary>
     ///     注册缓存相关服务：
-    ///     1. 始终注册内存缓存与 <see cref="ResilientCacheService" />
-    ///     2. Redis 启用时注册 <see cref="IConnectionMultiplexer" /> + <see cref="IRedisCacheService" />
-    ///     3. Redis 运行时故障时由 <see cref="ResilientCacheService" /> 自动降级到内存
-    ///     4. Redis 禁用或配置无效时仅使用内存缓存
+    ///     1. 启动时探测 Redis 是否可用
+    ///     2. Redis 可用时直接使用 Redis 缓存实现
+    ///     3. Redis 不可用或禁用时直接使用内存缓存实现
     /// </summary>
     public static IServiceCollection AddRedisServices(this IServiceCollection services, IConfiguration configuration,
         IHostEnvironment environment)
@@ -25,8 +24,6 @@ public static class RedisServiceCollectionExtensions
         var healthChecks = services.AddHealthChecks();
 
         services.AddMemoryCache();
-        services.AddSingleton<MemoryCacheService>();
-        services.AddSingleton<ICacheService, ResilientCacheService>();
 
         var redisConfigured = options.Enabled && !string.IsNullOrWhiteSpace(options.ConnectionString);
         if (redisConfigured)
@@ -38,9 +35,11 @@ public static class RedisServiceCollectionExtensions
                 configOptions.DefaultDatabase = options.Database;
 
                 var multiplexer = ConnectionMultiplexer.Connect(configOptions);
+                EnsureRedisAvailable(multiplexer);
                 services.AddSingleton<IConnectionMultiplexer>(multiplexer);
                 services.AddSingleton<IRedisConnectionProbe, RedisConnectionProbe>();
-                services.AddSingleton<IRedisCacheService, RedisCacheService>();
+                services.AddSingleton<RedisCacheService>();
+                services.AddSingleton<ICacheService>(sp => sp.GetRequiredService<RedisCacheService>());
                 services.AddStackExchangeRedisCache(o =>
                 {
                     o.Configuration = options.ConnectionString;
@@ -50,22 +49,45 @@ public static class RedisServiceCollectionExtensions
                     environment.IsDevelopment() ? HealthStatus.Degraded : HealthStatus.Unhealthy);
 
                 Console.Error.WriteLine(
-                    "[Redis] Enabled with runtime fallback. Redis failures will fall back to in-memory cache.");
+                    "[Redis] Available at startup. Using Redis cache.");
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine(
                     $"[Redis] Initialization failed, using in-memory cache only. {ex.Message}");
-                services.AddDistributedMemoryCache();
+                RegisterMemoryCache(services);
             }
         }
         else
         {
             Console.Error.WriteLine(
                 "[Redis] Disabled or connection string missing; using in-memory cache only.");
-            services.AddDistributedMemoryCache();
+            RegisterMemoryCache(services);
         }
 
         return services;
+    }
+
+    private static void EnsureRedisAvailable(IConnectionMultiplexer multiplexer)
+    {
+        try
+        {
+            if (!multiplexer.IsConnected)
+                throw new InvalidOperationException("Redis is not connected at startup.");
+
+            multiplexer.GetDatabase().Ping();
+        }
+        catch
+        {
+            multiplexer.Dispose();
+            throw;
+        }
+    }
+
+    private static void RegisterMemoryCache(IServiceCollection services)
+    {
+        services.AddDistributedMemoryCache();
+        services.AddSingleton<MemoryCacheService>();
+        services.AddSingleton<ICacheService>(sp => sp.GetRequiredService<MemoryCacheService>());
     }
 }

@@ -6,7 +6,7 @@ using Shared.Common;
 namespace Infrastructure.Caching;
 
 /// <summary>
-///     内存降级实现：当 Redis 不可用或 <c>Redis:Enabled=false</c> 时使用。
+///     内存缓存实现：当 Redis 在启动时不可用或 <c>Redis:Enabled=false</c> 时使用。
 ///     注意：仅限单实例进程，不跨进程共享。
 /// </summary>
 public class MemoryCacheService(IMemoryCache cache) : ICacheService
