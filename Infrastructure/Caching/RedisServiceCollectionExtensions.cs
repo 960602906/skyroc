@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Shared.Common;
 using StackExchange.Redis;
 
@@ -14,11 +16,13 @@ public static class RedisServiceCollectionExtensions
     ///     3. Redis 运行时故障时由 <see cref="ResilientCacheService" /> 自动降级到内存
     ///     4. Redis 禁用或配置无效时仅使用内存缓存
     /// </summary>
-    public static IServiceCollection AddRedisServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddRedisServices(this IServiceCollection services, IConfiguration configuration,
+        IHostEnvironment environment)
     {
         var section = configuration.GetSection(RedisOptions.SectionName);
         services.Configure<RedisOptions>(section);
         var options = section.Get<RedisOptions>() ?? new RedisOptions();
+        var healthChecks = services.AddHealthChecks();
 
         services.AddMemoryCache();
         services.AddSingleton<MemoryCacheService>();
@@ -35,14 +39,15 @@ public static class RedisServiceCollectionExtensions
 
                 var multiplexer = ConnectionMultiplexer.Connect(configOptions);
                 services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+                services.AddSingleton<IRedisConnectionProbe, RedisConnectionProbe>();
                 services.AddSingleton<IRedisCacheService, RedisCacheService>();
                 services.AddStackExchangeRedisCache(o =>
                 {
                     o.Configuration = options.ConnectionString;
                     o.InstanceName = options.InstanceName;
                 });
-                services.AddHealthChecks()
-                    .AddCheck<RedisHealthCheck>("redis");
+                healthChecks.AddCheck<RedisHealthCheck>("redis",
+                    environment.IsDevelopment() ? HealthStatus.Degraded : HealthStatus.Unhealthy);
 
                 Console.Error.WriteLine(
                     "[Redis] Enabled with runtime fallback. Redis failures will fall back to in-memory cache.");
@@ -52,7 +57,6 @@ public static class RedisServiceCollectionExtensions
                 Console.Error.WriteLine(
                     $"[Redis] Initialization failed, using in-memory cache only. {ex.Message}");
                 services.AddDistributedMemoryCache();
-                services.AddHealthChecks();
             }
         }
         else
@@ -60,7 +64,6 @@ public static class RedisServiceCollectionExtensions
             Console.Error.WriteLine(
                 "[Redis] Disabled or connection string missing; using in-memory cache only.");
             services.AddDistributedMemoryCache();
-            services.AddHealthChecks();
         }
 
         return services;

@@ -20,7 +20,7 @@ var configuration = builder.Configuration;
 // builder.Services.AddHttpContextAccessor();
 
 // 添加基础设施层服务
-builder.Services.AddInfrastructureServices(configuration);
+builder.Services.AddInfrastructureServices(configuration, builder.Environment);
 
 // 添加应用层服务
 builder.Services.AddApplicationServices(configuration);

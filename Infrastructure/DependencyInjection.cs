@@ -6,13 +6,14 @@ using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Infrastructure;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddHttpContextAccessor();
         var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -31,7 +32,7 @@ public static class DependencyInjection
             .AsImplementedInterfaces()
             .WithScopedLifetime());
 
-        services.AddRedisServices(configuration);
+        services.AddRedisServices(configuration, environment);
         return services;
     }
 }
