@@ -1,6 +1,389 @@
 @SkyRoc_HostAddress = http://localhost:5293
+@contentType = application/json
+@username = admin
+@password = 123456
+@accessToken = REPLACE_WITH_BEARER_TOKEN
+@refreshToken = REPLACE_WITH_REFRESH_TOKEN
 
-GET {{SkyRoc_HostAddress}}/weatherforecast/
-Accept: application/json
+# 可按需替换为真实 ID
+@userId = 00000000-0000-0000-0000-000000000001
+@roleId = 00000000-0000-0000-0000-000000000001
+@menuId = 00000000-0000-0000-0000-000000000001
+@menuButtonId = 00000000-0000-0000-0000-000000000001
+@departmentId = 00000000-0000-0000-0000-000000000001
 
-###
+### Health
+GET {{SkyRoc_HostAddress}}/health
+Accept: {{contentType}}
+
+### Login
+POST {{SkyRoc_HostAddress}}/api/Auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### Refresh Token
+POST {{SkyRoc_HostAddress}}/api/Auth/refresh-token
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Get User Info
+GET {{SkyRoc_HostAddress}}/api/Auth/getUserInfo
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Get Routes
+GET {{SkyRoc_HostAddress}}/api/Auth/getRoutes
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Logout
+POST {{SkyRoc_HostAddress}}/api/Auth/logout
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Users - List
+GET {{SkyRoc_HostAddress}}/api/Users/list?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Users - Get All
+GET {{SkyRoc_HostAddress}}/api/Users
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Users - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Users/{{userId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Users - Create
+POST {{SkyRoc_HostAddress}}/api/Users
+Content-Type: {{contentType}}
+
+{
+  "username": "codex_user_01",
+  "gender": 1,
+  "nickName": "Codex User",
+  "phone": "13800000001",
+  "email": "codex_user_01@example.com",
+  "password": "Pass@123456",
+  "status": 1
+}
+
+### Users - Update
+PUT {{SkyRoc_HostAddress}}/api/Users
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{userId}}",
+  "username": "codex_user_01",
+  "gender": 1,
+  "nickName": "Codex User Updated",
+  "phone": "13800000001",
+  "email": "codex_user_01@example.com",
+  "status": 1,
+  "roleId": "{{roleId}}"
+}
+
+### Users - Assign Roles
+POST {{SkyRoc_HostAddress}}/api/Users/assignRoles
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "userId": "{{userId}}",
+  "roleIds": [
+    "{{roleId}}"
+  ]
+}
+
+### Users - Unassign Roles
+DELETE {{SkyRoc_HostAddress}}/api/Users/unassignRoles
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "userId": "{{userId}}",
+  "roleIds": [
+    "{{roleId}}"
+  ]
+}
+
+### Users - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Users/{{userId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Roles - List
+GET {{SkyRoc_HostAddress}}/api/Roles/list?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Roles - Get All
+GET {{SkyRoc_HostAddress}}/api/Roles
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Roles - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Roles/{{roleId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Roles - Create
+POST {{SkyRoc_HostAddress}}/api/Roles
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Codex Role",
+  "code": "CODEX_ROLE",
+  "desc": "Created from SkyRoc.http",
+  "status": 1
+}
+
+### Roles - Update
+PUT {{SkyRoc_HostAddress}}/api/Roles
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{roleId}}",
+  "name": "Codex Role Updated",
+  "code": "CODEX_ROLE",
+  "desc": "Updated from SkyRoc.http",
+  "status": 1
+}
+
+### Roles - Assign Menus
+POST {{SkyRoc_HostAddress}}/api/Roles/assignMenus
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "roleId": "{{roleId}}",
+  "menuIds": [
+    "{{menuId}}"
+  ]
+}
+
+### Roles - Unassign Menus
+POST {{SkyRoc_HostAddress}}/api/Roles/unassignRoles
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "roleId": "{{roleId}}",
+  "menuIds": [
+    "{{menuId}}"
+  ]
+}
+
+### Roles - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Roles/{{roleId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Menus - List
+GET {{SkyRoc_HostAddress}}/api/Menus/list?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Menus - Get All
+GET {{SkyRoc_HostAddress}}/api/Menus
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Menus - Get Tree
+GET {{SkyRoc_HostAddress}}/api/Menus/tree
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Menus - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Menus/{{menuId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Menus - Create
+POST {{SkyRoc_HostAddress}}/api/Menus
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "menuType": 1,
+  "title": "codex-menu",
+  "name": "codex-menu",
+  "path": "/codex-menu",
+  "component": "page.codex-menu",
+  "i18NKey": "route.codex-menu",
+  "order": 99,
+  "keepAlive": false,
+  "constant": false,
+  "icon": "mdi:robot-outline",
+  "hideInMenu": false,
+  "multiTab": false,
+  "status": 1
+}
+
+### Menus - Update
+PUT {{SkyRoc_HostAddress}}/api/Menus
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{menuId}}",
+  "menuType": 1,
+  "title": "codex-menu-updated",
+  "name": "codex-menu",
+  "path": "/codex-menu",
+  "component": "page.codex-menu",
+  "i18NKey": "route.codex-menu",
+  "order": 99,
+  "keepAlive": false,
+  "constant": false,
+  "icon": "mdi:robot-outline",
+  "hideInMenu": false,
+  "multiTab": false,
+  "status": 1
+}
+
+### Menus - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Menus/{{menuId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Departments - Get Tree
+GET {{SkyRoc_HostAddress}}/api/Departments/tree
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Departments - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Departments/{{departmentId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Departments - Create
+POST {{SkyRoc_HostAddress}}/api/Departments
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Codex Department",
+  "code": "CODEX_DEPT",
+  "phone": "13800000002",
+  "email": "codex_dept@example.com",
+  "sort": 100,
+  "remark": "Created from SkyRoc.http",
+  "status": 1
+}
+
+### Departments - Update
+PUT {{SkyRoc_HostAddress}}/api/Departments
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{departmentId}}",
+  "name": "Codex Department Updated",
+  "code": "CODEX_DEPT",
+  "phone": "13800000002",
+  "email": "codex_dept@example.com",
+  "sort": 101,
+  "remark": "Updated from SkyRoc.http",
+  "status": 1
+}
+
+### Departments - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Departments/{{departmentId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Departments - Get Users
+GET {{SkyRoc_HostAddress}}/api/Departments/{{departmentId}}/users
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Departments - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Departments/{{departmentId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Menu Buttons - Get By Id
+GET {{SkyRoc_HostAddress}}/api/MenuButtons/{{menuButtonId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Menu Buttons - Create
+POST {{SkyRoc_HostAddress}}/api/MenuButtons
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "menuId": "{{menuId}}",
+  "code": "CODEX_BUTTON",
+  "desc": "Create from SkyRoc.http"
+}
+
+### Menu Buttons - Batch Create
+POST {{SkyRoc_HostAddress}}/api/MenuButtons/batch?menuId={{menuId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  {
+    "menuId": "{{menuId}}",
+    "code": "CODEX_BUTTON_VIEW",
+    "desc": "View button"
+  },
+  {
+    "menuId": "{{menuId}}",
+    "code": "CODEX_BUTTON_EDIT",
+    "desc": "Edit button"
+  }
+]
+
+### Menu Buttons - Update
+PUT {{SkyRoc_HostAddress}}/api/MenuButtons?menuId={{menuId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{menuButtonId}}",
+  "menuId": "{{menuId}}",
+  "code": "CODEX_BUTTON_UPDATED",
+  "desc": "Updated from SkyRoc.http"
+}
+
+### Menu Buttons - Replace
+PUT {{SkyRoc_HostAddress}}/api/MenuButtons/replace?menuId={{menuId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  {
+    "menuId": "{{menuId}}",
+    "code": "CODEX_BUTTON_LIST",
+    "desc": "List button"
+  },
+  {
+    "menuId": "{{menuId}}",
+    "code": "CODEX_BUTTON_DELETE",
+    "desc": "Delete button"
+  }
+]
+
+### Menu Buttons - Delete
+DELETE {{SkyRoc_HostAddress}}/api/MenuButtons/{{menuButtonId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}

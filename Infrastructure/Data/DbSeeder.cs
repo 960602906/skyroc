@@ -14,6 +14,8 @@ public static class DbSeeder
         await SeedUser(context);
         await SeedRoles(context);
         await SeedMenu(context);
+        await SeedDepartments(context);
+        await SeedRelations(context);
     }
 
     private static async Task SeedUser(ApplicationDbContext context)
@@ -612,6 +614,119 @@ public static class DbSeeder
             }
         };
         context.Menus.AddRange(documentMenus);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedRelations(ApplicationDbContext context)
+    {
+        await SeedUserRoles(context);
+        await SeedRoleMenus(context);
+    }
+
+    private static async Task SeedDepartments(ApplicationDbContext context)
+    {
+        if (await context.Departments.AnyAsync()) return;
+
+        var adminUser = await context.Users.FirstOrDefaultAsync(x => x.Username == "admin");
+        var normalUser = await context.Users.FirstOrDefaultAsync(x => x.Username == "user");
+
+        var headquarters = new Department
+        {
+            Name = "总部",
+            Code = "HQ",
+            Sort = 1,
+            LeaderId = adminUser?.Id,
+            LeaderName = adminUser?.NickName,
+            Phone = adminUser?.Phone,
+            Email = adminUser?.Email,
+            Remark = "系统默认顶级部门",
+            Status = Status.Enable
+        };
+
+        await context.Departments.AddAsync(headquarters);
+        await context.SaveChangesAsync();
+
+        var engineering = new Department
+        {
+            Name = "研发部",
+            Code = "ENGINEERING",
+            ParentId = headquarters.Id,
+            Sort = 1,
+            LeaderId = adminUser?.Id,
+            LeaderName = adminUser?.NickName,
+            Phone = adminUser?.Phone,
+            Email = adminUser?.Email,
+            Remark = "系统默认业务部门",
+            Status = Status.Enable
+        };
+
+        await context.Departments.AddAsync(engineering);
+        await context.SaveChangesAsync();
+
+        if (adminUser is not null)
+            adminUser.DepartmentId = headquarters.Id;
+
+        if (normalUser is not null)
+            normalUser.DepartmentId = engineering.Id;
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedUserRoles(ApplicationDbContext context)
+    {
+        if (await context.UserRoles.AnyAsync()) return;
+
+        var adminUser = await context.Users.FirstOrDefaultAsync(x => x.Username == "admin");
+        var normalUser = await context.Users.FirstOrDefaultAsync(x => x.Username == "user");
+        var adminRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == "Admin");
+        var userRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == "User");
+
+        if (adminUser is null || normalUser is null || adminRole is null || userRole is null) return;
+
+        context.UserRoles.AddRange(
+            new UserRole
+            {
+                UserId = adminUser.Id,
+                RoleId = adminRole.Id
+            },
+            new UserRole
+            {
+                UserId = normalUser.Id,
+                RoleId = userRole.Id
+            });
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedRoleMenus(ApplicationDbContext context)
+    {
+        if (await context.RoleMenus.AnyAsync()) return;
+
+        var adminRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == "Admin");
+        var userRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == "User");
+
+        if (adminRole is null || userRole is null) return;
+
+        var allMenuIds = await context.Menus.Select(x => x.Id).ToListAsync();
+        if (allMenuIds.Count == 0) return;
+
+        var userVisibleMenuIds = await context.Menus
+            .Where(x => x.Constant || x.Name == "home" || x.Name == "document" || x.ParentId != null && x.Parent!.Name == "document")
+            .Select(x => x.Id)
+            .ToListAsync();
+
+        context.RoleMenus.AddRange(allMenuIds.Select(menuId => new RoleMenu
+        {
+            RoleId = adminRole.Id,
+            MenuId = menuId
+        }));
+
+        context.RoleMenus.AddRange(userVisibleMenuIds.Distinct().Select(menuId => new RoleMenu
+        {
+            RoleId = userRole.Id,
+            MenuId = menuId
+        }));
+
         await context.SaveChangesAsync();
     }
 }
