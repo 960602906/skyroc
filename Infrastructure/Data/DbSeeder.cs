@@ -3,42 +3,58 @@ using Microsoft.EntityFrameworkCore;
 using Shared.Constants;
 using Shared.Utils;
 
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Shared.Common;
+
 namespace Infrastructure.Data;
 
 public static class DbSeeder
 {
-    public static async Task SeedAsync(ApplicationDbContext context)
+    public static async Task SeedAsync(
+        ApplicationDbContext context,
+        IHostEnvironment environment,
+        IOptions<DevSeedOptions> devSeedOptions)
     {
         // 确保数据库已创建
         await context.Database.MigrateAsync();
-        await SeedUser(context);
+        await SeedUser(context, environment, devSeedOptions.Value);
         await SeedRoles(context);
         await SeedMenu(context);
-        await SeedDepartments(context);
-        await SeedRelations(context);
+        await SeedDepartments(context, devSeedOptions.Value);
+        await SeedRelations(context, devSeedOptions.Value);
     }
 
-    private static async Task SeedUser(ApplicationDbContext context)
+    private static async Task SeedUser(
+        ApplicationDbContext context,
+        IHostEnvironment environment,
+        DevSeedOptions devSeedOptions)
     {
         // 检查是否已有数据
         if (await context.Users.AnyAsync()) return;
+        if (!environment.IsDevelopment() || !devSeedOptions.Enabled) return;
+        if (string.IsNullOrWhiteSpace(devSeedOptions.AdminPassword)
+            || string.IsNullOrWhiteSpace(devSeedOptions.UserPassword))
+            throw new InvalidOperationException(
+                "DevSeed is enabled but passwords are missing. Set DevSeed__AdminPassword and DevSeed__UserPassword.");
+
         var users = new List<User>
         {
             new()
             {
-                Username = "admin",
+                Username = devSeedOptions.AdminUsername,
                 NickName = "系统管理员",
                 Email = "960602906@qq.com",
                 Gender = GenderType.Male,
-                PasswordHash = PasswordHasher.Hash("123456")
+                PasswordHash = PasswordHasher.Hash(devSeedOptions.AdminPassword)
             },
             new()
             {
-                Username = "user",
+                Username = devSeedOptions.UserUsername,
                 NickName = "普通用户",
                 Email = "960602606qq.com",
                 Gender = GenderType.Female,
-                PasswordHash = PasswordHasher.Hash("123456")
+                PasswordHash = PasswordHasher.Hash(devSeedOptions.UserPassword)
             }
         };
         context.Users.AddRange(users);
@@ -53,13 +69,13 @@ public static class DbSeeder
             new()
             {
                 Name = "管理员",
-                Code = "Admin",
+                Code = SeedConstants.AdminRoleCode,
                 Desc = "系统管理员，拥有所有权限"
             },
             new()
             {
                 Name = "用户",
-                Code = "User",
+                Code = SeedConstants.UserRoleCode,
                 Desc = "普通用户，拥有基本权限"
             }
         };
@@ -526,7 +542,7 @@ public static class DbSeeder
                 I18NKey = "route.document_ui",
                 LocalIcon = "logo",
                 Order = 0,
-                Href = "https://ui-play.skyroc.me/button",
+                Href = SeedConstants.DocumentUiHref,
                 ParentId = document.Id
             },
             new()
@@ -538,7 +554,7 @@ public static class DbSeeder
                 I18NKey = "route.document_project",
                 LocalIcon = "logo",
                 Order = 1,
-                Href = "https://admin-docs.skyroc.me  ",
+                Href = SeedConstants.DocumentProjectHref,
                 ParentId = document.Id
             },
             new()
@@ -549,7 +565,7 @@ public static class DbSeeder
                 I18NKey = "route.document_project-link",
                 LocalIcon = "logo",
                 Order = 2,
-                Href = "https://admin-docs.skyroc.me  ",
+                Href = SeedConstants.DocumentProjectHref,
                 ParentId = document.Id
             },
             new()
@@ -561,7 +577,7 @@ public static class DbSeeder
                 I18NKey = "route.document_react",
                 Icon = "logos:react",
                 Order = 3,
-                Href = "https://react.dev/",
+                Href = SeedConstants.DocumentReactHref,
                 ParentId = document.Id
             },
             new()
@@ -573,7 +589,7 @@ public static class DbSeeder
                 I18NKey = "route.document_vite",
                 Icon = "logos:vitejs",
                 Order = 4,
-                Href = "https://cn.vitejs.dev/",
+                Href = SeedConstants.DocumentViteHref,
                 ParentId = document.Id
             },
             new()
@@ -585,7 +601,7 @@ public static class DbSeeder
                 I18NKey = "route.document_unocss",
                 Icon = "logos:unocss",
                 Order = 5,
-                Href = "https://unocss.dev/",
+                Href = SeedConstants.DocumentUnoCssHref,
                 ParentId = document.Id
             },
             new()
@@ -597,7 +613,7 @@ public static class DbSeeder
                 I18NKey = "route.document_antd",
                 Icon = "logos:ant-design",
                 Order = 7,
-                Href = "https://ant.design/index-cn",
+                Href = SeedConstants.DocumentAntdHref,
                 ParentId = document.Id
             },
             new()
@@ -609,7 +625,7 @@ public static class DbSeeder
                 I18NKey = "route.document_procomponents",
                 Icon = "logos:ant-design",
                 Order = 8,
-                Href = "https://pro-components.antdigital.dev/",
+                Href = SeedConstants.DocumentProComponentsHref,
                 ParentId = document.Id
             }
         };
@@ -617,18 +633,18 @@ public static class DbSeeder
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedRelations(ApplicationDbContext context)
+    private static async Task SeedRelations(ApplicationDbContext context, DevSeedOptions devSeedOptions)
     {
-        await SeedUserRoles(context);
+        await SeedUserRoles(context, devSeedOptions);
         await SeedRoleMenus(context);
     }
 
-    private static async Task SeedDepartments(ApplicationDbContext context)
+    private static async Task SeedDepartments(ApplicationDbContext context, DevSeedOptions devSeedOptions)
     {
         if (await context.Departments.AnyAsync()) return;
 
-        var adminUser = await context.Users.FirstOrDefaultAsync(x => x.Username == "admin");
-        var normalUser = await context.Users.FirstOrDefaultAsync(x => x.Username == "user");
+        var adminUser = await context.Users.FirstOrDefaultAsync(x => x.Username == devSeedOptions.AdminUsername);
+        var normalUser = await context.Users.FirstOrDefaultAsync(x => x.Username == devSeedOptions.UserUsername);
 
         var headquarters = new Department
         {
@@ -672,14 +688,14 @@ public static class DbSeeder
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedUserRoles(ApplicationDbContext context)
+    private static async Task SeedUserRoles(ApplicationDbContext context, DevSeedOptions devSeedOptions)
     {
         if (await context.UserRoles.AnyAsync()) return;
 
-        var adminUser = await context.Users.FirstOrDefaultAsync(x => x.Username == "admin");
-        var normalUser = await context.Users.FirstOrDefaultAsync(x => x.Username == "user");
-        var adminRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == "Admin");
-        var userRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == "User");
+        var adminUser = await context.Users.FirstOrDefaultAsync(x => x.Username == devSeedOptions.AdminUsername);
+        var normalUser = await context.Users.FirstOrDefaultAsync(x => x.Username == devSeedOptions.UserUsername);
+        var adminRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == SeedConstants.AdminRoleCode);
+        var userRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == SeedConstants.UserRoleCode);
 
         if (adminUser is null || normalUser is null || adminRole is null || userRole is null) return;
 
@@ -702,8 +718,8 @@ public static class DbSeeder
     {
         if (await context.RoleMenus.AnyAsync()) return;
 
-        var adminRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == "Admin");
-        var userRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == "User");
+        var adminRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == SeedConstants.AdminRoleCode);
+        var userRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == SeedConstants.UserRoleCode);
 
         if (adminRole is null || userRole is null) return;
 

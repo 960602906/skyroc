@@ -1,3 +1,5 @@
+using Shared.Constants;
+
 namespace Shared.Common;
 
 /// <summary>
@@ -23,7 +25,7 @@ public sealed class CacheableAttribute : Attribute
     /// <summary>
     ///     过期时间（秒）。默认 300 秒（5 分钟）。
     /// </summary>
-    public int Seconds { get; set; } = 300;
+    public int Seconds { get; set; } = CacheConstants.DefaultCacheSeconds;
 
     /// <summary>
     ///     所属失效分组（Bucket）。

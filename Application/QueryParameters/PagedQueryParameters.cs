@@ -1,12 +1,14 @@
-﻿namespace Application.QueryParameters;
+using Shared.Constants;
+
+namespace Application.QueryParameters;
 
 /// <summary>
 ///     通用分页查询参数基类
 /// </summary>
 public abstract class PagedQueryParameters
 {
-    private int _pageNum = 1;
-    private int _pageSize = 10;
+    private int _pageNum = PagingConstants.DefaultPageNumber;
+    private int _pageSize = PagingConstants.DefaultPageSize;
 
     /// <summary>
     ///     页码（从1开始）
@@ -14,7 +16,7 @@ public abstract class PagedQueryParameters
     public int Current
     {
         get => _pageNum;
-        set => _pageNum = Math.Max(1, value);
+        set => _pageNum = Math.Max(PagingConstants.DefaultPageNumber, value);
     }
 
     /// <summary>
@@ -23,6 +25,6 @@ public abstract class PagedQueryParameters
     public int Size
     {
         get => _pageSize;
-        set => _pageSize = Math.Clamp(value, 1, 100);
+        set => _pageSize = Math.Clamp(value, PagingConstants.DefaultPageNumber, PagingConstants.MaxPageSize);
     }
 }

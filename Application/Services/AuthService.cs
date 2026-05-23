@@ -5,6 +5,7 @@ using AutoMapper;
 using Domain.Interfaces;
 using Microsoft.Extensions.Options;
 using Shared.Common;
+using Shared.Constants;
 using Shared.Utils;
 
 namespace Application.Services;
@@ -61,7 +62,7 @@ public class AuthService(
         {
             Token = access.Token,
             RefreshToken = refreshToken,
-            TokenType = "Bearer",
+            TokenType = AuthConstants.BearerScheme,
             ExpiresIn = _jwtSettings.ExpirationMinutes * 60
         };
     }
@@ -111,7 +112,7 @@ public class AuthService(
         {
             Token = access.Token,
             RefreshToken = newRefresh,
-            TokenType = "Bearer",
+            TokenType = AuthConstants.BearerScheme,
             ExpiresIn = _jwtSettings.ExpirationMinutes * 60
         };
     }

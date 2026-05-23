@@ -26,14 +26,4 @@ public class RedisOptions
     ///     是否启用 Redis。禁用时自动降级为内存缓存
     /// </summary>
     public bool Enabled { get; set; } = true;
-
-    /// <summary>
-    ///     访问令牌过期分钟数（仅用于 Redis 缓存 TTL 默认值）
-    /// </summary>
-    public int AccessTokenExpireMinutes { get; set; } = 60;
-
-    /// <summary>
-    ///     刷新令牌过期天数（仅用于 Redis 缓存 TTL 默认值）
-    /// </summary>
-    public int RefreshTokenExpireDays { get; set; } = 7;
 }

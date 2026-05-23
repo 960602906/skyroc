@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Application.interfaces;
 using Microsoft.AspNetCore.Http;
+using Shared.Constants;
 
 namespace Application.Services;
 
@@ -25,7 +26,7 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
 
     public string? GetRole()
     {
-        return httpContextAccessor.HttpContext?.User?.FindFirst("current_role_id")?.Value;
+        return httpContextAccessor.HttpContext?.User?.FindFirst(AuthConstants.CurrentRoleIdClaimType)?.Value;
     }
 
     public IReadOnlyList<string> GetRoles()

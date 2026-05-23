@@ -236,7 +236,7 @@ INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "
                         "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
                         "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
 VALUES ('2b4cb058-659e-4926-ae22-a1a589c595f9', 'document_project', '/document/project', 'page.iframe-page',
-        'document_project', 'route.document_project', 1, 'f', 'f', NULL, 'logo', 'https://admin-docs.skyroc.me  ', 'f',
+        'document_project', 'route.document_project', 1, 'f', 'f', NULL, 'logo', 'https://admin-docs.skyroc.me', 'f',
         NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b', '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
 INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
                         "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",
@@ -249,7 +249,7 @@ INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "
                         "parent_id", "created_time", "created_by", "update_time", "update_by", "status")
 VALUES ('93ad8b46-4776-4779-813a-28244a4c4fc3', 'document_project-link', '/document/project-link', NULL,
         'document_project-link', 'route.document_project-link', 2, 'f', 'f', NULL, 'logo',
-        'https://admin-docs.skyroc.me  ', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b',
+        'https://admin-docs.skyroc.me', 'f', NULL, 'f', NULL, 'b8f21050-f5d4-4452-862b-625af1674b5b',
         '2025-11-28 06:09:10.371717+00', NULL, NULL, NULL, 1);
 INSERT INTO "sys_menu" ("id", "name", "path", "component", "title", "i18nKey", "order", "keep_alive", "constant",
                         "icon", "local_icon", "href", "hide_in_menu", "active_menu", "multi_tab", "fixed_index_in_tab",

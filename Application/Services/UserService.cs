@@ -60,7 +60,7 @@ public class UserService(
         var userName = currentUserService.GetUserName();
         user.CreateBy = userId;
         user.CreateName = userName;
-        user.PasswordHash = PasswordHasher.Hash(string.IsNullOrWhiteSpace(request.Password) ? "123456" : request.Password);
+        user.PasswordHash = PasswordHasher.Hash(request.Password!);
         try
         {
             await userRepository.AddAsync(user);

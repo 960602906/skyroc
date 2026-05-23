@@ -1,4 +1,6 @@
-﻿namespace Application.DTOs.Auth;
+using Shared.Constants;
+
+namespace Application.DTOs.Auth;
 
 /// <summary>
 ///     登录响应 DTO
@@ -18,7 +20,7 @@ public class LoginResDto
     /// <summary>
     ///     令牌类型
     /// </summary>
-    public string TokenType { get; set; } = "Bearer";
+    public string TokenType { get; set; } = AuthConstants.BearerScheme;
 
     /// <summary>
     ///     过期时间（秒）

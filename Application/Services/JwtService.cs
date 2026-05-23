@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,6 +8,7 @@ using Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Common;
+using Shared.Constants;
 
 namespace Application.Services;
 
@@ -34,7 +35,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
         claims.AddRange(roleCodes.Select(roleCode => new Claim(ClaimTypes.Role, roleCode)));
 
         if (!string.IsNullOrWhiteSpace(currentRoleId))
-            claims.Add(new Claim("current_role_id", currentRoleId));
+            claims.Add(new Claim(AuthConstants.CurrentRoleIdClaimType, currentRoleId));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -51,7 +52,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
 
     public string GenerateRefreshToken()
     {
-        var randomNumber = new byte[32];
+        var randomNumber = new byte[AuthConstants.RefreshTokenByteLength];
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);

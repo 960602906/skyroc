@@ -66,8 +66,9 @@
 
 - `ConnectionStrings:DefaultConnection` 当前在配置文件中配置
 - `JwtSettings:SecretKey` 默认要求通过环境变量提供
+- `DevSeed:Enabled=true` 时，开发种子账号密码也必须通过环境变量提供
 - `Redis:Enabled=true` 且 `Redis:ConnectionString` 有效时，项目优先使用 Redis
-- 本地启动配置在 [launchSettings.json](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc/Properties/launchSettings.json:1) 中已经为开发环境注入了 `JwtSettings__SecretKey`
+- `launchSettings.json` 不再提交开发密钥，请自行在本机环境变量或 User Secrets 中注入
 
 ### 3. 本地运行
 
@@ -87,7 +88,6 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 当前默认会初始化：
 
-- 用户：`admin` / `user`
 - 角色：`Admin` / `User`
 - 菜单与路由树
 - 用户角色关系
@@ -96,10 +96,12 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 ## 默认账号
 
-默认种子账号：
+仅当 `Development` 环境且 `DevSeed:Enabled=true` 时，才会初始化默认种子账号。
 
-- 用户名：`admin`
-- 密码：`123456`
+需要提供：
+
+- `DevSeed__AdminPassword`
+- `DevSeed__UserPassword`
 
 如果数据库已经存在旧数据，种子不会覆盖已有记录。
 
@@ -197,5 +199,5 @@ dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
 
 - 增加服务层和集成测试，锁住 `login -> getUserInfo -> getRoutes` 主链路
 - 完善 `OperationLog` 采集与查询能力
-- 将敏感配置迁移出 `appsettings.json`
+- 将剩余敏感配置统一迁移到环境变量或 Secret Manager
 - 为 `SkyRoc.http` 增加更多真实业务场景示例

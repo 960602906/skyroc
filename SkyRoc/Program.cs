@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 using Application;
 using Infrastructure;
 using Infrastructure.Data;
+using Microsoft.Extensions.Options;
+using Shared.Common;
 using SkyRoc.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 📋 获取配置
 var configuration = builder.Configuration;
+
+builder.Services.Configure<DevSeedOptions>(configuration.GetSection(DevSeedOptions.SectionName));
 
 // ========================================
 // 1️⃣ 添加服务到容器
@@ -68,7 +72,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await DbSeeder.SeedAsync(context);
+    var devSeedOptions = scope.ServiceProvider.GetRequiredService<IOptions<DevSeedOptions>>();
+    await DbSeeder.SeedAsync(context, app.Environment, devSeedOptions);
 }
 
 

@@ -1,9 +1,8 @@
-﻿using Application.DTOs.Auth;
+using Application.DTOs.Auth;
 using Application.interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Common;
-// ICacheService lives in Shared.Common
 
 namespace Application.Services;
 
@@ -12,21 +11,20 @@ namespace Application.Services;
 /// </summary>
 public class TokenCacheService(
     ICacheService cache,
-    IOptions<RedisOptions> redisOptions,
+    IOptions<JwtSettings> jwtSettings,
     ILogger<TokenCacheService> logger)
     : ITokenCacheService
 {
-    // Redis Key 约定
     private const string AccessPrefix = "access:";
     private const string RefreshPrefix = "refresh:";
     private const string UserAccessSetPrefix = "user:access:";
     private const string UserRefreshSetPrefix = "user:refresh:";
 
-    private readonly RedisOptions _options = redisOptions.Value;
+    private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
     public async Task SaveAccessTokenAsync(AccessTokenCacheDto data, TimeSpan? expire = null)
     {
-        var ttl = expire ?? TimeSpan.FromMinutes(_options.AccessTokenExpireMinutes);
+        var ttl = expire ?? TimeSpan.FromMinutes(_jwtSettings.ExpirationMinutes);
         var key = AccessPrefix + data.Jti;
         var setKey = UserAccessSetPrefix + data.UserId;
         await cache.SetAsync(key, data, ttl);
@@ -55,7 +53,7 @@ public class TokenCacheService(
 
     public async Task SaveRefreshTokenAsync(RefreshTokenCacheDto data, TimeSpan? expire = null)
     {
-        var ttl = expire ?? TimeSpan.FromDays(_options.RefreshTokenExpireDays);
+        var ttl = expire ?? TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
         var key = RefreshPrefix + data.Token;
         var setKey = UserRefreshSetPrefix + data.UserId;
         await cache.SetAsync(key, data, ttl);

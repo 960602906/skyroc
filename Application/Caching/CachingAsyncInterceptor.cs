@@ -2,6 +2,7 @@ using System.Reflection;
 using Castle.DynamicProxy;
 using Microsoft.Extensions.Logging;
 using Shared.Common;
+using Shared.Constants;
 
 namespace Application.Caching;
 
@@ -77,7 +78,7 @@ public sealed class CachingAsyncInterceptor(
                 if (cacheable.Buckets.Length > 0)
                 {
                     // bucket 比缓存本身多活一会儿，避免边界清理不干净
-                    var bucketTtl = ttl.Add(TimeSpan.FromMinutes(5));
+                    var bucketTtl = ttl.Add(TimeSpan.FromMinutes(CacheConstants.BucketExtraMinutes));
                     foreach (var bucket in cacheable.Buckets)
                         await cache.SetAddAsync(BucketPrefix + bucket, key, bucketTtl);
                 }
