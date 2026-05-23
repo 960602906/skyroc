@@ -37,12 +37,13 @@ public class MemoryCacheService(IMemoryCache cache) : ICacheService
     public Task<bool> RemoveAsync(string key, CancellationToken ct = default)
     {
         cache.Remove(key);
+        _sets.TryRemove(key, out _);
         return Task.FromResult(true);
     }
 
     public Task<bool> ExistsAsync(string key, CancellationToken ct = default)
     {
-        return Task.FromResult(cache.TryGetValue(key, out _));
+        return Task.FromResult(cache.TryGetValue(key, out _) || _sets.ContainsKey(key));
     }
 
     public Task SetAddAsync(string setKey, string value, TimeSpan? expire = null,
@@ -63,6 +64,7 @@ public class MemoryCacheService(IMemoryCache cache) : ICacheService
             lock (set)
             {
                 set.Remove(value);
+                if (set.Count == 0) _sets.TryRemove(setKey, out _);
             }
 
         return Task.CompletedTask;
