@@ -35,8 +35,7 @@ public static class DbSeeder
         if (!environment.IsDevelopment() || !devSeedOptions.Enabled) return;
         if (string.IsNullOrWhiteSpace(devSeedOptions.AdminPassword)
             || string.IsNullOrWhiteSpace(devSeedOptions.UserPassword))
-            throw new InvalidOperationException(
-                "DevSeed is enabled but passwords are missing. Set DevSeed__AdminPassword and DevSeed__UserPassword.");
+            throw new InvalidOperationException("DevSeed is enabled but passwords are missing.");
 
         var users = new List<User>
         {

@@ -27,9 +27,8 @@ public static class AuthExtensions
         var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>();
 
         if (jwtSettings is null) throw new Exception("JwtSettings is null");
-        if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey) || jwtSettings.SecretKey.Contains("__SET_IN_ENV__"))
-            throw new InvalidOperationException(
-                "JwtSettings:SecretKey is not configured. Set it via environment variable 'JwtSettings__SecretKey'.");
+        if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
+            throw new InvalidOperationException("JwtSettings:SecretKey is not configured.");
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
         services.AddAuthentication(options =>
             {

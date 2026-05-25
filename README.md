@@ -65,10 +65,10 @@
 需要注意：
 
 - `ConnectionStrings:DefaultConnection` 当前在配置文件中配置
-- `JwtSettings:SecretKey` 默认要求通过环境变量提供
-- `DevSeed:Enabled=true` 时，开发种子账号密码也必须通过环境变量提供
+- `JwtSettings` 已直接在配置文件中提供签名密钥
+- `DevSeed:Enabled=true` 时，开发种子账号密码直接从配置文件读取
 - `Redis:Enabled=true` 且 `Redis:ConnectionString` 有效时，项目优先使用 Redis
-- `launchSettings.json` 不再提交开发密钥，请自行在本机环境变量或 User Secrets 中注入
+- `launchSettings.json` 当前只用于声明开发环境和监听地址
 
 ### 3. 本地运行
 
@@ -97,11 +97,6 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 ## 默认账号
 
 仅当 `Development` 环境且 `DevSeed:Enabled=true` 时，才会初始化默认种子账号。
-
-需要提供：
-
-- `DevSeed__AdminPassword`
-- `DevSeed__UserPassword`
 
 如果数据库已经存在旧数据，种子不会覆盖已有记录。
 
@@ -191,7 +186,7 @@ dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
 ## 当前已知情况
 
 - 如果当前实例是以内存模式启动的，内存缓存数据不会自动同步回 Redis，多实例场景下仍需谨慎评估一致性
-- `appsettings.json` 当前仍保留数据库连接串，建议迁移到环境变量或 Secret Manager
+- `appsettings.json` 当前保留数据库连接串、JWT 密钥和开发种子密码，如需上线建议再迁移到安全配置源
 - 项目已有 `OperationLog` 实体与仓储，但还没有完整操作审计链路
 - 缓存拦截器基础设施已经存在，但业务层尚未大规模接入 `Cacheable` / `CacheEvict`
 
@@ -199,5 +194,5 @@ dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
 
 - 增加服务层和集成测试，锁住 `login -> getUserInfo -> getRoutes` 主链路
 - 完善 `OperationLog` 采集与查询能力
-- 将剩余敏感配置统一迁移到环境变量或 Secret Manager
+- 按部署环境决定是否将敏感配置迁移到环境变量或 Secret Manager
 - 为 `SkyRoc.http` 增加更多真实业务场景示例
