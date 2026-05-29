@@ -1,5 +1,10 @@
 ﻿using System.Reflection;
 using Domain.Entities;
+using Domain.Entities.Customers;
+using Domain.Entities.Goods;
+using Domain.Entities.Pricing;
+using Domain.Entities.Purchases;
+using Domain.Entities.Storage;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
@@ -86,6 +91,116 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     ///  操作日志表
     /// </summary>
     public DbSet<OperationLog>  OperationLogs { get; set; }
+
+    /// <summary>
+    /// 商品分类表
+    /// </summary>
+    public DbSet<GoodsType> GoodsTypes { get; set; }
+
+    /// <summary>
+    /// 商品档案表
+    /// </summary>
+    public DbSet<Goods> Goods { get; set; }
+
+    /// <summary>
+    /// 商品单位表
+    /// </summary>
+    public DbSet<GoodsUnit> GoodsUnits { get; set; }
+
+    /// <summary>
+    /// 商品图片表
+    /// </summary>
+    public DbSet<GoodsImage> GoodsImages { get; set; }
+
+    /// <summary>
+    /// 商品供应商关系表
+    /// </summary>
+    public DbSet<GoodsSupplierRelation> GoodsSupplierRelations { get; set; }
+
+    /// <summary>
+    /// 供应商表
+    /// </summary>
+    public DbSet<Supplier> Suppliers { get; set; }
+
+    /// <summary>
+    /// 采购员表
+    /// </summary>
+    public DbSet<Purchaser> Purchasers { get; set; }
+
+    /// <summary>
+    /// 仓库表
+    /// </summary>
+    public DbSet<Ware> Wares { get; set; }
+
+    /// <summary>
+    /// 公司表
+    /// </summary>
+    public DbSet<Company> Companies { get; set; }
+
+    /// <summary>
+    /// 客户表
+    /// </summary>
+    public DbSet<Customer> Customers { get; set; }
+
+    /// <summary>
+    /// 客户标签表
+    /// </summary>
+    public DbSet<CustomerTag> CustomerTags { get; set; }
+
+    /// <summary>
+    /// 客户标签关系表
+    /// </summary>
+    public DbSet<CustomerTagRelation> CustomerTagRelations { get; set; }
+
+    /// <summary>
+    /// 客户子账号表
+    /// </summary>
+    public DbSet<CustomerSubAccount> CustomerSubAccounts { get; set; }
+
+    /// <summary>
+    /// 报价单表
+    /// </summary>
+    public DbSet<Quotation> Quotations { get; set; }
+
+    /// <summary>
+    /// 报价商品表
+    /// </summary>
+    public DbSet<QuotationGoods> QuotationGoods { get; set; }
+
+    /// <summary>
+    /// 客户报价关系表
+    /// </summary>
+    public DbSet<CustomerQuotation> CustomerQuotations { get; set; }
+
+    /// <summary>
+    /// 客户协议价表
+    /// </summary>
+    public DbSet<CustomerProtocol> CustomerProtocols { get; set; }
+
+    /// <summary>
+    /// 客户协议价商品表
+    /// </summary>
+    public DbSet<CustomerProtocolGoods> CustomerProtocolGoods { get; set; }
+
+    /// <summary>
+    /// 客户协议价客户关系表
+    /// </summary>
+    public DbSet<CustomerProtocolCustomer> CustomerProtocolCustomers { get; set; }
+
+    /// <summary>
+    /// 采购规则表
+    /// </summary>
+    public DbSet<PurchaseRule> PurchaseRules { get; set; }
+
+    /// <summary>
+    /// 采购规则商品关系表
+    /// </summary>
+    public DbSet<PurchaseRuleGoods> PurchaseRuleGoods { get; set; }
+
+    /// <summary>
+    /// 采购规则客户关系表
+    /// </summary>
+    public DbSet<PurchaseRuleCustomer> PurchaseRuleCustomers { get; set; }
 
     #endregion
 }

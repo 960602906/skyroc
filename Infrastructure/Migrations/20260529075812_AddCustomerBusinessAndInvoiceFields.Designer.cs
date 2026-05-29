@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529075812_AddCustomerBusinessAndInvoiceFields")]
+    partial class AddCustomerBusinessAndInvoiceFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -815,25 +818,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("create_time");
 
-                    b.Property<decimal?>("DefaultTaxRate")
-                        .HasColumnType("numeric(8,4)")
-                        .HasColumnName("default_tax_rate");
-
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("image_url");
-
-                    b.Property<string>("InvoiceGoodsShortName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("invoice_goods_short_name");
-
-                    b.Property<bool>("IsTaxExempt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_tax_exempt");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -858,21 +846,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("status");
 
-                    b.Property<string>("TaxCategoryCode")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("tax_category_code");
-
-                    b.Property<string>("TaxCategoryName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("tax_category_name");
-
-                    b.Property<string>("TaxPolicyBasis")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("tax_policy_basis");
-
                     b.Property<Guid?>("UpdateBy")
                         .HasColumnType("uuid")
                         .HasColumnName("update_by");
@@ -893,9 +866,6 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ParentId")
                         .HasDatabaseName("idx_goods_type_parent_id");
-
-                    b.HasIndex("TaxCategoryCode")
-                        .HasDatabaseName("idx_goods_type_tax_category_code");
 
                     b.ToTable("goods_type", (string)null);
                 });
