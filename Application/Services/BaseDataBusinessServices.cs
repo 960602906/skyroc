@@ -233,6 +233,7 @@ public class CustomerService(
     IQuotationRepository quotationRepository,
     IWareRepository wareRepository,
     ICustomerTagRepository customerTagRepository,
+    ICompanyInfoProvider companyInfoProvider,
     IUnitOfWork unitOfWork,
     ILogger<CustomerService> logger,
     IMapper mapper,
@@ -264,12 +265,68 @@ public class CustomerService(
 
     protected override async Task AfterCreateAsync(Customer entity, CreateCustomerDto dto)
     {
+        await EnrichBusinessInfoAsync(entity);
         await repository.ReplaceTagRelationsAsync(entity.Id, dto.TagIds);
     }
 
     protected override async Task AfterUpdateAsync(Customer entity, UpdateCustomerDto dto)
     {
+        await EnrichBusinessInfoAsync(entity);
         await repository.ReplaceTagRelationsAsync(entity.Id, dto.TagIds);
+    }
+
+    private async Task EnrichBusinessInfoAsync(Customer entity)
+    {
+        if (!ShouldFetchCompanyInfo(entity))
+        {
+            return;
+        }
+
+        var info = await companyInfoProvider.GetCompanyInfoAsync(entity.Name);
+        if (info is null)
+        {
+            return;
+        }
+
+        ApplyBusinessInfo(entity, info);
+    }
+
+    private static bool ShouldFetchCompanyInfo(Customer entity)
+    {
+        return !string.IsNullOrWhiteSpace(entity.Name) &&
+               (ContainsAny(entity.Name, "学校", "学院", "大学", "中学", "小学", "幼儿园", "公司") ||
+                !string.IsNullOrWhiteSpace(entity.UnifiedSocialCreditCode) ||
+                !string.IsNullOrWhiteSpace(entity.TaxpayerIdentificationNumber));
+    }
+
+    private static void ApplyBusinessInfo(Customer entity, CompanyBusinessInfo info)
+    {
+        entity.UnifiedSocialCreditCode = Coalesce(entity.UnifiedSocialCreditCode, info.UnifiedSocialCreditCode);
+        entity.LegalRepresentative = Coalesce(entity.LegalRepresentative, info.LegalRepresentative);
+        entity.RegisteredCapital = Coalesce(entity.RegisteredCapital, info.RegisteredCapital);
+        entity.EstablishDate ??= info.EstablishDate;
+        entity.BusinessTerm = Coalesce(entity.BusinessTerm, info.BusinessTerm);
+        entity.RegistrationStatus = Coalesce(entity.RegistrationStatus, info.RegistrationStatus);
+        entity.RegistrationAuthority = Coalesce(entity.RegistrationAuthority, info.RegistrationAuthority);
+        entity.RegisteredAddress = Coalesce(entity.RegisteredAddress, info.RegisteredAddress);
+        entity.BusinessScope = Coalesce(entity.BusinessScope, info.BusinessScope);
+        entity.TaxpayerIdentificationNumber = Coalesce(entity.TaxpayerIdentificationNumber, info.UnifiedSocialCreditCode);
+        entity.InvoiceTitle = Coalesce(entity.InvoiceTitle, info.Name ?? entity.Name);
+        entity.InvoiceAddress = Coalesce(entity.InvoiceAddress, info.RegisteredAddress);
+        entity.InvoicePhone = Coalesce(entity.InvoicePhone, info.ContactPhone);
+        entity.InvoiceEmail = Coalesce(entity.InvoiceEmail, info.Email);
+        entity.ContactPhone = Coalesce(entity.ContactPhone, info.ContactPhone);
+        entity.Address = Coalesce(entity.Address, info.RegisteredAddress);
+    }
+
+    private static bool ContainsAny(string value, params string[] keywords)
+    {
+        return keywords.Any(keyword => value.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string? Coalesce(string? current, string? incoming)
+    {
+        return string.IsNullOrWhiteSpace(current) ? incoming : current;
     }
 
     private async Task ValidateReferencesAsync(Guid? companyId, Guid? quotationId, Guid? wareId, IEnumerable<Guid>? tagIds)

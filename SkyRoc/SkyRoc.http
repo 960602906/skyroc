@@ -11,6 +11,10 @@
 @menuId = 00000000-0000-0000-0000-000000000001
 @menuButtonId = 00000000-0000-0000-0000-000000000001
 @departmentId = 00000000-0000-0000-0000-000000000001
+@companyId = 00000000-0000-0000-0000-000000000001
+@customerId = 00000000-0000-0000-0000-000000000001
+@customerTagId = 00000000-0000-0000-0000-000000000001
+@customerSubAccountId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -385,5 +389,212 @@ Content-Type: {{contentType}}
 
 ### Menu Buttons - Delete
 DELETE {{SkyRoc_HostAddress}}/api/MenuButtons/{{menuButtonId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Companies - List
+GET {{SkyRoc_HostAddress}}/api/Companies/list?current=1&size=10&name=学校
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Companies - Get All
+GET {{SkyRoc_HostAddress}}/api/Companies
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Companies - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Companies/{{companyId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Companies - Create School Company
+POST {{SkyRoc_HostAddress}}/api/Companies
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "北京示例学校后勤服务有限公司",
+  "code": "SCHOOL_COMPANY_001",
+  "contactName": "王老师",
+  "contactPhone": "010-88886666",
+  "address": "北京市海淀区知春路1号",
+  "remark": "学校客户公司资料",
+  "status": 1
+}
+
+### Companies - Update School Company
+PUT {{SkyRoc_HostAddress}}/api/Companies
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{companyId}}",
+  "name": "北京示例学校后勤服务有限公司",
+  "code": "SCHOOL_COMPANY_001",
+  "contactName": "王老师",
+  "contactPhone": "010-88886666",
+  "address": "北京市海淀区知春路1号",
+  "remark": "学校客户公司资料更新",
+  "status": 1
+}
+
+### Companies - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Companies/{{companyId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Tags - List
+GET {{SkyRoc_HostAddress}}/api/CustomerTags/list?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Tags - Get Tree
+GET {{SkyRoc_HostAddress}}/api/CustomerTags/tree
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Tags - Create School Tag
+POST {{SkyRoc_HostAddress}}/api/CustomerTags
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "学校客户",
+  "code": "SCHOOL",
+  "sort": 1,
+  "remark": "学校、学院、中小学客户",
+  "status": 1
+}
+
+### Customer Tags - Update School Tag
+PUT {{SkyRoc_HostAddress}}/api/CustomerTags
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{customerTagId}}",
+  "name": "学校客户",
+  "code": "SCHOOL",
+  "sort": 1,
+  "remark": "学校、学院、中小学客户",
+  "status": 1
+}
+
+### Customer Tags - Delete
+DELETE {{SkyRoc_HostAddress}}/api/CustomerTags/{{customerTagId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customers - List
+GET {{SkyRoc_HostAddress}}/api/Customers/list?current=1&size=10&name=学校
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customers - Get All
+GET {{SkyRoc_HostAddress}}/api/Customers
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customers - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Customers/{{customerId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customers - Create School Customer
+POST {{SkyRoc_HostAddress}}/api/Customers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "北京示例学校后勤服务有限公司",
+  "code": "CUST_SCHOOL_001",
+  "companyId": "{{companyId}}",
+  "contactName": "王老师",
+  "contactPhone": "010-88886666",
+  "address": "北京市海淀区知春路1号",
+  "tagIds": [
+    "{{customerTagId}}"
+  ],
+  "remark": "学校客户，创建时自动补全天眼查工商信息",
+  "status": 1
+}
+
+### Customers - Update School Customer
+PUT {{SkyRoc_HostAddress}}/api/Customers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{customerId}}",
+  "name": "北京示例学校后勤服务有限公司",
+  "code": "CUST_SCHOOL_001",
+  "companyId": "{{companyId}}",
+  "contactName": "王老师",
+  "contactPhone": "010-88886666",
+  "address": "北京市海淀区知春路1号",
+  "tagIds": [
+    "{{customerTagId}}"
+  ],
+  "remark": "学校客户资料更新",
+  "status": 1
+}
+
+### Customers - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Customers/{{customerId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customers - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Customers/{{customerId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Sub Accounts - List
+GET {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/list?current=1&size=10&username=school_buyer
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Sub Accounts - Get By Id
+GET {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/{{customerSubAccountId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Sub Accounts - Create
+POST {{SkyRoc_HostAddress}}/api/CustomerSubAccounts
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "companyId": "{{companyId}}",
+  "customerId": "{{customerId}}",
+  "username": "school_buyer_001",
+  "nickName": "学校采购员",
+  "phone": "13900001111",
+  "email": "buyer@school.example.edu.cn",
+  "passwordHash": "CHANGE_TO_HASHED_PASSWORD",
+  "remark": "学校客户下单子账号",
+  "status": 1
+}
+
+### Customer Sub Accounts - Update
+PUT {{SkyRoc_HostAddress}}/api/CustomerSubAccounts
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{customerSubAccountId}}",
+  "companyId": "{{companyId}}",
+  "customerId": "{{customerId}}",
+  "username": "school_buyer_001",
+  "nickName": "学校采购员",
+  "phone": "13900001111",
+  "email": "buyer@school.example.edu.cn",
+  "passwordHash": "CHANGE_TO_HASHED_PASSWORD",
+  "remark": "学校客户下单子账号更新",
+  "status": 1
+}
+
+### Customer Sub Accounts - Delete
+DELETE {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/{{customerSubAccountId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
