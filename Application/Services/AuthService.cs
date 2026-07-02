@@ -34,8 +34,9 @@ public class AuthService(
         var roleList = roles.ToList();
         var roleCodes = roleList.Select(r => r.Code).ToList();
         var currentRoleId = roleList.FirstOrDefault()?.Id.ToString();
+        var permissionCodes = await GetPermissionCodesAsync(roleList);
 
-        var access = jwtService.GenerateAccessToken(user, roleCodes, currentRoleId);
+        var access = jwtService.GenerateAccessToken(user, roleCodes, permissionCodes, currentRoleId);
         var refreshToken = jwtService.GenerateRefreshToken();
         var refreshExpire = TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
 
@@ -45,6 +46,7 @@ public class AuthService(
             Username = user.Username,
             Email = user.Email,
             Roles = roleCodes.ToArray(),
+            Permissions = permissionCodes.ToArray(),
             Jti = access.Jti,
             LoginTime = DateTime.UtcNow,
             ExpiresAt = access.ExpiresAt
@@ -82,8 +84,9 @@ public class AuthService(
         var roleList = roles.ToList();
         var roleCodes = roleList.Select(r => r.Code).ToList();
         var currentRoleId = roleList.FirstOrDefault()?.Id.ToString();
+        var permissionCodes = await GetPermissionCodesAsync(roleList);
 
-        var access = jwtService.GenerateAccessToken(user, roleCodes, currentRoleId);
+        var access = jwtService.GenerateAccessToken(user, roleCodes, permissionCodes, currentRoleId);
         var newRefresh = jwtService.GenerateRefreshToken();
         var refreshExpire = TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
 
@@ -95,6 +98,7 @@ public class AuthService(
             Username = user.Username,
             Email = user.Email,
             Roles = roleCodes.ToArray(),
+            Permissions = permissionCodes.ToArray(),
             Jti = access.Jti,
             LoginTime = DateTime.UtcNow,
             ExpiresAt = access.ExpiresAt
@@ -140,7 +144,12 @@ public class AuthService(
         var user = await userRepository.GetByIdAsync(userId.Value);
         if (user is null) throw new NotFoundException("用户不存在");
         var userInfo = mapper.Map<UserInfoDto>(user);
-        userInfo.Roles = currentUserService.GetRoles().ToList();
+        var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
+        var roleList = roles.ToList();
+        var permissionCodes = await GetPermissionCodesAsync(roleList);
+        userInfo.Roles = roleList.Select(role => role.Code).ToList();
+        userInfo.Permissions = permissionCodes;
+        userInfo.Buttons = [.. permissionCodes];
         return userInfo;
     }
 
@@ -153,5 +162,21 @@ public class AuthService(
         if (roleId is null) throw new NotFoundException("用户角色不存在");
         var menus = await menuRepository.GetMenusByRoleIdAsync(Guid.Parse(roleId));
         return mapper.Map<List<RoutesDto>>(menus);
+    }
+
+    private async Task<List<string>> GetPermissionCodesAsync(IReadOnlyCollection<Domain.Entities.Role> roles)
+    {
+        if (roles.Any(role => AuthConstants.PrivilegedRoleCodes.Contains(role.Code)))
+            return [PermissionCodes.All];
+
+        var menus = await menuRepository.GetMenusByRoleIdsAsync(roles.Select(role => role.Id));
+        return menus
+            .SelectMany(menu => menu.Buttons)
+            .Select(button => button.Code)
+            .Where(code => !string.IsNullOrWhiteSpace(code)
+                           && !string.Equals(code, PermissionCodes.All, StringComparison.Ordinal))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(code => code, StringComparer.Ordinal)
+            .ToList();
     }
 }

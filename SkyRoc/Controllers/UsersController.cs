@@ -22,6 +22,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <param name="parameters"></param>
     /// <returns></returns>
     [HttpGet("list")]
+    [Authorize(Policy = PermissionCodes.System.Users.Read)]
     public async Task<IActionResult> GetPagedMenus([FromQuery] UserQueryParameters parameters)
     {
         var result = await userService.GetPagedMenusAsync(parameters);
@@ -33,6 +34,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(Policy = PermissionCodes.System.Users.Read)]
     public async Task<IActionResult> GetAll()
     {
         var users = await userService.GetAllUsersAsync();
@@ -45,6 +47,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = PermissionCodes.System.Users.Read)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var user = await userService.GetUserByIdAsync(id);
@@ -57,7 +60,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost]
-    [AllowAnonymous]
+    [Authorize(Policy = PermissionCodes.System.Users.Create)]
     public async Task<IActionResult> Create([FromBody] CreateUserDto request)
     {
         var user = await userService.CreateUserAsync(request);
@@ -70,6 +73,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPut]
+    [Authorize(Policy = PermissionCodes.System.Users.Update)]
     public async Task<IActionResult> Update([FromBody] UpdateUserDto request)
     {
         await userService.UpdateUserAsync(request.Id, request);
@@ -82,6 +86,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpDelete("{id}")]
+    [Authorize(Policy = PermissionCodes.System.Users.Delete)]
     public async Task<IActionResult> Delete(Guid id)
     {
         await userService.DeleteUserAsync(id);
@@ -94,6 +99,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <param name="ids"></param>
     /// <returns></returns>
     [HttpDelete("batchDelete")]
+    [Authorize(Policy = PermissionCodes.System.Users.Delete)]
     public async Task<IActionResult> BatchDelete(List<Guid> ids)
     {
         await userService.DeleteUsersAsync(ids);
@@ -106,6 +112,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost("assignRoles")]
+    [Authorize(Policy = PermissionCodes.System.Users.AssignRoles)]
     public async Task<IActionResult> AssignRoles([FromBody] AssignRolesDto request)
     {
         await userService.AssignRolesToUserAsync(request.UserId, request.RoleIds);
@@ -118,6 +125,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpDelete("unassignRoles")]
+    [Authorize(Policy = PermissionCodes.System.Users.AssignRoles)]
     public async Task<IActionResult> UnassignRoles([FromBody] AssignRolesDto request)
     {
         await userService.RemoveRolesFromUserAsync(request.UserId, request.RoleIds);

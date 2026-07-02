@@ -100,6 +100,7 @@ Accept: {{contentType}}
 
 ### Users - Create
 POST {{SkyRoc_HostAddress}}/api/Users
+Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
 {

@@ -12,6 +12,7 @@ public class AccessTokenCacheDto
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string[] Roles { get; set; } = [];
+    public string[] Permissions { get; set; } = [];
     public string Jti { get; set; } = string.Empty;
 
     [JsonConverter(typeof(FixedDateTimeJsonConverter))]

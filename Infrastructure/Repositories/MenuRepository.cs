@@ -117,6 +117,17 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
             .Include(m => m.Buttons)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Menu>> GetMenusByRoleIdsAsync(IEnumerable<Guid> roleIds)
+    {
+        var roleIdList = roleIds.Distinct().ToList();
+        if (roleIdList.Count == 0) return [];
+
+        return await DbSet
+            .Where(menu => menu.RoleMenus.Any(roleMenu => roleIdList.Contains(roleMenu.RoleId)))
+            .Include(menu => menu.Buttons)
+            .ToListAsync();
+    }
     
     /// <summary>
     /// 根据多个 ID 获取菜单列表

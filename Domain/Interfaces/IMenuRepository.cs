@@ -19,6 +19,11 @@ public interface IMenuRepository : IRepository<Menu>
     Task<IEnumerable<Menu>> GetMenusByRoleIdAsync(Guid roleId);
 
     /// <summary>
+    ///     根据多个角色 ID 获取去重后的菜单列表及按钮权限。
+    /// </summary>
+    Task<IEnumerable<Menu>> GetMenusByRoleIdsAsync(IEnumerable<Guid> roleIds);
+
+    /// <summary>
     ///     根据多个 ID 获取菜单列表
     /// </summary>
     /// <param name="ids"></param>

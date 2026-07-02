@@ -68,6 +68,8 @@ flowchart TD
 | 删除角色 | DELETE | `/system/role/{roleIds}` |
 | 清空角色 | DELETE | `/system/role/all` |
 
+系统管理接口按操作类型执行细粒度授权：查询使用 `read`，新增使用 `create`，修改与状态切换使用 `update`，删除与批量删除使用 `delete`。用户角色分配使用 `system:user:assign-roles`，角色菜单分配使用 `system:role:assign-menus`；菜单按钮使用独立的 `system:menu-button:*` 权限，部门使用 `system:department:*` 权限。所有管理接口均要求 Bearer Token，不提供匿名创建入口。
+
 菜单接口：
 
 | 动作 | 方法 | URL |

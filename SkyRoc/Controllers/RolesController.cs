@@ -22,6 +22,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <param name="parameters"></param>
     /// <returns></returns>
     [HttpGet("list")]
+    [Authorize(Policy = PermissionCodes.System.Roles.Read)]
     public async Task<IActionResult> GetPagedMenus([FromQuery] RoleQueryParameters parameters)
     {
         var result = await roleService.GetPagedMenusAsync(parameters);
@@ -33,6 +34,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(Policy = PermissionCodes.System.Roles.Read)]
     public async Task<IActionResult> GetAllRoles()
     {
         var roles = await roleService.GetAllRolesAsync();
@@ -45,6 +47,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = PermissionCodes.System.Roles.Read)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var roles = await roleService.GetRoleByIdAsync(id);
@@ -57,6 +60,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <param name="dto"></param>
     /// <returns></returns>
     [HttpPost]
+    [Authorize(Policy = PermissionCodes.System.Roles.Create)]
     public async Task<IActionResult> Create([FromBody] CreateRoleDto dto)
     {
         // ✅ 方法 1：获取当前用户 ID
@@ -74,6 +78,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <param name="dto"></param>
     /// <returns></returns>
     [HttpPut]
+    [Authorize(Policy = PermissionCodes.System.Roles.Update)]
     public async Task<IActionResult> Update([FromBody] UpdateRoleDto dto)
     {
         await roleService.UpdateRoleAsync(dto.Id, dto);
@@ -86,6 +91,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = PermissionCodes.System.Roles.Delete)]
     public async Task<IActionResult> Delete(Guid id)
     {
         await roleService.DeleteRoleAsync(id);
@@ -98,6 +104,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <param name="roleIds"></param>
     /// <returns></returns>
     [HttpDelete("batchDelete")]
+    [Authorize(Policy = PermissionCodes.System.Roles.Delete)]
     public async Task<IActionResult> BatchDeleteRoles(List<Guid> roleIds)
     {
         await roleService.DeleteAllRolesAsync(roleIds);
@@ -111,6 +118,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <param name="dto"></param>
     /// <returns></returns>
     [HttpPost("assignMenus")]
+    [Authorize(Policy = PermissionCodes.System.Roles.AssignMenus)]
     public async Task<IActionResult> AssignMenus([FromBody] AssignMenusDto dto)
     {
         await roleService.AssignMenusToRoleAsync(dto.RoleId, dto.MenuIds);
@@ -123,6 +131,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <param name="dto"></param>
     /// <returns></returns>
     [HttpPost("unassignRoles")]
+    [Authorize(Policy = PermissionCodes.System.Roles.AssignMenus)]
     public async Task<IActionResult> UnAssignMenus([FromBody] AssignMenusDto dto)
     {
         await roleService.RemoveMenusFromRoleAsync(dto.RoleId, dto.MenuIds);

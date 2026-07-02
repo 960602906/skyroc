@@ -3,6 +3,7 @@ using Application.interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
+using Shared.Constants;
 
 namespace SkyRoc.Controllers;
 
@@ -18,6 +19,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     ///     根据 id 获取菜单按钮
     /// </summary>
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = PermissionCodes.System.MenuButtons.Read)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var menuButton = await menuButtonService.GetMenuButtonAsync(id);
@@ -28,6 +30,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     ///     创建菜单按钮
     /// </summary>
     [HttpPost]
+    [Authorize(Policy = PermissionCodes.System.MenuButtons.Create)]
     public async Task<IActionResult> Create([FromBody] CreateMenuButtonDto dto)
     {
         var menuButton = await menuButtonService.CreateMenuButtonAsync(dto);
@@ -38,6 +41,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     ///     批量创建菜单按钮
     /// </summary>
     [HttpPost("batch")]
+    [Authorize(Policy = PermissionCodes.System.MenuButtons.Create)]
     public async Task<IActionResult> BatchCreate([FromQuery] Guid menuId, [FromBody] List<CreateMenuButtonDto> dtos)
     {
         var menuButtons = await menuButtonService.CreateMenuButtonsAsync(menuId, dtos);
@@ -48,6 +52,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     ///     更新菜单按钮
     /// </summary>
     [HttpPut]
+    [Authorize(Policy = PermissionCodes.System.MenuButtons.Update)]
     public async Task<IActionResult> Update([FromQuery] Guid menuId, [FromBody] UpdateMenuButtonDto dto)
     {
         var menuButton = await menuButtonService.UpdateMenuButtonAsync(menuId, dto);
@@ -58,6 +63,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     ///     批量替换菜单按钮
     /// </summary>
     [HttpPut("replace")]
+    [Authorize(Policy = PermissionCodes.System.MenuButtons.Update)]
     public async Task<IActionResult> Replace([FromQuery] Guid menuId, [FromBody] List<CreateMenuButtonDto> dtos)
     {
         var menuButtons = await menuButtonService.ReplaceMenuButtonsAsync(menuId, dtos);
@@ -68,6 +74,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     ///     删除菜单按钮
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = PermissionCodes.System.MenuButtons.Delete)]
     public async Task<IActionResult> Delete(Guid id)
     {
         await menuButtonService.DeleteMenuButtonAsync(id);

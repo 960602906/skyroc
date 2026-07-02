@@ -20,7 +20,11 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
-    public AccessTokenResult GenerateAccessToken(User user, List<string> roleCodes, string? currentRoleId)
+    public AccessTokenResult GenerateAccessToken(
+        User user,
+        IEnumerable<string> roleCodes,
+        IEnumerable<string> permissionCodes,
+        string? currentRoleId)
     {
         var jti = Guid.NewGuid().ToString("N");
         var expiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes);
@@ -33,6 +37,9 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
             new(JwtRegisteredClaimNames.Jti, jti)
         };
         claims.AddRange(roleCodes.Select(roleCode => new Claim(ClaimTypes.Role, roleCode)));
+        claims.AddRange(permissionCodes
+            .Distinct(StringComparer.Ordinal)
+            .Select(permissionCode => new Claim(AuthConstants.PermissionClaimType, permissionCode)));
 
         if (!string.IsNullOrWhiteSpace(currentRoleId))
             claims.Add(new Claim(AuthConstants.CurrentRoleIdClaimType, currentRoleId));

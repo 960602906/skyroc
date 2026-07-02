@@ -11,7 +11,11 @@ public interface IJwtService
     /// <summary>
     ///     生成访问令牌（含 jti / 过期时间）
     /// </summary>
-    AccessTokenResult GenerateAccessToken(User user, List<string> roleCodes, string? currentRoleId);
+    AccessTokenResult GenerateAccessToken(
+        User user,
+        IEnumerable<string> roleCodes,
+        IEnumerable<string> permissionCodes,
+        string? currentRoleId);
 
     /// <summary>
     ///     生成刷新令牌

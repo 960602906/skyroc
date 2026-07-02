@@ -120,9 +120,14 @@ flowchart TD
 权限规则：
 
 - 用户权限来自 `getInfo.data.permissions`。
+- API 权限编码采用稳定的 `module:resource:action` 三段式格式，已发布编码不得复用或改变含义。
+- 用户角色关联的菜单按钮编码会在登录和刷新令牌时写入 `permission` JWT Claim；`getUserInfo` 同时返回 `permissions`，并通过 `buttons` 兼容现有前端字段。
+- 接口授权策略以权限编码为策略名，由统一的 `PermissionRequirement` 和 `PermissionAuthorizationHandler` 校验。
 - 超级权限：`*:*:*`。
 - 旧项目管理员角色：`admin`、`superadmin`、`administrator`、`pljzLk`。
 - 新项目建议把菜单权限、按钮权限、接口权限拆成独立工具。
+
+当前已固定用户、角色、菜单、菜单按钮和部门管理权限编码，且系统管理控制器已接入对应权限策略；基础资料控制器将在 P1-08 接入。
 
 ## 通用列表流程
 

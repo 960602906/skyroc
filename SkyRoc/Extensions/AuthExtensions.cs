@@ -1,10 +1,12 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Authorization;
 
 namespace SkyRoc.Extensions;
 
@@ -71,6 +73,17 @@ public static class AuthExtensions
                     OnMessageReceived = OnMessageReceived
                 };
             });
+
+        services.AddAuthorization(options =>
+        {
+            foreach (var permissionCode in PermissionCodes.Defined)
+                options.AddPolicy(permissionCode, policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.AddRequirements(new PermissionRequirement(permissionCode));
+                });
+        });
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         return services;
     }
