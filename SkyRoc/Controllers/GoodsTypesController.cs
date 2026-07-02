@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Authorization;
 
 namespace SkyRoc.Controllers;
 
@@ -13,6 +14,7 @@ namespace SkyRoc.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [Authorize]
+[PermissionResource(PermissionCodes.Business.Goods.Resource)]
 public class GoodsTypesController(IGoodsTypeService service)
     : BaseDataController<GoodsTypeDto, CreateGoodsTypeDto, UpdateGoodsTypeDto, GoodsTypeQueryParameters>(service)
 {
@@ -20,6 +22,7 @@ public class GoodsTypesController(IGoodsTypeService service)
     ///     获取商品分类树。
     /// </summary>
     [HttpGet("tree")]
+    [Authorize(Policy = PermissionCodes.Business.Goods.Read)]
     public async Task<IActionResult> GetTree()
     {
         var result = await service.GetTreeAsync();

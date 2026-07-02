@@ -84,6 +84,7 @@ public static class AuthExtensions
                 });
         });
         services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddSingleton<IAuthorizationHandler, ResourcePermissionAuthorizationHandler>();
 
         return services;
     }

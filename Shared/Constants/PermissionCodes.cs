@@ -53,6 +53,55 @@ public static class PermissionCodes
         }
     }
 
+    public static class Business
+    {
+        public static class Goods
+        {
+            public const string Resource = "business:goods";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
+
+        public static class Customers
+        {
+            public const string Resource = "business:customer";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
+
+        public static class Pricing
+        {
+            public const string Resource = "business:pricing";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+            public const string Audit = $"{Resource}:audit";
+        }
+
+        public static class Purchases
+        {
+            public const string Resource = "business:purchase";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
+
+        public static class Storage
+        {
+            public const string Resource = "business:storage";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
+    }
+
     public static IReadOnlyCollection<string> Defined { get; } =
     [
         System.Users.Read,
@@ -76,6 +125,27 @@ public static class PermissionCodes
         System.Departments.Read,
         System.Departments.Create,
         System.Departments.Update,
-        System.Departments.Delete
+        System.Departments.Delete,
+        Business.Goods.Read,
+        Business.Goods.Create,
+        Business.Goods.Update,
+        Business.Goods.Delete,
+        Business.Customers.Read,
+        Business.Customers.Create,
+        Business.Customers.Update,
+        Business.Customers.Delete,
+        Business.Pricing.Read,
+        Business.Pricing.Create,
+        Business.Pricing.Update,
+        Business.Pricing.Delete,
+        Business.Pricing.Audit,
+        Business.Purchases.Read,
+        Business.Purchases.Create,
+        Business.Purchases.Update,
+        Business.Purchases.Delete,
+        Business.Storage.Read,
+        Business.Storage.Create,
+        Business.Storage.Update,
+        Business.Storage.Delete
     ];
 }

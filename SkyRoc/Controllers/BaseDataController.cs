@@ -4,6 +4,7 @@ using Application.QueryParameters;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Authorization;
 
 namespace SkyRoc.Controllers;
 
@@ -21,6 +22,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     ///     分页查询。
     /// </summary>
     [HttpGet("list")]
+    [ResourcePermission(PermissionActions.Read)]
     public virtual async Task<IActionResult> GetPaged([FromQuery] TQuery parameters)
     {
         var result = await service.GetPagedAsync(parameters);
@@ -31,6 +33,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     ///     查询全部。
     /// </summary>
     [HttpGet]
+    [ResourcePermission(PermissionActions.Read)]
     public virtual async Task<IActionResult> GetAll()
     {
         var result = await service.GetAllAsync();
@@ -41,6 +44,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     ///     根据 ID 查询。
     /// </summary>
     [HttpGet("{id:guid}")]
+    [ResourcePermission(PermissionActions.Read)]
     public virtual async Task<IActionResult> GetById(Guid id)
     {
         var result = await service.GetByIdAsync(id);
@@ -51,6 +55,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     ///     创建。
     /// </summary>
     [HttpPost]
+    [ResourcePermission(PermissionActions.Create)]
     public virtual async Task<IActionResult> Create([FromBody] TCreateDto dto)
     {
         var result = await service.CreateAsync(dto);
@@ -61,6 +66,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     ///     更新。
     /// </summary>
     [HttpPut]
+    [ResourcePermission(PermissionActions.Update)]
     public virtual async Task<IActionResult> Update([FromBody] TUpdateDto dto)
     {
         var result = await service.UpdateAsync(dto.Id, dto);
@@ -71,6 +77,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     ///     删除。
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [ResourcePermission(PermissionActions.Delete)]
     public virtual async Task<IActionResult> Delete(Guid id)
     {
         var result = await service.DeleteAsync(id);
@@ -81,6 +88,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     ///     批量删除。
     /// </summary>
     [HttpDelete("batchDelete")]
+    [ResourcePermission(PermissionActions.Delete)]
     public virtual async Task<IActionResult> BatchDelete([FromBody] List<Guid> ids)
     {
         var result = await service.BatchDeleteAsync(ids);
@@ -91,6 +99,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     ///     启用或禁用。
     /// </summary>
     [HttpPatch("{id:guid}/status")]
+    [ResourcePermission(PermissionActions.Update)]
     public virtual async Task<IActionResult> ToggleStatus(Guid id, [FromQuery] Status status)
     {
         var result = await service.ToggleStatusAsync(id, status);

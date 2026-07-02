@@ -3,6 +3,8 @@ using Application.interfaces;
 using Application.QueryParameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Constants;
+using SkyRoc.Authorization;
 
 namespace SkyRoc.Controllers;
 
@@ -11,5 +13,6 @@ namespace SkyRoc.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [Authorize]
+[PermissionResource(PermissionCodes.Business.Customers.Resource)]
 public class CustomersController(ICustomerService service)
     : BaseDataController<CustomerDto, CreateCustomerDto, UpdateCustomerDto, CustomerQueryParameters>(service);

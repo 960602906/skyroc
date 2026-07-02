@@ -4,6 +4,8 @@ using Application.QueryParameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
+using Shared.Constants;
+using SkyRoc.Authorization;
 
 namespace SkyRoc.Controllers;
 
@@ -12,6 +14,7 @@ namespace SkyRoc.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [Authorize]
+[PermissionResource(PermissionCodes.Business.Pricing.Resource)]
 public class QuotationsController(IQuotationService service)
     : BaseDataController<QuotationDto, CreateQuotationDto, UpdateQuotationDto, QuotationQueryParameters>(service)
 {
@@ -19,6 +22,7 @@ public class QuotationsController(IQuotationService service)
     ///     审核或反审核报价单。
     /// </summary>
     [HttpPatch("{id:guid}/audit")]
+    [Authorize(Policy = PermissionCodes.Business.Pricing.Audit)]
     public async Task<IActionResult> ToggleAudit(Guid id, [FromQuery] bool isAudited)
     {
         var result = await service.ToggleAuditAsync(id, isAudited);

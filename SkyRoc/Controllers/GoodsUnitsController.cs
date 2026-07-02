@@ -4,6 +4,8 @@ using Application.QueryParameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
+using Shared.Constants;
+using SkyRoc.Authorization;
 
 namespace SkyRoc.Controllers;
 
@@ -12,6 +14,7 @@ namespace SkyRoc.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [Authorize]
+[PermissionResource(PermissionCodes.Business.Goods.Resource)]
 public class GoodsUnitsController(IGoodsUnitService service)
     : BaseDataController<GoodsUnitDto, CreateGoodsUnitDto, UpdateGoodsUnitDto, GoodsUnitQueryParameters>(service)
 {
@@ -19,6 +22,7 @@ public class GoodsUnitsController(IGoodsUnitService service)
     ///     查询指定商品的单位列表。
     /// </summary>
     [HttpGet("by-goods/{goodsId:guid}")]
+    [Authorize(Policy = PermissionCodes.Business.Goods.Read)]
     public async Task<IActionResult> GetByGoodsId(Guid goodsId)
     {
         var result = await service.GetByGoodsIdAsync(goodsId);

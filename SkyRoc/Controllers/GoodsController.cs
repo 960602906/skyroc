@@ -4,6 +4,8 @@ using Application.QueryParameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
+using Shared.Constants;
+using SkyRoc.Authorization;
 
 namespace SkyRoc.Controllers;
 
@@ -12,6 +14,7 @@ namespace SkyRoc.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [Authorize]
+[PermissionResource(PermissionCodes.Business.Goods.Resource)]
 public class GoodsController(IGoodsService service)
     : BaseDataController<GoodsDto, CreateGoodsDto, UpdateGoodsDto, GoodsQueryParameters>(service)
 {
@@ -19,6 +22,7 @@ public class GoodsController(IGoodsService service)
     ///     修改商品上下架状态。
     /// </summary>
     [HttpPatch("{id:guid}/sale-status")]
+    [Authorize(Policy = PermissionCodes.Business.Goods.Update)]
     public async Task<IActionResult> ToggleSaleStatus(Guid id, [FromQuery] bool isOnSale)
     {
         var result = await service.ToggleSaleStatusAsync(id, isOnSale);
