@@ -65,9 +65,19 @@ public interface IUserService
     Task RemoveRolesFromUserAsync(Guid userId, IEnumerable<Guid> roleIds);
 
     /// <summary>
-    ///     更新用户密码
+    ///     获取当前用户个人资料
     /// </summary>
-    Task UpdatePasswordAsync(Guid id, ChangePasswordDto request);
+    Task<ProfileDto> GetCurrentProfileAsync();
+
+    /// <summary>
+    ///     更新当前用户个人资料
+    /// </summary>
+    Task UpdateCurrentProfileAsync(UpdateProfileDto request);
+
+    /// <summary>
+    ///     修改当前用户密码
+    /// </summary>
+    Task ChangeCurrentPasswordAsync(ChangePasswordDto request);
 
     /// <summary>
     ///     禁用用户

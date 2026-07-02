@@ -113,7 +113,9 @@ flowchart TD
 | 用户信息 | GET | `/getInfo` |
 | 登出 | POST | `/logout` |
 | 菜单路由 | GET | `/getRouters` |
-| 修改密码 | PUT | `/system/user/profile/updatePwd` |
+| 查询本人资料 | GET | `/api/system/user/profile` |
+| 更新本人资料 | PUT | `/api/system/user/profile` |
+| 修改密码 | PUT | `/api/system/user/profile/updatePwd` |
 
 权限规则：
 

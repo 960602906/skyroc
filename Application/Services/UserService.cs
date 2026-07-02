@@ -26,6 +26,8 @@ public class UserService(
     ICurrentUserService currentUserService,
     IValidator<CreateUserDto> createUserValidator,
     IValidator<UpdateUserDto> updateUserValidator,
+    IValidator<UpdateProfileDto> updateProfileValidator,
+    IValidator<ChangePasswordDto> changePasswordValidator,
     ILogger<UserService> logger) : IUserService
 {
     /// <summary>
@@ -252,21 +254,61 @@ public class UserService(
     }
 
     /// <summary>
-    ///     更新用户密码
+    ///     获取当前用户个人资料
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="request"></param>
-    /// <exception cref="NotFoundException"></exception>
-    /// <exception cref="ArgumentException"></exception>
-    public async Task UpdatePasswordAsync(Guid id, ChangePasswordDto request)
+    public async Task<ProfileDto> GetCurrentProfileAsync()
     {
-        var user = await userRepository.GetByIdAsync(id);
-        if (user is null) throw new NotFoundException("用户不存在");
-        if (request.NewPassword != request.ConfirmPassword)
-            throw new ArgumentException("New password and confirm password do not match");
-        mapper.Map(request, user);
+        var user = await GetCurrentUserAsync();
+        return mapper.Map<ProfileDto>(user);
+    }
+
+    /// <summary>
+    ///     更新当前用户个人资料
+    /// </summary>
+    public async Task UpdateCurrentProfileAsync(UpdateProfileDto request)
+    {
+        var validationResult = await updateProfileValidator.ValidateAsync(request);
+        if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
+
+        var user = await GetCurrentUserAsync();
+        user.NickName = request.NickName;
+        user.Gender = request.Gender;
+        user.Phone = request.Phone;
+        user.Email = request.Email;
+        user.UpdateBy = user.Id;
+        user.UpdateName = user.Username;
+
         await userRepository.UpdateAsync(user);
         await unitOfWork.SaveChangesAsync();
+    }
+
+    /// <summary>
+    ///     修改当前用户密码
+    /// </summary>
+    /// <param name="request"></param>
+    public async Task ChangeCurrentPasswordAsync(ChangePasswordDto request)
+    {
+        var validationResult = await changePasswordValidator.ValidateAsync(request);
+        if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
+
+        var user = await GetCurrentUserAsync();
+        if (!PasswordHasher.Verify(user.PasswordHash, request.OldPassword))
+            throw new BusinessException("旧密码错误");
+
+        user.PasswordHash = PasswordHasher.Hash(request.NewPassword);
+        user.UpdateBy = user.Id;
+        user.UpdateName = user.Username;
+        await userRepository.UpdateAsync(user);
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task<User> GetCurrentUserAsync()
+    {
+        var currentUserId = currentUserService.GetUserId();
+        if (currentUserId is null) throw new BusinessException("当前用户未登录");
+
+        var user = await userRepository.GetByIdAsync(currentUserId.Value);
+        return user ?? throw new NotFoundException("当前用户不存在");
     }
 
     /// <summary>

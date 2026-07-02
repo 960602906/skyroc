@@ -23,7 +23,20 @@
 - [Domain](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Domain): 领域层，包含实体和仓储接口
 - [Infrastructure](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure): 基础设施层，包含 EF Core、仓储实现、事务、缓存、数据库种子和迁移
 - [Shared](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Shared): 共享层，包含公共常量、通用响应模型、配置模型和工具类
-- [SkyRoc.Tests](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc.Tests): 测试项目，当前包含最小映射回归测试
+- [SkyRoc.Tests](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc.Tests): xUnit 测试，覆盖映射、缓存、客户服务和序列化
+
+## 业务模块与开发进度
+
+当前处于 **P1-06 第一阶段收口（系统权限与基础资料）**，尚未进入订单主链路。权限体系、个人中心和主要基础资料的后端模型、迁移、服务及 API 已建立；下一步补齐细粒度授权方案、基础资料回归测试和 Swagger 联调契约，然后进入销售订单建模。
+
+| 阶段 | 状态 | 范围 |
+| --- | --- | --- |
+| P1 系统权限与基础资料 | 进行中 | 当前执行 P1-06 权限基础设施 |
+| P2 订单主链路 | 待开始 | 订单 -> 采购 -> 库存 -> 配送 -> 签收 |
+| P3 售后与财务 | 待开始 | 售后、客户结算、供应商结算 |
+| P4 查询与支撑 | 待开始 | 溯源、报表、驾驶舱、打印、日志 |
+
+完整模块状态见 [业务模块与开发进度](./docs/开发进度.md)，逐项交付物和验收条件见 [自动开发任务清单](./docs/自动开发任务清单.md)。每次开发只完成清单中第一个未勾选任务，验收通过后再推进断点。
 
 ## 核心能力
 
@@ -35,20 +48,24 @@
 - 菜单管理
 - 菜单按钮管理
 - 部门管理
+- 当前用户资料查询、更新和修改密码
+- 商品分类、商品档案和商品单位
+- 公司、客户、客户标签和子账号
+- 供应商、采购员和仓库基础资料
+- 报价单、报价商品、客户协议价和采购规则
 - Redis 中的 AccessToken / RefreshToken 缓存
 - Redis 不可用时的运行时内存降级
 - 数据库迁移与默认种子初始化
 
 ## 已暴露 API
 
-当前控制器位于 [SkyRoc/Controllers](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc/Controllers)，主要包括：
+当前控制器位于 [SkyRoc/Controllers](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc/Controllers)，按能力分为：
 
-- `AuthController`
-- `UsersController`
-- `RolesController`
-- `MenusController`
-- `DepartmentsController`
-- `MenuButtonsController`
+- 认证与权限：`Auth`、`Users`、`Roles`、`Menus`、`MenuButtons`、`Departments`
+- 商品与定价：`GoodsTypes`、`Goods`、`GoodsUnits`、`Quotations`、`QuotationGoods`、`CustomerProtocols`、`CustomerProtocolGoods`
+- 客户与采购基础资料：`Companies`、`Customers`、`CustomerTags`、`CustomerSubAccounts`、`Suppliers`、`Purchasers`、`PurchaseRules`、`Wares`
+
+订单、采购单、库存单据、配送、售后、财务、报表和溯源 API 尚未实现。
 
 ## 启动说明
 
@@ -176,6 +193,9 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 - 部门树映射测试
 - 菜单树映射测试
 - Redis 启动时缓存选择测试
+- Redis 健康检查测试
+- 客户资料与天眼查补充逻辑测试
+- 固定日期格式序列化测试
 
 运行测试：
 
@@ -192,7 +212,4 @@ dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
 
 ## 建议下一步
 
-- 增加服务层和集成测试，锁住 `login -> getUserInfo -> getRoutes` 主链路
-- 完善 `OperationLog` 采集与查询能力
-- 按部署环境决定是否将敏感配置迁移到环境变量或 Secret Manager
-- 为 `SkyRoc.http` 增加更多真实业务场景示例
+按 [自动开发任务清单](./docs/自动开发任务清单.md) 顺序执行，不跳项。当前任务是 **P1-06 权限基础设施**；完成并验收后再领取 P1-07。

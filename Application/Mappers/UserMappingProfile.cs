@@ -18,7 +18,6 @@ public class UserMappingProfile : Profile
             .ForMember(dest => dest.Buttons, opt => opt.Ignore()); // 按钮权限需要单独处理
         CreateMap<CreateUserDto, User>();
         CreateMap<UpdateUserDto, User>(); // 密码不在更新DTO中// Add user-related mapping configurations here
-        CreateMap<ChangePasswordDto, User>()
-            .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.NewPassword)); // 假设有密码哈希逻辑
+        CreateMap<User, ProfileDto>();
     }
 }

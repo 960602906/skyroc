@@ -42,6 +42,33 @@ GET {{SkyRoc_HostAddress}}/api/Auth/getUserInfo
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
+### Profile - Get Current User
+GET {{SkyRoc_HostAddress}}/api/system/user/profile
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Profile - Update Current User
+PUT {{SkyRoc_HostAddress}}/api/system/user/profile
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "nickName": "SkyRoc Admin",
+  "gender": 1,
+  "phone": "13800000000",
+  "email": "admin@example.com"
+}
+
+### Profile - Change Current User Password
+PUT {{SkyRoc_HostAddress}}/api/system/user/profile/updatePwd
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "oldPassword": "{{password}}",
+  "newPassword": "NewPassword123!"
+}
+
 ### Get Routes
 GET {{SkyRoc_HostAddress}}/api/Auth/getRoutes
 Authorization: Bearer {{accessToken}}

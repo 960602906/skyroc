@@ -79,33 +79,40 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["进入个人中心"] --> B["读取 store 中 user.userInfo"]
-  B --> C["展示昵称、手机号、登录账号"]
-  C --> D["点击修改密码"]
-  D --> E["输入旧密码、新密码、确认密码"]
-  E --> F{"表单校验"}
-  F --> G["提示密码不一致或长度不足"]
-  F --> H["PUT /system/user/profile/updatePwd"]
-  H --> I["提示修改成功"]
-  I --> J["清空表单并关闭弹窗"]
+  A["进入个人中心"] --> B["GET /api/system/user/profile"]
+  B --> C["展示登录账号、昵称、手机号等资料"]
+  C --> D{"用户操作"}
+  D --> E["编辑本人资料"]
+  E --> F["PUT /api/system/user/profile"]
+  D --> G["点击修改密码"]
+  G --> H["输入旧密码、新密码、确认密码"]
+  H --> I{"表单校验"}
+  I --> J["提示密码不一致或长度不足"]
+  I --> K["PUT /api/system/user/profile/updatePwd"]
+  K --> L["提示修改成功"]
+  L --> M["清空表单并关闭弹窗"]
 ```
 
 接口：
 
 | 动作 | 方法 | URL |
 | --- | --- | --- |
-| 修改密码 | PUT | `/system/user/profile/updatePwd` |
+| 查询本人资料 | GET | `/api/system/user/profile` |
+| 更新本人资料 | PUT | `/api/system/user/profile` |
+| 修改密码 | PUT | `/api/system/user/profile/updatePwd` |
 
 关键字段：
 
 | 字段 | 含义 |
 | --- | --- |
 | `nickName` | 用户昵称 |
-| `phonenumber` | 手机号 |
+| `phone` | 手机号 |
 | `userName` | 登录账号 |
 | `oldPassword` | 旧密码 |
 | `newPassword` | 新密码 |
 | `confirmPassword` | 前端确认密码，不提交后端 |
+
+后端从 JWT 读取当前用户 ID，资料更新与修改密码请求均不接收用户 ID，因此不能借此操作其他账号。登录账号、角色和状态不允许通过个人中心修改。
 
 ## 日志监控流程
 
@@ -170,6 +177,6 @@ flowchart TD
 
 - 登录、权限、菜单必须第一阶段完成，否则其它业务模块无法进入。
 - 旧项目动态菜单来自 `/getRouters`，React 需要把后端路由数据转换成前端 route config 和 sidebar menu。
-- 个人中心当前只做展示和修改密码，不包含头像、资料编辑、手机号修改。
+- 个人中心支持查询和更新本人昵称、性别、手机号、邮箱，以及校验旧密码后修改密码；不包含头像、登录账号、角色和状态修改。
 - 系统日志实际功能在 `src/views/system/log/index.vue`，`src/views/log` 和 `src/views/monitor` 下的页面只是占位。
 - 所有 `/vue-element-admin/*` 接口都应默认视为模板遗留，除非产品或后端确认仍在生产使用。
