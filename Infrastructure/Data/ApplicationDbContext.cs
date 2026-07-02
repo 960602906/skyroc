@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Domain.Entities.Customers;
 using Domain.Entities.Goods;
+using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
@@ -201,6 +202,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 采购规则客户关系表
     /// </summary>
     public DbSet<PurchaseRuleCustomer> PurchaseRuleCustomers { get; set; }
+
+    /// <summary>
+    /// 销售订单表
+    /// </summary>
+    public DbSet<SaleOrder> SaleOrders { get; set; }
+
+    /// <summary>
+    /// 销售订单明细表
+    /// </summary>
+    public DbSet<SaleOrderDetail> SaleOrderDetails { get; set; }
+
+    /// <summary>
+    /// 订单审核记录表
+    /// </summary>
+    public DbSet<OrderAuditLog> OrderAuditLogs { get; set; }
 
     #endregion
 }
