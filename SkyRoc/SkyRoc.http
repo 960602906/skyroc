@@ -15,6 +15,17 @@
 @customerId = 00000000-0000-0000-0000-000000000001
 @customerTagId = 00000000-0000-0000-0000-000000000001
 @customerSubAccountId = 00000000-0000-0000-0000-000000000001
+@goodsTypeId = 00000000-0000-0000-0000-000000000001
+@goodsId = 00000000-0000-0000-0000-000000000001
+@goodsUnitId = 00000000-0000-0000-0000-000000000001
+@quotationId = 00000000-0000-0000-0000-000000000001
+@quotationGoodsId = 00000000-0000-0000-0000-000000000001
+@customerProtocolId = 00000000-0000-0000-0000-000000000001
+@customerProtocolGoodsId = 00000000-0000-0000-0000-000000000001
+@supplierId = 00000000-0000-0000-0000-000000000001
+@purchaserId = 00000000-0000-0000-0000-000000000001
+@purchaseRuleId = 00000000-0000-0000-0000-000000000001
+@wareId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -624,5 +635,879 @@ Content-Type: {{contentType}}
 
 ### Customer Sub Accounts - Delete
 DELETE {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/{{customerSubAccountId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Users - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Users/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{userId}}"
+]
+
+### Roles - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Roles/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{roleId}}"
+]
+
+### Menus - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Menus/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{menuId}}"
+]
+
+### Departments - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Departments/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{departmentId}}"
+]
+
+### Companies - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Companies/{{companyId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Companies - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Companies/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{companyId}}"
+]
+
+### Customer Tags - Get All
+GET {{SkyRoc_HostAddress}}/api/CustomerTags
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Tags - Get By Id
+GET {{SkyRoc_HostAddress}}/api/CustomerTags/{{customerTagId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Tags - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/CustomerTags/{{customerTagId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Tags - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/CustomerTags/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{customerTagId}}"
+]
+
+### Customers - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Customers/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{customerId}}"
+]
+
+### Customer Sub Accounts - Get All
+GET {{SkyRoc_HostAddress}}/api/CustomerSubAccounts
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Sub Accounts - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/{{customerSubAccountId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Sub Accounts - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{customerSubAccountId}}"
+]
+
+### Goods Types - List
+GET {{SkyRoc_HostAddress}}/api/GoodsTypes/list?current=1&size=10&name=蔬菜
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Types - Get All
+GET {{SkyRoc_HostAddress}}/api/GoodsTypes
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Types - Get Tree
+GET {{SkyRoc_HostAddress}}/api/GoodsTypes/tree
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Types - Get By Id
+GET {{SkyRoc_HostAddress}}/api/GoodsTypes/{{goodsTypeId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Types - Create
+POST {{SkyRoc_HostAddress}}/api/GoodsTypes
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "叶菜类",
+  "code": "VEGETABLE_LEAF",
+  "parentId": null,
+  "defaultTaxRate": 9,
+  "isTaxExempt": false,
+  "sort": 10,
+  "status": 1
+}
+
+### Goods Types - Update
+PUT {{SkyRoc_HostAddress}}/api/GoodsTypes
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{goodsTypeId}}",
+  "name": "精品叶菜类",
+  "code": "VEGETABLE_LEAF",
+  "parentId": null,
+  "defaultTaxRate": 9,
+  "isTaxExempt": false,
+  "sort": 10,
+  "status": 1
+}
+
+### Goods Types - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/GoodsTypes/{{goodsTypeId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Types - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/GoodsTypes/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{goodsTypeId}}"
+]
+
+### Goods Types - Delete
+DELETE {{SkyRoc_HostAddress}}/api/GoodsTypes/{{goodsTypeId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods - List
+GET {{SkyRoc_HostAddress}}/api/Goods/list?current=1&size=10&name=生菜&goodsTypeId={{goodsTypeId}}&isOnSale=true
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods - Get All
+GET {{SkyRoc_HostAddress}}/api/Goods
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Goods/{{goodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods - Create
+POST {{SkyRoc_HostAddress}}/api/Goods
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "奶油生菜",
+  "code": "GOODS_LETTUCE_001",
+  "goodsTypeId": "{{goodsTypeId}}",
+  "defaultSupplierId": "{{supplierId}}",
+  "defaultWareId": "{{wareId}}",
+  "spec": "500g/份",
+  "origin": "北京",
+  "taxRate": 9,
+  "isOnSale": true,
+  "supplierIds": [
+    "{{supplierId}}"
+  ],
+  "status": 1
+}
+
+### Goods - Update
+PUT {{SkyRoc_HostAddress}}/api/Goods
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{goodsId}}",
+  "name": "精品奶油生菜",
+  "code": "GOODS_LETTUCE_001",
+  "goodsTypeId": "{{goodsTypeId}}",
+  "baseUnitId": "{{goodsUnitId}}",
+  "defaultSupplierId": "{{supplierId}}",
+  "defaultWareId": "{{wareId}}",
+  "spec": "500g/份",
+  "origin": "北京",
+  "taxRate": 9,
+  "isOnSale": true,
+  "supplierIds": [
+    "{{supplierId}}"
+  ],
+  "status": 1
+}
+
+### Goods - Toggle Sale Status
+PATCH {{SkyRoc_HostAddress}}/api/Goods/{{goodsId}}/sale-status?isOnSale=false
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Goods/{{goodsId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Goods/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{goodsId}}"
+]
+
+### Goods - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Goods/{{goodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Units - List
+GET {{SkyRoc_HostAddress}}/api/GoodsUnits/list?current=1&size=10&goodsId={{goodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Units - Get All
+GET {{SkyRoc_HostAddress}}/api/GoodsUnits
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Units - Get By Goods
+GET {{SkyRoc_HostAddress}}/api/GoodsUnits/by-goods/{{goodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Units - Get By Id
+GET {{SkyRoc_HostAddress}}/api/GoodsUnits/{{goodsUnitId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Units - Create
+POST {{SkyRoc_HostAddress}}/api/GoodsUnits
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "goodsId": "{{goodsId}}",
+  "name": "千克",
+  "code": "KG",
+  "conversionRate": 1,
+  "isBaseUnit": true,
+  "sort": 1,
+  "status": 1
+}
+
+### Goods Units - Update
+PUT {{SkyRoc_HostAddress}}/api/GoodsUnits
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{goodsUnitId}}",
+  "goodsId": "{{goodsId}}",
+  "name": "千克",
+  "code": "KG",
+  "conversionRate": 1,
+  "isBaseUnit": true,
+  "sort": 1,
+  "status": 1
+}
+
+### Goods Units - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/GoodsUnits/{{goodsUnitId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Goods Units - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/GoodsUnits/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{goodsUnitId}}"
+]
+
+### Goods Units - Delete
+DELETE {{SkyRoc_HostAddress}}/api/GoodsUnits/{{goodsUnitId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotations - List
+GET {{SkyRoc_HostAddress}}/api/Quotations/list?current=1&size=10&name=学校&isAudited=false
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotations - Get All
+GET {{SkyRoc_HostAddress}}/api/Quotations
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotations - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Quotations/{{quotationId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotations - Create
+POST {{SkyRoc_HostAddress}}/api/Quotations
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "学校标准报价",
+  "code": "QUOTE_SCHOOL_001",
+  "description": "学校客户标准报价",
+  "effectiveStart": "2026-07-01 00:00:00",
+  "effectiveEnd": "2026-12-31 23:59:59",
+  "isAudited": false,
+  "customerIds": [
+    "{{customerId}}"
+  ],
+  "status": 1
+}
+
+### Quotations - Update
+PUT {{SkyRoc_HostAddress}}/api/Quotations
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{quotationId}}",
+  "name": "学校标准报价（更新）",
+  "code": "QUOTE_SCHOOL_001",
+  "description": "学校客户标准报价",
+  "effectiveStart": "2026-07-01 00:00:00",
+  "effectiveEnd": "2026-12-31 23:59:59",
+  "isAudited": false,
+  "customerIds": [
+    "{{customerId}}"
+  ],
+  "status": 1
+}
+
+### Quotations - Audit
+PATCH {{SkyRoc_HostAddress}}/api/Quotations/{{quotationId}}/audit?isAudited=true
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotations - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Quotations/{{quotationId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotations - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Quotations/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{quotationId}}"
+]
+
+### Quotations - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Quotations/{{quotationId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotation Goods - List
+GET {{SkyRoc_HostAddress}}/api/QuotationGoods/list?current=1&size=10&quotationId={{quotationId}}&goodsId={{goodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotation Goods - Get All
+GET {{SkyRoc_HostAddress}}/api/QuotationGoods
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotation Goods - Get By Id
+GET {{SkyRoc_HostAddress}}/api/QuotationGoods/{{quotationGoodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotation Goods - Create
+POST {{SkyRoc_HostAddress}}/api/QuotationGoods
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "quotationId": "{{quotationId}}",
+  "goodsId": "{{goodsId}}",
+  "goodsUnitId": "{{goodsUnitId}}",
+  "unitPrice": 8.5,
+  "minOrderQuantity": 1,
+  "isOnSale": true,
+  "remark": "学校报价商品"
+}
+
+### Quotation Goods - Update
+PUT {{SkyRoc_HostAddress}}/api/QuotationGoods
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{quotationGoodsId}}",
+  "quotationId": "{{quotationId}}",
+  "goodsId": "{{goodsId}}",
+  "goodsUnitId": "{{goodsUnitId}}",
+  "unitPrice": 8.8,
+  "minOrderQuantity": 1,
+  "isOnSale": true,
+  "remark": "学校报价商品更新"
+}
+
+### Quotation Goods - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/QuotationGoods/{{quotationGoodsId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Quotation Goods - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/QuotationGoods/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{quotationGoodsId}}"
+]
+
+### Quotation Goods - Delete
+DELETE {{SkyRoc_HostAddress}}/api/QuotationGoods/{{quotationGoodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocols - List
+GET {{SkyRoc_HostAddress}}/api/CustomerProtocols/list?current=1&size=10&quotationId={{quotationId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocols - Get All
+GET {{SkyRoc_HostAddress}}/api/CustomerProtocols
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocols - Get By Id
+GET {{SkyRoc_HostAddress}}/api/CustomerProtocols/{{customerProtocolId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocols - Create
+POST {{SkyRoc_HostAddress}}/api/CustomerProtocols
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "学校年度协议价",
+  "code": "PROTOCOL_SCHOOL_2026",
+  "quotationId": "{{quotationId}}",
+  "effectiveStart": "2026-07-01 00:00:00",
+  "effectiveEnd": "2027-06-30 23:59:59",
+  "customerIds": [
+    "{{customerId}}"
+  ],
+  "status": 1
+}
+
+### Customer Protocols - Update
+PUT {{SkyRoc_HostAddress}}/api/CustomerProtocols
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{customerProtocolId}}",
+  "name": "学校年度协议价（更新）",
+  "code": "PROTOCOL_SCHOOL_2026",
+  "quotationId": "{{quotationId}}",
+  "effectiveStart": "2026-07-01 00:00:00",
+  "effectiveEnd": "2027-06-30 23:59:59",
+  "customerIds": [
+    "{{customerId}}"
+  ],
+  "status": 1
+}
+
+### Customer Protocols - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/CustomerProtocols/{{customerProtocolId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocols - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/CustomerProtocols/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{customerProtocolId}}"
+]
+
+### Customer Protocols - Delete
+DELETE {{SkyRoc_HostAddress}}/api/CustomerProtocols/{{customerProtocolId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocol Goods - List
+GET {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/list?current=1&size=10&customerProtocolId={{customerProtocolId}}&goodsId={{goodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocol Goods - Get All
+GET {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocol Goods - Get By Id
+GET {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/{{customerProtocolGoodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocol Goods - Create
+POST {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "customerProtocolId": "{{customerProtocolId}}",
+  "goodsId": "{{goodsId}}",
+  "goodsUnitId": "{{goodsUnitId}}",
+  "protocolPrice": 7.9,
+  "minOrderQuantity": 1,
+  "remark": "学校协议价商品"
+}
+
+### Customer Protocol Goods - Update
+PUT {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{customerProtocolGoodsId}}",
+  "customerProtocolId": "{{customerProtocolId}}",
+  "goodsId": "{{goodsId}}",
+  "goodsUnitId": "{{goodsUnitId}}",
+  "protocolPrice": 7.6,
+  "minOrderQuantity": 1,
+  "remark": "学校协议价商品更新"
+}
+
+### Customer Protocol Goods - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/{{customerProtocolGoodsId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Protocol Goods - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{customerProtocolGoodsId}}"
+]
+
+### Customer Protocol Goods - Delete
+DELETE {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/{{customerProtocolGoodsId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Suppliers - List
+GET {{SkyRoc_HostAddress}}/api/Suppliers/list?current=1&size=10&name=蔬菜
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Suppliers - Get All
+GET {{SkyRoc_HostAddress}}/api/Suppliers
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Suppliers - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Suppliers/{{supplierId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Suppliers - Create
+POST {{SkyRoc_HostAddress}}/api/Suppliers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "北京新鲜蔬菜供应商",
+  "code": "SUPPLIER_VEGETABLE_001",
+  "contactName": "张经理",
+  "contactPhone": "13800002222",
+  "address": "北京市丰台区新发地",
+  "bankName": "中国银行北京分行",
+  "bankAccount": "6222000000000000000",
+  "taxNo": "91110000123456789X",
+  "status": 1
+}
+
+### Suppliers - Update
+PUT {{SkyRoc_HostAddress}}/api/Suppliers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{supplierId}}",
+  "name": "北京新鲜蔬菜供应商（更新）",
+  "code": "SUPPLIER_VEGETABLE_001",
+  "contactName": "张经理",
+  "contactPhone": "13800002222",
+  "address": "北京市丰台区新发地",
+  "bankName": "中国银行北京分行",
+  "bankAccount": "6222000000000000000",
+  "taxNo": "91110000123456789X",
+  "status": 1
+}
+
+### Suppliers - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Suppliers/{{supplierId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Suppliers - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Suppliers/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{supplierId}}"
+]
+
+### Suppliers - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Suppliers/{{supplierId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchasers - List
+GET {{SkyRoc_HostAddress}}/api/Purchasers/list?current=1&size=10&departmentId={{departmentId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchasers - Get All
+GET {{SkyRoc_HostAddress}}/api/Purchasers
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchasers - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Purchasers/{{purchaserId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchasers - Create
+POST {{SkyRoc_HostAddress}}/api/Purchasers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "市场采购员张三",
+  "code": "PURCHASER_001",
+  "phone": "13800003333",
+  "userId": "{{userId}}",
+  "departmentId": "{{departmentId}}",
+  "status": 1
+}
+
+### Purchasers - Update
+PUT {{SkyRoc_HostAddress}}/api/Purchasers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{purchaserId}}",
+  "name": "市场采购员张三（更新）",
+  "code": "PURCHASER_001",
+  "phone": "13800003333",
+  "userId": "{{userId}}",
+  "departmentId": "{{departmentId}}",
+  "status": 1
+}
+
+### Purchasers - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Purchasers/{{purchaserId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchasers - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Purchasers/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{purchaserId}}"
+]
+
+### Purchasers - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Purchasers/{{purchaserId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Wares - List
+GET {{SkyRoc_HostAddress}}/api/Wares/list?current=1&size=10&name=中心仓
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Wares - Get All
+GET {{SkyRoc_HostAddress}}/api/Wares
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Wares - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Wares/{{wareId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Wares - Create
+POST {{SkyRoc_HostAddress}}/api/Wares
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "北京中心仓",
+  "code": "WARE_BEIJING_001",
+  "contactName": "李仓管",
+  "contactPhone": "13800004444",
+  "address": "北京市大兴区物流园",
+  "sort": 1,
+  "status": 1
+}
+
+### Wares - Update
+PUT {{SkyRoc_HostAddress}}/api/Wares
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{wareId}}",
+  "name": "北京中心仓（更新）",
+  "code": "WARE_BEIJING_001",
+  "contactName": "李仓管",
+  "contactPhone": "13800004444",
+  "address": "北京市大兴区物流园",
+  "sort": 1,
+  "status": 1
+}
+
+### Wares - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Wares/{{wareId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Wares - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Wares/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{wareId}}"
+]
+
+### Wares - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Wares/{{wareId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchase Rules - List
+GET {{SkyRoc_HostAddress}}/api/PurchaseRules/list?current=1&size=10&supplierId={{supplierId}}&wareId={{wareId}}&purchasePattern=1
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchase Rules - Get All
+GET {{SkyRoc_HostAddress}}/api/PurchaseRules
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchase Rules - Get By Id
+GET {{SkyRoc_HostAddress}}/api/PurchaseRules/{{purchaseRuleId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchase Rules - Create
+POST {{SkyRoc_HostAddress}}/api/PurchaseRules
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "学校蔬菜直供规则",
+  "code": "PURCHASE_RULE_SCHOOL_001",
+  "supplierId": "{{supplierId}}",
+  "purchaserId": "{{purchaserId}}",
+  "wareId": "{{wareId}}",
+  "goodsTypeId": "{{goodsTypeId}}",
+  "purchasePattern": 1,
+  "goodsIds": [
+    "{{goodsId}}"
+  ],
+  "customerIds": [
+    "{{customerId}}"
+  ],
+  "status": 1
+}
+
+### Purchase Rules - Update
+PUT {{SkyRoc_HostAddress}}/api/PurchaseRules
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{purchaseRuleId}}",
+  "name": "学校蔬菜直供规则（更新）",
+  "code": "PURCHASE_RULE_SCHOOL_001",
+  "supplierId": "{{supplierId}}",
+  "purchaserId": "{{purchaserId}}",
+  "wareId": "{{wareId}}",
+  "goodsTypeId": "{{goodsTypeId}}",
+  "purchasePattern": 1,
+  "goodsIds": [
+    "{{goodsId}}"
+  ],
+  "customerIds": [
+    "{{customerId}}"
+  ],
+  "status": 1
+}
+
+### Purchase Rules - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/PurchaseRules/{{purchaseRuleId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchase Rules - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/PurchaseRules/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{purchaseRuleId}}"
+]
+
+### Purchase Rules - Delete
+DELETE {{SkyRoc_HostAddress}}/api/PurchaseRules/{{purchaseRuleId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}

@@ -1,6 +1,6 @@
 # SkyRoc
 
-`SkyRoc` 是一个基于 `.NET 9` 的后台管理系统后端项目，围绕用户、角色、菜单、按钮、部门这些核心对象，提供认证、授权、动态路由和基础管理能力。
+`SkyRoc` 是一个基于 `.NET 9` 的生鲜供应链后台项目。第一阶段已完成认证、系统权限，以及商品、客户、定价、采购和仓库基础资料能力。
 
 当前项目采用分层架构，已经具备本地启动、默认种子初始化、Redis Token 缓存、Redis 运行时内存降级、Swagger 调试、HTTP 联调脚本和最小回归测试。
 
@@ -18,21 +18,21 @@
 
 ## 项目结构
 
-- [SkyRoc](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc): Web API 启动项目，包含控制器、中间件、启动配置和 HTTP 联调脚本
-- [Application](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Application): 应用层，包含 DTO、业务服务、校验器、映射配置和异常定义
-- [Domain](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Domain): 领域层，包含实体和仓储接口
-- [Infrastructure](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure): 基础设施层，包含 EF Core、仓储实现、事务、缓存、数据库种子和迁移
-- [Shared](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Shared): 共享层，包含公共常量、通用响应模型、配置模型和工具类
-- [SkyRoc.Tests](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc.Tests): xUnit 测试，覆盖映射、缓存、客户服务和序列化
+- [SkyRoc](./SkyRoc/): Web API 启动项目，包含控制器、中间件、启动配置和 HTTP 联调脚本
+- [Application](./Application/): 应用层，包含 DTO、业务服务、校验器、映射配置和异常定义
+- [Domain](./Domain/): 领域层，包含实体和仓储接口
+- [Infrastructure](./Infrastructure/): 基础设施层，包含 EF Core、仓储实现、事务、缓存、数据库种子和迁移
+- [Shared](./Shared/): 共享层，包含公共常量、通用响应模型、配置模型和工具类
+- [SkyRoc.Tests](./SkyRoc.Tests/): xUnit 测试，覆盖映射、缓存、授权、基础资料服务、序列化和 Swagger 契约
 
 ## 业务模块与开发进度
 
-当前处于 **P1-08 第一阶段收口（系统权限与基础资料）**，尚未进入订单主链路。稳定权限编码、JWT 权限声明、授权要求和处理器已经建立，系统管理接口已接入细粒度授权；下一步为基础资料接口配置权限，再完成回归测试和 Swagger 联调契约，然后进入销售订单建模。
+**P1 系统权限与基础资料已经完成，当前进入 P2-01 订单数据模型。** 第一阶段的稳定权限编码、JWT 权限声明、系统与基础资料细粒度授权、服务回归测试、Swagger 和 HTTP 联调契约均已收口。
 
 | 阶段 | 状态 | 范围 |
 | --- | --- | --- |
-| P1 系统权限与基础资料 | 进行中 | 当前执行 P1-08 基础资料授权 |
-| P2 订单主链路 | 待开始 | 订单 -> 采购 -> 库存 -> 配送 -> 签收 |
+| P1 系统权限与基础资料 | 已完成 | 认证、系统权限、基础资料、定价、回归测试与 API 契约 |
+| P2 订单主链路 | 进行中 | 当前执行 P2-01 销售订单、订单明细和审核记录模型 |
 | P3 售后与财务 | 待开始 | 售后、客户结算、供应商结算 |
 | P4 查询与支撑 | 待开始 | 溯源、报表、驾驶舱、打印、日志 |
 
@@ -60,13 +60,15 @@
 
 ## 已暴露 API
 
-当前控制器位于 [SkyRoc/Controllers](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc/Controllers)，按能力分为：
+当前控制器位于 [SkyRoc/Controllers](./SkyRoc/Controllers/)，按能力分为：
 
 - 认证与权限：`Auth`、`Users`、`Roles`、`Menus`、`MenuButtons`、`Departments`
 - 商品与定价：`GoodsTypes`、`Goods`、`GoodsUnits`、`Quotations`、`QuotationGoods`、`CustomerProtocols`、`CustomerProtocolGoods`
 - 客户与采购基础资料：`Companies`、`Customers`、`CustomerTags`、`CustomerSubAccounts`、`Suppliers`、`Purchasers`、`PurchaseRules`、`Wares`
 
 订单、采购单、库存单据、配送、售后、财务、报表和溯源 API 尚未实现。
+
+第一阶段共记录 174 个 HTTP 请求，真实路由、响应约定和权限编码见 [第一阶段 API 契约](./docs/第一阶段API契约.md)。
 
 ## 启动说明
 
@@ -78,7 +80,7 @@
 
 ### 2. 关键配置
 
-项目主要配置文件在 [appsettings.json](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc/appsettings.json:1)。
+项目主要配置文件在 [appsettings.json](./SkyRoc/appsettings.json)。
 
 需要注意：
 
@@ -102,7 +104,7 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 ### 4. 数据库种子
 
-应用启动时会自动执行数据库迁移和默认种子初始化，逻辑位于 [DbSeeder.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Data/DbSeeder.cs:1)。
+应用启动时会自动执行数据库迁移和默认种子初始化，逻辑位于 [DbSeeder.cs](./Infrastructure/Data/DbSeeder.cs)。
 
 当前默认会初始化：
 
@@ -120,7 +122,7 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 ## 联调方式
 
-项目提供了现成的 HTTP 联调脚本 [SkyRoc.http](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc/SkyRoc.http:1)。
+项目提供了覆盖第一阶段全部接口的 HTTP 联调脚本 [SkyRoc.http](./SkyRoc/SkyRoc.http)。
 
 推荐联调顺序：
 
@@ -145,6 +147,8 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 - [http://localhost:5293/](http://localhost:5293/)
 
+受保护操作会显示 Bearer 认证要求；细粒度授权操作会同时显示所需权限码。登录和刷新令牌不会误标为需要 Bearer。
+
 ## 认证与授权说明
 
 - 登录成功后会生成 `AccessToken` 和 `RefreshToken`
@@ -160,13 +164,13 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 相关实现可参考：
 
-- [AuthService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Application/Services/AuthService.cs:1)
-- [JwtService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Application/Services/JwtService.cs:1)
-- [AuthExtensions.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc/Extensions/AuthExtensions.cs:1)
+- [AuthService.cs](./Application/Services/AuthService.cs)
+- [JwtService.cs](./Application/Services/JwtService.cs)
+- [AuthExtensions.cs](./SkyRoc/Extensions/AuthExtensions.cs)
 
 ## Redis 缓存与降级说明
 
-缓存抽象位于 [ICacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Shared/Common/ICacheService.cs:1)，当前会在应用启动时根据 Redis 是否可用，选择 [RedisCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/RedisCacheService.cs:1) 或 [MemoryCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/MemoryCacheService.cs:1) 作为实现。
+缓存抽象位于 [ICacheService.cs](./Shared/Common/ICacheService.cs)，当前会在应用启动时根据 Redis 是否可用，选择 [RedisCacheService.cs](./Infrastructure/Caching/RedisCacheService.cs) 或 [MemoryCacheService.cs](./Infrastructure/Caching/MemoryCacheService.cs) 作为实现。
 
 当前行为如下：
 
@@ -183,13 +187,13 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 相关实现可参考：
 
-- [RedisServiceCollectionExtensions.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/RedisServiceCollectionExtensions.cs:1)
-- [RedisCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/RedisCacheService.cs:1)
-- [MemoryCacheService.cs](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/Infrastructure/Caching/MemoryCacheService.cs:1)
+- [RedisServiceCollectionExtensions.cs](./Infrastructure/Caching/RedisServiceCollectionExtensions.cs)
+- [RedisCacheService.cs](./Infrastructure/Caching/RedisCacheService.cs)
+- [MemoryCacheService.cs](./Infrastructure/Caching/MemoryCacheService.cs)
 
 ## 测试
 
-当前测试项目位于 [SkyRoc.Tests](/abs/path/C:/Users/mrqin/RiderProjects/skyroc/SkyRoc.Tests:1)。
+当前测试项目位于 [SkyRoc.Tests](./SkyRoc.Tests/)。
 
 已包含：
 
@@ -201,6 +205,8 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 - 固定日期格式序列化测试
 - 权限编码、JWT 权限声明和授权处理器允许/拒绝测试
 - 系统管理控制器权限策略映射回归测试
+- 商品定价及客户采购基础资料服务回归测试
+- Swagger 匿名/受保护操作认证契约测试
 
 运行测试：
 
@@ -217,4 +223,4 @@ dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
 
 ## 建议下一步
 
-按 [自动开发任务清单](./docs/自动开发任务清单.md) 顺序执行，不跳项。当前任务是 **P1-08 基础资料授权**；完成并验收后再领取 P1-09。
+按 [自动开发任务清单](./docs/自动开发任务清单.md) 顺序执行，不跳项。当前任务是 **P2-01 订单数据模型**；完成并验收后再领取 P2-02。

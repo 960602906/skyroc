@@ -18,9 +18,9 @@ public static class SwaggerExtensions
             // 基本信息
             options.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "API",
+                Title = "SkyRoc API",
                 Version = "v1",
-                Description = "RESTful API 文档"
+                Description = "SkyRoc 生鲜供应链后台 API。第一阶段包含认证、系统权限和基础资料接口。"
             });
 
             // 添加XML注释
@@ -31,28 +31,12 @@ public static class SwaggerExtensions
             // 支持 Authorization header
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Name = "Authorization",
-                Type = SecuritySchemeType.ApiKey,
+                Type = SecuritySchemeType.Http,
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
-                In = ParameterLocation.Header,
-                Description = "JWT Authorization header using the Bearer scheme."
+                Description = "输入登录接口返回的 AccessToken。"
             });
-
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    []
-                }
-            });
+            options.OperationFilter<SwaggerAuthorizationOperationFilter>();
         });
 
         return services;
