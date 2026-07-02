@@ -33,7 +33,7 @@ The API runs at `http://localhost:5293`; Swagger is at the root in Development. 
 
 ## Coding Style & Naming Conventions
 
-Use four-space indentation: PascalCase for types, methods, and public members; camelCase for parameters and locals; and `I` prefixes for interfaces. Nullable reference types and implicit usings are enabled. Keep one primary type per file and match its filename. Follow suffixes such as `*Controller`, `*Service`, `*Repository`, `*Dto`, `*Validator`, and `*Tests`. Use async APIs for I/O and include the `Async` suffix where established.
+Use four-space indentation: PascalCase for types, methods, and public members; camelCase for parameters and locals; and `I` prefixes for interfaces. Nullable reference types and implicit usings are enabled. Keep exactly one top-level type per file and match its filename; private nested test helpers may remain with their owning test. Group related types with domain folders instead of aggregate files. Follow suffixes such as `*Controller`, `*Service`, `*Repository`, `*Dto`, `*Validator`, and `*Tests`. Use async APIs for I/O and include the `Async` suffix where established.
 
 ## Testing Guidelines
 
