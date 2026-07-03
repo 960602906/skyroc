@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class CustomerProtocolGoodsService(
     ICustomerProtocolGoodsRepository repository,
     ICustomerProtocolRepository customerProtocolRepository,
@@ -28,13 +29,16 @@ public class CustomerProtocolGoodsService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         ICustomerProtocolGoodsService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "客户协议价商品";
 
+    /// <inheritdoc />
     protected override Expression<Func<CustomerProtocolGoods, bool>> BuildPredicate(CustomerProtocolGoodsQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreateCustomerProtocolGoodsDto dto)
     {
         await ValidateReferencesAsync(dto.CustomerProtocolId, dto.GoodsId, dto.GoodsUnitId);
@@ -44,6 +48,7 @@ public class CustomerProtocolGoodsService(
         }
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdateCustomerProtocolGoodsDto dto)
     {
         await ValidateReferencesAsync(dto.CustomerProtocolId, dto.GoodsId, dto.GoodsUnitId);
@@ -72,4 +77,3 @@ public class CustomerProtocolGoodsService(
         }
     }
 }
-

@@ -20,6 +20,7 @@ using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class GoodsUnitService(
     IGoodsUnitRepository repository,
     IGoodsRepository goodsRepository,
@@ -33,19 +34,23 @@ public class GoodsUnitService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         IGoodsUnitService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "商品单位";
 
+    /// <inheritdoc />
     protected override Expression<Func<GoodsUnit, bool>> BuildPredicate(GoodsUnitQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     public async Task<List<GoodsUnitDto>> GetByGoodsIdAsync(Guid goodsId)
     {
         var units = await repository.GetByGoodsIdAsync(goodsId);
         return Mapper.Map<List<GoodsUnitDto>>(units);
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreateGoodsUnitDto dto)
     {
         if (!await goodsRepository.ExistsAsync(dto.GoodsId))
@@ -59,6 +64,7 @@ public class GoodsUnitService(
         }
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdateGoodsUnitDto dto)
     {
         if (!await goodsRepository.ExistsAsync(dto.GoodsId))
@@ -72,6 +78,7 @@ public class GoodsUnitService(
         }
     }
 
+    /// <inheritdoc />
     protected override async Task AfterCreateAsync(GoodsUnit entity, CreateGoodsUnitDto dto)
     {
         if (dto.IsBaseUnit)
@@ -80,6 +87,7 @@ public class GoodsUnitService(
         }
     }
 
+    /// <inheritdoc />
     protected override async Task AfterUpdateAsync(GoodsUnit entity, UpdateGoodsUnitDto dto)
     {
         if (dto.IsBaseUnit)
@@ -88,4 +96,3 @@ public class GoodsUnitService(
         }
     }
 }
-

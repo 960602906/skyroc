@@ -3,7 +3,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace Infrastructure.Caching;
 
 /// <summary>
-///     简单的 Redis 健康检查：基于 <see cref="IConnectionMultiplexer.IsConnected" /> + PING
+///     简单的 Redis 健康检查：基于 <see cref="IRedisConnectionProbe.IsConnected" /> + PING
 /// </summary>
 public class RedisHealthCheck(IRedisConnectionProbe redis) : IHealthCheck
 {

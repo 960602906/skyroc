@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class PurchaseRuleService(
     IPurchaseRuleRepository repository,
     ISupplierRepository supplierRepository,
@@ -31,31 +32,37 @@ public class PurchaseRuleService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         IPurchaseRuleService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "采购规则";
 
+    /// <inheritdoc />
     protected override Expression<Func<PurchaseRule, bool>> BuildPredicate(PurchaseRuleQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreatePurchaseRuleDto dto)
     {
         await base.ValidateCreateAsync(dto);
         await ValidateReferencesAsync(dto);
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdatePurchaseRuleDto dto)
     {
         await base.ValidateUpdateAsync(id, dto);
         await ValidateReferencesAsync(dto);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterCreateAsync(PurchaseRule entity, CreatePurchaseRuleDto dto)
     {
         await repository.ReplaceGoodsRelationsAsync(entity.Id, dto.GoodsIds);
         await repository.ReplaceCustomerRelationsAsync(entity.Id, dto.CustomerIds);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterUpdateAsync(PurchaseRule entity, UpdatePurchaseRuleDto dto)
     {
         await repository.ReplaceGoodsRelationsAsync(entity.Id, dto.GoodsIds);
@@ -105,4 +112,3 @@ public class PurchaseRuleService(
         }
     }
 }
-

@@ -16,7 +16,7 @@ public class User : BaseEntity
     ///     性别
     /// </summary>
     public required GenderType Gender { get; set; }
-    
+
     /// <summary>
     /// 部门ID ⭐ 新增
     /// </summary>
@@ -41,10 +41,13 @@ public class User : BaseEntity
     ///     密码哈希值
     /// </summary>
     public required string PasswordHash { get; set; }
-    
+
     // 导航属性
+    /// <summary>
+    /// 用户所属部门导航属性。
+    /// </summary>
     public virtual Department? Department { get; set; } // ⭐ 新增
-    
+
     /// <summary>
     ///     导航属性：用户角色关联 (多对多)
     /// </summary>

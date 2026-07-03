@@ -22,6 +22,7 @@ public class TokenCacheService(
 
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
+    /// <inheritdoc />
     public async Task SaveAccessTokenAsync(AccessTokenCacheDto data, TimeSpan? expire = null)
     {
         var ttl = expire ?? TimeSpan.FromMinutes(_jwtSettings.ExpirationMinutes);
@@ -32,16 +33,19 @@ public class TokenCacheService(
         logger.LogInformation("Access token cached. User={UserId} Jti={Jti}", data.UserId, data.Jti);
     }
 
+    /// <inheritdoc />
     public Task<AccessTokenCacheDto?> GetAccessTokenAsync(string jti)
     {
         return cache.GetAsync<AccessTokenCacheDto>(AccessPrefix + jti);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsAccessTokenValidAsync(string jti)
     {
         return cache.ExistsAsync(AccessPrefix + jti);
     }
 
+    /// <inheritdoc />
     public async Task RevokeAccessTokenAsync(string jti)
     {
         var data = await GetAccessTokenAsync(jti);
@@ -51,6 +55,7 @@ public class TokenCacheService(
         logger.LogInformation("Access token revoked. Jti={Jti}", jti);
     }
 
+    /// <inheritdoc />
     public async Task SaveRefreshTokenAsync(RefreshTokenCacheDto data, TimeSpan? expire = null)
     {
         var ttl = expire ?? TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
@@ -61,11 +66,13 @@ public class TokenCacheService(
         logger.LogInformation("Refresh token cached. User={UserId}", data.UserId);
     }
 
+    /// <inheritdoc />
     public Task<RefreshTokenCacheDto?> GetRefreshTokenAsync(string refreshToken)
     {
         return cache.GetAsync<RefreshTokenCacheDto>(RefreshPrefix + refreshToken);
     }
 
+    /// <inheritdoc />
     public async Task RevokeRefreshTokenAsync(string refreshToken)
     {
         var data = await GetRefreshTokenAsync(refreshToken);
@@ -75,6 +82,7 @@ public class TokenCacheService(
         logger.LogInformation("Refresh token revoked.");
     }
 
+    /// <inheritdoc />
     public async Task RevokeAllByUserAsync(Guid userId)
     {
         var accessSetKey = UserAccessSetPrefix + userId;

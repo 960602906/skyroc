@@ -9,5 +9,7 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义采购员档案的查询和维护用例。
+/// </summary>
 public interface IPurchaserService : IBaseDataService<PurchaserDto, CreatePurchaserDto, UpdatePurchaserDto, PurchaserQueryParameters>;
-

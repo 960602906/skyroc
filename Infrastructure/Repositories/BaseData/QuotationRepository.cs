@@ -19,6 +19,7 @@ public class QuotationRepository(ApplicationDbContext context)
 {
     private readonly ApplicationDbContext _context = context;
 
+    /// <inheritdoc />
     public override async Task<Quotation?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -30,6 +31,7 @@ public class QuotationRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task ReplaceCustomerRelationsAsync(Guid quotationId, IEnumerable<Guid>? customerIds)
     {
         var relations = await _context.Set<CustomerQuotation>()
@@ -50,4 +52,3 @@ public class QuotationRepository(ApplicationDbContext context)
         await _context.Set<CustomerQuotation>().AddRangeAsync(newRelations);
     }
 }
-

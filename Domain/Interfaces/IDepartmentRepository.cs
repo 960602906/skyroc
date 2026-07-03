@@ -2,7 +2,10 @@
 
 namespace Domain.Interfaces;
 
-public interface IDepartmentRepository: IRepository<Department>
+/// <summary>
+/// 定义部门层级和部门成员关系的持久化操作。
+/// </summary>
+public interface IDepartmentRepository : IRepository<Department>
 {
     /// <summary>
     /// 获取部门树（所有部门层级结构）
@@ -36,7 +39,7 @@ public interface IDepartmentRepository: IRepository<Department>
     /// 检查部门是否有子部门
     /// </summary>
     Task<bool> HasChildrenAsync(Guid departmentId);
-   
+
     /// <summary>
     /// 获取部门下的所有用户数量
     /// </summary>

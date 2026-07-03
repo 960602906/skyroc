@@ -20,6 +20,7 @@ using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class CustomerService(
     ICustomerRepository repository,
     ICompanyRepository companyRepository,
@@ -37,31 +38,37 @@ public class CustomerService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         ICustomerService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "客户";
 
+    /// <inheritdoc />
     protected override Expression<Func<Customer, bool>> BuildPredicate(CustomerQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreateCustomerDto dto)
     {
         await base.ValidateCreateAsync(dto);
         await ValidateReferencesAsync(dto.CompanyId, dto.QuotationId, dto.DefaultWareId, dto.TagIds);
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdateCustomerDto dto)
     {
         await base.ValidateUpdateAsync(id, dto);
         await ValidateReferencesAsync(dto.CompanyId, dto.QuotationId, dto.DefaultWareId, dto.TagIds);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterCreateAsync(Customer entity, CreateCustomerDto dto)
     {
         await EnrichBusinessInfoAsync(entity);
         await repository.ReplaceTagRelationsAsync(entity.Id, dto.TagIds);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterUpdateAsync(Customer entity, UpdateCustomerDto dto)
     {
         await EnrichBusinessInfoAsync(entity);
@@ -150,4 +157,3 @@ public class CustomerService(
         }
     }
 }
-

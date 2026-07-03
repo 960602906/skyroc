@@ -9,5 +9,7 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义客户标签树及客户标签关系的维护用例。
+/// </summary>
 public interface ICustomerTagService : ITreeBaseDataService<CustomerTagDto, CreateCustomerTagDto, UpdateCustomerTagDto, CustomerTagQueryParameters>;
-

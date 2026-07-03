@@ -9,6 +9,9 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义商品单位和单位换算的维护用例。
+/// </summary>
 public interface IGoodsUnitService : IBaseDataService<GoodsUnitDto, CreateGoodsUnitDto, UpdateGoodsUnitDto, GoodsUnitQueryParameters>
 {
     /// <summary>
@@ -16,4 +19,3 @@ public interface IGoodsUnitService : IBaseDataService<GoodsUnitDto, CreateGoodsU
     /// </summary>
     Task<List<GoodsUnitDto>> GetByGoodsIdAsync(Guid goodsId);
 }
-

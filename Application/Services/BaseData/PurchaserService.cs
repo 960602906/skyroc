@@ -20,6 +20,7 @@ using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class PurchaserService(
     IPurchaserRepository repository,
     IUserRepository userRepository,
@@ -34,19 +35,23 @@ public class PurchaserService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         IPurchaserService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "采购员";
 
+    /// <inheritdoc />
     protected override Expression<Func<Purchaser, bool>> BuildPredicate(PurchaserQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreatePurchaserDto dto)
     {
         await base.ValidateCreateAsync(dto);
         await ValidateReferencesAsync(dto.UserId, dto.DepartmentId);
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdatePurchaserDto dto)
     {
         await base.ValidateUpdateAsync(id, dto);
@@ -66,4 +71,3 @@ public class PurchaserService(
         }
     }
 }
-

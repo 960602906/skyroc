@@ -9,5 +9,7 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义供应商档案和供货关系的维护用例。
+/// </summary>
 public interface ISupplierService : IBaseDataService<SupplierDto, CreateSupplierDto, UpdateSupplierDto, SupplierQueryParameters>;
-

@@ -5,7 +5,7 @@ namespace Domain.Entities;
 /// <summary>
 ///  部门实体
 /// </summary>
-public class Department: BaseEntity
+public class Department : BaseEntity
 {
     /// <summary>
     /// 部门名称
@@ -23,7 +23,7 @@ public class Department: BaseEntity
     /// 负责人ID
     /// </summary>
     public Guid? LeaderId { get; set; }
-    
+
     /// <summary>
     /// 负责人ID
     /// </summary>
@@ -40,12 +40,18 @@ public class Department: BaseEntity
     /// 排序
     /// </summary>
     public int Sort { get; set; }
-    
+
     /// <summary>
     /// 备注
     /// </summary>
     public string? Remark { get; set; }
     // 导航属性
+    /// <summary>
+    /// 部门负责人导航属性。
+    /// </summary>
     public virtual User? Leader { get; set; }
+    /// <summary>
+    /// 部门下属用户集合。
+    /// </summary>
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

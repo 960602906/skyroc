@@ -2,6 +2,9 @@
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义登录、令牌刷新和注销用例。
+/// </summary>
 public interface IAuthService
 {
     /// <summary>

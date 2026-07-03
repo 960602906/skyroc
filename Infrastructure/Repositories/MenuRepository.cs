@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
+/// <inheritdoc />
 public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(context), IMenuRepository
 {
     private readonly DbSet<RoleMenu> _dbSetRoleMenu = context.Set<RoleMenu>();
-    
+
     /// <summary>
     /// 根据ID获取实体
     /// </summary>
@@ -16,9 +17,9 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
     /// <returns></returns>
     public override async Task<Menu?> GetByIdAsync(Guid id)
     {
-       return  await DbSet
-            .Include(m => m.Buttons)
-            .FirstOrDefaultAsync(m => m.Id == id);
+        return await DbSet
+             .Include(m => m.Buttons)
+             .FirstOrDefaultAsync(m => m.Id == id);
     }
 
     /// <summary>
@@ -104,7 +105,7 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
             .Select(r => r.MenuId)
             .ToListAsync();
     }
-    
+
     /// <summary>
     /// 根据角色ID获取菜单列表
     /// </summary>
@@ -118,6 +119,7 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
             .ToListAsync();
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<Menu>> GetMenusByRoleIdsAsync(IEnumerable<Guid> roleIds)
     {
         var roleIdList = roleIds.Distinct().ToList();
@@ -128,7 +130,7 @@ public class MenuRepository(ApplicationDbContext context) : Repository<Menu>(con
             .Include(menu => menu.Buttons)
             .ToListAsync();
     }
-    
+
     /// <summary>
     /// 根据多个 ID 获取菜单列表
     /// </summary>

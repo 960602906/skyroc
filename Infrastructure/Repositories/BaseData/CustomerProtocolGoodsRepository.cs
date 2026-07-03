@@ -17,6 +17,7 @@ namespace Infrastructure.Repositories;
 public class CustomerProtocolGoodsRepository(ApplicationDbContext context)
     : Repository<CustomerProtocolGoods>(context), ICustomerProtocolGoodsRepository
 {
+    /// <inheritdoc />
     public override async Task<CustomerProtocolGoods?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -25,6 +26,7 @@ public class CustomerProtocolGoodsRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExistsDetailAsync(Guid customerProtocolId, Guid goodsId, Guid goodsUnitId, Guid? excludeId = null)
     {
         var query = DbSet.Where(x =>
@@ -39,6 +41,7 @@ public class CustomerProtocolGoodsRepository(ApplicationDbContext context)
         return await query.AnyAsync();
     }
 
+    /// <inheritdoc />
     public async Task<List<CustomerProtocolGoods>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         var idList = ids.Distinct().ToList();
@@ -47,4 +50,3 @@ public class CustomerProtocolGoodsRepository(ApplicationDbContext context)
             : await DbSet.Where(x => idList.Contains(x.Id)).ToListAsync();
     }
 }
-

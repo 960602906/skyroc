@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
+/// <inheritdoc />
 public class DepartmentRepository(ApplicationDbContext context)
     : Repository<Department>(context), IDepartmentRepository
 {
@@ -29,7 +30,7 @@ public class DepartmentRepository(ApplicationDbContext context)
     public async Task<List<Department>> GetDescendantsAsync(Guid departmentId)
     {
         var allDepartments = await GetAllDepartmentsAsync();
-        var result = new  List<Department>();
+        var result = new List<Department>();
         GetDescendantsRecursive(departmentId, result, allDepartments);
         return result;
     }
@@ -59,7 +60,7 @@ public class DepartmentRepository(ApplicationDbContext context)
             .ThenBy(x => x.Id)
             .ToListAsync();
     }
-    
+
     /// <summary>
     /// 根据部门代码获取部门
     /// </summary>
@@ -126,7 +127,7 @@ public class DepartmentRepository(ApplicationDbContext context)
     /// </summary>
     public async Task<bool> HasChildrenAsync(Guid departmentId)
     {
-        return await  DbSet
+        return await DbSet
             .Where(x => x.ParentId == departmentId)
             .AnyAsync();
     }

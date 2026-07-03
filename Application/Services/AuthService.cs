@@ -10,6 +10,7 @@ using Shared.Utils;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class AuthService(
     IUserRepository userRepository,
     IRoleRepository roleRepository,
@@ -23,6 +24,7 @@ public class AuthService(
 {
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
+    /// <inheritdoc />
     public async Task<LoginResDto?> LoginAsync(LoginReqDto request)
     {
         var user = await userRepository.FindByUsernameAsync(request.Username);

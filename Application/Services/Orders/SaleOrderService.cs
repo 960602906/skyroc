@@ -34,6 +34,7 @@ public class SaleOrderService(
     IValidator<UpdateSaleOrderDto> updateValidator,
     ILogger<SaleOrderService> logger) : ISaleOrderService
 {
+    /// <inheritdoc />
     public async Task<PagedResult<SaleOrderDto>> GetPagedAsync(SaleOrderQueryParameters parameters)
     {
         var result = await saleOrderRepository.GetPagedAsync(
@@ -45,12 +46,14 @@ public class SaleOrderService(
         return mapper.ToPagedResult<SaleOrder, SaleOrderDto>(result, parameters);
     }
 
+    /// <inheritdoc />
     public async Task<SaleOrderDto> GetByIdAsync(Guid id)
     {
         var order = await GetRequiredOrderAsync(id);
         return mapper.Map<SaleOrderDto>(order);
     }
 
+    /// <inheritdoc />
     public async Task<SaleOrderDto> CreateAsync(CreateSaleOrderDto dto)
     {
         await ValidateAsync(createValidator, dto);
@@ -95,6 +98,7 @@ public class SaleOrderService(
         return mapper.Map<SaleOrderDto>(await GetRequiredOrderAsync(order.Id));
     }
 
+    /// <inheritdoc />
     public async Task<SaleOrderDto> UpdateAsync(UpdateSaleOrderDto dto)
     {
         await ValidateAsync(updateValidator, dto);
@@ -175,6 +179,7 @@ public class SaleOrderService(
         return mapper.Map<SaleOrderDto>(await GetRequiredOrderAsync(order.Id));
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id)
     {
         var order = await GetRequiredOrderAsync(id);
@@ -183,6 +188,7 @@ public class SaleOrderService(
         return true;
     }
 
+    /// <inheritdoc />
     public Task<SaleOrderDto> ApproveAsync(Guid id, string? remark)
     {
         return TransitionAsync(
@@ -193,6 +199,7 @@ public class SaleOrderService(
             remark);
     }
 
+    /// <inheritdoc />
     public Task<SaleOrderDto> RejectAsync(Guid id, string? remark)
     {
         return TransitionAsync(
@@ -203,6 +210,7 @@ public class SaleOrderService(
             remark);
     }
 
+    /// <inheritdoc />
     public Task<SaleOrderDto> ResubmitAsync(Guid id, string? remark)
     {
         return TransitionAsync(

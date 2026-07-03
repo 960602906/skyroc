@@ -35,6 +35,12 @@ The API runs at `http://localhost:5293`; Swagger is at the root in Development. 
 
 Use four-space indentation: PascalCase for types, methods, and public members; camelCase for parameters and locals; and `I` prefixes for interfaces. Nullable reference types and implicit usings are enabled. Keep exactly one top-level type per file and match its filename; private nested test helpers may remain with their owning test. Group related types with domain folders instead of aggregate files. Follow suffixes such as `*Controller`, `*Service`, `*Repository`, `*Dto`, `*Validator`, and `*Tests`. Use async APIs for I/O and include the `Async` suffix where established.
 
+## Documentation Comment Requirements
+
+Comments are part of the definition of done, not optional cleanup. Add concise XML documentation to domain entities and their public properties, repository interfaces and implementations, application service interfaces and implementations, controllers, actions, and public request/response members. Comments must explain business meaning, units, status semantics, side effects, and important constraints instead of merely repeating the identifier.
+
+For every new or changed persisted entity, configure PostgreSQL table and column comments through EF Core (`HasComment`) and include those comments in the generated migration. Review migrations to ensure comments are added, changed, and rolled back correctly. Add focused inline comments only where non-obvious private logic or state transitions need explanation. New or modified code missing required comments is incomplete and must not be handed off.
+
 ## Testing Guidelines
 
 Tests use xUnit, EF Core InMemory, and coverlet. Name test classes after the subject and test methods as behavior statements, for example `GetByIdAsync_ReturnsCustomer_WhenCustomerExists`. Place regression tests beside the matching feature folder. Run the full test project before submitting; no numeric coverage threshold is currently enforced.

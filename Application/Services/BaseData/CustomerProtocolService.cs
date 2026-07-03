@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class CustomerProtocolService(
     ICustomerProtocolRepository repository,
     IQuotationRepository quotationRepository,
@@ -27,30 +28,36 @@ public class CustomerProtocolService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         ICustomerProtocolService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "客户协议价";
 
+    /// <inheritdoc />
     protected override Expression<Func<CustomerProtocol, bool>> BuildPredicate(CustomerProtocolQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreateCustomerProtocolDto dto)
     {
         await base.ValidateCreateAsync(dto);
         await ValidateReferencesAsync(dto.QuotationId, dto.CustomerIds);
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdateCustomerProtocolDto dto)
     {
         await base.ValidateUpdateAsync(id, dto);
         await ValidateReferencesAsync(dto.QuotationId, dto.CustomerIds);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterCreateAsync(CustomerProtocol entity, CreateCustomerProtocolDto dto)
     {
         await repository.ReplaceCustomerRelationsAsync(entity.Id, dto.CustomerIds);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterUpdateAsync(CustomerProtocol entity, UpdateCustomerProtocolDto dto)
     {
         await repository.ReplaceCustomerRelationsAsync(entity.Id, dto.CustomerIds);
@@ -76,4 +83,3 @@ public class CustomerProtocolService(
         }
     }
 }
-

@@ -20,6 +20,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
+    /// <inheritdoc />
     public AccessTokenResult GenerateAccessToken(
         User user,
         IEnumerable<string> roleCodes,
@@ -57,6 +58,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
         return new AccessTokenResult(_tokenHandler.WriteToken(token), jti, expiresAt);
     }
 
+    /// <inheritdoc />
     public string GenerateRefreshToken()
     {
         var randomNumber = new byte[AuthConstants.RefreshTokenByteLength];
@@ -65,6 +67,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
         return Convert.ToBase64String(randomNumber);
     }
 
+    /// <inheritdoc />
     public bool ValidateToken(string token)
     {
         var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
@@ -89,6 +92,7 @@ public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
         }
     }
 
+    /// <inheritdoc />
     public Guid? GetUserIdFromToken(string token)
     {
         var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);

@@ -2,6 +2,9 @@
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义菜单按钮权限的应用服务用例。
+/// </summary>
 public interface IMenuButtonService
 {
     /// <summary>
@@ -30,7 +33,7 @@ public interface IMenuButtonService
     /// <param name="menuButton"></param>
     /// <returns></returns>
     Task<MenuButtonDto> UpdateMenuButtonAsync(Guid menuId, UpdateMenuButtonDto menuButton);
-    
+
     /// <summary>
     ///  批量替换菜单按钮
     /// </summary>
@@ -38,7 +41,7 @@ public interface IMenuButtonService
     /// <param name="menuButtons"></param>
     /// <returns></returns>
     Task<List<MenuButtonDto>> ReplaceMenuButtonsAsync(Guid menuId, List<CreateMenuButtonDto> menuButtons);
-    
+
     /// <summary>
     ///     删除菜单按钮
     /// </summary>

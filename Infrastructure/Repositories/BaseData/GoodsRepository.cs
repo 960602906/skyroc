@@ -19,6 +19,7 @@ public class GoodsRepository(ApplicationDbContext context)
 {
     private readonly ApplicationDbContext _context = context;
 
+    /// <inheritdoc />
     public override async Task<GoodsEntity?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -32,6 +33,7 @@ public class GoodsRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task ReplaceSupplierRelationsAsync(Guid goodsId, IEnumerable<Guid>? supplierIds, Guid? defaultSupplierId)
     {
         var relations = await _context.Set<GoodsSupplierRelation>()
@@ -58,4 +60,3 @@ public class GoodsRepository(ApplicationDbContext context)
         await _context.Set<GoodsSupplierRelation>().AddRangeAsync(newRelations);
     }
 }
-

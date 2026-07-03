@@ -31,20 +31,42 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
     where TUpdateDto : IHasId
     where TQuery : PagedQueryParameters
 {
+    /// <summary>
+    /// 当前基础资料实体的持久化仓储。
+    /// </summary>
     protected IRepository<TEntity> Repository { get; } = repository;
 
+    /// <summary>
+    /// 提交跨仓储事务的工作单元。
+    /// </summary>
     protected IUnitOfWork UnitOfWork { get; } = unitOfWork;
 
+    /// <summary>
+    /// 实体与应用 DTO 之间的映射器。
+    /// </summary>
     protected IMapper Mapper { get; } = mapper;
 
+    /// <summary>
+    /// 提供当前登录用户的审计身份。
+    /// </summary>
     protected ICurrentUserService CurrentUserService { get; } = currentUserService;
 
+    /// <summary>
+    /// 记录基础资料业务操作和异常。
+    /// </summary>
     protected ILogger Logger { get; } = logger;
 
+    /// <summary>
+    /// 当前基础资料在错误消息和日志中的业务名称。
+    /// </summary>
     protected abstract string DisplayName { get; }
 
+    /// <summary>
+    /// 根据查询参数构建可由数据库执行的筛选表达式。
+    /// </summary>
     protected abstract Expression<Func<TEntity, bool>> BuildPredicate(TQuery parameters);
 
+    /// <inheritdoc />
     public virtual async Task<PagedResult<TDto>> GetPagedAsync(TQuery parameters)
     {
         var pageData = await Repository.GetPagedAsync(
@@ -56,12 +78,14 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         return Mapper.ToPagedResult<TEntity, TDto>(pageData, parameters);
     }
 
+    /// <inheritdoc />
     public virtual async Task<List<TDto>> GetAllAsync()
     {
         var entities = await Repository.GetAllAsync();
         return Mapper.Map<List<TDto>>(entities);
     }
 
+    /// <inheritdoc />
     public virtual async Task<TDto> GetByIdAsync(Guid id)
     {
         var entity = await Repository.GetByIdAsync(id);
@@ -73,6 +97,7 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         return Mapper.Map<TDto>(entity);
     }
 
+    /// <inheritdoc />
     public virtual async Task<TDto> CreateAsync(TCreateDto dto)
     {
         var validationResult = await createValidator.ValidateAsync(dto);
@@ -96,6 +121,7 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         return Mapper.Map<TDto>(entity);
     }
 
+    /// <inheritdoc />
     public virtual async Task<TDto> UpdateAsync(Guid id, TUpdateDto dto)
     {
         var validationResult = await updateValidator.ValidateAsync(dto);
@@ -125,6 +151,7 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         return Mapper.Map<TDto>(entity);
     }
 
+    /// <inheritdoc />
     public virtual async Task<bool> DeleteAsync(Guid id)
     {
         var entity = await Repository.GetByIdAsync(id);
@@ -140,6 +167,7 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         return true;
     }
 
+    /// <inheritdoc />
     public virtual async Task<bool> BatchDeleteAsync(List<Guid> ids)
     {
         if (ids.Count == 0)
@@ -158,6 +186,7 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         return true;
     }
 
+    /// <inheritdoc />
     public virtual async Task<TDto> ToggleStatusAsync(Guid id, Status status)
     {
         var entity = await Repository.GetByIdAsync(id);
@@ -173,41 +202,61 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         return Mapper.Map<TDto>(entity);
     }
 
+    /// <summary>
+    /// 在创建实体前执行具体业务校验。
+    /// </summary>
     protected virtual Task ValidateCreateAsync(TCreateDto dto)
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// 在更新实体前执行具体业务校验。
+    /// </summary>
     protected virtual Task ValidateUpdateAsync(Guid id, TUpdateDto dto)
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// 在删除实体前校验关联关系和业务约束。
+    /// </summary>
     protected virtual Task ValidateDeleteAsync(Guid id)
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// 在主实体创建后维护该业务拥有的关联数据。
+    /// </summary>
     protected virtual Task AfterCreateAsync(TEntity entity, TCreateDto dto)
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// 在主实体更新后同步该业务拥有的关联数据。
+    /// </summary>
     protected virtual Task AfterUpdateAsync(TEntity entity, TUpdateDto dto)
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// 将当前用户和 UTC 时间写入实体创建审计字段。
+    /// </summary>
     protected void ApplyCreateAudit(TEntity entity)
     {
         entity.CreateBy = CurrentUserService.GetUserId();
         entity.CreateName = CurrentUserService.GetUserName();
     }
 
+    /// <summary>
+    /// 将当前用户和 UTC 时间写入实体更新审计字段。
+    /// </summary>
     protected void ApplyUpdateAudit(TEntity entity)
     {
         entity.UpdateBy = CurrentUserService.GetUserId();
         entity.UpdateName = CurrentUserService.GetUserName();
     }
 }
-

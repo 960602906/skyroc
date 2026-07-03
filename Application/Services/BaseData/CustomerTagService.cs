@@ -20,6 +20,7 @@ using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class CustomerTagService(
     ICustomerTagRepository repository,
     IUnitOfWork unitOfWork,
@@ -32,13 +33,16 @@ public class CustomerTagService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         ICustomerTagService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "客户标签";
 
+    /// <inheritdoc />
     protected override Expression<Func<CustomerTag, bool>> BuildPredicate(CustomerTagQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateDeleteAsync(Guid id)
     {
         await base.ValidateDeleteAsync(id);
@@ -48,4 +52,3 @@ public class CustomerTagService(
         }
     }
 }
-

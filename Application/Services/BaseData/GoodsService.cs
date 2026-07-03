@@ -20,6 +20,7 @@ using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class GoodsService(
     IGoodsRepository repository,
     IGoodsTypeRepository goodsTypeRepository,
@@ -35,35 +36,42 @@ public class GoodsService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         IGoodsService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "商品";
 
+    /// <inheritdoc />
     protected override Expression<Func<GoodsEntity, bool>> BuildPredicate(GoodsQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreateGoodsDto dto)
     {
         await base.ValidateCreateAsync(dto);
         await ValidateReferencesAsync(dto.GoodsTypeId, dto.DefaultSupplierId, dto.DefaultWareId, dto.SupplierIds);
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdateGoodsDto dto)
     {
         await base.ValidateUpdateAsync(id, dto);
         await ValidateReferencesAsync(dto.GoodsTypeId, dto.DefaultSupplierId, dto.DefaultWareId, dto.SupplierIds);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterCreateAsync(GoodsEntity entity, CreateGoodsDto dto)
     {
         await repository.ReplaceSupplierRelationsAsync(entity.Id, dto.SupplierIds, dto.DefaultSupplierId);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterUpdateAsync(GoodsEntity entity, UpdateGoodsDto dto)
     {
         await repository.ReplaceSupplierRelationsAsync(entity.Id, dto.SupplierIds, dto.DefaultSupplierId);
     }
 
+    /// <inheritdoc />
     public async Task<GoodsDto> ToggleSaleStatusAsync(Guid id, bool isOnSale)
     {
         var entity = await repository.GetByIdAsync(id);
@@ -107,4 +115,3 @@ public class GoodsService(
         }
     }
 }
-

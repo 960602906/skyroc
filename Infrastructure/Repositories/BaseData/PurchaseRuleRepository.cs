@@ -19,6 +19,7 @@ public class PurchaseRuleRepository(ApplicationDbContext context)
 {
     private readonly ApplicationDbContext _context = context;
 
+    /// <inheritdoc />
     public override async Task<PurchaseRule?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -31,6 +32,7 @@ public class PurchaseRuleRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task ReplaceGoodsRelationsAsync(Guid purchaseRuleId, IEnumerable<Guid>? goodsIds)
     {
         var relations = await _context.Set<PurchaseRuleGoods>()
@@ -50,6 +52,7 @@ public class PurchaseRuleRepository(ApplicationDbContext context)
         await _context.Set<PurchaseRuleGoods>().AddRangeAsync(newRelations);
     }
 
+    /// <inheritdoc />
     public async Task ReplaceCustomerRelationsAsync(Guid purchaseRuleId, IEnumerable<Guid>? customerIds)
     {
         var relations = await _context.Set<PurchaseRuleCustomer>()
@@ -69,4 +72,3 @@ public class PurchaseRuleRepository(ApplicationDbContext context)
         await _context.Set<PurchaseRuleCustomer>().AddRangeAsync(newRelations);
     }
 }
-

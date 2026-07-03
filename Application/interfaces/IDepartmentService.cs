@@ -5,7 +5,10 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
-public interface  IDepartmentService
+/// <summary>
+/// 定义部门树和部门成员的应用服务用例。
+/// </summary>
+public interface IDepartmentService
 {
     /// <summary>
     /// 获取部门树
@@ -39,6 +42,6 @@ public interface  IDepartmentService
     /// 获取部门下的用户列表
     /// </summary>
     Task<List<UserDto>> GetUsersAsync(Guid departmentId);
-  
-   
+
+
 }

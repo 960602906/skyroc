@@ -2,6 +2,9 @@
 
 namespace Domain.Interfaces;
 
+/// <summary>
+/// 定义角色及用户角色关系的持久化操作。
+/// </summary>
 public interface IRoleRepository : IRepository<Role>
 {
     /// <summary>

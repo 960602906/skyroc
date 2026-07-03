@@ -9,5 +9,7 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义客户子账号及授权关系的维护用例。
+/// </summary>
 public interface ICustomerSubAccountService : IBaseDataService<CustomerSubAccountDto, CreateCustomerSubAccountDto, UpdateCustomerSubAccountDto, CustomerSubAccountQueryParameters>;
-

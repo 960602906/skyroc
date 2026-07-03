@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
+/// <inheritdoc />
 public class UserRepository(ApplicationDbContext context) : Repository<User>(context), IUserRepository
 {
     private readonly DbSet<UserRole> _dbSetUserRole = context.Set<UserRole>();
@@ -67,7 +68,7 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
     {
         return await DbSet.Where(r => ids.Contains(r.DepartmentId ?? Guid.Empty)).ToListAsync();
     }
-    
+
     /// <summary>
     /// 根据ID获取实体
     /// </summary>
@@ -77,9 +78,9 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
     /// <returns></returns>
     public async Task<TEntity?> GetByIdAsync<TEntity>(Guid id, Expression<Func<User, TEntity>> selector)
     {
-        return  await DbSet.AsNoTracking().Where(r => r.Id == id).Select(selector).FirstOrDefaultAsync();
+        return await DbSet.AsNoTracking().Where(r => r.Id == id).Select(selector).FirstOrDefaultAsync();
     }
-    
+
     /// <summary>
     /// 查询所有数据并投影
     /// </summary>
@@ -90,7 +91,7 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
     {
         return await DbSet.AsNoTracking().Select(selector).ToListAsync();
     }
-    
+
     /// <summary>
     /// 分页查询并且投影
     /// </summary>

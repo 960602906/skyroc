@@ -7,7 +7,13 @@ namespace Domain.Interfaces;
 /// </summary>
 public interface ISaleOrderDetailRepository : IRepository<SaleOrderDetail>
 {
+    /// <summary>
+    /// 读取指定销售订单的全部商品明细。
+    /// </summary>
     Task<List<SaleOrderDetail>> GetBySaleOrderIdAsync(Guid saleOrderId);
 
+    /// <summary>
+    /// 批量读取指定主键的销售订单商品明细。
+    /// </summary>
     Task<List<SaleOrderDetail>> GetByIdsAsync(IEnumerable<Guid> ids);
 }

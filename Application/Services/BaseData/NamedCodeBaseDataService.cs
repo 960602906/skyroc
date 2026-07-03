@@ -39,8 +39,10 @@ public abstract class NamedCodeBaseDataService<TEntity, TDto, TCreateDto, TUpdat
     where TUpdateDto : IUpdateInput
     where TQuery : PagedQueryParameters
 {
+    /// <inheritdoc />
     protected INamedCodeRepository<TEntity> NamedCodeRepository { get; } = repository;
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(TCreateDto dto)
     {
         if (await NamedCodeRepository.ExistsByCodeAsync(dto.Code!))
@@ -54,6 +56,7 @@ public abstract class NamedCodeBaseDataService<TEntity, TDto, TCreateDto, TUpdat
         }
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, TUpdateDto dto)
     {
         if (await NamedCodeRepository.ExistsByCodeAsync(dto.Code!, id))
@@ -67,4 +70,3 @@ public abstract class NamedCodeBaseDataService<TEntity, TDto, TCreateDto, TUpdat
         }
     }
 }
-

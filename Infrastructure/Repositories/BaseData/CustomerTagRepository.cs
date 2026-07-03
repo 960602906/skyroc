@@ -19,9 +19,9 @@ public class CustomerTagRepository(ApplicationDbContext context)
 {
     private readonly ApplicationDbContext _context = context;
 
+    /// <inheritdoc />
     public async Task<bool> HasCustomersAsync(Guid tagId)
     {
         return await _context.Set<CustomerTagRelation>().AnyAsync(x => x.CustomerTagId == tagId);
     }
 }
-

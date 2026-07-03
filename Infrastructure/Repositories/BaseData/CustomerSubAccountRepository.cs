@@ -17,6 +17,7 @@ namespace Infrastructure.Repositories;
 public class CustomerSubAccountRepository(ApplicationDbContext context)
     : Repository<CustomerSubAccount>(context), ICustomerSubAccountRepository
 {
+    /// <inheritdoc />
     public override async Task<CustomerSubAccount?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -25,6 +26,7 @@ public class CustomerSubAccountRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExistsByUsernameAsync(string username, Guid? excludeId = null)
     {
         var normalizedUsername = username.Trim();
@@ -37,6 +39,7 @@ public class CustomerSubAccountRepository(ApplicationDbContext context)
         return await query.AnyAsync();
     }
 
+    /// <inheritdoc />
     public async Task<List<CustomerSubAccount>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         var idList = ids.Distinct().ToList();
@@ -45,4 +48,3 @@ public class CustomerSubAccountRepository(ApplicationDbContext context)
             : await DbSet.Where(x => idList.Contains(x.Id)).ToListAsync();
     }
 }
-

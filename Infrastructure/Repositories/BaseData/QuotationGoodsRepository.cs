@@ -17,6 +17,7 @@ namespace Infrastructure.Repositories;
 public class QuotationGoodsRepository(ApplicationDbContext context)
     : Repository<QuotationGoods>(context), IQuotationGoodsRepository
 {
+    /// <inheritdoc />
     public override async Task<QuotationGoods?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -25,6 +26,7 @@ public class QuotationGoodsRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExistsDetailAsync(Guid quotationId, Guid goodsId, Guid goodsUnitId, Guid? excludeId = null)
     {
         var query = DbSet.Where(x => x.QuotationId == quotationId && x.GoodsId == goodsId && x.GoodsUnitId == goodsUnitId);
@@ -36,6 +38,7 @@ public class QuotationGoodsRepository(ApplicationDbContext context)
         return await query.AnyAsync();
     }
 
+    /// <inheritdoc />
     public async Task<List<QuotationGoods>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         var idList = ids.Distinct().ToList();
@@ -44,4 +47,3 @@ public class QuotationGoodsRepository(ApplicationDbContext context)
             : await DbSet.Where(x => idList.Contains(x.Id)).ToListAsync();
     }
 }
-

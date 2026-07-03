@@ -19,6 +19,7 @@ public class CustomerProtocolRepository(ApplicationDbContext context)
 {
     private readonly ApplicationDbContext _context = context;
 
+    /// <inheritdoc />
     public override async Task<CustomerProtocol?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -31,6 +32,7 @@ public class CustomerProtocolRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task ReplaceCustomerRelationsAsync(Guid customerProtocolId, IEnumerable<Guid>? customerIds)
     {
         var relations = await _context.Set<CustomerProtocolCustomer>()
@@ -50,4 +52,3 @@ public class CustomerProtocolRepository(ApplicationDbContext context)
         await _context.Set<CustomerProtocolCustomer>().AddRangeAsync(newRelations);
     }
 }
-

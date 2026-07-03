@@ -9,5 +9,7 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义客户档案和外部工商信息补充用例。
+/// </summary>
 public interface ICustomerService : IBaseDataService<CustomerDto, CreateCustomerDto, UpdateCustomerDto, CustomerQueryParameters>;
-

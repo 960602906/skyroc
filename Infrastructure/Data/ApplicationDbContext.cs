@@ -7,6 +7,7 @@ using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Data.EntityConfigurations;
 
 namespace Infrastructure.Data;
 
@@ -22,6 +23,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        modelBuilder.ApplyDatabaseComments();
         // ⭐ 应用所有配置
         // modelBuilder.ApplyConfiguration(new UserConfiguration());
         // modelBuilder.ApplyConfiguration(new RoleConfiguration());

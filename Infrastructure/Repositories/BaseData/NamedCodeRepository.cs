@@ -18,6 +18,7 @@ public abstract class NamedCodeRepository<TEntity>(ApplicationDbContext context)
     INamedCodeRepository<TEntity>
     where TEntity : BaseEntity
 {
+    /// <inheritdoc />
     public async Task<bool> ExistsByCodeAsync(string code, Guid? excludeId = null)
     {
         var normalizedCode = code.Trim();
@@ -30,6 +31,7 @@ public abstract class NamedCodeRepository<TEntity>(ApplicationDbContext context)
         return await query.AnyAsync();
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null)
     {
         var normalizedName = name.Trim();
@@ -42,6 +44,7 @@ public abstract class NamedCodeRepository<TEntity>(ApplicationDbContext context)
         return await query.AnyAsync();
     }
 
+    /// <inheritdoc />
     public async Task<List<TEntity>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         var idList = ids.Distinct().ToList();
@@ -50,4 +53,3 @@ public abstract class NamedCodeRepository<TEntity>(ApplicationDbContext context)
             : await DbSet.Where(x => idList.Contains(x.Id)).ToListAsync();
     }
 }
-

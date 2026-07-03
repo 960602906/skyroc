@@ -9,19 +9,43 @@ namespace Application.interfaces;
 /// </summary>
 public interface ISaleOrderService
 {
+    /// <summary>
+    /// 按业务条件分页查询销售订单。
+    /// </summary>
     Task<PagedResult<SaleOrderDto>> GetPagedAsync(SaleOrderQueryParameters parameters);
 
+    /// <summary>
+    /// 读取销售订单详情、商品明细和审核轨迹。
+    /// </summary>
     Task<SaleOrderDto> GetByIdAsync(Guid id);
 
+    /// <summary>
+    /// 创建销售订单并记录首次提交审核轨迹。
+    /// </summary>
     Task<SaleOrderDto> CreateAsync(CreateSaleOrderDto dto);
 
+    /// <summary>
+    /// 更新待审核或已驳回订单及其商品明细。
+    /// </summary>
     Task<SaleOrderDto> UpdateAsync(UpdateSaleOrderDto dto);
 
+    /// <summary>
+    /// 删除允许删除的销售订单及其拥有记录。
+    /// </summary>
     Task<bool> DeleteAsync(Guid id);
 
+    /// <summary>
+    /// 审核通过待审核销售订单。
+    /// </summary>
     Task<SaleOrderDto> ApproveAsync(Guid id, string? remark);
 
+    /// <summary>
+    /// 驳回待审核销售订单并记录原因。
+    /// </summary>
     Task<SaleOrderDto> RejectAsync(Guid id, string? remark);
 
+    /// <summary>
+    /// 将已驳回销售订单重新提交审核。
+    /// </summary>
     Task<SaleOrderDto> ResubmitAsync(Guid id, string? remark);
 }

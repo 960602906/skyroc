@@ -9,5 +9,7 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义报价单商品明细的查询和维护用例。
+/// </summary>
 public interface IQuotationGoodsService : IBaseDataService<QuotationGoodsDto, CreateQuotationGoodsDto, UpdateQuotationGoodsDto, QuotationGoodsQueryParameters>;
-

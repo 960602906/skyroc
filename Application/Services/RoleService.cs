@@ -225,6 +225,7 @@ public class RoleService(
         await unitOfWork.CommitTransactionAsync();
     }
 
+    /// <inheritdoc />
     public async Task RemoveMenusFromRoleAsync(Guid roleId, IEnumerable<Guid> menuIds)
     {
         await roleRepository.DeleteByRoleIdAndMenuIdsAsync(roleId, menuIds);

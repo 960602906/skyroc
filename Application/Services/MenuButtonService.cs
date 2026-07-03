@@ -10,6 +10,7 @@ using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class MenuButtonService(
     IMenuButtonRepository menuButtonRepository,
     IMenuRepository menuRepository,
@@ -32,7 +33,7 @@ public class MenuButtonService(
         var menuButton = await menuButtonRepository.GetByIdAsync(id);
         return menuButton is null ? throw new NotFoundException("菜单按钮不存在") : mapper.Map<MenuButtonDto>(menuButton);
     }
-    
+
     /// <summary>
     /// 创建菜单按钮
     /// </summary>
@@ -91,15 +92,15 @@ public class MenuButtonService(
         // 收集所有验证错误
         var validationErrors = validationResults
             .Where(vr => !vr.Result.IsValid)
-            .SelectMany(vr => vr.Result.Errors.Select(e => 
-                new FluentValidation.Results.ValidationFailure($"[索引{vr.Index}] {e.PropertyName}", e.ErrorMessage))  )
+            .SelectMany(vr => vr.Result.Errors.Select(e =>
+                new FluentValidation.Results.ValidationFailure($"[索引{vr.Index}] {e.PropertyName}", e.ErrorMessage)))
             .ToList();
         if (validationErrors.Count != 0)
         {
             logger.LogWarning("批量更新菜单按钮验证失败，菜单ID：{MenuId}", menuId);
             throw new ValidationException(validationErrors);
         }
-        
+
 
         // 验证菜单是否存在
         var menu = await menuRepository.GetByIdAsync(menuId);
@@ -307,8 +308,8 @@ public class MenuButtonService(
         // 收集所有验证错误
         var validationErrors = validationResults
             .Where(vr => !vr.Result.IsValid)
-            .SelectMany(vr => vr.Result.Errors.Select(e => 
-                new FluentValidation.Results.ValidationFailure($"[索引{vr.Index}] {e.PropertyName}", e.ErrorMessage))  )
+            .SelectMany(vr => vr.Result.Errors.Select(e =>
+                new FluentValidation.Results.ValidationFailure($"[索引{vr.Index}] {e.PropertyName}", e.ErrorMessage)))
             .ToList();
         if (validationErrors.Count != 0)
         {

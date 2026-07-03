@@ -5,6 +5,12 @@ namespace Domain.Entities.Orders;
 /// </summary>
 public enum OrderPrintStatus
 {
+    /// <summary>
+    /// 订单尚未打印。
+    /// </summary>
     NotPrinted = 0,
+    /// <summary>
+    /// 订单已经打印。
+    /// </summary>
     Printed = 1
 }

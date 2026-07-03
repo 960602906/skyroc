@@ -42,6 +42,7 @@ public abstract class TreeBaseDataService<TEntity, TDto, TCreateDto, TUpdateDto,
 {
     private readonly ITreeBaseDataRepository<TEntity> _treeRepository = repository;
 
+    /// <inheritdoc />
     public async Task<List<TDto>> GetTreeAsync()
     {
         var entities = await _treeRepository.GetAllTreeSourceAsync();
@@ -49,6 +50,7 @@ public abstract class TreeBaseDataService<TEntity, TDto, TCreateDto, TUpdateDto,
         return BuildTree(dtos);
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateDeleteAsync(Guid id)
     {
         if (await _treeRepository.HasChildrenAsync(id))
@@ -77,4 +79,3 @@ public abstract class TreeBaseDataService<TEntity, TDto, TCreateDto, TUpdateDto,
             .ToList();
     }
 }
-

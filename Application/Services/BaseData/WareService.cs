@@ -20,6 +20,7 @@ using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class WareService(
     IWareRepository repository,
     IUnitOfWork unitOfWork,
@@ -32,11 +33,12 @@ public class WareService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         IWareService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "仓库";
 
+    /// <inheritdoc />
     protected override Expression<Func<Ware, bool>> BuildPredicate(WareQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 }
-

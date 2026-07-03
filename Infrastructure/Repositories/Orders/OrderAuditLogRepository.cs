@@ -11,6 +11,7 @@ namespace Infrastructure.Repositories;
 public class OrderAuditLogRepository(ApplicationDbContext context)
     : Repository<OrderAuditLog>(context), IOrderAuditLogRepository
 {
+    /// <inheritdoc />
     public override async Task<OrderAuditLog?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -18,6 +19,7 @@ public class OrderAuditLogRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task<List<OrderAuditLog>> GetBySaleOrderIdAsync(Guid saleOrderId)
     {
         return await DbSet

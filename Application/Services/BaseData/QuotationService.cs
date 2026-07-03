@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class QuotationService(
     IQuotationRepository repository,
     ICustomerRepository customerRepository,
@@ -26,35 +27,42 @@ public class QuotationService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         IQuotationService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "报价单";
 
+    /// <inheritdoc />
     protected override Expression<Func<Quotation, bool>> BuildPredicate(QuotationQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreateQuotationDto dto)
     {
         await base.ValidateCreateAsync(dto);
         await ValidateCustomersAsync(dto.CustomerIds);
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdateQuotationDto dto)
     {
         await base.ValidateUpdateAsync(id, dto);
         await ValidateCustomersAsync(dto.CustomerIds);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterCreateAsync(Quotation entity, CreateQuotationDto dto)
     {
         await repository.ReplaceCustomerRelationsAsync(entity.Id, dto.CustomerIds);
     }
 
+    /// <inheritdoc />
     protected override async Task AfterUpdateAsync(Quotation entity, UpdateQuotationDto dto)
     {
         await repository.ReplaceCustomerRelationsAsync(entity.Id, dto.CustomerIds);
     }
 
+    /// <inheritdoc />
     public async Task<QuotationDto> ToggleAuditAsync(Guid id, bool isAudited)
     {
         var entity = await repository.GetByIdAsync(id);
@@ -85,4 +93,3 @@ public class QuotationService(
         }
     }
 }
-

@@ -2,18 +2,21 @@
 
 namespace Domain.Interfaces;
 
+/// <summary>
+/// 定义支持服务端投影的通用仓储查询能力。
+/// </summary>
 public interface IProjectableRepository<T> where T : class
 {
     /// <summary>
     ///     根据ID获取实体
     /// </summary>
     Task<TEntity?> GetByIdAsync<TEntity>(Guid id, Expression<Func<T, TEntity>> selector);
-    
+
     /// <summary>
     ///     查询所有数据并投影 
     /// </summary>
     Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(Expression<Func<T, TEntity>> selector);
-    
+
     /// <summary>
     ///     分页查询并且投影
     /// </summary>
@@ -25,5 +28,5 @@ public interface IProjectableRepository<T> where T : class
         bool isDescending = false,
         Expression<Func<T, TEntity>>? selector = null
         );
-    
+
 }

@@ -9,5 +9,7 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义采购规则及适用范围的维护用例。
+/// </summary>
 public interface IPurchaseRuleService : IBaseDataService<PurchaseRuleDto, CreatePurchaseRuleDto, UpdatePurchaseRuleDto, PurchaseRuleQueryParameters>;
-

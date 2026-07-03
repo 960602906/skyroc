@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class QuotationGoodsService(
     IQuotationGoodsRepository repository,
     IQuotationRepository quotationRepository,
@@ -28,13 +29,16 @@ public class QuotationGoodsService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         IQuotationGoodsService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "报价商品";
 
+    /// <inheritdoc />
     protected override Expression<Func<QuotationGoods, bool>> BuildPredicate(QuotationGoodsQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreateQuotationGoodsDto dto)
     {
         await ValidateReferencesAsync(dto.QuotationId, dto.GoodsId, dto.GoodsUnitId);
@@ -44,6 +48,7 @@ public class QuotationGoodsService(
         }
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdateQuotationGoodsDto dto)
     {
         await ValidateReferencesAsync(dto.QuotationId, dto.GoodsId, dto.GoodsUnitId);
@@ -72,4 +77,3 @@ public class QuotationGoodsService(
         }
     }
 }
-

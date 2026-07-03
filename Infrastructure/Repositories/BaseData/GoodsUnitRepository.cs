@@ -19,6 +19,7 @@ public class GoodsUnitRepository(ApplicationDbContext context)
 {
     private readonly ApplicationDbContext _context = context;
 
+    /// <inheritdoc />
     public async Task<List<GoodsUnit>> GetByGoodsIdAsync(Guid goodsId)
     {
         return await DbSet
@@ -29,6 +30,7 @@ public class GoodsUnitRepository(ApplicationDbContext context)
             .ToListAsync();
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExistsByGoodsAndNameAsync(Guid goodsId, string name, Guid? excludeId = null)
     {
         var normalizedName = name.Trim();
@@ -41,6 +43,7 @@ public class GoodsUnitRepository(ApplicationDbContext context)
         return await query.AnyAsync();
     }
 
+    /// <inheritdoc />
     public async Task SetBaseUnitAsync(Guid goodsId, Guid unitId)
     {
         var units = await DbSet.Where(x => x.GoodsId == goodsId).ToListAsync();
@@ -56,4 +59,3 @@ public class GoodsUnitRepository(ApplicationDbContext context)
         }
     }
 }
-

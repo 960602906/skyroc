@@ -6,8 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
+/// <inheritdoc />
 public class Repository<T>(ApplicationDbContext context) : IRepository<T> where T : BaseEntity
 {
+    /// <summary>
+    /// 当前实体对应的 EF Core 数据集。
+    /// </summary>
     protected readonly DbSet<T> DbSet = context.Set<T>();
 
     /// <summary>
@@ -117,24 +121,28 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         await DbSet.AddRangeAsync(entities);
     }
 
+    /// <inheritdoc />
     public virtual Task UpdateAsync(T entity)
     {
         DbSet.Update(entity);
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public virtual Task UpdateRangeAsync(IEnumerable<T> entities)
     {
         DbSet.UpdateRange(entities);
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public virtual Task DeleteAsync(T entity)
     {
         DbSet.Remove(entity);
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public virtual async Task DeleteAsync(Guid id)
     {
         var entity = await DbSet.FindAsync(id);
@@ -144,18 +152,20 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         }
     }
 
+    /// <inheritdoc />
     public virtual Task DeleteRangeAsync(IEnumerable<T> entities)
     {
         DbSet.RemoveRange(entities);
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public virtual async Task DeleteRangeAsync(IEnumerable<Guid> guids)
     {
         var entities = await DbSet.Where(e => guids.Contains(e.Id)).ToListAsync();
         await DeleteRangeAsync(entities);
     }
-    
+
     /// <summary>
     /// 检查实体是否存在
     /// </summary>
@@ -166,7 +176,7 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         var result = await DbSet.Where(predicate).AnyAsync();
         return result;
     }
-    
+
     /// <summary>
     /// 获取满足条件的记录数
     /// </summary>

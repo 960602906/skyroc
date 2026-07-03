@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Repositories;
 
+/// <inheritdoc />
 public sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
 {
     private readonly ApplicationDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));

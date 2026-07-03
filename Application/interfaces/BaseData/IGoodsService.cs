@@ -9,6 +9,9 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义商品档案、上下架和供应商关系的维护用例。
+/// </summary>
 public interface IGoodsService : IBaseDataService<GoodsDto, CreateGoodsDto, UpdateGoodsDto, GoodsQueryParameters>
 {
     /// <summary>
@@ -16,4 +19,3 @@ public interface IGoodsService : IBaseDataService<GoodsDto, CreateGoodsDto, Upda
     /// </summary>
     Task<GoodsDto> ToggleSaleStatusAsync(Guid id, bool isOnSale);
 }
-

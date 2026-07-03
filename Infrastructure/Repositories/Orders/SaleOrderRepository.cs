@@ -12,11 +12,13 @@ namespace Infrastructure.Repositories;
 public class SaleOrderRepository(ApplicationDbContext context)
     : Repository<SaleOrder>(context), ISaleOrderRepository
 {
+    /// <inheritdoc />
     public override async Task<SaleOrder?> GetByIdAsync(Guid id)
     {
         return await BuildDetailQuery().FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public override async Task<(IEnumerable<SaleOrder> Data, int Total)> GetPagedAsync(
         Expression<Func<SaleOrder, bool>>? predicate,
         int pageNumber,
@@ -44,6 +46,7 @@ public class SaleOrderRepository(ApplicationDbContext context)
         return (data, total);
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExistsOrderNoAsync(string orderNo, Guid? excludeId = null)
     {
         var normalizedOrderNo = orderNo.Trim();
@@ -52,6 +55,7 @@ public class SaleOrderRepository(ApplicationDbContext context)
             && (!excludeId.HasValue || x.Id != excludeId.Value));
     }
 
+    /// <inheritdoc />
     public async Task<List<SaleOrder>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         var idList = ids.Where(x => x != Guid.Empty).Distinct().ToList();

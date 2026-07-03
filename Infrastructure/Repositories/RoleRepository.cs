@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
+/// <inheritdoc />
 public class RoleRepository(ApplicationDbContext context) : Repository<Role>(context), IRoleRepository
 {
     private readonly DbSet<RoleMenu> _dbSetRoleMenu = context.Set<RoleMenu>();
@@ -18,7 +19,7 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
     {
         return await DbSet.Where(r => ids.Contains(r.Id)).ToListAsync();
     }
-    
+
     /// <summary>
     /// 根据用户ID获取角色ID列表
     /// </summary>
@@ -56,7 +57,7 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
             .ToListAsync();
         _dbSetRoleMenu.RemoveRange(roleMenus);
     }
-    
+
     /// <summary>
     /// 添加角色的指定菜单
     /// </summary>

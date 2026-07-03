@@ -12,6 +12,7 @@ using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class DepartmentService(
     IDepartmentRepository departmentRepository,
     IUserRepository userRepository,
@@ -21,7 +22,7 @@ public class DepartmentService(
     ICurrentUserService currentUserService,
     IValidator<CreateDepartmentDto> createDepartmentValidator,
     IValidator<UpdateDepartmentDto> updateDepartmentValidator
-    ): IDepartmentService
+    ) : IDepartmentService
 {
     /// <summary>
     /// 获取部门树
@@ -73,6 +74,7 @@ public class DepartmentService(
         return mapper.Map<DepartmentDto>(department);
     }
 
+    /// <inheritdoc />
     public async Task<DepartmentDto> UpdateAsync(Guid id, UpdateDepartmentDto dto)
     {
         var validationResult = await updateDepartmentValidator.ValidateAsync(dto);
@@ -88,10 +90,10 @@ public class DepartmentService(
         var userId = currentUserService.GetUserId();
         var userName = currentUserService.GetUserName();
         department.UpdateBy = userId;
-        department.UpdateName  = userName;
+        department.UpdateName = userName;
         await departmentRepository.UpdateAsync(department);
         await unitOfWork.SaveChangesAsync();
-        return  mapper.Map<DepartmentDto>(department);
+        return mapper.Map<DepartmentDto>(department);
     }
     /// <summary>
     /// 删除部门
@@ -117,21 +119,21 @@ public class DepartmentService(
         {
             throw new BusinessException("请选择要删除的部门");
         }
-       var  departments =  await departmentRepository.GetByIdsAsync(ids.ToArray());
-       if (departments.Count != ids.Count) throw new BusinessException("部分部门不存在呢");
-       foreach (var dept in departments)
-       {
-           if (await departmentRepository.HasChildrenAsync(dept.Id))
-           {
-               throw new BusinessException($"部门 {dept.Name} 下还有子部门，不能删除");
-           }
-       }
-       await departmentRepository.DeleteRangeAsync(ids.ToArray());
-       await unitOfWork.SaveChangesAsync();
-       logger.LogInformation($"批量删除部门成功: {ids.Count} 个部门");
-       return true;
+        var departments = await departmentRepository.GetByIdsAsync(ids.ToArray());
+        if (departments.Count != ids.Count) throw new BusinessException("部分部门不存在呢");
+        foreach (var dept in departments)
+        {
+            if (await departmentRepository.HasChildrenAsync(dept.Id))
+            {
+                throw new BusinessException($"部门 {dept.Name} 下还有子部门，不能删除");
+            }
+        }
+        await departmentRepository.DeleteRangeAsync(ids.ToArray());
+        await unitOfWork.SaveChangesAsync();
+        logger.LogInformation($"批量删除部门成功: {ids.Count} 个部门");
+        return true;
     }
-    
+
     /// <summary>
     /// 启用/禁用部门
     /// </summary>
@@ -143,7 +145,7 @@ public class DepartmentService(
         await departmentRepository.UpdateAsync(department);
         await unitOfWork.SaveChangesAsync();
         logger.LogInformation($"部门状态变更成功: {department.Name}({department.Code})={department.Status}");
-        return  mapper.Map<DepartmentDto>(department);
+        return mapper.Map<DepartmentDto>(department);
     }
     /// <summary>
     /// 获取部门下的用户列表
@@ -152,6 +154,6 @@ public class DepartmentService(
     {
         var guids = new List<Guid> { departmentId };
         var users = await userRepository.GetByDepartmentIdsAsync(guids);
-        return  mapper.Map<List<UserDto>>(users);
+        return mapper.Map<List<UserDto>>(users);
     }
 }

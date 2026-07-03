@@ -19,6 +19,7 @@ public class CustomerRepository(ApplicationDbContext context)
 {
     private readonly ApplicationDbContext _context = context;
 
+    /// <inheritdoc />
     public override async Task<Customer?> GetByIdAsync(Guid id)
     {
         return await DbSet
@@ -29,6 +30,7 @@ public class CustomerRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    /// <inheritdoc />
     public async Task ReplaceTagRelationsAsync(Guid customerId, IEnumerable<Guid>? tagIds)
     {
         var relations = await _context.Set<CustomerTagRelation>()
@@ -48,4 +50,3 @@ public class CustomerRepository(ApplicationDbContext context)
         await _context.Set<CustomerTagRelation>().AddRangeAsync(newRelations);
     }
 }
-

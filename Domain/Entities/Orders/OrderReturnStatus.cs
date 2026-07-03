@@ -5,6 +5,12 @@ namespace Domain.Entities.Orders;
 /// </summary>
 public enum OrderReturnStatus
 {
+    /// <summary>
+    /// 客户尚未回单。
+    /// </summary>
     NotReturned = 0,
+    /// <summary>
+    /// 客户已经回单。
+    /// </summary>
     Returned = 1
 }

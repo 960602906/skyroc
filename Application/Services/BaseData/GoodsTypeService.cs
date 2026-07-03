@@ -20,6 +20,7 @@ using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class GoodsTypeService(
     IGoodsTypeRepository repository,
     IGoodsRepository goodsRepository,
@@ -33,13 +34,16 @@ public class GoodsTypeService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         IGoodsTypeService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "商品分类";
 
+    /// <inheritdoc />
     protected override Expression<Func<GoodsType, bool>> BuildPredicate(GoodsTypeQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateDeleteAsync(Guid id)
     {
         await base.ValidateDeleteAsync(id);
@@ -49,4 +53,3 @@ public class GoodsTypeService(
         }
     }
 }
-

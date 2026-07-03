@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
+/// <inheritdoc />
 public class MenuButtonRepository(ApplicationDbContext context) : Repository<MenuButton>(context), IMenuButtonRepository
 {
     /// <summary>

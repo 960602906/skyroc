@@ -18,6 +18,7 @@ public abstract class TreeBaseDataRepository<TEntity>(ApplicationDbContext conte
     : NamedCodeRepository<TEntity>(context), ITreeBaseDataRepository<TEntity>
     where TEntity : BaseEntity
 {
+    /// <inheritdoc />
     public virtual async Task<List<TEntity>> GetAllTreeSourceAsync()
     {
         return await DbSet
@@ -27,9 +28,9 @@ public abstract class TreeBaseDataRepository<TEntity>(ApplicationDbContext conte
             .ToListAsync();
     }
 
+    /// <inheritdoc />
     public async Task<bool> HasChildrenAsync(Guid parentId)
     {
         return await DbSet.AnyAsync(x => EF.Property<Guid?>(x, "ParentId") == parentId);
     }
 }
-

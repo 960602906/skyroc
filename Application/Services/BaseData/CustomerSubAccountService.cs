@@ -20,6 +20,7 @@ using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class CustomerSubAccountService(
     ICustomerSubAccountRepository repository,
     ICompanyRepository companyRepository,
@@ -34,13 +35,16 @@ public class CustomerSubAccountService(
             repository, unitOfWork, logger, mapper, currentUserService, createValidator, updateValidator),
         ICustomerSubAccountService
 {
+    /// <inheritdoc />
     protected override string DisplayName => "客户子账号";
 
+    /// <inheritdoc />
     protected override Expression<Func<CustomerSubAccount, bool>> BuildPredicate(CustomerSubAccountQueryParameters parameters)
     {
         return parameters.QueryBuild();
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateCreateAsync(CreateCustomerSubAccountDto dto)
     {
         await ValidateReferencesAsync(dto.CompanyId, dto.CustomerId);
@@ -50,6 +54,7 @@ public class CustomerSubAccountService(
         }
     }
 
+    /// <inheritdoc />
     protected override async Task ValidateUpdateAsync(Guid id, UpdateCustomerSubAccountDto dto)
     {
         await ValidateReferencesAsync(dto.CompanyId, dto.CustomerId);
@@ -72,4 +77,3 @@ public class CustomerSubAccountService(
         }
     }
 }
-

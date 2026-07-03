@@ -2,6 +2,9 @@
 
 namespace Domain.Interfaces;
 
+/// <summary>
+/// 定义菜单树及角色菜单关系的持久化操作。
+/// </summary>
 public interface IMenuRepository : IRepository<Menu>
 {
     /// <summary>

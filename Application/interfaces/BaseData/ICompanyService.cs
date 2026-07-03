@@ -9,5 +9,7 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义公司档案的查询和维护用例。
+/// </summary>
 public interface ICompanyService : IBaseDataService<CompanyDto, CreateCompanyDto, UpdateCompanyDto, CompanyQueryParameters>;
-

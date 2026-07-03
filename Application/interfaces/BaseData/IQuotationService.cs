@@ -9,6 +9,9 @@ using Shared.Constants;
 
 namespace Application.interfaces;
 
+/// <summary>
+/// 定义销售报价单及审核状态的维护用例。
+/// </summary>
 public interface IQuotationService : IBaseDataService<QuotationDto, CreateQuotationDto, UpdateQuotationDto, QuotationQueryParameters>
 {
     /// <summary>
@@ -16,4 +19,3 @@ public interface IQuotationService : IBaseDataService<QuotationDto, CreateQuotat
     /// </summary>
     Task<QuotationDto> ToggleAuditAsync(Guid id, bool isAudited);
 }
-

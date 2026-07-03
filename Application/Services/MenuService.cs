@@ -13,6 +13,7 @@ using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services;
 
+/// <inheritdoc />
 public class MenuService(
     IMenuRepository menuRepository,
     IRoleRepository roleRepository,
@@ -61,7 +62,7 @@ public class MenuService(
             await menuRepository.AddAsync(menu);
             await unitOfWork.SaveChangesAsync();
             logger.LogInformation("菜单创建成功-Id:{MenuId},Name:{Name}, CreatedBy:{CreatedBy}", menu.Id, menu.Name, userId);
-            if(request.Buttons is { Count: > 0 })
+            if (request.Buttons is { Count: > 0 })
             {
                 // 创建菜单按钮
                 await menuButtonService.ReplaceMenuButtonsAsync(menu.Id, request.Buttons);
@@ -132,7 +133,7 @@ public class MenuService(
         // 构建菜单树的逻辑
         return mapper.Map<List<MenuDto>>(menus);
     }
-    
+
     /// <summary>
     ///      根据角色id获取菜单树形结构
     /// </summary>
@@ -176,7 +177,7 @@ public class MenuService(
                 userId);
             if (request.Buttons is { Count: > 0 })
             {
-                await  menuButtonService.ReplaceMenuButtonsAsync(menu.Id, request.Buttons);
+                await menuButtonService.ReplaceMenuButtonsAsync(menu.Id, request.Buttons);
             }
         }
         catch (Exception e)

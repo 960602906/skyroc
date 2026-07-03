@@ -7,5 +7,8 @@ namespace Domain.Interfaces;
 /// </summary>
 public interface IOrderAuditLogRepository : IRepository<OrderAuditLog>
 {
+    /// <summary>
+    /// 按销售订单读取按时间排列的审核轨迹。
+    /// </summary>
     Task<List<OrderAuditLog>> GetBySaleOrderIdAsync(Guid saleOrderId);
 }
