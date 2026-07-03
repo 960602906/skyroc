@@ -65,4 +65,34 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
         var result = await service.DeleteAsync(id);
         return Ok(ApiResponse<bool>.Ok(result));
     }
+
+    /// <summary>
+    /// 审核通过待审核订单。
+    /// </summary>
+    [HttpPost("{id:guid}/approve")]
+    public async Task<IActionResult> Approve(Guid id, [FromBody] SaleOrderAuditDto? dto)
+    {
+        var result = await service.ApproveAsync(id, dto?.Remark);
+        return Ok(ApiResponse<SaleOrderDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 驳回待审核订单。
+    /// </summary>
+    [HttpPost("{id:guid}/reject")]
+    public async Task<IActionResult> Reject(Guid id, [FromBody] SaleOrderAuditDto? dto)
+    {
+        var result = await service.RejectAsync(id, dto?.Remark);
+        return Ok(ApiResponse<SaleOrderDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 重新提交已驳回订单。
+    /// </summary>
+    [HttpPost("{id:guid}/resubmit")]
+    public async Task<IActionResult> Resubmit(Guid id, [FromBody] SaleOrderAuditDto? dto)
+    {
+        var result = await service.ResubmitAsync(id, dto?.Remark);
+        return Ok(ApiResponse<SaleOrderDto>.Ok(result));
+    }
 }

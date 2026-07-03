@@ -18,4 +18,10 @@ public interface ISaleOrderService
     Task<SaleOrderDto> UpdateAsync(UpdateSaleOrderDto dto);
 
     Task<bool> DeleteAsync(Guid id);
+
+    Task<SaleOrderDto> ApproveAsync(Guid id, string? remark);
+
+    Task<SaleOrderDto> RejectAsync(Guid id, string? remark);
+
+    Task<SaleOrderDto> ResubmitAsync(Guid id, string? remark);
 }

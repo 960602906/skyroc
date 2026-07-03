@@ -7,6 +7,7 @@ using Application.Validator;
 using AutoMapper;
 using Domain.Entities.Customers;
 using Domain.Entities.Goods;
+using Domain.Entities.Orders;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
@@ -59,11 +60,18 @@ public class SaleOrderServiceTests
         Assert.Equal(30m, detail.TotalPrice);
         Assert.Equal(CurrentUserId, result.CreateBy);
         Assert.Equal(CurrentUserId, detail.CreateBy);
+        var submitLog = Assert.Single(result.AuditLogs);
+        Assert.Equal(OrderAuditAction.Submit, submitLog.Action);
+        Assert.Equal(SaleOrderStatus.PendingAudit, submitLog.PreviousStatus);
+        Assert.Equal(SaleOrderStatus.PendingAudit, submitLog.CurrentStatus);
+        Assert.Equal(CurrentUserId, submitLog.AuditUserId);
+        Assert.Equal("order-user", submitLog.AuditUserName);
         Assert.Equal(1, unitOfWork.BeginCount);
         Assert.Equal(1, unitOfWork.CommitCount);
         Assert.Equal(0, unitOfWork.RollbackCount);
         Assert.Equal(1, await context.SaleOrders.CountAsync());
         Assert.Equal(1, await context.SaleOrderDetails.CountAsync());
+        Assert.Equal(1, await context.OrderAuditLogs.CountAsync());
     }
 
     [Fact]
@@ -200,6 +208,77 @@ public class SaleOrderServiceTests
         Assert.Equal(2, unitOfWork.CommitCount);
     }
 
+    [Fact]
+    public async Task ApproveAsync_moves_pending_order_to_sorting_pending_and_records_audit_log()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedCatalogAsync(context);
+        var unitOfWork = new RecordingUnitOfWork(context);
+        var service = CreateService(context, unitOfWork);
+        var created = await CreateOrderAsync(service, seed, 1m, seed.BaseUnitId);
+
+        var approved = await service.ApproveAsync(created.Id, "  资料完整  ");
+
+        Assert.Equal(SaleOrderStatus.SortingPending, approved.OrderStatus);
+        Assert.Equal(2, approved.AuditLogs.Count);
+        var auditLog = approved.AuditLogs.Single(x => x.Action == OrderAuditAction.Approve);
+        Assert.Equal(SaleOrderStatus.PendingAudit, auditLog.PreviousStatus);
+        Assert.Equal(SaleOrderStatus.SortingPending, auditLog.CurrentStatus);
+        Assert.Equal("资料完整", auditLog.Remark);
+        Assert.Equal(CurrentUserId, approved.UpdateBy);
+        Assert.Equal(2, unitOfWork.BeginCount);
+        Assert.Equal(2, unitOfWork.CommitCount);
+    }
+
+    [Fact]
+    public async Task RejectAsync_and_ResubmitAsync_follow_state_machine_and_record_each_action()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedCatalogAsync(context);
+        var service = CreateService(context, new RecordingUnitOfWork(context));
+        var created = await CreateOrderAsync(service, seed, 1m, seed.BaseUnitId);
+
+        var rejected = await service.RejectAsync(created.Id, "价格需确认");
+        var resubmitted = await service.ResubmitAsync(created.Id, "已确认价格");
+
+        Assert.Equal(SaleOrderStatus.Rejected, rejected.OrderStatus);
+        Assert.Equal(SaleOrderStatus.PendingAudit, resubmitted.OrderStatus);
+        Assert.Equal(
+            [OrderAuditAction.Submit, OrderAuditAction.Reject, OrderAuditAction.Resubmit],
+            resubmitted.AuditLogs.OrderBy(x => x.AuditTime).Select(x => x.Action).ToArray());
+        var rejectLog = resubmitted.AuditLogs.Single(x => x.Action == OrderAuditAction.Reject);
+        Assert.Equal(SaleOrderStatus.PendingAudit, rejectLog.PreviousStatus);
+        Assert.Equal(SaleOrderStatus.Rejected, rejectLog.CurrentStatus);
+        var resubmitLog = resubmitted.AuditLogs.Single(x => x.Action == OrderAuditAction.Resubmit);
+        Assert.Equal(SaleOrderStatus.Rejected, resubmitLog.PreviousStatus);
+        Assert.Equal(SaleOrderStatus.PendingAudit, resubmitLog.CurrentStatus);
+    }
+
+    [Fact]
+    public async Task State_transitions_reject_repeated_or_out_of_order_actions_without_writing_logs()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedCatalogAsync(context);
+        var unitOfWork = new RecordingUnitOfWork(context);
+        var service = CreateService(context, unitOfWork);
+        var created = await CreateOrderAsync(service, seed, 1m, seed.BaseUnitId);
+
+        await Assert.ThrowsAsync<Application.Exceptions.BusinessException>(() =>
+            service.ResubmitAsync(created.Id, null));
+        var approved = await service.ApproveAsync(created.Id, null);
+        var beginCount = unitOfWork.BeginCount;
+        var auditLogCount = await context.OrderAuditLogs.CountAsync();
+
+        await Assert.ThrowsAsync<Application.Exceptions.BusinessException>(() =>
+            service.ApproveAsync(created.Id, null));
+        await Assert.ThrowsAsync<Application.Exceptions.BusinessException>(() =>
+            service.RejectAsync(created.Id, null));
+
+        Assert.Equal(SaleOrderStatus.SortingPending, approved.OrderStatus);
+        Assert.Equal(beginCount, unitOfWork.BeginCount);
+        Assert.Equal(auditLogCount, await context.OrderAuditLogs.CountAsync());
+    }
+
     private static CreateSaleOrderDetailDto CreateDetail(CatalogSeed seed, decimal quantity, Guid fixedUnitId)
     {
         return new CreateSaleOrderDetailDto
@@ -240,6 +319,7 @@ public class SaleOrderServiceTests
         return new SaleOrderService(
             new SaleOrderRepository(context),
             new SaleOrderDetailRepository(context),
+            new OrderAuditLogRepository(context),
             new CustomerRepository(context),
             new QuotationRepository(context),
             new WareRepository(context),

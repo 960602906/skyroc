@@ -21,6 +21,7 @@ namespace Application.Services;
 public class SaleOrderService(
     ISaleOrderRepository saleOrderRepository,
     ISaleOrderDetailRepository saleOrderDetailRepository,
+    IOrderAuditLogRepository orderAuditLogRepository,
     ICustomerRepository customerRepository,
     IQuotationRepository quotationRepository,
     IWareRepository wareRepository,
@@ -79,7 +80,16 @@ public class SaleOrderService(
         }
 
         RecalculateOrder(order);
-        await ExecuteInTransactionAsync(async () => await saleOrderRepository.AddAsync(order));
+        await ExecuteInTransactionAsync(async () =>
+        {
+            await saleOrderRepository.AddAsync(order);
+            await orderAuditLogRepository.AddAsync(CreateAuditLog(
+                order.Id,
+                OrderAuditAction.Submit,
+                SaleOrderStatus.PendingAudit,
+                SaleOrderStatus.PendingAudit,
+                null));
+        });
 
         logger.LogInformation("销售订单创建成功: {OrderId}, {OrderNo}", order.Id, order.OrderNo);
         return mapper.Map<SaleOrderDto>(await GetRequiredOrderAsync(order.Id));
@@ -171,6 +181,72 @@ public class SaleOrderService(
         await ExecuteInTransactionAsync(async () => await saleOrderRepository.DeleteAsync(order));
         logger.LogInformation("销售订单删除成功: {OrderId}, {OrderNo}", order.Id, order.OrderNo);
         return true;
+    }
+
+    public Task<SaleOrderDto> ApproveAsync(Guid id, string? remark)
+    {
+        return TransitionAsync(
+            id,
+            OrderAuditAction.Approve,
+            SaleOrderStatus.PendingAudit,
+            SaleOrderStatus.SortingPending,
+            remark);
+    }
+
+    public Task<SaleOrderDto> RejectAsync(Guid id, string? remark)
+    {
+        return TransitionAsync(
+            id,
+            OrderAuditAction.Reject,
+            SaleOrderStatus.PendingAudit,
+            SaleOrderStatus.Rejected,
+            remark);
+    }
+
+    public Task<SaleOrderDto> ResubmitAsync(Guid id, string? remark)
+    {
+        return TransitionAsync(
+            id,
+            OrderAuditAction.Resubmit,
+            SaleOrderStatus.Rejected,
+            SaleOrderStatus.PendingAudit,
+            remark);
+    }
+
+    private async Task<SaleOrderDto> TransitionAsync(
+        Guid id,
+        OrderAuditAction action,
+        SaleOrderStatus requiredStatus,
+        SaleOrderStatus targetStatus,
+        string? remark)
+    {
+        var order = await GetRequiredOrderAsync(id);
+        if (order.OrderStatus != requiredStatus)
+        {
+            throw new BusinessException(
+                $"订单状态为 {order.OrderStatus}，不能执行 {GetActionName(action)} 操作");
+        }
+
+        var previousStatus = order.OrderStatus;
+        await ExecuteInTransactionAsync(async () =>
+        {
+            order.OrderStatus = targetStatus;
+            ApplyUpdateAudit(order);
+            await orderAuditLogRepository.AddAsync(CreateAuditLog(
+                order.Id,
+                action,
+                previousStatus,
+                targetStatus,
+                remark));
+        });
+
+        logger.LogInformation(
+            "销售订单状态流转成功: {OrderId}, {Action}, {PreviousStatus} -> {CurrentStatus}",
+            order.Id,
+            action,
+            previousStatus,
+            targetStatus);
+        return mapper.Map<SaleOrderDto>(await GetRequiredOrderAsync(order.Id));
     }
 
     private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
@@ -325,6 +401,41 @@ public class SaleOrderService(
     {
         entity.UpdateBy = currentUserService.GetUserId();
         entity.UpdateName = currentUserService.GetUserName();
+    }
+
+    private OrderAuditLog CreateAuditLog(
+        Guid orderId,
+        OrderAuditAction action,
+        SaleOrderStatus previousStatus,
+        SaleOrderStatus currentStatus,
+        string? remark)
+    {
+        var auditLog = new OrderAuditLog
+        {
+            Id = Guid.NewGuid(),
+            SaleOrderId = orderId,
+            Action = action,
+            PreviousStatus = previousStatus,
+            CurrentStatus = currentStatus,
+            AuditUserId = currentUserService.GetUserId(),
+            AuditUserNameSnapshot = currentUserService.GetUserName() ?? string.Empty,
+            AuditTime = DateTime.UtcNow,
+            Remark = string.IsNullOrWhiteSpace(remark) ? null : remark.Trim()
+        };
+        ApplyCreateAudit(auditLog);
+        return auditLog;
+    }
+
+    private static string GetActionName(OrderAuditAction action)
+    {
+        return action switch
+        {
+            OrderAuditAction.Submit => "提交",
+            OrderAuditAction.Approve => "通过",
+            OrderAuditAction.Reject => "驳回",
+            OrderAuditAction.Resubmit => "重提",
+            _ => action.ToString()
+        };
     }
 
     private static void ApplyCustomerSnapshot(SaleOrder order, Customer customer)
