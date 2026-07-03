@@ -20,7 +20,7 @@ public static class SwaggerExtensions
             {
                 Title = "SkyRoc API",
                 Version = "v1",
-                Description = "SkyRoc 生鲜供应链后台 API。第一阶段包含认证、系统权限和基础资料接口。"
+                Description = "SkyRoc 生鲜供应链后台 API。当前包含认证、系统权限、基础资料和销售订单接口。"
             });
 
             // 添加XML注释

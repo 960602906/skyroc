@@ -39,10 +39,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             switch (entry.State)
             {
                 case EntityState.Modified:
-                {
-                    entry.Entity.UpdateTime = DateTime.UtcNow;
-                    break;
-                }
+                    {
+                        entry.Entity.UpdateTime = DateTime.UtcNow;
+                        break;
+                    }
                 case EntityState.Added:
                     entry.Entity.CreateTime = DateTime.UtcNow;
                     break;
@@ -67,12 +67,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     ///     菜单表
     /// </summary>
     public DbSet<Menu> Menus { get; set; }
-    
+
     /// <summary>
     ///  菜单按钮表
     /// </summary>
     public DbSet<MenuButton> MenuButtons { get; set; }
-    
+
     /// <summary>
     ///     用户角色关联表
     /// </summary>
@@ -82,16 +82,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     ///     角色菜单关联表
     /// </summary>
     public DbSet<RoleMenu> RoleMenus { get; set; }
-    
+
     /// <summary>
     ///  部门表
     /// </summary>
     public DbSet<Department> Departments { get; set; }
-    
+
     /// <summary>
     ///  操作日志表
     /// </summary>
-    public DbSet<OperationLog>  OperationLogs { get; set; }
+    public DbSet<OperationLog> OperationLogs { get; set; }
 
     /// <summary>
     /// 商品分类表
@@ -217,6 +217,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 订单审核记录表
     /// </summary>
     public DbSet<OrderAuditLog> OrderAuditLogs { get; set; }
+
+    /// <summary>
+    /// 采购计划表
+    /// </summary>
+    public DbSet<PurchasePlan> PurchasePlans { get; set; }
+
+    /// <summary>
+    /// 采购计划明细表
+    /// </summary>
+    public DbSet<PurchasePlanDetail> PurchasePlanDetails { get; set; }
+
+    /// <summary>
+    /// 采购计划订单关系表
+    /// </summary>
+    public DbSet<PurchasePlanOrderRelation> PurchasePlanOrderRelations { get; set; }
 
     #endregion
 }

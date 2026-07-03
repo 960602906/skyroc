@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Authorization;
 
 namespace SkyRoc.Controllers;
 
@@ -14,12 +15,14 @@ namespace SkyRoc.Controllers;
 [ApiController]
 [Route("api/orders")]
 [Authorize]
+[PermissionResource(PermissionCodes.Business.Orders.Resource)]
 public class OrdersController(ISaleOrderService service) : ControllerBase
 {
     /// <summary>
     /// 分页查询销售订单。
     /// </summary>
     [HttpGet("list")]
+    [ResourcePermission(PermissionActions.Read)]
     public async Task<IActionResult> GetPaged([FromQuery] SaleOrderQueryParameters parameters)
     {
         var result = await service.GetPagedAsync(parameters);
@@ -30,6 +33,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// 查询销售订单详情。
     /// </summary>
     [HttpGet("{id:guid}")]
+    [ResourcePermission(PermissionActions.Read)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await service.GetByIdAsync(id);
@@ -40,6 +44,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// 创建销售订单。
     /// </summary>
     [HttpPost]
+    [ResourcePermission(PermissionActions.Create)]
     public async Task<IActionResult> Create([FromBody] CreateSaleOrderDto dto)
     {
         var result = await service.CreateAsync(dto);
@@ -50,6 +55,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// 编辑销售订单及其商品明细。
     /// </summary>
     [HttpPut]
+    [ResourcePermission(PermissionActions.Update)]
     public async Task<IActionResult> Update([FromBody] UpdateSaleOrderDto dto)
     {
         var result = await service.UpdateAsync(dto);
@@ -60,6 +66,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// 删除销售订单。
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [ResourcePermission(PermissionActions.Delete)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await service.DeleteAsync(id);
@@ -70,6 +77,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// 审核通过待审核订单。
     /// </summary>
     [HttpPost("{id:guid}/approve")]
+    [Authorize(Policy = PermissionCodes.Business.Orders.Audit)]
     public async Task<IActionResult> Approve(Guid id, [FromBody] SaleOrderAuditDto? dto)
     {
         var result = await service.ApproveAsync(id, dto?.Remark);
@@ -80,6 +88,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// 驳回待审核订单。
     /// </summary>
     [HttpPost("{id:guid}/reject")]
+    [Authorize(Policy = PermissionCodes.Business.Orders.Audit)]
     public async Task<IActionResult> Reject(Guid id, [FromBody] SaleOrderAuditDto? dto)
     {
         var result = await service.RejectAsync(id, dto?.Remark);
@@ -90,6 +99,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// 重新提交已驳回订单。
     /// </summary>
     [HttpPost("{id:guid}/resubmit")]
+    [Authorize(Policy = PermissionCodes.Business.Orders.Audit)]
     public async Task<IActionResult> Resubmit(Guid id, [FromBody] SaleOrderAuditDto? dto)
     {
         var result = await service.ResubmitAsync(id, dto?.Remark);

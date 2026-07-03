@@ -107,3 +107,8 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+/// <summary>
+///     Web 应用入口，供 API 集成测试创建测试宿主。
+/// </summary>
+public partial class Program;

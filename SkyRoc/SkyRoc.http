@@ -26,6 +26,8 @@
 @purchaserId = 00000000-0000-0000-0000-000000000001
 @purchaseRuleId = 00000000-0000-0000-0000-000000000001
 @wareId = 00000000-0000-0000-0000-000000000001
+@orderId = 00000000-0000-0000-0000-000000000001
+@orderDetailId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -1509,5 +1511,103 @@ Content-Type: {{contentType}}
 
 ### Purchase Rules - Delete
 DELETE {{SkyRoc_HostAddress}}/api/PurchaseRules/{{purchaseRuleId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Orders - Create (set orderId and orderDetailId from the response before continuing)
+POST {{SkyRoc_HostAddress}}/api/orders
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "customerId": "{{customerId}}",
+  "quotationId": "{{quotationId}}",
+  "wareId": "{{wareId}}",
+  "orderDate": "2026-07-03 08:00:00",
+  "receiveDate": "2026-07-04 08:00:00",
+  "contactName": "张老师",
+  "contactPhone": "13800005555",
+  "deliveryAddress": "北京市朝阳区学校食堂",
+  "remark": "订单主流程联调",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 2,
+      "fixedPrice": 4.5,
+      "fixedGoodsUnitId": "{{goodsUnitId}}",
+      "remark": "当天配送"
+    }
+  ]
+}
+
+### Orders - List
+GET {{SkyRoc_HostAddress}}/api/orders/list?current=1&size=10&orderStatus=PendingAudit&customerId={{customerId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Orders - Get By Id
+GET {{SkyRoc_HostAddress}}/api/orders/{{orderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Orders - Update
+PUT {{SkyRoc_HostAddress}}/api/orders
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{orderId}}",
+  "customerId": "{{customerId}}",
+  "quotationId": "{{quotationId}}",
+  "wareId": "{{wareId}}",
+  "orderDate": "2026-07-03 08:00:00",
+  "receiveDate": "2026-07-04 08:00:00",
+  "contactName": "张老师",
+  "contactPhone": "13800005555",
+  "deliveryAddress": "北京市朝阳区学校食堂",
+  "remark": "联调更新后的订单",
+  "details": [
+    {
+      "id": "{{orderDetailId}}",
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 3,
+      "fixedPrice": 4.5,
+      "fixedGoodsUnitId": "{{goodsUnitId}}",
+      "remark": "数量已调整"
+    }
+  ]
+}
+
+### Orders - Reject
+POST {{SkyRoc_HostAddress}}/api/orders/{{orderId}}/reject
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "价格需要确认"
+}
+
+### Orders - Resubmit
+POST {{SkyRoc_HostAddress}}/api/orders/{{orderId}}/resubmit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "价格已经确认"
+}
+
+### Orders - Approve
+POST {{SkyRoc_HostAddress}}/api/orders/{{orderId}}/approve
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核通过"
+}
+
+### Orders - Delete
+DELETE {{SkyRoc_HostAddress}}/api/orders/{{orderId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}

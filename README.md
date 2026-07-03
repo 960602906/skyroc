@@ -1,6 +1,6 @@
 # SkyRoc
 
-`SkyRoc` 是一个基于 `.NET 9` 的生鲜供应链后台项目。第一阶段已完成认证、系统权限，以及商品、客户、定价、采购和仓库基础资料能力。
+`SkyRoc` 是一个基于 `.NET 9` 的生鲜供应链后台项目。第一阶段已完成认证、系统权限和基础资料能力，第二阶段已完成销售订单 CRUD、审核状态机与接口联调收口。
 
 当前项目采用分层架构，已经具备本地启动、默认种子初始化、Redis Token 缓存、Redis 运行时内存降级、Swagger 调试、HTTP 联调脚本和最小回归测试。
 
@@ -23,16 +23,16 @@
 - [Domain](./Domain/): 领域层，包含实体和仓储接口
 - [Infrastructure](./Infrastructure/): 基础设施层，包含 EF Core、仓储实现、事务、缓存、数据库种子和迁移
 - [Shared](./Shared/): 共享层，包含公共常量、通用响应模型、配置模型和工具类
-- [SkyRoc.Tests](./SkyRoc.Tests/): xUnit 测试，覆盖映射、缓存、授权、基础资料服务、序列化和 Swagger 契约
+- [SkyRoc.Tests](./SkyRoc.Tests/): xUnit 测试，覆盖映射、缓存、授权、基础资料与订单服务、API 集成、序列化和 Swagger 契约
 
 ## 业务模块与开发进度
 
-**P1 系统权限与基础资料已经完成，当前进入 P2-01 订单数据模型。** 第一阶段的稳定权限编码、JWT 权限声明、系统与基础资料细粒度授权、服务回归测试、Swagger 和 HTTP 联调契约均已收口。
+**P1 系统权限与基础资料已经完成，当前进入 P2-06 采购计划模型。** 销售订单模型、事务化 CRUD、审核状态机、细粒度权限、Swagger、HTTP 主流程和 API 集成测试均已收口。
 
 | 阶段 | 状态 | 范围 |
 | --- | --- | --- |
 | P1 系统权限与基础资料 | 已完成 | 认证、系统权限、基础资料、定价、回归测试与 API 契约 |
-| P2 订单主链路 | 进行中 | 当前执行 P2-01 销售订单、订单明细和审核记录模型 |
+| P2 订单主链路 | 进行中 | 订单 CRUD 与审核联调已完成，当前执行 P2-06 采购计划模型 |
 | P3 售后与财务 | 待开始 | 售后、客户结算、供应商结算 |
 | P4 查询与支撑 | 待开始 | 溯源、报表、驾驶舱、打印、日志 |
 
@@ -54,6 +54,7 @@
 - 公司、客户、客户标签和子账号
 - 供应商、采购员和仓库基础资料
 - 报价单、报价商品、客户协议价和采购规则
+- 销售订单分页、详情、创建、编辑、删除和审核状态流转
 - Redis 中的 AccessToken / RefreshToken 缓存
 - Redis 不可用时的运行时内存降级
 - 数据库迁移与默认种子初始化
@@ -65,10 +66,11 @@
 - 认证与权限：`Auth`、`Users`、`Roles`、`Menus`、`MenuButtons`、`Departments`
 - 商品与定价：`GoodsTypes`、`Goods`、`GoodsUnits`、`Quotations`、`QuotationGoods`、`CustomerProtocols`、`CustomerProtocolGoods`
 - 客户与采购基础资料：`Companies`、`Customers`、`CustomerTags`、`CustomerSubAccounts`、`Suppliers`、`Purchasers`、`PurchaseRules`、`Wares`
+- 订单：`Orders`
 
-订单、采购单、库存单据、配送、售后、财务、报表和溯源 API 尚未实现。
+采购计划、采购单、库存单据、配送、售后、财务、报表和溯源 API 尚未实现。
 
-第一阶段共记录 174 个 HTTP 请求，真实路由、响应约定和权限编码见 [第一阶段 API 契约](./docs/第一阶段API契约.md)。
+HTTP 脚本当前共记录 182 个请求；第一阶段真实路由、响应约定和权限编码见 [第一阶段 API 契约](./docs/第一阶段API契约.md)。
 
 ## 启动说明
 
@@ -122,7 +124,7 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 ## 联调方式
 
-项目提供了覆盖第一阶段全部接口的 HTTP 联调脚本 [SkyRoc.http](./SkyRoc/SkyRoc.http)。
+项目提供了覆盖第一阶段全部接口及销售订单主流程的 HTTP 联调脚本 [SkyRoc.http](./SkyRoc/SkyRoc.http)。
 
 推荐联调顺序：
 
@@ -132,6 +134,8 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 4. `Get Routes`
 5. `Menus - Get Tree`
 6. `Departments - Get Tree`
+7. `Orders - Create`，回填返回的订单及明细 ID
+8. `Orders - Update` → `Reject` → `Resubmit` → `Approve`
 
 使用方式：
 
@@ -207,6 +211,8 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 - 系统管理控制器权限策略映射回归测试
 - 商品定价及客户采购基础资料服务回归测试
 - Swagger 匿名/受保护操作认证契约测试
+- 订单模型、映射、验证、仓储、事务化服务和审核状态机测试
+- 订单认证授权、Swagger 权限说明和 HTTP API 主流程集成测试
 
 运行测试：
 
@@ -223,4 +229,4 @@ dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
 
 ## 建议下一步
 
-按 [自动开发任务清单](./docs/自动开发任务清单.md) 顺序执行，不跳项。当前任务是 **P2-01 订单数据模型**；完成并验收后再领取 P2-02。
+按 [自动开发任务清单](./docs/自动开发任务清单.md) 顺序执行，不跳项。当前任务是 **P2-06 采购计划模型**；完成并验收后再领取 P2-07。

@@ -100,6 +100,16 @@ public static class PermissionCodes
             public const string Update = $"{Resource}:update";
             public const string Delete = $"{Resource}:delete";
         }
+
+        public static class Orders
+        {
+            public const string Resource = "business:order";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+            public const string Audit = $"{Resource}:audit";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -146,6 +156,11 @@ public static class PermissionCodes
         Business.Storage.Read,
         Business.Storage.Create,
         Business.Storage.Update,
-        Business.Storage.Delete
+        Business.Storage.Delete,
+        Business.Orders.Read,
+        Business.Orders.Create,
+        Business.Orders.Update,
+        Business.Orders.Delete,
+        Business.Orders.Audit
     ];
 }
