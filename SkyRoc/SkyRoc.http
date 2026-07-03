@@ -28,6 +28,7 @@
 @wareId = 00000000-0000-0000-0000-000000000001
 @orderId = 00000000-0000-0000-0000-000000000001
 @orderDetailId = 00000000-0000-0000-0000-000000000001
+@purchasePlanId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -1611,3 +1612,47 @@ Content-Type: {{contentType}}
 DELETE {{SkyRoc_HostAddress}}/api/orders/{{orderId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### Purchase Plans - Create (manual, set purchasePlanId from the response before continuing)
+POST {{SkyRoc_HostAddress}}/api/purchase-plans
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planDate": "2026-07-05 08:00:00",
+  "purchasePattern": 1,
+  "supplierId": "{{supplierId}}",
+  "purchaserId": "{{purchaserId}}",
+  "remark": "手工新增采购计划",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "purchaseUnitId": "{{goodsUnitId}}",
+      "plannedQuantity": 12,
+      "requiredQuantity": 12,
+      "remark": "供应商直供"
+    }
+  ]
+}
+
+### Purchase Plans - List
+GET {{SkyRoc_HostAddress}}/api/purchase-plans/list?current=1&size=10&purchaseStatus=Unpublished&supplierId={{supplierId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchase Plans - Get By Id
+GET {{SkyRoc_HostAddress}}/api/purchase-plans/{{purchasePlanId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchase Plans - Generate From Approved Orders
+POST {{SkyRoc_HostAddress}}/api/purchase-plans/generate
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "orderIds": [
+    "{{orderId}}"
+  ],
+  "remark": "订单审核通过后生成采购计划"
+}
