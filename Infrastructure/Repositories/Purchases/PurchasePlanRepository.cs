@@ -12,6 +12,8 @@ namespace Infrastructure.Repositories;
 public class PurchasePlanRepository(ApplicationDbContext context)
     : Repository<PurchasePlan>(context), IPurchasePlanRepository
 {
+    private readonly ApplicationDbContext _context = context;
+
     /// <inheritdoc />
     public override async Task<PurchasePlan?> GetByIdAsync(Guid id)
     {
@@ -53,6 +55,15 @@ public class PurchasePlanRepository(ApplicationDbContext context)
         return await DbSet.AnyAsync(x =>
             x.PlanNo == normalizedPlanNo
             && (!excludeId.HasValue || x.Id != excludeId.Value));
+    }
+
+    /// <inheritdoc />
+    public async Task<PurchasePlanDetail?> GetDetailByIdAsync(Guid detailId)
+    {
+        return await _context.PurchasePlanDetails
+            .Include(x => x.PurchasePlan)
+                .ThenInclude(x => x.Details)
+            .FirstOrDefaultAsync(x => x.Id == detailId);
     }
 
     /// <summary>
