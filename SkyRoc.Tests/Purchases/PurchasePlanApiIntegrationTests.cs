@@ -84,7 +84,7 @@ public class PurchasePlanApiIntegrationTests
     }
 
     [Fact]
-    public async Task Swagger_DocumentsPurchasePlanRoutesAndPermissions()
+    public async Task Swagger_DocumentsPurchaseRoutesAndPermissions()
     {
         using var factory = new PurchasePlanApiFactory();
         using var client = factory.CreateClient();
@@ -97,14 +97,27 @@ public class PurchasePlanApiIntegrationTests
         var generateOperation = paths.GetProperty("/api/purchase-plans/generate").GetProperty("post");
         var mergeOperation = paths.GetProperty("/api/purchase-plans/merge").GetProperty("post");
         var splitOrdersOperation = paths.GetProperty("/api/purchase-plans/split/orders").GetProperty("post");
+        var purchaseOrderListOperation = paths.GetProperty("/api/purchase-orders/list").GetProperty("get");
+        var purchaseOrderGenerateOperation = paths.GetProperty("/api/purchase-orders/generate-from-plans").GetProperty("post");
+        var purchaseOrderCompleteOperation = paths.GetProperty("/api/purchase-orders/{id}/complete").GetProperty("post");
+        var purchaseOrderCancelOperation = paths.GetProperty("/api/purchase-orders/{id}/cancel").GetProperty("post");
+        var purchaseOrderDeleteOperation = paths.GetProperty("/api/purchase-orders/{id}").GetProperty("delete");
 
         Assert.Contains(PermissionCodes.Business.Purchases.Read, listOperation.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.Purchases.Create, generateOperation.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.Purchases.Update, mergeOperation.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.Purchases.Update, splitOrdersOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Purchases.Read, purchaseOrderListOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Purchases.Create, purchaseOrderGenerateOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Purchases.Update, purchaseOrderCompleteOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Purchases.Update, purchaseOrderCancelOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Purchases.Delete, purchaseOrderDeleteOperation.GetProperty("description").GetString());
         Assert.Equal("Bearer", listOperation.GetProperty("security")[0].EnumerateObject().Single().Name);
+        Assert.Equal("Bearer", purchaseOrderListOperation.GetProperty("security")[0].EnumerateObject().Single().Name);
         Assert.True(listOperation.GetProperty("responses").TryGetProperty("401", out _));
         Assert.True(listOperation.GetProperty("responses").TryGetProperty("403", out _));
+        Assert.True(purchaseOrderListOperation.GetProperty("responses").TryGetProperty("401", out _));
+        Assert.True(purchaseOrderListOperation.GetProperty("responses").TryGetProperty("403", out _));
     }
 
     private static CreatePurchasePlanDto CreateRequest()

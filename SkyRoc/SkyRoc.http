@@ -1612,11 +1612,6 @@ Content-Type: {{contentType}}
   "remark": "审核通过"
 }
 
-### Orders - Delete
-DELETE {{SkyRoc_HostAddress}}/api/orders/{{orderId}}
-Authorization: Bearer {{accessToken}}
-Accept: {{contentType}}
-
 ### Purchase Plans - Create (manual, set purchasePlanId from the response before continuing)
 POST {{SkyRoc_HostAddress}}/api/purchase-plans
 Authorization: Bearer {{accessToken}}
@@ -1821,5 +1816,128 @@ Accept: {{contentType}}
 
 ### Purchase Orders - Delete Draft (alternative to complete or cancel)
 DELETE {{SkyRoc_HostAddress}}/api/purchase-orders/{{purchaseOrderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Orders - Delete (only before generating a purchase plan)
+DELETE {{SkyRoc_HostAddress}}/api/orders/{{orderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+# 采购链路主流程：依次执行以下请求，响应处理器会自动保存本流程产生的业务 ID。
+### Procurement Flow 1/10 - Create Order
+POST {{SkyRoc_HostAddress}}/api/orders
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "customerId": "{{customerId}}",
+  "quotationId": "{{quotationId}}",
+  "wareId": "{{wareId}}",
+  "orderDate": "2026-07-03 08:00:00",
+  "receiveDate": "2026-07-05 08:00:00",
+  "contactName": "张老师",
+  "contactPhone": "13800005555",
+  "deliveryAddress": "北京市朝阳区学校食堂",
+  "remark": "订单到采购单主流程",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 6,
+      "fixedPrice": 4.5,
+      "fixedGoodsUnitId": "{{goodsUnitId}}",
+      "remark": "采购链路联调商品"
+    }
+  ]
+}
+
+> {%
+    client.global.set("flowOrderId", response.body.data.id);
+%}
+
+### Procurement Flow 2/10 - Approve Order
+POST {{SkyRoc_HostAddress}}/api/orders/{{flowOrderId}}/approve
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核通过并进入采购"
+}
+
+### Procurement Flow 3/10 - Generate Purchase Plan
+POST {{SkyRoc_HostAddress}}/api/purchase-plans/generate
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "orderIds": [
+    "{{flowOrderId}}"
+  ],
+  "remark": "从审核订单生成"
+}
+
+> {%
+    client.global.set("flowPurchasePlanId", response.body.data[0].id);
+%}
+
+### Procurement Flow 4/10 - Assign Supplier
+PUT {{SkyRoc_HostAddress}}/api/purchase-plans/supplier
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planIds": [
+    "{{flowPurchasePlanId}}"
+  ],
+  "supplierId": "{{supplierId}}"
+}
+
+### Procurement Flow 5/10 - Assign Purchaser
+PUT {{SkyRoc_HostAddress}}/api/purchase-plans/purchaser
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planIds": [
+    "{{flowPurchasePlanId}}"
+  ],
+  "purchaserId": "{{purchaserId}}"
+}
+
+### Procurement Flow 6/10 - Generate Purchase Order
+POST {{SkyRoc_HostAddress}}/api/purchase-orders/generate-from-plans
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planIds": [
+    "{{flowPurchasePlanId}}"
+  ],
+  "receiveTime": "2026-07-06 08:00:00",
+  "remark": "采购计划转采购单"
+}
+
+> {%
+    client.global.set("flowPurchaseOrderId", response.body.data[0].id);
+%}
+
+### Procurement Flow 7/10 - Verify Order Purchase Plan Flag
+GET {{SkyRoc_HostAddress}}/api/orders/{{flowOrderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Procurement Flow 8/10 - Verify Plan Generated Status And Purchased Quantity
+GET {{SkyRoc_HostAddress}}/api/purchase-plans/{{flowPurchasePlanId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Procurement Flow 9/10 - Verify Purchase Order Plan Allocation
+GET {{SkyRoc_HostAddress}}/api/purchase-orders/{{flowPurchaseOrderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Procurement Flow 10/10 - Complete Purchase Order
+POST {{SkyRoc_HostAddress}}/api/purchase-orders/{{flowPurchaseOrderId}}/complete
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
