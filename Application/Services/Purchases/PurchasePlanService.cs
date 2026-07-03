@@ -16,7 +16,7 @@ using ValidationException = Application.Exceptions.ValidationException;
 namespace Application.Services;
 
 /// <summary>
-/// 采购计划应用服务，实现查询、手工新增与从已审核订单生成计划。
+/// 采购计划应用服务，实现查询、生成、分配、合并与拆分，并保证计划变更处于未发布状态。
 /// </summary>
 public class PurchasePlanService(
     IPurchasePlanRepository purchasePlanRepository,
@@ -143,6 +143,470 @@ public class PurchasePlanService(
         }
 
         return results;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<PurchasePlanDto>> AssignSupplierAsync(AssignPurchasePlanSupplierDto dto)
+    {
+        var plans = await GetMutablePlansAsync(dto.PlanIds, "分配供应商");
+        Supplier? supplier = null;
+        if (dto.SupplierId.HasValue)
+        {
+            supplier = await supplierRepository.GetByIdAsync(dto.SupplierId.Value)
+                       ?? throw new BusinessException("供应商不存在");
+        }
+
+        await ExecuteInTransactionAsync(async () =>
+        {
+            foreach (var plan in plans)
+            {
+                plan.SupplierId = supplier?.Id;
+                plan.SupplierNameSnapshot = supplier?.Name;
+                ApplyUpdateAudit(plan);
+                await purchasePlanRepository.UpdateAsync(plan);
+            }
+        });
+
+        logger.LogInformation("采购计划供应商分配成功: {PlanCount} 张计划, {SupplierId}", plans.Count, supplier?.Id);
+        return await MapPlansAsync(plans.Select(x => x.Id));
+    }
+
+    /// <inheritdoc />
+    public async Task<List<PurchasePlanDto>> AssignPurchaserAsync(AssignPurchasePlanPurchaserDto dto)
+    {
+        var plans = await GetMutablePlansAsync(dto.PlanIds, "分配采购员");
+        Purchaser? purchaser = null;
+        if (dto.PurchaserId.HasValue)
+        {
+            purchaser = await purchaserRepository.GetByIdAsync(dto.PurchaserId.Value)
+                        ?? throw new BusinessException("采购员不存在");
+        }
+
+        await ExecuteInTransactionAsync(async () =>
+        {
+            foreach (var plan in plans)
+            {
+                plan.PurchaserId = purchaser?.Id;
+                plan.PurchaserNameSnapshot = purchaser?.Name;
+                ApplyUpdateAudit(plan);
+                await purchasePlanRepository.UpdateAsync(plan);
+            }
+        });
+
+        logger.LogInformation("采购计划采购员分配成功: {PlanCount} 张计划, {PurchaserId}", plans.Count, purchaser?.Id);
+        return await MapPlansAsync(plans.Select(x => x.Id));
+    }
+
+    /// <inheritdoc />
+    public async Task<PurchasePlanDto> MergeAsync(MergePurchasePlansDto dto)
+    {
+        var planIds = NormalizeIds(dto.PlanIds, "待合并采购计划");
+        if (planIds.Count < 2)
+        {
+            throw new BusinessException("合并采购计划至少需要两张不同计划");
+        }
+
+        var plans = await GetMutablePlansAsync(planIds, "合并");
+        var first = plans[0];
+        if (plans.Any(plan => plan.PurchasePattern != first.PurchasePattern))
+        {
+            throw new BusinessException("采购模式不同的计划不能合并");
+        }
+
+        if (plans.Any(plan => plan.SupplierId != first.SupplierId))
+        {
+            throw new BusinessException("供应商不同的计划不能合并");
+        }
+
+        if (plans.Any(plan => plan.PurchaserId != first.PurchaserId))
+        {
+            throw new BusinessException("采购员不同的计划不能合并");
+        }
+
+        var mergedPlan = await CreateDerivedPlanAsync(first, plans.Min(x => x.PlanDate), dto.Remark);
+        foreach (var group in plans
+                     .SelectMany(plan => plan.Details)
+                     .GroupBy(detail => new { detail.GoodsId, detail.PurchaseUnitId }))
+        {
+            var sample = group.First();
+            var mergedDetail = CreateDerivedDetail(
+                mergedPlan.Id,
+                sample,
+                group.Sum(x => x.RequiredQuantity),
+                group.Sum(x => x.PlannedQuantity));
+
+            foreach (var relationGroup in group
+                         .SelectMany(detail => detail.OrderRelations)
+                         .GroupBy(relation => new { relation.SaleOrderId, relation.SaleOrderDetailId }))
+            {
+                var relationSample = relationGroup.First();
+                mergedDetail.OrderRelations.Add(CreateDerivedRelation(
+                    mergedDetail.Id,
+                    relationSample,
+                    relationGroup.Sum(x => x.RequiredQuantity)));
+            }
+
+            mergedPlan.Details.Add(mergedDetail);
+        }
+
+        await ExecuteInTransactionAsync(async () =>
+        {
+            await purchasePlanRepository.AddAsync(mergedPlan);
+            await purchasePlanRepository.DeleteRangeAsync(plans);
+        });
+
+        logger.LogInformation("采购计划合并成功: {SourceCount} 张计划合并为 {PlanId}", plans.Count, mergedPlan.Id);
+        return mapper.Map<PurchasePlanDto>(await GetRequiredPlanAsync(mergedPlan.Id));
+    }
+
+    /// <inheritdoc />
+    public async Task<List<SplittablePurchasePlanOrderDto>> GetSplittableOrdersAsync(Guid planId)
+    {
+        var plan = await GetRequiredPlanAsync(planId);
+        ValidateMutablePlan(plan, "拆分");
+        return plan.Details
+            .SelectMany(detail => detail.OrderRelations)
+            .GroupBy(relation => new { relation.SaleOrderId, relation.SaleOrder.OrderNo })
+            .Select(group => new SplittablePurchasePlanOrderDto
+            {
+                SaleOrderId = group.Key.SaleOrderId,
+                SaleOrderNo = group.Key.OrderNo,
+                RequiredQuantity = group.Sum(x => x.RequiredQuantity)
+            })
+            .OrderBy(x => x.SaleOrderNo, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<PurchasePlanDto> SplitByOrdersAsync(SplitPurchasePlanByOrdersDto dto)
+    {
+        var saleOrderIds = NormalizeIds(dto.SaleOrderIds, "待拆分来源订单");
+        var selectedOrderIds = saleOrderIds.ToHashSet();
+        var sourcePlan = await GetRequiredPlanAsync(dto.PlanId);
+        ValidateMutablePlan(sourcePlan, "按订单拆分");
+
+        var availableOrderIds = sourcePlan.Details
+            .SelectMany(detail => detail.OrderRelations)
+            .Select(relation => relation.SaleOrderId)
+            .ToHashSet();
+        var missingOrderIds = saleOrderIds.Where(id => !availableOrderIds.Contains(id)).ToList();
+        if (missingOrderIds.Count > 0)
+        {
+            throw new BusinessException($"采购计划不包含来源订单: {string.Join(", ", missingOrderIds)}");
+        }
+
+        var splitValues = sourcePlan.Details
+            .Select(detail =>
+            {
+                var relations = detail.OrderRelations
+                    .Where(relation => selectedOrderIds.Contains(relation.SaleOrderId))
+                    .ToList();
+                var requiredQuantity = relations.Sum(x => x.RequiredQuantity);
+                var plannedQuantity = detail.RequiredQuantity > 0m
+                    ? RoundQuantity(detail.PlannedQuantity * requiredQuantity / detail.RequiredQuantity)
+                    : 0m;
+                return new { Detail = detail, Relations = relations, RequiredQuantity = requiredQuantity, PlannedQuantity = plannedQuantity };
+            })
+            .Where(x => x.Relations.Count > 0)
+            .ToList();
+
+        if (splitValues.Count == 0)
+        {
+            throw new BusinessException("所选订单没有可拆分的采购计划数量");
+        }
+
+        if (sourcePlan.Details.All(detail =>
+                detail.PlannedQuantity - (splitValues.FirstOrDefault(x => x.Detail.Id == detail.Id)?.PlannedQuantity ?? 0m) <= 0m))
+        {
+            throw new BusinessException("拆分后原采购计划必须保留至少一条有效商品明细");
+        }
+
+        var splitPlan = await CreateDerivedPlanAsync(sourcePlan, sourcePlan.PlanDate, dto.Remark ?? sourcePlan.Remark);
+        foreach (var value in splitValues)
+        {
+            var splitDetail = CreateDerivedDetail(
+                splitPlan.Id,
+                value.Detail,
+                value.RequiredQuantity,
+                value.PlannedQuantity);
+            foreach (var relation in value.Relations)
+            {
+                splitDetail.OrderRelations.Add(CreateDerivedRelation(splitDetail.Id, relation, relation.RequiredQuantity));
+                value.Detail.OrderRelations.Remove(relation);
+            }
+
+            value.Detail.RequiredQuantity = RoundQuantity(value.Detail.RequiredQuantity - value.RequiredQuantity);
+            value.Detail.PlannedQuantity = RoundQuantity(value.Detail.PlannedQuantity - value.PlannedQuantity);
+            ApplyUpdateAudit(value.Detail);
+            splitPlan.Details.Add(splitDetail);
+        }
+
+        RemoveEmptyDetails(sourcePlan);
+        ApplyUpdateAudit(sourcePlan);
+        await PersistSplitAsync(sourcePlan, splitPlan);
+
+        logger.LogInformation(
+            "采购计划按订单拆分成功: {SourcePlanId} -> {SplitPlanId}, {OrderCount} 个订单",
+            sourcePlan.Id,
+            splitPlan.Id,
+            saleOrderIds.Count);
+        return mapper.Map<PurchasePlanDto>(await GetRequiredPlanAsync(splitPlan.Id));
+    }
+
+    /// <inheritdoc />
+    public async Task<PurchasePlanDto> SplitByQuantityAsync(SplitPurchasePlanByQuantityDto dto)
+    {
+        if (dto.Details is null || dto.Details.Count == 0)
+        {
+            throw new BusinessException("至少需要一条商品数量拆分项");
+        }
+
+        if (dto.Details.Any(item => item.DetailId == Guid.Empty || item.Quantity <= 0m))
+        {
+            throw new BusinessException("拆分明细主键和拆分数量必须有效");
+        }
+
+        if (dto.Details.Select(item => item.DetailId).Distinct().Count() != dto.Details.Count)
+        {
+            throw new BusinessException("同一采购计划明细不能重复拆分");
+        }
+
+        var sourcePlan = await GetRequiredPlanAsync(dto.PlanId);
+        ValidateMutablePlan(sourcePlan, "按商品数量拆分");
+        var detailById = sourcePlan.Details.ToDictionary(detail => detail.Id);
+        foreach (var item in dto.Details)
+        {
+            if (!detailById.TryGetValue(item.DetailId, out var detail))
+            {
+                throw new BusinessException($"采购计划不包含商品明细: {item.DetailId}");
+            }
+
+            if (item.Quantity > detail.PlannedQuantity)
+            {
+                throw new BusinessException($"商品 {detail.GoodsNameSnapshot} 的拆分数量不能超过计划数量");
+            }
+        }
+
+        var splitQuantityByDetail = dto.Details.ToDictionary(item => item.DetailId, item => item.Quantity);
+        if (sourcePlan.Details.All(detail =>
+                detail.PlannedQuantity - splitQuantityByDetail.GetValueOrDefault(detail.Id) <= 0m))
+        {
+            throw new BusinessException("拆分后原采购计划必须保留至少一条有效商品明细");
+        }
+
+        var splitPlan = await CreateDerivedPlanAsync(sourcePlan, sourcePlan.PlanDate, dto.Remark ?? sourcePlan.Remark);
+        foreach (var item in dto.Details)
+        {
+            var sourceDetail = detailById[item.DetailId];
+            var ratio = item.Quantity / sourceDetail.PlannedQuantity;
+            var splitRequiredQuantity = ratio == 1m
+                ? sourceDetail.RequiredQuantity
+                : RoundQuantity(sourceDetail.RequiredQuantity * ratio);
+            var splitDetail = CreateDerivedDetail(
+                splitPlan.Id,
+                sourceDetail,
+                splitRequiredQuantity,
+                item.Quantity);
+
+            foreach (var relation in sourceDetail.OrderRelations.ToList())
+            {
+                var relationQuantity = ratio == 1m
+                    ? relation.RequiredQuantity
+                    : RoundQuantity(relation.RequiredQuantity * ratio);
+                if (relationQuantity <= 0m)
+                {
+                    continue;
+                }
+
+                splitDetail.OrderRelations.Add(CreateDerivedRelation(splitDetail.Id, relation, relationQuantity));
+                relation.RequiredQuantity = RoundQuantity(relation.RequiredQuantity - relationQuantity);
+                if (relation.RequiredQuantity <= 0m)
+                {
+                    sourceDetail.OrderRelations.Remove(relation);
+                }
+                else
+                {
+                    ApplyUpdateAudit(relation);
+                }
+            }
+
+            sourceDetail.RequiredQuantity = RoundQuantity(sourceDetail.RequiredQuantity - splitRequiredQuantity);
+            sourceDetail.PlannedQuantity = RoundQuantity(sourceDetail.PlannedQuantity - item.Quantity);
+            ApplyUpdateAudit(sourceDetail);
+            splitPlan.Details.Add(splitDetail);
+        }
+
+        RemoveEmptyDetails(sourcePlan);
+        ApplyUpdateAudit(sourcePlan);
+        await PersistSplitAsync(sourcePlan, splitPlan);
+
+        logger.LogInformation(
+            "采购计划按商品数量拆分成功: {SourcePlanId} -> {SplitPlanId}, {DetailCount} 条明细",
+            sourcePlan.Id,
+            splitPlan.Id,
+            dto.Details.Count);
+        return mapper.Map<PurchasePlanDto>(await GetRequiredPlanAsync(splitPlan.Id));
+    }
+
+    /// <summary>
+    /// 持久化原计划数量调整与新拆分计划，确保两侧变更在同一事务提交。
+    /// </summary>
+    private async Task PersistSplitAsync(PurchasePlan sourcePlan, PurchasePlan splitPlan)
+    {
+        await ExecuteInTransactionAsync(async () =>
+        {
+            await purchasePlanRepository.UpdateAsync(sourcePlan);
+            await purchasePlanRepository.AddAsync(splitPlan);
+        });
+    }
+
+    /// <summary>
+    /// 创建继承采购模式和责任方快照的新计划，计划编号始终重新生成。
+    /// </summary>
+    private async Task<PurchasePlan> CreateDerivedPlanAsync(PurchasePlan source, DateTime planDate, string? remark)
+    {
+        var plan = new PurchasePlan
+        {
+            Id = Guid.NewGuid(),
+            PlanNo = await GeneratePlanNoAsync(),
+            PlanDate = planDate,
+            PurchasePattern = source.PurchasePattern,
+            PurchaseStatus = PurchasePlanStatus.Unpublished,
+            SupplierId = source.SupplierId,
+            SupplierNameSnapshot = source.SupplierNameSnapshot,
+            PurchaserId = source.PurchaserId,
+            PurchaserNameSnapshot = source.PurchaserNameSnapshot,
+            Remark = NormalizeRemark(remark)
+        };
+        ApplyCreateAudit(plan);
+        return plan;
+    }
+
+    /// <summary>
+    /// 按来源商品和单位快照创建派生计划明细。
+    /// </summary>
+    private PurchasePlanDetail CreateDerivedDetail(
+        Guid planId,
+        PurchasePlanDetail source,
+        decimal requiredQuantity,
+        decimal plannedQuantity)
+    {
+        var detail = new PurchasePlanDetail
+        {
+            Id = Guid.NewGuid(),
+            PurchasePlanId = planId,
+            GoodsId = source.GoodsId,
+            GoodsNameSnapshot = source.GoodsNameSnapshot,
+            GoodsCodeSnapshot = source.GoodsCodeSnapshot,
+            PurchaseUnitId = source.PurchaseUnitId,
+            PurchaseUnitNameSnapshot = source.PurchaseUnitNameSnapshot,
+            RequiredQuantity = RoundQuantity(requiredQuantity),
+            PlannedQuantity = RoundQuantity(plannedQuantity),
+            PurchasedQuantity = 0m,
+            Remark = source.Remark
+        };
+        ApplyCreateAudit(detail);
+        return detail;
+    }
+
+    /// <summary>
+    /// 复制来源订单关系到派生计划明细，并保留按采购单位计量的需求数量。
+    /// </summary>
+    private PurchasePlanOrderRelation CreateDerivedRelation(
+        Guid detailId,
+        PurchasePlanOrderRelation source,
+        decimal requiredQuantity)
+    {
+        var relation = new PurchasePlanOrderRelation
+        {
+            Id = Guid.NewGuid(),
+            PurchasePlanDetailId = detailId,
+            SaleOrderId = source.SaleOrderId,
+            SaleOrderDetailId = source.SaleOrderDetailId,
+            RequiredQuantity = RoundQuantity(requiredQuantity)
+        };
+        ApplyCreateAudit(relation);
+        return relation;
+    }
+
+    /// <summary>
+    /// 删除拆分后数量归零且不再包含订单来源的空明细。
+    /// </summary>
+    private static void RemoveEmptyDetails(PurchasePlan plan)
+    {
+        foreach (var detail in plan.Details
+                     .Where(detail => detail.PlannedQuantity <= 0m
+                                      && detail.RequiredQuantity <= 0m
+                                      && detail.OrderRelations.Count == 0)
+                     .ToList())
+        {
+            plan.Details.Remove(detail);
+        }
+    }
+
+    /// <summary>
+    /// 批量加载采购计划并校验仅未发布且未产生采购数量的计划可变更。
+    /// </summary>
+    private async Task<List<PurchasePlan>> GetMutablePlansAsync(IEnumerable<Guid>? ids, string operation)
+    {
+        var normalizedIds = NormalizeIds(ids, "采购计划");
+        var plans = new List<PurchasePlan>(normalizedIds.Count);
+        foreach (var id in normalizedIds)
+        {
+            var plan = await GetRequiredPlanAsync(id);
+            ValidateMutablePlan(plan, operation);
+            plans.Add(plan);
+        }
+
+        return plans;
+    }
+
+    /// <summary>
+    /// 校验采购计划仍处于未发布且所有明细尚未生成采购单的可编辑状态。
+    /// </summary>
+    private static void ValidateMutablePlan(PurchasePlan plan, string operation)
+    {
+        if (plan.PurchaseStatus != PurchasePlanStatus.Unpublished
+            || plan.Details.Any(detail => detail.PurchasedQuantity > 0m))
+        {
+            throw new BusinessException($"采购计划 {plan.PlanNo} 已生成采购单，不能{operation}");
+        }
+    }
+
+    /// <summary>
+    /// 清理并校验业务主键集合，拒绝空主键和空请求。
+    /// </summary>
+    private static List<Guid> NormalizeIds(IEnumerable<Guid>? ids, string fieldName)
+    {
+        var normalizedIds = ids?.Distinct().ToList() ?? [];
+        if (normalizedIds.Count == 0 || normalizedIds.Any(id => id == Guid.Empty))
+        {
+            throw new BusinessException($"{fieldName}不能为空且必须有效");
+        }
+
+        return normalizedIds;
+    }
+
+    /// <summary>
+    /// 按请求顺序重新加载并映射采购计划集合。
+    /// </summary>
+    private async Task<List<PurchasePlanDto>> MapPlansAsync(IEnumerable<Guid> ids)
+    {
+        var results = new List<PurchasePlanDto>();
+        foreach (var id in ids)
+        {
+            results.Add(mapper.Map<PurchasePlanDto>(await GetRequiredPlanAsync(id)));
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// 将采购数量统一保留到数据库定义的六位小数精度。
+    /// </summary>
+    private static decimal RoundQuantity(decimal quantity)
+    {
+        return decimal.Round(quantity, 6, MidpointRounding.AwayFromZero);
     }
 
     /// <summary>

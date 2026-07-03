@@ -41,9 +41,13 @@ public class PurchasePlanApiIntegrationTests
 
         var readResponse = await readOnlyClient.GetAsync("/api/purchase-plans/list?current=1&size=10");
         var createResponse = await readOnlyClient.PostAsJsonAsync("/api/purchase-plans", CreateRequest());
+        var updateResponse = await readOnlyClient.PutAsJsonAsync(
+            "/api/purchase-plans/supplier",
+            new AssignPurchasePlanSupplierDto { PlanIds = [Guid.NewGuid()] });
 
         Assert.Equal(HttpStatusCode.OK, readResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, updateResponse.StatusCode);
     }
 
     [Fact]
@@ -71,6 +75,12 @@ public class PurchasePlanApiIntegrationTests
             new GeneratePurchasePlanFromOrdersDto { OrderIds = [Guid.NewGuid()] });
         var generated = await ReadDataAsync<List<PurchasePlanDto>>(generateResponse);
         Assert.Single(generated);
+
+        var assignResponse = await client.PutAsJsonAsync(
+            "/api/purchase-plans/supplier",
+            new AssignPurchasePlanSupplierDto { PlanIds = [created.Id], SupplierId = Guid.NewGuid() });
+        var assigned = await ReadDataAsync<List<PurchasePlanDto>>(assignResponse);
+        Assert.Equal(created.Id, Assert.Single(assigned).Id);
     }
 
     [Fact]
@@ -85,9 +95,13 @@ public class PurchasePlanApiIntegrationTests
         var paths = document.RootElement.GetProperty("paths");
         var listOperation = paths.GetProperty("/api/purchase-plans/list").GetProperty("get");
         var generateOperation = paths.GetProperty("/api/purchase-plans/generate").GetProperty("post");
+        var mergeOperation = paths.GetProperty("/api/purchase-plans/merge").GetProperty("post");
+        var splitOrdersOperation = paths.GetProperty("/api/purchase-plans/split/orders").GetProperty("post");
 
         Assert.Contains(PermissionCodes.Business.Purchases.Read, listOperation.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.Purchases.Create, generateOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Purchases.Update, mergeOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Purchases.Update, splitOrdersOperation.GetProperty("description").GetString());
         Assert.Equal("Bearer", listOperation.GetProperty("security")[0].EnumerateObject().Single().Name);
         Assert.True(listOperation.GetProperty("responses").TryGetProperty("401", out _));
         Assert.True(listOperation.GetProperty("responses").TryGetProperty("403", out _));
@@ -242,6 +256,36 @@ public class PurchasePlanApiIntegrationTests
                 return plan;
             }).ToList();
             return Task.FromResult(plans);
+        }
+
+        public Task<List<PurchasePlanDto>> AssignSupplierAsync(AssignPurchasePlanSupplierDto dto)
+        {
+            return Task.FromResult(dto.PlanIds.Select(id => _plans[id]).ToList());
+        }
+
+        public Task<List<PurchasePlanDto>> AssignPurchaserAsync(AssignPurchasePlanPurchaserDto dto)
+        {
+            return Task.FromResult(dto.PlanIds.Select(id => _plans[id]).ToList());
+        }
+
+        public Task<PurchasePlanDto> MergeAsync(MergePurchasePlansDto dto)
+        {
+            return Task.FromResult(_plans[dto.PlanIds[0]]);
+        }
+
+        public Task<List<SplittablePurchasePlanOrderDto>> GetSplittableOrdersAsync(Guid planId)
+        {
+            return Task.FromResult(new List<SplittablePurchasePlanOrderDto>());
+        }
+
+        public Task<PurchasePlanDto> SplitByOrdersAsync(SplitPurchasePlanByOrdersDto dto)
+        {
+            return Task.FromResult(_plans[dto.PlanId]);
+        }
+
+        public Task<PurchasePlanDto> SplitByQuantityAsync(SplitPurchasePlanByQuantityDto dto)
+        {
+            return Task.FromResult(_plans[dto.PlanId]);
         }
     }
 }

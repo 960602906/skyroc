@@ -29,6 +29,8 @@
 @orderId = 00000000-0000-0000-0000-000000000001
 @orderDetailId = 00000000-0000-0000-0000-000000000001
 @purchasePlanId = 00000000-0000-0000-0000-000000000001
+@purchasePlanId2 = 00000000-0000-0000-0000-000000000002
+@purchasePlanDetailId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -1655,4 +1657,77 @@ Content-Type: {{contentType}}
     "{{orderId}}"
   ],
   "remark": "订单审核通过后生成采购计划"
+}
+
+### Purchase Plans - Assign Supplier (unpublished plans only)
+PUT {{SkyRoc_HostAddress}}/api/purchase-plans/supplier
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planIds": [
+    "{{purchasePlanId}}",
+    "{{purchasePlanId2}}"
+  ],
+  "supplierId": "{{supplierId}}"
+}
+
+### Purchase Plans - Assign Purchaser (unpublished plans only)
+PUT {{SkyRoc_HostAddress}}/api/purchase-plans/purchaser
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planIds": [
+    "{{purchasePlanId}}",
+    "{{purchasePlanId2}}"
+  ],
+  "purchaserId": "{{purchaserId}}"
+}
+
+### Purchase Plans - Merge (set purchasePlanId to the returned new plan ID)
+POST {{SkyRoc_HostAddress}}/api/purchase-plans/merge
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planIds": [
+    "{{purchasePlanId}}",
+    "{{purchasePlanId2}}"
+  ],
+  "remark": "同一供货方计划合并"
+}
+
+### Purchase Plans - List Splittable Source Orders
+GET {{SkyRoc_HostAddress}}/api/purchase-plans/{{purchasePlanId}}/split-orders
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Purchase Plans - Split By Source Orders
+POST {{SkyRoc_HostAddress}}/api/purchase-plans/split/orders
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planId": "{{purchasePlanId}}",
+  "saleOrderIds": [
+    "{{orderId}}"
+  ],
+  "remark": "按客户订单单独采购"
+}
+
+### Purchase Plans - Split By Goods Quantity
+POST {{SkyRoc_HostAddress}}/api/purchase-plans/split/quantity
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "planId": "{{purchasePlanId}}",
+  "details": [
+    {
+      "detailId": "{{purchasePlanDetailId}}",
+      "quantity": 3.5
+    }
+  ],
+  "remark": "部分数量独立采购"
 }
