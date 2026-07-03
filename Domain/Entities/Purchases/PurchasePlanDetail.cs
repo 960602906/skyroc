@@ -77,4 +77,9 @@ public class PurchasePlanDetail : BaseEntity
     /// 来源销售订单明细关系集合。
     /// </summary>
     public virtual ICollection<PurchasePlanOrderRelation> OrderRelations { get; set; } = new List<PurchasePlanOrderRelation>();
+
+    /// <summary>
+    /// 已占用当前计划数量的采购单明细关系集合。
+    /// </summary>
+    public virtual ICollection<PurchaseOrderPlanRelation> PurchaseOrderRelations { get; set; } = new List<PurchaseOrderPlanRelation>();
 }

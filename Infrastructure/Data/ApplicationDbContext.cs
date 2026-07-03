@@ -235,5 +235,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<PurchasePlanOrderRelation> PurchasePlanOrderRelations { get; set; }
 
+    /// <summary>
+    /// 采购单表。
+    /// </summary>
+    public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+
+    /// <summary>
+    /// 采购单商品明细表。
+    /// </summary>
+    public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
+
+    /// <summary>
+    /// 采购单明细与采购计划明细关系表。
+    /// </summary>
+    public DbSet<PurchaseOrderPlanRelation> PurchaseOrderPlanRelations { get; set; }
+
     #endregion
 }
