@@ -69,12 +69,12 @@ builder.Services.AddSwaggerDocumentation();
 var app = builder.Build();
 
 // 初始化种子数据
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var devSeedOptions = scope.ServiceProvider.GetRequiredService<IOptions<DevSeedOptions>>();
-    await DbSeeder.SeedAsync(context, app.Environment, devSeedOptions);
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+//     var devSeedOptions = scope.ServiceProvider.GetRequiredService<IOptions<DevSeedOptions>>();
+//     await DbSeeder.SeedAsync(context, app.Environment, devSeedOptions);
+// }
 
 
 if (app.Environment.IsDevelopment())
