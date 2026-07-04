@@ -54,6 +54,29 @@ flowchart TD
 | 修改配送司机 | PUT | `/business/order/delivery` | `editDeliveryTaskDriver` |
 | 智能规划 | PUT | `/business/order/delivery/intelligent/plan` | `smartPlan` |
 
+当前后端在 `/api/delivery-tasks` 下提供对应任务接口，并补充以下履约状态机：
+
+```mermaid
+stateDiagram-v2
+  [*] --> 待分配: 销售出库生成任务
+  待分配 --> 已分配: 分配启用司机
+  已分配 --> 配送中: 开始配送
+  已分配 --> 异常: 登记异常
+  配送中 --> 异常: 登记异常
+  异常 --> 已分配: 处理全部异常且尚未开始
+  异常 --> 配送中: 处理全部异常且已经开始
+  配送中 --> 已签收: 客户签收并验收全部出库行
+```
+
+| 当前后端动作 | 方法 | URL | 约束 |
+| --- | --- | --- | --- |
+| 开始配送 | PUT | `/api/delivery-tasks/{id}/start` | 仅已分配任务；订单同步为配送中 |
+| 客户签收 | PUT | `/api/delivery-tasks/{id}/sign` | 仅配送中任务；验收明细必须完整覆盖本次出库行 |
+| 回单归档 | PUT | `/api/delivery-tasks/{id}/receipt` | 仅已签收任务；每张回单只能归档一次 |
+| 处理异常 | PUT | `/api/delivery-exceptions/{id}/handle` | 仅待处理异常；全部异常处理后恢复任务状态 |
+
+销售订单可能分批出库并形成多张配送任务。只有订单已全部出库、所有有效销售出库均已生成配送任务且全部任务签收，订单才同步为已签收并汇总商品验收数量、结算金额；只有全部签收回单均归档，订单才同步为已回单。
+
 ## 司机与承运商流程
 
 ```mermaid
@@ -120,4 +143,3 @@ flowchart TD
 - 打印能力复用全局打印模块，不要在配送模块重复实现。
 - 路线分配客户建议用穿梭框或可搜索多选表格。
 - 配送异常接口路径不在 `/business` 下，要在 API adapter 中单独标注。
-

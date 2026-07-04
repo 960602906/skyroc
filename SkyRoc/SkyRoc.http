@@ -2312,6 +2312,11 @@ Content-Type: {{contentType}}
   "remark": "审核销售出库"
 }
 
+> {%
+    client.global.set("stockOutSaleDetailId", response.body.data.details[0].id);
+    client.global.set("stockOutSaleBaseQuantity", response.body.data.details[0].baseQuantity);
+%}
+
 ### Stock Out (Sale) - Reverse Audit (Restore Stock)
 POST {{SkyRoc_HostAddress}}/api/stock-out/sale/{{stockOutSaleId}}/reverse-audit
 Authorization: Bearer {{accessToken}}
@@ -2863,3 +2868,49 @@ Accept: {{contentType}}
 GET {{SkyRoc_HostAddress}}/api/delivery-exceptions/{{deliveryExceptionId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### Delivery Exceptions - Handle And Restore Task State
+PUT {{SkyRoc_HostAddress}}/api/delivery-exceptions/{{deliveryExceptionId}}/handle
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "handleRemark": "已联系客户并确认重新配送"
+}
+
+### Delivery Tasks - Start Delivery
+PUT {{SkyRoc_HostAddress}}/api/delivery-tasks/{{deliveryTaskId}}/start
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Delivery Tasks - Sign With Complete Outbound Checks
+PUT {{SkyRoc_HostAddress}}/api/delivery-tasks/{{deliveryTaskId}}/sign
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "signerName": "李老师",
+  "remark": "商品数量和质量已确认",
+  "details": [
+    {
+      "stockOutDetailId": "{{stockOutSaleDetailId}}",
+      "acceptedBaseQuantity": {{stockOutSaleBaseQuantity}},
+      "checkStatus": 1,
+      "remark": "验收通过"
+    }
+  ]
+}
+
+> {%
+    client.global.set("orderReceiptId", response.body.data.id);
+%}
+
+### Delivery Tasks - Return Receipt
+PUT {{SkyRoc_HostAddress}}/api/delivery-tasks/{{deliveryTaskId}}/receipt
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "receiptImageUrl": "https://files.example.com/receipts/{{orderReceiptId}}.jpg",
+  "remark": "纸质回单已扫描归档"
+}

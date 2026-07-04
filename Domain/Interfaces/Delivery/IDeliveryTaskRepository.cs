@@ -30,6 +30,14 @@ public interface IDeliveryTaskRepository : IRepository<DeliveryTask>
     Task<DeliveryTask?> GetByIdForUpdateAsync(Guid id);
 
     /// <summary>
+    /// 判断销售订单是否仍有尚未生成任务的有效销售出库，或其他尚未签收的配送任务。
+    /// </summary>
+    /// <param name="saleOrderId">销售订单主键。</param>
+    /// <param name="excludeTaskId">本次正在签收、需从查询中排除的配送任务主键。</param>
+    /// <returns>存在未生成任务的销售出库或其他未签收任务时返回 <c>true</c>。</returns>
+    Task<bool> HasIncompleteDeliveriesAsync(Guid saleOrderId, Guid excludeTaskId);
+
+    /// <summary>
     /// 按条件分页查询配送任务完整聚合。
     /// </summary>
     /// <param name="predicate">客户、司机、承运商、路线、状态和时间筛选条件。</param>

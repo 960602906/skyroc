@@ -5,7 +5,7 @@ using Shared.Constants;
 namespace Application.interfaces;
 
 /// <summary>
-/// 配送异常应用服务，提供异常登记、分页查询和详情读取能力。
+/// 配送异常应用服务，提供异常登记、查询和处理闭环能力。
 /// </summary>
 public interface IDeliveryExceptionService
 {
@@ -29,4 +29,12 @@ public interface IDeliveryExceptionService
     /// <param name="dto">异常所属任务和事实描述。</param>
     /// <returns>新登记的配送异常。</returns>
     Task<DeliveryExceptionDto> CreateAsync(CreateDeliveryExceptionDto dto);
+
+    /// <summary>
+    /// 完成待处理配送异常；任务没有其他待处理异常时恢复为已分配或配送中。
+    /// </summary>
+    /// <param name="id">配送异常主键。</param>
+    /// <param name="dto">异常处理动作与结果。</param>
+    /// <returns>处理完成后的配送异常。</returns>
+    Task<DeliveryExceptionDto> HandleAsync(Guid id, HandleDeliveryExceptionDto dto);
 }

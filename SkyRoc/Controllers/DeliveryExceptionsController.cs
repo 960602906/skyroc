@@ -10,7 +10,7 @@ using SkyRoc.Authorization;
 namespace SkyRoc.Controllers;
 
 /// <summary>
-/// 配送异常控制器，提供任务异常登记、分页查询和详情读取接口。
+/// 配送异常控制器，提供任务异常登记、查询和处理闭环接口。
 /// </summary>
 [ApiController]
 [Route("api/delivery-exceptions")]
@@ -56,6 +56,22 @@ public class DeliveryExceptionsController(IDeliveryExceptionService service) : C
         [FromBody] CreateDeliveryExceptionDto dto)
     {
         var result = await service.CreateAsync(dto);
+        return Ok(ApiResponse<DeliveryExceptionDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 完成待处理配送异常；没有其他待处理异常时恢复任务执行状态。需要配送更新权限。
+    /// </summary>
+    /// <param name="id">配送异常主键。</param>
+    /// <param name="dto">异常处理动作与结果。</param>
+    /// <returns>处理完成后的配送异常。</returns>
+    [HttpPut("{id:guid}/handle")]
+    [ResourcePermission(PermissionActions.Update)]
+    public async Task<ActionResult<ApiResponse<DeliveryExceptionDto>>> Handle(
+        Guid id,
+        [FromBody] HandleDeliveryExceptionDto dto)
+    {
+        var result = await service.HandleAsync(id, dto);
         return Ok(ApiResponse<DeliveryExceptionDto>.Ok(result));
     }
 }

@@ -19,6 +19,27 @@ public class DeliveryExceptionRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public async Task<DeliveryException?> GetByIdForUpdateAsync(Guid id)
+    {
+        if (!Context.Database.IsNpgsql())
+        {
+            return await GetByIdAsync(id);
+        }
+
+        var lockedExceptions = DbSet.FromSqlInterpolated(
+            $"SELECT * FROM delivery_exception WHERE id = {id} FOR UPDATE");
+        return await BuildDetailQuery(lockedExceptions).FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> HasPendingExceptionsAsync(Guid deliveryTaskId, Guid excludeExceptionId)
+    {
+        return await DbSet.AnyAsync(x => x.DeliveryTaskId == deliveryTaskId
+                                         && x.Id != excludeExceptionId
+                                         && x.HandleStatus == DeliveryExceptionStatus.Pending);
+    }
+
+    /// <inheritdoc />
     public override async Task<(IEnumerable<DeliveryException> Data, int Total)> GetPagedAsync(
         Expression<Func<DeliveryException, bool>>? predicate,
         int pageNumber,
@@ -60,9 +81,9 @@ public class DeliveryExceptionRepository(ApplicationDbContext context)
     /// 构建包含配送任务、司机和客户导航的配送异常查询。
     /// </summary>
     /// <returns>配送异常完整查询。</returns>
-    private IQueryable<DeliveryException> BuildDetailQuery()
+    private IQueryable<DeliveryException> BuildDetailQuery(IQueryable<DeliveryException>? source = null)
     {
-        return DbSet
+        return (source ?? DbSet)
             .Include(x => x.DeliveryTask)
             .Include(x => x.Driver)
             .Include(x => x.Customer);

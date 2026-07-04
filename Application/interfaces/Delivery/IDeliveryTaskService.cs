@@ -5,7 +5,7 @@ using Shared.Constants;
 namespace Application.interfaces;
 
 /// <summary>
-/// 配送任务应用服务，提供销售出库生成、订单/司机任务查询、司机分配和路线规划能力。
+/// 配送任务应用服务，提供任务生成、调度、配送执行、签收验收和回单归档能力。
 /// </summary>
 public interface IDeliveryTaskService
 {
@@ -50,4 +50,27 @@ public interface IDeliveryTaskService
     /// <param name="dto">待规划任务集合。</param>
     /// <returns>规划后的配送任务集合。</returns>
     Task<List<DeliveryTaskDto>> IntelligentPlanAsync(IntelligentPlanDeliveryTasksDto dto);
+
+    /// <summary>
+    /// 将已分配任务推进到配送中，并同步销售订单进入配送中状态。
+    /// </summary>
+    /// <param name="id">配送任务主键。</param>
+    /// <returns>开始执行后的配送任务。</returns>
+    Task<DeliveryTaskDto> StartDeliveryAsync(Guid id);
+
+    /// <summary>
+    /// 签收配送中任务，保存本次全部出库商品验收明细，并在全部任务完成后同步整单状态与结算金额。
+    /// </summary>
+    /// <param name="id">配送任务主键。</param>
+    /// <param name="dto">客户签收人与商品验收结果。</param>
+    /// <returns>新生成的签收回单。</returns>
+    Task<OrderReceiptDto> SignAsync(Guid id, SignDeliveryTaskDto dto);
+
+    /// <summary>
+    /// 归档已签收任务的回单资料，并在全部回单完成后同步销售订单回单状态。
+    /// </summary>
+    /// <param name="id">配送任务主键。</param>
+    /// <param name="dto">回单资料地址与归档说明。</param>
+    /// <returns>归档后的签收回单。</returns>
+    Task<OrderReceiptDto> ReturnReceiptAsync(Guid id, ReturnOrderReceiptDto dto);
 }

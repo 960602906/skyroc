@@ -1,6 +1,7 @@
 using Application.DTOs.Delivery;
 using AutoMapper;
 using Domain.Entities.Delivery;
+using Domain.Entities.Orders;
 
 namespace Application.Mappers;
 
@@ -26,6 +27,17 @@ public class DeliveryTaskMappingProfile : Profile
             .ForMember(x => x.DriverPhone, opt => opt.MapFrom(src => src.DriverPhoneSnapshot))
             .ForMember(x => x.CarrierName, opt => opt.MapFrom(src => src.CarrierNameSnapshot))
             .ForMember(x => x.RouteName, opt => opt.MapFrom(src => src.RouteNameSnapshot));
+
+        CreateMap<OrderReceipt, OrderReceiptDto>()
+            .ForMember(
+                x => x.CheckDetails,
+                opt => opt.MapFrom(src => src.CheckDetails
+                    .OrderBy(detail => detail.GoodsCodeSnapshot)
+                    .ThenBy(detail => detail.StockOutDetailId)));
+        CreateMap<OrderCheckDetail, OrderCheckDetailDto>()
+            .ForMember(x => x.GoodsName, opt => opt.MapFrom(src => src.GoodsNameSnapshot))
+            .ForMember(x => x.GoodsCode, opt => opt.MapFrom(src => src.GoodsCodeSnapshot))
+            .ForMember(x => x.GoodsUnitName, opt => opt.MapFrom(src => src.GoodsUnitNameSnapshot));
 
         CreateMap<DeliveryException, DeliveryExceptionDto>()
             .ForMember(x => x.DeliveryTaskNo, opt => opt.MapFrom(src => src.DeliveryTask == null ? null : src.DeliveryTask.TaskNo))

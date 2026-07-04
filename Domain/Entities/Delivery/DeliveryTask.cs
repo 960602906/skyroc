@@ -120,6 +120,16 @@ public class DeliveryTask : BaseEntity
     public DateTime? PlannedTime { get; set; }
 
     /// <summary>
+    /// 司机开始执行配送任务的时间（UTC）；尚未开始时为空。
+    /// </summary>
+    public DateTime? StartedTime { get; set; }
+
+    /// <summary>
+    /// 客户完成本任务签收的时间（UTC）；尚未签收时为空。
+    /// </summary>
+    public DateTime? SignedTime { get; set; }
+
+    /// <summary>
     /// 配送调度备注，对司机可见。
     /// </summary>
     public string? Remark { get; set; }
@@ -163,4 +173,9 @@ public class DeliveryTask : BaseEntity
     /// 任务执行期间登记的配送异常集合。
     /// </summary>
     public virtual ICollection<DeliveryException> Exceptions { get; set; } = new List<DeliveryException>();
+
+    /// <summary>
+    /// 本任务产生的客户签收回单；尚未签收时为空。
+    /// </summary>
+    public virtual OrderReceipt? Receipt { get; set; }
 }

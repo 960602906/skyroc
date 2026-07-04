@@ -10,7 +10,7 @@ namespace Infrastructure.Data.EntityConfigurations;
 public class DeliveryTaskConfiguration : IEntityTypeConfiguration<DeliveryTask>
 {
     /// <summary>
-    /// 配置配送任务快照字段、状态、唯一来源约束、查询索引及业务外键。
+    /// 配置配送任务快照、履约时间、状态、唯一来源约束、查询索引及业务外键。
     /// </summary>
     /// <param name="builder">配送任务实体类型构建器。</param>
     public void Configure(EntityTypeBuilder<DeliveryTask> builder)
@@ -41,6 +41,8 @@ public class DeliveryTaskConfiguration : IEntityTypeConfiguration<DeliveryTask>
         builder.Property(x => x.OutTime).HasColumnName("out_time").HasColumnType("timestamp with time zone").IsRequired();
         builder.Property(x => x.AssignedTime).HasColumnName("assigned_time").HasColumnType("timestamp with time zone");
         builder.Property(x => x.PlannedTime).HasColumnName("planned_time").HasColumnType("timestamp with time zone");
+        builder.Property(x => x.StartedTime).HasColumnName("started_time").HasColumnType("timestamp with time zone");
+        builder.Property(x => x.SignedTime).HasColumnName("signed_time").HasColumnType("timestamp with time zone");
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => x.TaskNo).IsUnique().HasDatabaseName("idx_delivery_task_no");

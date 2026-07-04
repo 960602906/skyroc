@@ -1,5 +1,7 @@
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
+using Domain.Entities.Orders;
+using Domain.Entities.Storage;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -36,6 +38,8 @@ public class DeliveryModelTests
         Assert.Equal("customer_route", GetEntityType<CustomerRoute>().GetTableName());
         Assert.Equal("delivery_exception", GetEntityType<DeliveryException>().GetTableName());
         Assert.Equal("delivery_task", GetEntityType<DeliveryTask>().GetTableName());
+        Assert.Equal("order_receipt", GetEntityType<OrderReceipt>().GetTableName());
+        Assert.Equal("order_check_detail", GetEntityType<OrderCheckDetail>().GetTableName());
     }
 
     [Fact]
@@ -106,6 +110,35 @@ public class DeliveryModelTests
         AssertForeignKey<DeliveryException, Driver>(nameof(DeliveryException.DriverId), DeleteBehavior.SetNull);
         AssertForeignKey<DeliveryException, Customer>(nameof(DeliveryException.CustomerId), DeleteBehavior.Restrict);
         AssertForeignKey<DeliveryException, DeliveryTask>(nameof(DeliveryException.DeliveryTaskId), DeleteBehavior.Restrict);
+    }
+
+    [Fact]
+    public void OrderReceipt_EnforcesOneReceiptPerTaskAndConfiguresTraceabilityReferences()
+    {
+        var entityType = GetEntityType<OrderReceipt>();
+
+        Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_order_receipt_no").IsUnique);
+        Assert.True(entityType.GetIndexes().Single(
+            x => x.GetDatabaseName() == "idx_order_receipt_delivery_task_id").IsUnique);
+        AssertForeignKey<OrderReceipt, DeliveryTask>(nameof(OrderReceipt.DeliveryTaskId), DeleteBehavior.Restrict);
+        AssertForeignKey<OrderReceipt, SaleOrder>(nameof(OrderReceipt.SaleOrderId), DeleteBehavior.Restrict);
+        AssertForeignKey<OrderReceipt, StockOutOrder>(nameof(OrderReceipt.StockOutOrderId), DeleteBehavior.Restrict);
+    }
+
+    [Fact]
+    public void OrderCheckDetail_EnforcesUniqueOutboundRowWithinReceiptAndRestrictsSources()
+    {
+        var entityType = GetEntityType<OrderCheckDetail>();
+        var index = entityType.GetIndexes().Single(
+            x => x.GetDatabaseName() == "idx_order_check_receipt_stock_out_detail");
+
+        Assert.True(index.IsUnique);
+        Assert.Equal(
+            [nameof(OrderCheckDetail.OrderReceiptId), nameof(OrderCheckDetail.StockOutDetailId)],
+            index.Properties.Select(x => x.Name));
+        AssertForeignKey<OrderCheckDetail, OrderReceipt>(nameof(OrderCheckDetail.OrderReceiptId), DeleteBehavior.Cascade);
+        AssertForeignKey<OrderCheckDetail, SaleOrderDetail>(nameof(OrderCheckDetail.SaleOrderDetailId), DeleteBehavior.Restrict);
+        AssertForeignKey<OrderCheckDetail, StockOutDetail>(nameof(OrderCheckDetail.StockOutDetailId), DeleteBehavior.Restrict);
     }
 
     private IEntityType GetEntityType<TEntity>()

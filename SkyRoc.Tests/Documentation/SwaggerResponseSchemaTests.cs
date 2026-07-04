@@ -101,9 +101,15 @@ public class SwaggerResponseSchemaTests
 
         Assert.True(schemas.TryGetProperty("DeliveryTaskDto", out _));
         Assert.True(schemas.TryGetProperty("CreateDeliveryExceptionDto", out _));
+        Assert.True(schemas.TryGetProperty("SignDeliveryTaskDto", out _));
+        Assert.True(schemas.TryGetProperty("OrderReceiptDto", out _));
         Assert.True(paths.TryGetProperty("/api/delivery-tasks/generate/{stockOutOrderId}", out _));
         Assert.True(paths.TryGetProperty("/api/delivery-tasks/intelligent-plan", out _));
+        Assert.True(paths.TryGetProperty("/api/delivery-tasks/{id}/start", out _));
+        Assert.True(paths.TryGetProperty("/api/delivery-tasks/{id}/sign", out _));
+        Assert.True(paths.TryGetProperty("/api/delivery-tasks/{id}/receipt", out _));
         Assert.True(paths.TryGetProperty("/api/delivery-exceptions", out _));
+        Assert.True(paths.TryGetProperty("/api/delivery-exceptions/{id}/handle", out _));
 
         var operation = paths.GetProperty("/api/delivery-tasks").GetProperty("get");
         Assert.Contains(PermissionCodes.Business.Delivery.Read, operation.GetProperty("description").GetString());

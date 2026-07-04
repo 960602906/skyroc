@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Domain.Entities.Delivery;
+using Domain.Entities.Storage;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -7,11 +8,18 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repositories;
 
 /// <summary>
-/// 配送任务仓储，负责完整聚合读取、来源幂等查询和事务内行锁定。
+/// 配送任务仓储，负责完整聚合读取、来源幂等查询、整单履约判断和事务内行锁定。
 /// </summary>
 public class DeliveryTaskRepository(ApplicationDbContext context)
     : Repository<DeliveryTask>(context), IDeliveryTaskRepository
 {
+    /// <inheritdoc />
+    public override Task UpdateAsync(DeliveryTask entity)
+    {
+        Context.Entry(entity).State = EntityState.Modified;
+        return Task.CompletedTask;
+    }
+
     /// <inheritdoc />
     public async Task<IReadOnlyList<DeliveryTask>> GetByIdsAsync(IReadOnlyCollection<Guid> ids)
     {
@@ -48,6 +56,18 @@ public class DeliveryTaskRepository(ApplicationDbContext context)
 
         var lockedTasks = DbSet.FromSqlInterpolated($"SELECT * FROM delivery_task WHERE id = {id} FOR UPDATE");
         return await BuildDetailQuery(lockedTasks).FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> HasIncompleteDeliveriesAsync(Guid saleOrderId, Guid excludeTaskId)
+    {
+        return await Context.Set<StockOutOrder>().AnyAsync(outbound =>
+            outbound.OrderType == StockOutOrderType.Sale
+            && outbound.BusinessStatus == StockDocumentStatus.Audited
+            && outbound.SaleOrderId == saleOrderId
+            && !DbSet.Any(task => task.StockOutOrderId == outbound.Id
+                                  && (task.Id == excludeTaskId
+                                      || task.DeliveryStatus == DeliveryTaskStatus.Signed)));
     }
 
     /// <inheritdoc />
@@ -91,6 +111,7 @@ public class DeliveryTaskRepository(ApplicationDbContext context)
     {
         return (source ?? DbSet)
             .Include(x => x.StockOutOrder)
+                .ThenInclude(x => x.Details)
             .Include(x => x.SaleOrder)
             .Include(x => x.Customer)
             .Include(x => x.Ware)
@@ -98,6 +119,8 @@ public class DeliveryTaskRepository(ApplicationDbContext context)
             .Include(x => x.Carrier)
             .Include(x => x.Route)
             .Include(x => x.Exceptions)
+            .Include(x => x.Receipt)
+                .ThenInclude(x => x!.CheckDetails)
             .AsSplitQuery();
     }
 }

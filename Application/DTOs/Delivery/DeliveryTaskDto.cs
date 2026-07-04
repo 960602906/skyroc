@@ -133,7 +133,24 @@ public class DeliveryTaskDto : BaseDto
     public DateTime? PlannedTime { get; set; }
 
     /// <summary>
+    /// 司机开始执行配送任务的时间（UTC）；尚未开始时为空。
+    /// </summary>
+    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
+    public DateTime? StartedTime { get; set; }
+
+    /// <summary>
+    /// 客户完成本任务签收的时间（UTC）；尚未签收时为空。
+    /// </summary>
+    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
+    public DateTime? SignedTime { get; set; }
+
+    /// <summary>
     /// 配送调度备注。
     /// </summary>
     public string? Remark { get; set; }
+
+    /// <summary>
+    /// 本任务产生的客户签收回单；尚未签收时为空。
+    /// </summary>
+    public OrderReceiptDto? Receipt { get; set; }
 }

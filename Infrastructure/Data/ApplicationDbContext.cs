@@ -222,6 +222,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<OrderAuditLog> OrderAuditLogs { get; set; }
 
     /// <summary>
+    /// 订单签收回单表。
+    /// </summary>
+    public DbSet<OrderReceipt> OrderReceipts { get; set; }
+
+    /// <summary>
+    /// 订单商品验收明细表。
+    /// </summary>
+    public DbSet<OrderCheckDetail> OrderCheckDetails { get; set; }
+
+    /// <summary>
     /// 采购计划表
     /// </summary>
     public DbSet<PurchasePlan> PurchasePlans { get; set; }

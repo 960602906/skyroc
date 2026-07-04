@@ -7,6 +7,8 @@ using Application.Validator;
 using AutoMapper;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
+using Domain.Entities.Goods;
+using GoodsEntity = Domain.Entities.Goods.Goods;
 using Domain.Entities.Orders;
 using Domain.Entities.Storage;
 using Domain.Interfaces;
@@ -239,6 +241,244 @@ public class DeliveryTaskServiceTests
         Assert.Empty(await context.DeliveryExceptions.ToListAsync());
     }
 
+    [Fact]
+    public async Task StartDeliveryAsync_TransitionsAssignedTaskAndSynchronizesSaleOrder()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedAuditedSaleOutboundAsync(context);
+        var driver = new Driver { Id = Guid.NewGuid(), Name = "配送司机", Code = "D004" };
+        await context.Drivers.AddAsync(driver);
+        await context.SaveChangesAsync();
+        var service = CreateTaskService(context);
+        var task = await service.GenerateFromStockOutAsync(seed.StockOutOrderId);
+        await service.AssignDriverAsync(new AssignDeliveryDriverDto { TaskIds = [task.Id], DriverId = driver.Id });
+
+        var started = await service.StartDeliveryAsync(task.Id);
+
+        Assert.Equal(DeliveryTaskStatus.Delivering, started.DeliveryStatus);
+        Assert.NotNull(started.StartedTime);
+        Assert.Equal(
+            SaleOrderStatus.Delivering,
+            (await context.SaleOrders.AsNoTracking().SingleAsync(x => x.Id == seed.SaleOrderId)).OrderStatus);
+        await Assert.ThrowsAsync<BusinessException>(() => service.StartDeliveryAsync(task.Id));
+    }
+
+    [Fact]
+    public async Task SignAsync_CreatesReceiptAndCompletesOrderAcceptance()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedAuditedSaleOutboundAsync(context);
+        var driver = new Driver { Id = Guid.NewGuid(), Name = "配送司机", Code = "D005" };
+        await context.Drivers.AddAsync(driver);
+        await context.SaveChangesAsync();
+        var service = CreateTaskService(context);
+        var task = await service.GenerateFromStockOutAsync(seed.StockOutOrderId);
+        await service.AssignDriverAsync(new AssignDeliveryDriverDto { TaskIds = [task.Id], DriverId = driver.Id });
+        await service.StartDeliveryAsync(task.Id);
+
+        var receipt = await service.SignAsync(task.Id, new SignDeliveryTaskDto
+        {
+            SignerName = " 李老师 ",
+            Remark = " 完好签收 ",
+            Details =
+            [
+                new SignDeliveryCheckDetailDto
+                {
+                    StockOutDetailId = seed.StockOutDetailId,
+                    AcceptedBaseQuantity = 10m,
+                    CheckStatus = OrderCustomerCheckStatus.Accepted
+                }
+            ]
+        });
+
+        var check = Assert.Single(receipt.CheckDetails);
+        Assert.Equal("李老师", receipt.SignerName);
+        Assert.Equal("完好签收", receipt.SignRemark);
+        Assert.Equal(10m, check.AcceptedBaseQuantity);
+        Assert.Equal(25m, check.AcceptedAmount);
+        Assert.Equal(CurrentUserId, (await context.OrderReceipts.SingleAsync()).CreateBy);
+        Assert.Equal(DeliveryTaskStatus.Signed, (await context.DeliveryTasks.SingleAsync()).DeliveryStatus);
+        var order = await context.SaleOrders.Include(x => x.Details).SingleAsync(x => x.Id == seed.SaleOrderId);
+        Assert.Equal(SaleOrderStatus.Signed, order.OrderStatus);
+        Assert.Equal(25m, order.SettlementPrice);
+        Assert.Equal(OrderCustomerCheckStatus.Accepted, Assert.Single(order.Details).CustomerCheckStatus);
+    }
+
+    [Fact]
+    public async Task SignAsync_RejectsIncompleteOrExcessAcceptanceWithoutPersistingReceipt()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedAuditedSaleOutboundAsync(context);
+        var driver = new Driver { Id = Guid.NewGuid(), Name = "配送司机", Code = "D006" };
+        await context.Drivers.AddAsync(driver);
+        await context.SaveChangesAsync();
+        var service = CreateTaskService(context);
+        var task = await service.GenerateFromStockOutAsync(seed.StockOutOrderId);
+        await service.AssignDriverAsync(new AssignDeliveryDriverDto { TaskIds = [task.Id], DriverId = driver.Id });
+        await service.StartDeliveryAsync(task.Id);
+
+        await Assert.ThrowsAsync<BusinessException>(() => service.SignAsync(task.Id, new SignDeliveryTaskDto
+        {
+            SignerName = "李老师",
+            Details =
+            [
+                new SignDeliveryCheckDetailDto
+                {
+                    StockOutDetailId = Guid.NewGuid(),
+                    AcceptedBaseQuantity = 10m,
+                    CheckStatus = OrderCustomerCheckStatus.Accepted
+                }
+            ]
+        }));
+        await Assert.ThrowsAsync<BusinessException>(() => service.SignAsync(task.Id, new SignDeliveryTaskDto
+        {
+            SignerName = "李老师",
+            Details =
+            [
+                new SignDeliveryCheckDetailDto
+                {
+                    StockOutDetailId = seed.StockOutDetailId,
+                    AcceptedBaseQuantity = 10.000001m,
+                    CheckStatus = OrderCustomerCheckStatus.Accepted
+                }
+            ]
+        }));
+
+        Assert.Empty(await context.OrderReceipts.AsNoTracking().ToListAsync());
+        Assert.Equal(DeliveryTaskStatus.Delivering, (await context.DeliveryTasks.AsNoTracking().SingleAsync()).DeliveryStatus);
+    }
+
+    [Fact]
+    public async Task SignAsync_DoesNotCompleteOrder_WhenAuditedOutboundHasNoDeliveryTask()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedAuditedSaleOutboundAsync(context);
+        var firstOutbound = await context.StockOutOrders.AsNoTracking().SingleAsync(x => x.Id == seed.StockOutOrderId);
+        await context.StockOutOrders.AddAsync(new StockOutOrder
+        {
+            Id = Guid.NewGuid(),
+            OutNo = "OUT20260704002",
+            OrderType = StockOutOrderType.Sale,
+            BusinessStatus = StockDocumentStatus.Audited,
+            WareId = firstOutbound.WareId,
+            WareNameSnapshot = firstOutbound.WareNameSnapshot,
+            SaleOrderId = seed.SaleOrderId,
+            CustomerId = seed.CustomerId,
+            CustomerNameSnapshot = firstOutbound.CustomerNameSnapshot,
+            OutTime = firstOutbound.OutTime.AddMinutes(10)
+        });
+        var driver = new Driver { Id = Guid.NewGuid(), Name = "配送司机", Code = "D009" };
+        await context.Drivers.AddAsync(driver);
+        await context.SaveChangesAsync();
+        var service = CreateTaskService(context);
+        var task = await service.GenerateFromStockOutAsync(seed.StockOutOrderId);
+        await service.AssignDriverAsync(new AssignDeliveryDriverDto { TaskIds = [task.Id], DriverId = driver.Id });
+        await service.StartDeliveryAsync(task.Id);
+
+        await service.SignAsync(task.Id, CreateSignRequest(seed.StockOutDetailId));
+
+        Assert.Equal(
+            SaleOrderStatus.Delivering,
+            (await context.SaleOrders.AsNoTracking().SingleAsync(x => x.Id == seed.SaleOrderId)).OrderStatus);
+    }
+
+    [Fact]
+    public async Task ReturnReceiptAsync_ArchivesOnceAndSynchronizesOrderReturnStatus()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedAuditedSaleOutboundAsync(context);
+        var driver = new Driver { Id = Guid.NewGuid(), Name = "配送司机", Code = "D007" };
+        await context.Drivers.AddAsync(driver);
+        await context.SaveChangesAsync();
+        var service = CreateTaskService(context);
+        var task = await service.GenerateFromStockOutAsync(seed.StockOutOrderId);
+        await service.AssignDriverAsync(new AssignDeliveryDriverDto { TaskIds = [task.Id], DriverId = driver.Id });
+        await service.StartDeliveryAsync(task.Id);
+        await service.SignAsync(task.Id, CreateSignRequest(seed.StockOutDetailId));
+
+        var returned = await service.ReturnReceiptAsync(task.Id, new ReturnOrderReceiptDto
+        {
+            ReceiptImageUrl = " https://files.example.com/receipt-1.jpg ",
+            Remark = " 纸质件已归档 "
+        });
+
+        Assert.Equal("https://files.example.com/receipt-1.jpg", returned.ReceiptImageUrl);
+        Assert.NotNull(returned.ReturnedTime);
+        Assert.Equal("纸质件已归档", returned.ReturnRemark);
+        Assert.Equal(
+            OrderReturnStatus.Returned,
+            (await context.SaleOrders.AsNoTracking().SingleAsync(x => x.Id == seed.SaleOrderId)).ReturnStatus);
+        await Assert.ThrowsAsync<BusinessException>(() => service.ReturnReceiptAsync(
+            task.Id,
+            new ReturnOrderReceiptDto { ReceiptImageUrl = "https://files.example.com/repeat.jpg" }));
+    }
+
+    [Fact]
+    public async Task ReturnReceiptAsync_RejectsNonHttpEvidenceUrl()
+    {
+        await using var context = CreateDbContext();
+        var service = CreateTaskService(context);
+
+        await Assert.ThrowsAsync<ValidationException>(() => service.ReturnReceiptAsync(
+            Guid.NewGuid(),
+            new ReturnOrderReceiptDto { ReceiptImageUrl = "javascript:alert(1)" }));
+    }
+
+    [Fact]
+    public async Task SignValidator_AllowsMoreThanOneHundredUniqueOutboundDetails()
+    {
+        var validator = new SignDeliveryTaskValidator();
+        var dto = new SignDeliveryTaskDto
+        {
+            SignerName = "李老师",
+            Details = Enumerable.Range(0, 101)
+                .Select(_ => new SignDeliveryCheckDetailDto
+                {
+                    StockOutDetailId = Guid.NewGuid(),
+                    AcceptedBaseQuantity = 1m,
+                    CheckStatus = OrderCustomerCheckStatus.Accepted
+                })
+                .ToList()
+        };
+
+        var result = await validator.ValidateAsync(dto);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ClosesExceptionAndRestoresStartedTaskToDelivering()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedAuditedSaleOutboundAsync(context);
+        var driver = new Driver { Id = Guid.NewGuid(), Name = "配送司机", Code = "D008" };
+        await context.Drivers.AddAsync(driver);
+        await context.SaveChangesAsync();
+        var taskService = CreateTaskService(context);
+        var task = await taskService.GenerateFromStockOutAsync(seed.StockOutOrderId);
+        await taskService.AssignDriverAsync(new AssignDeliveryDriverDto { TaskIds = [task.Id], DriverId = driver.Id });
+        await taskService.StartDeliveryAsync(task.Id);
+        var exceptionService = CreateExceptionService(context);
+        var deliveryException = await exceptionService.CreateAsync(new CreateDeliveryExceptionDto
+        {
+            DeliveryTaskId = task.Id,
+            Description = "客户临时离开"
+        });
+
+        var handled = await exceptionService.HandleAsync(deliveryException.Id, new HandleDeliveryExceptionDto
+        {
+            HandleRemark = " 已联系客户并重新配送 "
+        });
+
+        Assert.Equal(DeliveryExceptionStatus.Handled, handled.HandleStatus);
+        Assert.Equal("已联系客户并重新配送", handled.HandleRemark);
+        Assert.NotNull(handled.HandleTime);
+        Assert.Equal(DeliveryTaskStatus.Delivering, (await context.DeliveryTasks.SingleAsync()).DeliveryStatus);
+        await Assert.ThrowsAsync<BusinessException>(() => exceptionService.HandleAsync(
+            deliveryException.Id,
+            new HandleDeliveryExceptionDto { HandleRemark = "重复处理" }));
+    }
+
     private static ApplicationDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -253,6 +493,7 @@ public class DeliveryTaskServiceTests
             new DeliveryTaskRepository(context),
             new StockOutOrderRepository(context),
             new SaleOrderRepository(context),
+            new OrderReceiptRepository(context),
             new DriverRepository(context),
             new DeliveryRouteRepository(context),
             new RecordingUnitOfWork(context),
@@ -260,6 +501,8 @@ public class DeliveryTaskServiceTests
             new FakeCurrentUserService(),
             new AssignDeliveryDriverValidator(),
             new IntelligentPlanDeliveryTasksValidator(),
+            new SignDeliveryTaskValidator(),
+            new ReturnOrderReceiptValidator(),
             NullLogger<DeliveryTaskService>.Instance);
     }
 
@@ -272,6 +515,7 @@ public class DeliveryTaskServiceTests
             CreateMapper(),
             new FakeCurrentUserService(),
             new CreateDeliveryExceptionValidator(),
+            new HandleDeliveryExceptionValidator(),
             NullLogger<DeliveryExceptionService>.Instance);
     }
 
@@ -284,6 +528,16 @@ public class DeliveryTaskServiceTests
     {
         var customer = new Customer { Id = Guid.NewGuid(), Name = "第一食堂", Code = "C001" };
         var ware = new Ware { Id = Guid.NewGuid(), Name = "中心仓", Code = "W001" };
+        var goods = new GoodsEntity { Id = Guid.NewGuid(), Name = "青菜", Code = "G001", GoodsTypeId = Guid.NewGuid() };
+        var goodsUnit = new GoodsUnit
+        {
+            Id = Guid.NewGuid(),
+            GoodsId = goods.Id,
+            Name = "箱",
+            Code = "BOX",
+            ConversionRate = 2m
+        };
+        goods.BaseUnitId = goodsUnit.Id;
         var saleOrder = new SaleOrder
         {
             Id = Guid.NewGuid(),
@@ -294,7 +548,24 @@ public class DeliveryTaskServiceTests
             ContactNameSnapshot = "李老师",
             ContactPhoneSnapshot = "13800001234",
             DeliveryAddressSnapshot = "上海市浦东新区一号门",
-            OrderDate = new DateTime(2026, 7, 4, 1, 0, 0, DateTimeKind.Utc)
+            OrderDate = new DateTime(2026, 7, 4, 1, 0, 0, DateTimeKind.Utc),
+            OrderStatus = SaleOrderStatus.SortingCompleted,
+            OutStorageStatus = OrderOutStorageStatus.Generated
+        };
+        var saleOrderDetail = new SaleOrderDetail
+        {
+            Id = Guid.NewGuid(),
+            SaleOrderId = saleOrder.Id,
+            GoodsId = goods.Id,
+            GoodsNameSnapshot = goods.Name,
+            GoodsCodeSnapshot = goods.Code,
+            GoodsUnitId = goodsUnit.Id,
+            GoodsUnitNameSnapshot = goodsUnit.Name,
+            Quantity = 5m,
+            BaseQuantity = 10m,
+            UnitConversion = 2m,
+            FixedPrice = 5m,
+            TotalPrice = 25m
         };
         var stockOut = new StockOutOrder
         {
@@ -309,12 +580,50 @@ public class DeliveryTaskServiceTests
             CustomerNameSnapshot = customer.Name,
             OutTime = new DateTime(2026, 7, 4, 2, 0, 0, DateTimeKind.Utc)
         };
-        await context.AddRangeAsync(customer, ware, saleOrder, stockOut);
+        var stockOutDetail = new StockOutDetail
+        {
+            Id = Guid.NewGuid(),
+            StockOutOrderId = stockOut.Id,
+            SaleOrderDetailId = saleOrderDetail.Id,
+            GoodsId = goods.Id,
+            GoodsNameSnapshot = goods.Name,
+            GoodsCodeSnapshot = goods.Code,
+            GoodsUnitId = goodsUnit.Id,
+            GoodsUnitNameSnapshot = goodsUnit.Name,
+            ConversionRate = 2m,
+            Quantity = 5m,
+            BaseQuantity = 10m,
+            UnitPrice = 5m,
+            TotalPrice = 25m,
+            BatchNoSnapshot = "B001"
+        };
+        await context.AddRangeAsync(customer, ware, goods, goodsUnit, saleOrder, saleOrderDetail, stockOut, stockOutDetail);
         await context.SaveChangesAsync();
-        return new DeliverySeed(customer.Id, stockOut.Id);
+        return new DeliverySeed(customer.Id, stockOut.Id, saleOrder.Id, stockOutDetail.Id);
     }
 
-    private sealed record DeliverySeed(Guid CustomerId, Guid StockOutOrderId);
+    private static SignDeliveryTaskDto CreateSignRequest(Guid stockOutDetailId)
+    {
+        return new SignDeliveryTaskDto
+        {
+            SignerName = "李老师",
+            Details =
+            [
+                new SignDeliveryCheckDetailDto
+                {
+                    StockOutDetailId = stockOutDetailId,
+                    AcceptedBaseQuantity = 10m,
+                    CheckStatus = OrderCustomerCheckStatus.Accepted
+                }
+            ]
+        };
+    }
+
+    private sealed record DeliverySeed(
+        Guid CustomerId,
+        Guid StockOutOrderId,
+        Guid SaleOrderId,
+        Guid StockOutDetailId);
 
     private sealed class FakeCurrentUserService : ICurrentUserService
     {

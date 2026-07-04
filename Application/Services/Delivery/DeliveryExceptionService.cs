@@ -23,6 +23,7 @@ public class DeliveryExceptionService(
     IMapper mapper,
     ICurrentUserService currentUserService,
     IValidator<CreateDeliveryExceptionDto> createValidator,
+    IValidator<HandleDeliveryExceptionDto> handleValidator,
     ILogger<DeliveryExceptionService> logger) : IDeliveryExceptionService
 {
     /// <inheritdoc />
@@ -92,6 +93,59 @@ public class DeliveryExceptionService(
 
         logger.LogInformation("配送异常登记成功: {DeliveryExceptionId}, {DeliveryTaskId}", exceptionId, dto.DeliveryTaskId);
         return await GetByIdAsync(exceptionId);
+    }
+
+    /// <inheritdoc />
+    public async Task<DeliveryExceptionDto> HandleAsync(Guid id, HandleDeliveryExceptionDto dto)
+    {
+        var validation = await handleValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            throw new ValidationException(validation.Errors);
+        }
+
+        await ExecuteInTransactionAsync(async () =>
+        {
+            var entity = await deliveryExceptionRepository.GetByIdForUpdateAsync(id)
+                         ?? throw new NotFoundException("配送异常不存在");
+            if (entity.HandleStatus != DeliveryExceptionStatus.Pending)
+            {
+                throw new BusinessException($"配送异常 {entity.ExceptionNo} 已处理，不能重复操作");
+            }
+
+            if (!entity.DeliveryTaskId.HasValue)
+            {
+                throw new BusinessException($"配送异常 {entity.ExceptionNo} 未关联配送任务");
+            }
+
+            var task = await deliveryTaskRepository.GetByIdForUpdateAsync(entity.DeliveryTaskId.Value)
+                       ?? throw new BusinessException("配送异常关联的配送任务不存在");
+            if (task.DeliveryStatus != DeliveryTaskStatus.Exception)
+            {
+                throw new BusinessException($"配送任务 {task.TaskNo} 当前状态不允许处理异常");
+            }
+
+            entity.HandleStatus = DeliveryExceptionStatus.Handled;
+            entity.HandleRemark = dto.HandleRemark.Trim();
+            entity.HandleTime = DateTime.UtcNow;
+            entity.UpdateBy = currentUserService.GetUserId();
+            entity.UpdateName = currentUserService.GetUserName();
+            await deliveryExceptionRepository.UpdateAsync(entity);
+
+            var hasOtherPending = await deliveryExceptionRepository.HasPendingExceptionsAsync(task.Id, entity.Id);
+            if (!hasOtherPending)
+            {
+                task.DeliveryStatus = task.StartedTime.HasValue
+                    ? DeliveryTaskStatus.Delivering
+                    : DeliveryTaskStatus.Assigned;
+                task.UpdateBy = currentUserService.GetUserId();
+                task.UpdateName = currentUserService.GetUserName();
+                await deliveryTaskRepository.UpdateAsync(task);
+            }
+        });
+
+        logger.LogInformation("配送异常处理完成: {DeliveryExceptionId}", id);
+        return await GetByIdAsync(id);
     }
 
     private async Task<string> GenerateExceptionNoAsync()

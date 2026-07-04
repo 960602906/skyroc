@@ -148,4 +148,9 @@ public class SaleOrder : BaseEntity
     /// 订单审核轨迹集合。
     /// </summary>
     public virtual ICollection<OrderAuditLog> AuditLogs { get; set; } = new List<OrderAuditLog>();
+
+    /// <summary>
+    /// 各配送任务形成的签收回单集合，用于汇总整单签收与回单状态。
+    /// </summary>
+    public virtual ICollection<OrderReceipt> Receipts { get; set; } = new List<OrderReceipt>();
 }

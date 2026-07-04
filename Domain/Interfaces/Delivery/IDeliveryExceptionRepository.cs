@@ -9,6 +9,21 @@ namespace Domain.Interfaces;
 public interface IDeliveryExceptionRepository : IRepository<DeliveryException>
 {
     /// <summary>
+    /// 在当前事务内锁定配送异常，防止重复处理。
+    /// </summary>
+    /// <param name="id">配送异常主键。</param>
+    /// <returns>配送异常聚合；不存在时返回 <c>null</c>。</returns>
+    Task<DeliveryException?> GetByIdForUpdateAsync(Guid id);
+
+    /// <summary>
+    /// 判断配送任务是否仍有其他待处理异常。
+    /// </summary>
+    /// <param name="deliveryTaskId">配送任务主键。</param>
+    /// <param name="excludeExceptionId">本次正在处理、需从查询中排除的异常主键。</param>
+    /// <returns>存在其他待处理异常时返回 <c>true</c>。</returns>
+    Task<bool> HasPendingExceptionsAsync(Guid deliveryTaskId, Guid excludeExceptionId);
+
+    /// <summary>
     /// 按条件分页查询配送异常，加载所属任务、司机和客户信息。
     /// </summary>
     /// <param name="predicate">任务、司机、客户、处理状态和时间筛选条件。</param>

@@ -10,7 +10,7 @@ using SkyRoc.Authorization;
 namespace SkyRoc.Controllers;
 
 /// <summary>
-/// 配送任务控制器，提供销售出库生成、订单/司机任务查询、司机分配和路线规划接口。
+/// 配送任务控制器，提供任务生成、调度、配送执行、客户签收和回单归档接口。
 /// </summary>
 [ApiController]
 [Route("api/delivery-tasks")]
@@ -98,5 +98,50 @@ public class DeliveryTasksController(IDeliveryTaskService service) : ControllerB
     {
         var result = await service.IntelligentPlanAsync(dto);
         return Ok(ApiResponse<List<DeliveryTaskDto>>.Ok(result));
+    }
+
+    /// <summary>
+    /// 将已分配任务推进到配送中，并同步销售订单状态。需要配送更新权限。
+    /// </summary>
+    /// <param name="id">配送任务主键。</param>
+    /// <returns>开始执行后的配送任务。</returns>
+    [HttpPut("{id:guid}/start")]
+    [ResourcePermission(PermissionActions.Update)]
+    public async Task<ActionResult<ApiResponse<DeliveryTaskDto>>> Start(Guid id)
+    {
+        var result = await service.StartDeliveryAsync(id);
+        return Ok(ApiResponse<DeliveryTaskDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 签收配送中任务，保存全部出库商品验收结果，并在整单完成时同步订单结算状态。需要配送更新权限。
+    /// </summary>
+    /// <param name="id">配送任务主键。</param>
+    /// <param name="dto">客户签收人与本次商品验收结果。</param>
+    /// <returns>新生成的签收回单。</returns>
+    [HttpPut("{id:guid}/sign")]
+    [ResourcePermission(PermissionActions.Update)]
+    public async Task<ActionResult<ApiResponse<OrderReceiptDto>>> Sign(
+        Guid id,
+        [FromBody] SignDeliveryTaskDto dto)
+    {
+        var result = await service.SignAsync(id, dto);
+        return Ok(ApiResponse<OrderReceiptDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 归档已签收任务的纸质扫描件或电子回单，并在整单完成时同步回单状态。需要配送更新权限。
+    /// </summary>
+    /// <param name="id">配送任务主键。</param>
+    /// <param name="dto">回单资料地址与归档说明。</param>
+    /// <returns>归档后的签收回单。</returns>
+    [HttpPut("{id:guid}/receipt")]
+    [ResourcePermission(PermissionActions.Update)]
+    public async Task<ActionResult<ApiResponse<OrderReceiptDto>>> ReturnReceipt(
+        Guid id,
+        [FromBody] ReturnOrderReceiptDto dto)
+    {
+        var result = await service.ReturnReceiptAsync(id, dto);
+        return Ok(ApiResponse<OrderReceiptDto>.Ok(result));
     }
 }

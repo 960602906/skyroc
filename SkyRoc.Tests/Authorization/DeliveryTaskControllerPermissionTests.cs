@@ -21,7 +21,10 @@ public class DeliveryTaskControllerPermissionTests
             ["GetById"] = PermissionActions.Read,
             ["Generate"] = PermissionActions.Create,
             ["AssignDriver"] = PermissionActions.Update,
-            ["IntelligentPlan"] = PermissionActions.Update
+            ["IntelligentPlan"] = PermissionActions.Update,
+            ["Start"] = PermissionActions.Update,
+            ["Sign"] = PermissionActions.Update,
+            ["ReturnReceipt"] = PermissionActions.Update
         });
     }
 
@@ -32,7 +35,8 @@ public class DeliveryTaskControllerPermissionTests
         {
             ["GetPaged"] = PermissionActions.Read,
             ["GetById"] = PermissionActions.Read,
-            ["Create"] = PermissionActions.Create
+            ["Create"] = PermissionActions.Create,
+            ["Handle"] = PermissionActions.Update
         });
     }
 

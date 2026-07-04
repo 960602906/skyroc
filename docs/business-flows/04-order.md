@@ -145,6 +145,8 @@ flowchart TD
 | 签收/验收 | PUT | `/business/app/order/order/signAll/{orderId}` | `checkOrder` |
 | 外部同步 | POST | `/api/sunshine/sync/{type}` | `orderSync` |
 
+当前后端的签收与回单由配送任务驱动：`PUT /api/delivery-tasks/{id}/sign` 按销售出库行保存验收明细，`PUT /api/delivery-tasks/{id}/receipt` 归档纸质扫描件或电子回单。分批配送场景下，首张任务签收或回单不会提前完成整张销售订单；整单状态按全部有效销售出库对应的配送任务聚合。
+
 ## 订单字段
 
 | 字段 | 含义 |
@@ -238,4 +240,3 @@ flowchart TD
 - 按订单查看和按商品查看建议是两个 query model，不要共用混乱字段。
 - 订单状态按钮要集中成状态机配置，避免散落 `if orderStatus === ...`。
 - 订单模块是第一优先级重写对象，建议先补后端请求体/响应体。
-
