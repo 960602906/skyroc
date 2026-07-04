@@ -1,6 +1,6 @@
 # SkyRoc
 
-`SkyRoc` 是一个基于 `.NET 9` 的生鲜供应链后台项目。第一阶段已完成认证、系统权限和基础资料能力，第二阶段已完成销售订单 CRUD、审核状态机与接口联调收口。
+`SkyRoc` 是一个基于 `.NET 9` 的生鲜供应链后台项目。第一阶段认证、系统权限与基础资料以及第二阶段订单、采购、库存、配送和签收主链路均已完成，当前进入第三阶段售后与财务开发。
 
 当前项目采用分层架构，已经具备本地启动、默认种子初始化、Redis Token 缓存、Redis 运行时内存降级、Swagger 调试、HTTP 联调脚本和最小回归测试。
 
@@ -23,17 +23,17 @@
 - [Domain](./Domain/): 领域层，包含实体和仓储接口
 - [Infrastructure](./Infrastructure/): 基础设施层，包含 EF Core、仓储实现、事务、缓存、数据库种子和迁移
 - [Shared](./Shared/): 共享层，包含公共常量、通用响应模型、配置模型和工具类
-- [SkyRoc.Tests](./SkyRoc.Tests/): xUnit 测试，覆盖映射、缓存、授权、基础资料与订单服务、API 集成、序列化和 Swagger 契约
+- [SkyRoc.Tests](./SkyRoc.Tests/): xUnit 测试，覆盖映射、缓存、授权、业务服务、完整主链路 API 集成、序列化和 Swagger 契约
 
 ## 业务模块与开发进度
 
-**P1 系统权限与基础资料已经完成，当前进入 P2-10 采购单 API。** 销售订单模型、事务化 CRUD、审核状态机、细粒度权限、Swagger、HTTP 主流程和 API 集成测试均已收口；采购计划已支持查询、生成、供应商/采购员分配、合并和按订单或商品数量拆分，采购单及其明细和计划来源关系模型已落地。
+**P1 系统权限与基础资料、P2 订单主链路已经完成，当前进入 P3-01 售后模型。** 第二阶段已贯通销售订单审核、采购计划、采购单、采购入库、销售出库、配送执行、客户签收和回单归档，并以真实 HTTP 集成测试核验来源追溯、库存流水和订单状态聚合。
 
 | 阶段 | 状态 | 范围 |
 | --- | --- | --- |
 | P1 系统权限与基础资料 | 已完成 | 认证、系统权限、基础资料、定价、回归测试与 API 契约 |
-| P2 订单主链路 | 进行中 | 订单 CRUD、审核联调、采购计划操作和采购单模型已完成，当前执行 P2-10 采购单 API |
-| P3 售后与财务 | 待开始 | 售后、客户结算、供应商结算 |
+| P2 订单主链路 | 已完成 | 订单、采购、入出库、库存查询、配送、签收回单和完整链路联调 |
+| P3 售后与财务 | 进行中 | 当前执行 P3-01 售后单、售后商品、审核记录和取货任务模型 |
 | P4 查询与支撑 | 待开始 | 溯源、报表、驾驶舱、打印、日志 |
 
 完整模块状态见 [业务模块与开发进度](./docs/开发进度.md)，逐项交付物和验收条件见 [自动开发任务清单](./docs/自动开发任务清单.md)。每次开发只完成清单中第一个未勾选任务，验收通过后再推进断点。
@@ -56,7 +56,12 @@
 - 报价单、报价商品、客户协议价和采购规则
 - 销售订单分页、详情、创建、编辑、删除和审核状态流转
 - 采购计划查询、生成、供应商/采购员分配、合并和拆分
-- 采购单、采购单明细和计划来源关系模型
+- 采购单 CRUD、完成/取消状态流转及计划来源追溯
+- 采购、其他、销售退货入库及审核/反审核
+- 销售、采购退货、其他出库及审核/反审核
+- 库存批次、只追加流水、盘点、库存总览、批次和台账查询
+- 承运商、司机、配送路线、配送任务和异常处理
+- 客户签收、商品验收、短收结算与回单归档
 - Redis 中的 AccessToken / RefreshToken 缓存
 - Redis 不可用时的运行时内存降级
 - 数据库迁移与默认种子初始化
@@ -69,11 +74,13 @@
 - 商品与定价：`GoodsTypes`、`Goods`、`GoodsUnits`、`Quotations`、`QuotationGoods`、`CustomerProtocols`、`CustomerProtocolGoods`
 - 客户与采购基础资料：`Companies`、`Customers`、`CustomerTags`、`CustomerSubAccounts`、`Suppliers`、`Purchasers`、`PurchaseRules`、`Wares`
 - 订单：`Orders`
-- 采购计划：`PurchasePlans`
+- 采购：`PurchasePlans`、`PurchaseOrders`
+- 库存：`PurchaseStockIn`、`OtherStockIn`、`SalesReturnStockIn`、`SaleStockOut`、`PurchaseReturnStockOut`、`OtherStockOut`、`Stocktaking`、`StockQuery`
+- 配送：`Carriers`、`Drivers`、`Routes`、`DeliveryTasks`、`DeliveryExceptions`
 
-采购单、库存单据、配送、售后、财务、报表和溯源 API 尚未实现。
+售后、财务、报表和溯源 API 尚未实现。
 
-HTTP 脚本当前共记录 192 个请求；第一阶段真实路由、响应约定和权限编码见 [第一阶段 API 契约](./docs/第一阶段API契约.md)。
+HTTP 脚本当前共记录 300 个请求；第一阶段真实路由、响应约定和权限编码见 [第一阶段 API 契约](./docs/第一阶段API契约.md)。
 
 ## 启动说明
 
@@ -127,7 +134,7 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 
 ## 联调方式
 
-项目提供了覆盖第一阶段全部接口及销售订单主流程的 HTTP 联调脚本 [SkyRoc.http](./SkyRoc/SkyRoc.http)。
+项目提供了覆盖基础资料、销售订单、采购、库存、配送和签收回单的 HTTP 联调脚本 [SkyRoc.http](./SkyRoc/SkyRoc.http)。
 
 推荐联调顺序：
 
@@ -137,8 +144,11 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 4. `Get Routes`
 5. `Menus - Get Tree`
 6. `Departments - Get Tree`
-7. `Orders - Create`，回填返回的订单及明细 ID
-8. `Orders - Update` → `Reject` → `Resubmit` → `Approve`
+7. `Orders - Create` → `Approve`
+8. `Purchase Plans - Generate` → 分配供应商/采购员 → 生成并完成采购单
+9. `Stock In Purchase - Create` → `Audit`
+10. `Stock Out Sale - Create` → `Audit`
+11. `Delivery Tasks - Generate` → 分配司机 → 开始配送 → 签收 → 回单归档
 
 使用方式：
 
@@ -216,6 +226,9 @@ dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
 - Swagger 匿名/受保护操作认证契约测试
 - 订单模型、映射、验证、仓储、事务化服务和审核状态机测试
 - 订单认证授权、Swagger 权限说明和 HTTP API 主流程集成测试
+- 采购计划、采购单、入出库、库存盘点和库存查询测试
+- 配送基础资料、配送任务、异常、签收回单和状态聚合测试
+- 订单到回单归档的第二阶段真实 HTTP 完整链路测试
 
 运行测试：
 
@@ -232,4 +245,4 @@ dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
 
 ## 建议下一步
 
-按 [自动开发任务清单](./docs/自动开发任务清单.md) 顺序执行，不跳项。当前任务是 **P2-10 采购单 API**；完成并验收后再领取 P2-11。
+按 [自动开发任务清单](./docs/自动开发任务清单.md) 顺序执行，不跳项。当前任务是 **P3-01 售后模型**；完成并验收后再领取 P3-02。
