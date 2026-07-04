@@ -44,6 +44,9 @@
 @stockOutPurchaseReturnDeleteDraftId = 00000000-0000-0000-0000-000000000001
 @stockOutOtherDeleteDraftId = 00000000-0000-0000-0000-000000000001
 @stocktakingId = 00000000-0000-0000-0000-000000000001
+@carrierId = 00000000-0000-0000-0000-000000000001
+@driverId = 00000000-0000-0000-0000-000000000001
+@routeId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -2575,5 +2578,217 @@ Accept: {{contentType}}
 
 ### Stock Query - Ledger By Batch And Time
 GET {{SkyRoc_HostAddress}}/api/stock/ledgers?current=1&size=10&stockBatchId={{stockBatchId}}&occurredTimeStart=2026-07-01T00:00:00Z&occurredTimeEnd=2026-07-31T23:59:59Z
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Carriers - List
+GET {{SkyRoc_HostAddress}}/api/Carriers/list?current=1&size=10&name=顺丰
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Carriers - Get All
+GET {{SkyRoc_HostAddress}}/api/Carriers
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Carriers - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Carriers/{{carrierId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Carriers - Create
+POST {{SkyRoc_HostAddress}}/api/Carriers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "顺丰同城配送",
+  "code": "CARRIER_SF_CITY",
+  "contactName": "王调度",
+  "contactPhone": "13800002222",
+  "address": "上海市浦东新区世纪大道",
+  "remark": "同城冷链承运商",
+  "status": 1
+}
+
+### Carriers - Update
+PUT {{SkyRoc_HostAddress}}/api/Carriers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{carrierId}}",
+  "name": "顺丰同城配送（更新）",
+  "code": "CARRIER_SF_CITY",
+  "contactName": "王调度",
+  "contactPhone": "13800002222",
+  "address": "上海市浦东新区世纪大道",
+  "remark": "同城冷链承运商",
+  "status": 1
+}
+
+### Carriers - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Carriers/{{carrierId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Carriers - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Carriers/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{carrierId}}"
+]
+
+### Carriers - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Carriers/{{carrierId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Drivers - List
+GET {{SkyRoc_HostAddress}}/api/Drivers/list?current=1&size=10&name=张&carrierId={{carrierId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Drivers - Get All
+GET {{SkyRoc_HostAddress}}/api/Drivers
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Drivers - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Drivers/{{driverId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Drivers - Create
+POST {{SkyRoc_HostAddress}}/api/Drivers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "张师傅",
+  "code": "DRIVER_ZHANG_001",
+  "phone": "13900003333",
+  "carrierId": "{{carrierId}}",
+  "plateNumber": "沪A12345",
+  "licenseNo": "310101199001011234",
+  "remark": "熟悉浦东片区",
+  "status": 1
+}
+
+### Drivers - Update
+PUT {{SkyRoc_HostAddress}}/api/Drivers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{driverId}}",
+  "name": "张师傅（更新）",
+  "code": "DRIVER_ZHANG_001",
+  "phone": "13900003333",
+  "carrierId": "{{carrierId}}",
+  "plateNumber": "沪A12345",
+  "licenseNo": "310101199001011234",
+  "remark": "熟悉浦东片区",
+  "status": 1
+}
+
+### Drivers - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Drivers/{{driverId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Drivers - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Drivers/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{driverId}}"
+]
+
+### Drivers - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Drivers/{{driverId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Routes - List
+GET {{SkyRoc_HostAddress}}/api/Routes/list?current=1&size=10&name=浦东
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Routes - Get All
+GET {{SkyRoc_HostAddress}}/api/Routes
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Routes - Get By Id
+GET {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Routes - Create
+POST {{SkyRoc_HostAddress}}/api/Routes
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "浦东一号线",
+  "code": "ROUTE_PD_001",
+  "description": "覆盖浦东张江和金桥片区",
+  "sort": 1,
+  "remark": "工作日每日一趟",
+  "status": 1,
+  "customerIds": [
+    "{{customerId}}"
+  ]
+}
+
+### Routes - Update
+PUT {{SkyRoc_HostAddress}}/api/Routes
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{routeId}}",
+  "name": "浦东一号线（更新）",
+  "code": "ROUTE_PD_001",
+  "description": "覆盖浦东张江、金桥和陆家嘴片区",
+  "sort": 2,
+  "remark": "工作日每日一趟",
+  "status": 1,
+  "customerIds": [
+    "{{customerId}}"
+  ]
+}
+
+### Routes - Dispatch Customers
+PUT {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}/customers
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "customerIds": [
+    "{{customerId}}"
+  ]
+}
+
+### Routes - Toggle Status
+PATCH {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}/status?status=Disable
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Routes - Batch Delete
+DELETE {{SkyRoc_HostAddress}}/api/Routes/batchDelete
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+[
+  "{{routeId}}"
+]
+
+### Routes - Delete
+DELETE {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}

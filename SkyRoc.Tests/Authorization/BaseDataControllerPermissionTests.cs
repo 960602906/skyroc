@@ -27,7 +27,10 @@ public class BaseDataControllerPermissionTests
             [typeof(SuppliersController)] = PermissionCodes.Business.Purchases.Resource,
             [typeof(PurchasersController)] = PermissionCodes.Business.Purchases.Resource,
             [typeof(PurchaseRulesController)] = PermissionCodes.Business.Purchases.Resource,
-            [typeof(WaresController)] = PermissionCodes.Business.Storage.Resource
+            [typeof(WaresController)] = PermissionCodes.Business.Storage.Resource,
+            [typeof(CarriersController)] = PermissionCodes.Business.Delivery.Resource,
+            [typeof(DriversController)] = PermissionCodes.Business.Delivery.Resource,
+            [typeof(RoutesController)] = PermissionCodes.Business.Delivery.Resource
         };
 
     private static readonly IReadOnlyDictionary<string, string> ExpectedCrudActions =
@@ -65,6 +68,10 @@ public class BaseDataControllerPermissionTests
             [typeof(QuotationsController)] = new Dictionary<string, string>
             {
                 [nameof(QuotationsController.ToggleAudit)] = PermissionCodes.Business.Pricing.Audit
+            },
+            [typeof(RoutesController)] = new Dictionary<string, string>
+            {
+                [nameof(RoutesController.DispatchCustomers)] = PermissionCodes.Business.Delivery.Update
             }
         };
 

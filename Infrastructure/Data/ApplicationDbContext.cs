@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Domain.Entities;
 using Domain.Entities.Customers;
+using Domain.Entities.Delivery;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
@@ -289,6 +290,31 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 库存盘点批次明细表。
     /// </summary>
     public DbSet<StocktakingDetail> StocktakingDetails { get; set; }
+
+    /// <summary>
+    /// 承运商表。
+    /// </summary>
+    public DbSet<Carrier> Carriers { get; set; }
+
+    /// <summary>
+    /// 司机表。
+    /// </summary>
+    public DbSet<Driver> Drivers { get; set; }
+
+    /// <summary>
+    /// 配送路线表。
+    /// </summary>
+    public DbSet<DeliveryRoute> DeliveryRoutes { get; set; }
+
+    /// <summary>
+    /// 客户路线关系表。
+    /// </summary>
+    public DbSet<CustomerRoute> CustomerRoutes { get; set; }
+
+    /// <summary>
+    /// 配送异常表。
+    /// </summary>
+    public DbSet<DeliveryException> DeliveryExceptions { get; set; }
 
     #endregion
 }

@@ -1,10 +1,12 @@
 using Application.DTOs.Customers;
+using Application.DTOs.Delivery;
 using Application.DTOs.Goods;
 using Application.DTOs.Pricing;
 using Application.DTOs.Purchases;
 using Application.DTOs.Storage;
 using AutoMapper;
 using Domain.Entities.Customers;
+using Domain.Entities.Delivery;
 using Domain.Entities.Goods;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
@@ -110,5 +112,28 @@ public class BaseDataMappingProfile : Profile
             .ForMember(x => x.CustomerIds, opt => opt.MapFrom(src => src.Customers.Select(x => x.CustomerId).ToList()));
         CreateMap<CreatePurchaseRuleDto, PurchaseRule>();
         CreateMap<UpdatePurchaseRuleDto, PurchaseRule>();
+
+        // 状态为空时回退到目标实体当前值：新建保持默认启用，编辑不覆盖现有状态，仅在显式传入时更新。
+        CreateMap<Carrier, CarrierDto>();
+        CreateMap<CreateCarrierDto, Carrier>()
+            .ForMember(x => x.Status, opt => opt.MapFrom((src, dest) => src.Status ?? dest.Status));
+        CreateMap<UpdateCarrierDto, Carrier>()
+            .ForMember(x => x.Status, opt => opt.MapFrom((src, dest) => src.Status ?? dest.Status));
+
+        CreateMap<Driver, DriverDto>()
+            .ForMember(x => x.CarrierName, opt => opt.MapFrom(src => src.Carrier == null ? null : src.Carrier.Name));
+        CreateMap<CreateDriverDto, Driver>()
+            .ForMember(x => x.Status, opt => opt.MapFrom((src, dest) => src.Status ?? dest.Status));
+        CreateMap<UpdateDriverDto, Driver>()
+            .ForMember(x => x.Status, opt => opt.MapFrom((src, dest) => src.Status ?? dest.Status));
+
+        CreateMap<DeliveryRoute, DeliveryRouteDto>()
+            .ForMember(x => x.CustomerIds, opt => opt.MapFrom(src => src.CustomerRoutes.Select(r => r.CustomerId).ToList()));
+        CreateMap<CreateDeliveryRouteDto, DeliveryRoute>()
+            .ForMember(x => x.CustomerRoutes, opt => opt.Ignore())
+            .ForMember(x => x.Status, opt => opt.MapFrom((src, dest) => src.Status ?? dest.Status));
+        CreateMap<UpdateDeliveryRouteDto, DeliveryRoute>()
+            .ForMember(x => x.CustomerRoutes, opt => opt.Ignore())
+            .ForMember(x => x.Status, opt => opt.MapFrom((src, dest) => src.Status ?? dest.Status));
     }
 }

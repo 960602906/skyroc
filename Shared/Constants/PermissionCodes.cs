@@ -110,6 +110,15 @@ public static class PermissionCodes
             public const string Delete = $"{Resource}:delete";
             public const string Audit = $"{Resource}:audit";
         }
+
+        public static class Delivery
+        {
+            public const string Resource = "business:delivery";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -161,6 +170,10 @@ public static class PermissionCodes
         Business.Orders.Create,
         Business.Orders.Update,
         Business.Orders.Delete,
-        Business.Orders.Audit
+        Business.Orders.Audit,
+        Business.Delivery.Read,
+        Business.Delivery.Create,
+        Business.Delivery.Update,
+        Business.Delivery.Delete
     ];
 }

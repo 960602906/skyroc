@@ -1,5 +1,6 @@
 using Domain.Entities;
 using Domain.Entities.Customers;
+using Domain.Entities.Delivery;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
@@ -62,7 +63,12 @@ public static class DatabaseCommentExtensions
         [typeof(RoleMenu)] = "角色与菜单权限的多对多关系",
         [typeof(User)] = "系统用户，记录登录身份、组织归属和个人资料",
         [typeof(UserRole)] = "系统用户与角色的多对多关系",
-        [typeof(Ware)] = "仓库档案，记录仓库联系信息和启用状态"
+        [typeof(Ware)] = "仓库档案，记录仓库联系信息和启用状态",
+        [typeof(Carrier)] = "承运商档案，记录负责配送履约的第三方物流公司资料",
+        [typeof(Driver)] = "司机档案，记录执行配送任务的司机及其所属承运商",
+        [typeof(DeliveryRoute)] = "配送路线档案，维护配送分区路线及排序",
+        [typeof(CustomerRoute)] = "客户与配送路线的关系，记录客户归属路线和路线内配送顺序",
+        [typeof(DeliveryException)] = "配送异常，记录配送过程中上报的异常及处理状态"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -91,6 +97,15 @@ public static class DatabaseCommentExtensions
         ["BusinessScope"] = "企业登记的经营范围",
         ["BusinessStatus"] = "采购单执行状态：草稿、已完成或已取消",
         ["BusinessTerm"] = "企业登记的营业期限",
+        ["CarrierId"] = "所属承运商主键",
+        ["PlateNumber"] = "司机车牌号",
+        ["LicenseNo"] = "司机驾驶证号",
+        ["RouteId"] = "关联配送路线主键",
+        ["DriverId"] = "关联司机主键",
+        ["ExceptionNo"] = "配送异常业务唯一编号",
+        ["HandleStatus"] = "配送异常处理状态：待处理或已处理",
+        ["HandleRemark"] = "配送异常处理说明",
+        ["HandleTime"] = "配送异常处理完成时间（UTC）",
         ["Code"] = "业务唯一编码",
         ["CompanyId"] = "所属公司主键",
         ["Component"] = "前端路由加载的组件路径",
@@ -317,7 +332,9 @@ public static class DatabaseCommentExtensions
             [(typeof(StockOutOrder), nameof(StockOutOrder.BusinessStatus))] = "出库单状态：草稿、待审核、已审核、已反审核或已删除",
             [(typeof(StockOutOrder), nameof(StockOutOrder.PrintStatus))] = "出库单打印状态：0 未打印，1 已打印",
             [(typeof(StockOutOrder), nameof(StockOutOrder.SupplierNameSnapshot))] = "出库发生时的供应商名称快照",
-            [(typeof(StocktakingOrder), nameof(StocktakingOrder.BusinessStatus))] = "盘点单状态：草稿、待审核、已审核、已反审核或已删除"
+            [(typeof(StocktakingOrder), nameof(StocktakingOrder.BusinessStatus))] = "盘点单状态：草稿、待审核、已审核、已反审核或已删除",
+            [(typeof(DeliveryRoute), nameof(DeliveryRoute.Description))] = "配送路线描述，说明覆盖区域或配送顺序",
+            [(typeof(DeliveryException), nameof(DeliveryException.Description))] = "配送异常描述，说明配送过程中发生的具体问题"
         };
 
     /// <summary>
