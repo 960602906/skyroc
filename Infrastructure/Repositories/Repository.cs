@@ -10,6 +10,11 @@ namespace Infrastructure.Repositories;
 public class Repository<T>(ApplicationDbContext context) : IRepository<T> where T : BaseEntity
 {
     /// <summary>
+    /// 当前仓储共享的数据库上下文。
+    /// </summary>
+    protected readonly ApplicationDbContext Context = context;
+
+    /// <summary>
     /// 当前实体对应的 EF Core 数据集。
     /// </summary>
     protected readonly DbSet<T> DbSet = context.Set<T>();

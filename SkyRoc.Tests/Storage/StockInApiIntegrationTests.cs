@@ -1,0 +1,273 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+using Application.DTOs.Storage;
+using Domain.Entities.Goods;
+using Domain.Entities.Purchases;
+using Domain.Entities.Storage;
+using Domain.Interfaces;
+using Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Shared.Common;
+using Shared.Constants;
+using Xunit;
+using GoodsEntity = Domain.Entities.Goods.Goods;
+
+namespace SkyRoc.Tests.Storage;
+
+public class StockInApiIntegrationTests
+{
+    [Fact]
+    public async Task PurchaseInbound_AuditIncreasesStock_ReverseRollsBack_ThroughHttpApi()
+    {
+        using var factory = new StockInApiFactory();
+        var seed = await factory.SeedCatalogAsync();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.PermissionsHeader, PermissionCodes.All);
+
+        var createResponse = await client.PostAsJsonAsync("/api/stock-in/purchase", new CreatePurchaseStockInDto
+        {
+            WareId = seed.WareId,
+            SupplierId = seed.SupplierId,
+            PurchaserId = seed.PurchaserId,
+            PurchasePattern = PurchasePattern.SupplierDirect,
+            InTime = new DateTime(2026, 7, 4, 8, 0, 0, DateTimeKind.Utc),
+            Remark = "入库集成测试",
+            Details =
+            [
+                new CreateStockInDetailDto
+                {
+                    GoodsId = seed.GoodsId,
+                    GoodsUnitId = seed.GoodsUnitId,
+                    Quantity = 20m,
+                    UnitPrice = 4m,
+                    BatchNo = "BATCH-IT-01",
+                    ProductDate = new DateOnly(2026, 7, 1)
+                }
+            ]
+        });
+        var created = await ReadDataAsync<StockInOrderDto>(createResponse);
+        Assert.Equal(StockDocumentStatus.Draft, created.BusinessStatus);
+
+        var auditResponse = await client.PostAsJsonAsync(
+            $"/api/stock-in/purchase/{created.Id}/audit",
+            new StockInAuditDto { Remark = "审核入库" });
+        var audited = await ReadDataAsync<StockInOrderDto>(auditResponse);
+        Assert.Equal(StockDocumentStatus.Audited, audited.BusinessStatus);
+        Assert.NotNull(Assert.Single(audited.Details).StockBatchId);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var batch = await context.StockBatches.SingleAsync();
+            Assert.Equal(20m, batch.CurrentQuantity);
+            Assert.Equal(20m, batch.AvailableQuantity);
+            Assert.Equal(4m, batch.UnitCost);
+            Assert.Equal(1, await context.StockLedgers.CountAsync());
+        }
+
+        var reverseResponse = await client.PostAsJsonAsync(
+            $"/api/stock-in/purchase/{created.Id}/reverse-audit",
+            new StockInAuditDto { Remark = "反审核回滚" });
+        var reversed = await ReadDataAsync<StockInOrderDto>(reverseResponse);
+        Assert.Equal(StockDocumentStatus.Reversed, reversed.BusinessStatus);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var batch = await context.StockBatches.SingleAsync();
+            Assert.Equal(0m, batch.CurrentQuantity);
+            Assert.Equal(0m, batch.AvailableQuantity);
+            Assert.Equal(2, await context.StockLedgers.CountAsync());
+        }
+    }
+
+    [Fact]
+    public async Task StockInEndpoints_Return403_WhenPermissionMissing()
+    {
+        using var factory = new StockInApiFactory();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.PermissionsHeader, PermissionCodes.Business.Storage.Read);
+
+        var response = await client.PostAsJsonAsync("/api/stock-in/purchase", new CreatePurchaseStockInDto
+        {
+            WareId = Guid.NewGuid(),
+            InTime = new DateTime(2026, 7, 4, 8, 0, 0, DateTimeKind.Utc),
+            Details = []
+        });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    private static async Task<T> ReadDataAsync<T>(HttpResponseMessage response)
+    {
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<T>>();
+        Assert.NotNull(result);
+        return Assert.IsType<T>(result.Data);
+    }
+
+    private sealed class StockInApiFactory : WebApplicationFactory<Program>
+    {
+        private readonly string _databaseName = $"stock-in-{Guid.NewGuid():N}";
+
+        public async Task<CatalogSeed> SeedCatalogAsync()
+        {
+            using var scope = Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var goodsType = new GoodsType { Id = Guid.NewGuid(), Name = "蔬菜", Code = "IT_VEGETABLE" };
+            var goods = new GoodsEntity
+            {
+                Id = Guid.NewGuid(),
+                Name = "番茄",
+                Code = "IT_TOMATO",
+                GoodsTypeId = goodsType.Id,
+                Spec = "一级"
+            };
+            var goodsUnit = new GoodsUnit
+            {
+                Id = Guid.NewGuid(),
+                GoodsId = goods.Id,
+                Name = "千克",
+                Code = "KG",
+                ConversionRate = 1m,
+                IsBaseUnit = true
+            };
+            goods.BaseUnitId = goodsUnit.Id;
+            var ware = new Ware { Id = Guid.NewGuid(), Name = "入库集成仓", Code = "IT_WARE" };
+            var supplier = new Supplier { Id = Guid.NewGuid(), Name = "入库集成供应商", Code = "IT_SUPPLIER" };
+            var purchaser = new Purchaser { Id = Guid.NewGuid(), Name = "入库集成采购员", Code = "IT_PURCHASER" };
+
+            await context.GoodsTypes.AddAsync(goodsType);
+            await context.Goods.AddAsync(goods);
+            await context.GoodsUnits.AddAsync(goodsUnit);
+            await context.Wares.AddAsync(ware);
+            await context.Suppliers.AddAsync(supplier);
+            await context.Purchasers.AddAsync(purchaser);
+            await context.SaveChangesAsync();
+            return new CatalogSeed(goods.Id, goodsUnit.Id, ware.Id, supplier.Id, purchaser.Id);
+        }
+
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.UseEnvironment("Development");
+            builder.UseSetting(
+                "ConnectionStrings:DefaultConnection",
+                "Host=localhost;Database=skyroc_tests;Username=test;Password=test");
+            builder.UseSetting("Redis:Enabled", "false");
+            builder.ConfigureTestServices(services =>
+            {
+                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
+                services.RemoveAll<IDbContextOptionsConfiguration<ApplicationDbContext>>();
+                services.RemoveAll<ApplicationDbContext>();
+                services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseInMemoryDatabase(_databaseName));
+                services.RemoveAll<IUnitOfWork>();
+                services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
+                services.AddAuthentication(options =>
+                    {
+                        options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;
+                        options.DefaultChallengeScheme = TestAuthHandler.AuthenticationScheme;
+                        options.DefaultForbidScheme = TestAuthHandler.AuthenticationScheme;
+                    })
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                        TestAuthHandler.AuthenticationScheme,
+                        _ => { });
+            });
+        }
+    }
+
+    private sealed class TestAuthHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    {
+        public const string AuthenticationScheme = "StockInIntegrationTest";
+        public const string PermissionsHeader = "X-Test-Permissions";
+
+        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        {
+            if (!Request.Headers.TryGetValue(PermissionsHeader, out var values))
+            {
+                return Task.FromResult(AuthenticateResult.NoResult());
+            }
+
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, "10000000-0000-0000-0000-000000000022"),
+                new(ClaimTypes.Name, "stock-in-test")
+            };
+            claims.AddRange(values.ToString()
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(permission => new Claim(AuthConstants.PermissionClaimType, permission)));
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, AuthenticationScheme));
+            return Task.FromResult(AuthenticateResult.Success(
+                new AuthenticationTicket(principal, AuthenticationScheme)));
+        }
+    }
+
+    private sealed class InMemoryUnitOfWork(ApplicationDbContext context) : IUnitOfWork
+    {
+        public bool HasActiveTransaction { get; private set; }
+
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return context.SaveChangesAsync(cancellationToken);
+        }
+
+        public Task BeginTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            HasActiveTransaction = true;
+            return Task.CompletedTask;
+        }
+
+        public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            await context.SaveChangesAsync(cancellationToken);
+            HasActiveTransaction = false;
+        }
+
+        public Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            context.ChangeTracker.Clear();
+            HasActiveTransaction = false;
+            return Task.CompletedTask;
+        }
+
+        public Task<int> ExecuteSqlAsync(string sql, params object[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void ClearChangeTracking()
+        {
+            context.ChangeTracker.Clear();
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed record CatalogSeed(
+        Guid GoodsId,
+        Guid GoodsUnitId,
+        Guid WareId,
+        Guid SupplierId,
+        Guid PurchaserId);
+}

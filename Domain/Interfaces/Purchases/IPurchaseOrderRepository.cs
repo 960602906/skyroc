@@ -8,6 +8,13 @@ namespace Domain.Interfaces;
 public interface IPurchaseOrderRepository : IRepository<PurchaseOrder>
 {
     /// <summary>
+    /// 在当前数据库事务内锁定并读取采购单聚合，用于串行校验采购入库数量。
+    /// </summary>
+    /// <param name="id">待锁定的采购单主键。</param>
+    /// <returns>包含商品明细的采购单；不存在时返回 <c>null</c>。</returns>
+    Task<PurchaseOrder?> GetByIdForUpdateAsync(Guid id);
+
+    /// <summary>
     /// 检查采购单编号是否已被其他采购单占用。
     /// </summary>
     /// <param name="purchaseNo">待校验的采购单业务编号。</param>

@@ -33,6 +33,9 @@
 @purchasePlanDetailId = 00000000-0000-0000-0000-000000000001
 @purchaseOrderId = 00000000-0000-0000-0000-000000000001
 @purchaseOrderDetailId = 00000000-0000-0000-0000-000000000001
+@stockInPurchaseId = 00000000-0000-0000-0000-000000000001
+@stockInOtherId = 00000000-0000-0000-0000-000000000001
+@stockInSalesReturnId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -1939,5 +1942,259 @@ Accept: {{contentType}}
 
 ### Procurement Flow 10/10 - Complete Purchase Order
 POST {{SkyRoc_HostAddress}}/api/purchase-orders/{{flowPurchaseOrderId}}/complete
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Purchase) - List
+GET {{SkyRoc_HostAddress}}/api/stock-in/purchase/list?current=1&size=10&businessStatus=1
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Purchase) - Create Draft
+POST {{SkyRoc_HostAddress}}/api/stock-in/purchase
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "purchaseOrderId": null,
+  "supplierId": "{{supplierId}}",
+  "purchaserId": "{{purchaserId}}",
+  "departmentId": null,
+  "purchasePattern": 1,
+  "inTime": "2026-07-04 08:00:00",
+  "expectedArrivalTime": "2026-07-05 08:00:00",
+  "remark": "采购到货入库",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 20,
+      "unitPrice": 4,
+      "batchNo": "BATCH-20260704",
+      "productDate": "2026-07-01",
+      "expireDate": "2026-07-15",
+      "remark": "首批到货"
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockInPurchaseId", response.body.data.id);
+%}
+
+### Stock In (Purchase) - Get By Id
+GET {{SkyRoc_HostAddress}}/api/stock-in/purchase/{{stockInPurchaseId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Purchase) - Update Draft
+PUT {{SkyRoc_HostAddress}}/api/stock-in/purchase
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{stockInPurchaseId}}",
+  "wareId": "{{wareId}}",
+  "supplierId": "{{supplierId}}",
+  "purchaserId": "{{purchaserId}}",
+  "purchasePattern": 1,
+  "inTime": "2026-07-04 08:00:00",
+  "expectedArrivalTime": "2026-07-05 08:00:00",
+  "remark": "调整入库数量",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 24,
+      "unitPrice": 4,
+      "batchNo": "BATCH-20260704",
+      "productDate": "2026-07-01",
+      "expireDate": "2026-07-15"
+    }
+  ]
+}
+
+### Stock In (Purchase) - Audit (Increase Stock)
+POST {{SkyRoc_HostAddress}}/api/stock-in/purchase/{{stockInPurchaseId}}/audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核入库"
+}
+
+### Stock In (Purchase) - Reverse Audit (Rollback Stock)
+POST {{SkyRoc_HostAddress}}/api/stock-in/purchase/{{stockInPurchaseId}}/reverse-audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "入库有误，反审核回滚"
+}
+
+### Stock In (Purchase) - Delete Draft
+DELETE {{SkyRoc_HostAddress}}/api/stock-in/purchase/{{stockInPurchaseId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Other) - List
+GET {{SkyRoc_HostAddress}}/api/stock-in/other/list?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Other) - Create Draft
+POST {{SkyRoc_HostAddress}}/api/stock-in/other
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "departmentId": null,
+  "inTime": "2026-07-04 08:00:00",
+  "remark": "盘盈其他入库",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 5,
+      "unitPrice": 3,
+      "batchNo": "OTHER-20260704",
+      "productDate": "2026-07-01"
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockInOtherId", response.body.data.id);
+%}
+
+### Stock In (Other) - Get By Id
+GET {{SkyRoc_HostAddress}}/api/stock-in/other/{{stockInOtherId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Other) - Update Draft
+PUT {{SkyRoc_HostAddress}}/api/stock-in/other
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{stockInOtherId}}",
+  "wareId": "{{wareId}}",
+  "inTime": "2026-07-04 08:00:00",
+  "remark": "调整其他入库",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 6,
+      "unitPrice": 3,
+      "batchNo": "OTHER-20260704"
+    }
+  ]
+}
+
+### Stock In (Other) - Audit
+POST {{SkyRoc_HostAddress}}/api/stock-in/other/{{stockInOtherId}}/audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核其他入库"
+}
+
+### Stock In (Other) - Reverse Audit
+POST {{SkyRoc_HostAddress}}/api/stock-in/other/{{stockInOtherId}}/reverse-audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "反审核其他入库"
+}
+
+### Stock In (Other) - Delete Draft
+DELETE {{SkyRoc_HostAddress}}/api/stock-in/other/{{stockInOtherId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Sales Return) - List
+GET {{SkyRoc_HostAddress}}/api/stock-in/sales-return/list?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Sales Return) - Create Draft
+POST {{SkyRoc_HostAddress}}/api/stock-in/sales-return
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "customerId": "{{customerId}}",
+  "departmentId": null,
+  "inTime": "2026-07-04 08:00:00",
+  "remark": "客户退货入库",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 3,
+      "unitPrice": 4,
+      "batchNo": "RETURN-20260704"
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockInSalesReturnId", response.body.data.id);
+%}
+
+### Stock In (Sales Return) - Get By Id
+GET {{SkyRoc_HostAddress}}/api/stock-in/sales-return/{{stockInSalesReturnId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock In (Sales Return) - Update Draft
+PUT {{SkyRoc_HostAddress}}/api/stock-in/sales-return
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{stockInSalesReturnId}}",
+  "wareId": "{{wareId}}",
+  "customerId": "{{customerId}}",
+  "inTime": "2026-07-04 08:00:00",
+  "remark": "调整退货入库",
+  "details": [
+    {
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 2,
+      "unitPrice": 4,
+      "batchNo": "RETURN-20260704"
+    }
+  ]
+}
+
+### Stock In (Sales Return) - Audit
+POST {{SkyRoc_HostAddress}}/api/stock-in/sales-return/{{stockInSalesReturnId}}/audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核退货入库"
+}
+
+### Stock In (Sales Return) - Reverse Audit
+POST {{SkyRoc_HostAddress}}/api/stock-in/sales-return/{{stockInSalesReturnId}}/reverse-audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "反审核退货入库"
+}
+
+### Stock In (Sales Return) - Delete Draft
+DELETE {{SkyRoc_HostAddress}}/api/stock-in/sales-return/{{stockInSalesReturnId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}

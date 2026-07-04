@@ -1,0 +1,116 @@
+using Application.DTOs.Storage;
+using Application.interfaces;
+using Application.QueryParameters;
+using Domain.Entities.Storage;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Shared.Common;
+using Shared.Constants;
+using SkyRoc.Authorization;
+
+namespace SkyRoc.Controllers;
+
+/// <summary>
+/// 销售退货入库控制器，提供客户退货入库的查询、维护及审核、反审核接口。
+/// </summary>
+[ApiController]
+[Route("api/stock-in/sales-return")]
+[Authorize]
+[PermissionResource(PermissionCodes.Business.Storage.Resource)]
+public class SalesReturnStockInController(IStockInService service) : ControllerBase
+{
+    private const StockInOrderType OrderType = StockInOrderType.SalesReturn;
+
+    /// <summary>
+    /// 分页查询销售退货入库单及商品明细。需要库存读取权限。
+    /// </summary>
+    /// <param name="parameters">销售退货入库分页和筛选参数。</param>
+    /// <returns>销售退货入库单分页结果。</returns>
+    [HttpGet("list")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<IActionResult> GetPaged([FromQuery] StockInOrderQueryParameters parameters)
+    {
+        var result = await service.GetPagedAsync(OrderType, parameters);
+        return Ok(ApiResponse<PagedResult<StockInOrderDto>>.Ok(result));
+    }
+
+    /// <summary>
+    /// 查询销售退货入库单详情。需要库存读取权限。
+    /// </summary>
+    /// <param name="id">销售退货入库单主键。</param>
+    /// <returns>销售退货入库单完整详情。</returns>
+    [HttpGet("{id:guid}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var result = await service.GetByIdAsync(OrderType, id);
+        return Ok(ApiResponse<StockInOrderDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 创建销售退货入库草稿及商品明细。需要库存创建权限。
+    /// </summary>
+    /// <param name="dto">销售退货入库创建请求。</param>
+    /// <returns>创建后的销售退货入库单详情。</returns>
+    [HttpPost]
+    [ResourcePermission(PermissionActions.Create)]
+    public async Task<IActionResult> Create([FromBody] CreateSalesReturnStockInDto dto)
+    {
+        var result = await service.CreateSalesReturnAsync(dto);
+        return Ok(ApiResponse<StockInOrderDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 编辑销售退货入库草稿及其全部商品明细。需要库存更新权限。
+    /// </summary>
+    /// <param name="dto">销售退货入库整单替换请求。</param>
+    /// <returns>更新后的销售退货入库单详情。</returns>
+    [HttpPut]
+    [ResourcePermission(PermissionActions.Update)]
+    public async Task<IActionResult> Update([FromBody] UpdateSalesReturnStockInDto dto)
+    {
+        var result = await service.UpdateSalesReturnAsync(dto);
+        return Ok(ApiResponse<StockInOrderDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 删除销售退货入库草稿。需要库存删除权限。
+    /// </summary>
+    /// <param name="id">销售退货入库单主键。</param>
+    /// <returns>删除成功标记。</returns>
+    [HttpDelete("{id:guid}")]
+    [ResourcePermission(PermissionActions.Delete)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await service.DeleteAsync(OrderType, id);
+        return Ok(ApiResponse<bool>.Ok(result));
+    }
+
+    /// <summary>
+    /// 审核销售退货入库单，增加库存批次并写入库存流水。需要库存更新权限。
+    /// </summary>
+    /// <param name="id">销售退货入库单主键。</param>
+    /// <param name="dto">审核说明。</param>
+    /// <returns>审核后的销售退货入库单详情。</returns>
+    [HttpPost("{id:guid}/audit")]
+    [ResourcePermission(PermissionActions.Update)]
+    public async Task<IActionResult> Audit(Guid id, [FromBody] StockInAuditDto? dto)
+    {
+        var result = await service.AuditAsync(OrderType, id, dto?.Remark);
+        return Ok(ApiResponse<StockInOrderDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 反审核销售退货入库单，回滚库存批次并写入反向流水。需要库存更新权限。
+    /// </summary>
+    /// <param name="id">销售退货入库单主键。</param>
+    /// <param name="dto">反审核原因说明。</param>
+    /// <returns>反审核后的销售退货入库单详情。</returns>
+    [HttpPost("{id:guid}/reverse-audit")]
+    [ResourcePermission(PermissionActions.Update)]
+    public async Task<IActionResult> ReverseAudit(Guid id, [FromBody] StockInAuditDto? dto)
+    {
+        var result = await service.ReverseAuditAsync(OrderType, id, dto?.Remark);
+        return Ok(ApiResponse<StockInOrderDto>.Ok(result));
+    }
+}

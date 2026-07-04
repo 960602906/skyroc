@@ -19,6 +19,20 @@ public class PurchaseOrderRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public async Task<PurchaseOrder?> GetByIdForUpdateAsync(Guid id)
+    {
+        if (!Context.Database.IsNpgsql())
+        {
+            return await GetByIdAsync(id);
+        }
+
+        var lockedOrders = DbSet.FromSqlInterpolated(
+            $"SELECT * FROM purchase_order WHERE id = {id} FOR UPDATE");
+        return await BuildDetailQuery(includePlanDetails: true, lockedOrders)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    /// <inheritdoc />
     public override async Task<(IEnumerable<PurchaseOrder> Data, int Total)> GetPagedAsync(
         Expression<Func<PurchaseOrder, bool>>? predicate,
         int pageNumber,
@@ -59,9 +73,11 @@ public class PurchaseOrderRepository(ApplicationDbContext context)
     /// 构建包含商品、单位和计划来源聚合的采购单查询。
     /// </summary>
     /// <returns>预加载采购单完整业务聚合的查询。</returns>
-    private IQueryable<PurchaseOrder> BuildDetailQuery(bool includePlanDetails)
+    private IQueryable<PurchaseOrder> BuildDetailQuery(
+        bool includePlanDetails,
+        IQueryable<PurchaseOrder>? source = null)
     {
-        var query = DbSet
+        var query = (source ?? DbSet)
             .Include(x => x.Supplier)
             .Include(x => x.Purchaser)
             .Include(x => x.Details)
