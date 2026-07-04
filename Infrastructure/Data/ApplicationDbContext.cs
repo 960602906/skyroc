@@ -250,5 +250,45 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<PurchaseOrderPlanRelation> PurchaseOrderPlanRelations { get; set; }
 
+    /// <summary>
+    /// 仓库商品批次库存表。
+    /// </summary>
+    public DbSet<StockBatch> StockBatches { get; set; }
+
+    /// <summary>
+    /// 库存增减流水表。
+    /// </summary>
+    public DbSet<StockLedger> StockLedgers { get; set; }
+
+    /// <summary>
+    /// 入库主单表。
+    /// </summary>
+    public DbSet<StockInOrder> StockInOrders { get; set; }
+
+    /// <summary>
+    /// 入库商品明细表。
+    /// </summary>
+    public DbSet<StockInDetail> StockInDetails { get; set; }
+
+    /// <summary>
+    /// 出库主单表。
+    /// </summary>
+    public DbSet<StockOutOrder> StockOutOrders { get; set; }
+
+    /// <summary>
+    /// 出库商品明细表。
+    /// </summary>
+    public DbSet<StockOutDetail> StockOutDetails { get; set; }
+
+    /// <summary>
+    /// 库存盘点主单表。
+    /// </summary>
+    public DbSet<StocktakingOrder> StocktakingOrders { get; set; }
+
+    /// <summary>
+    /// 库存盘点批次明细表。
+    /// </summary>
+    public DbSet<StocktakingDetail> StocktakingDetails { get; set; }
+
     #endregion
 }
