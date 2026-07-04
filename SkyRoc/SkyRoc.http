@@ -36,6 +36,13 @@
 @stockInPurchaseId = 00000000-0000-0000-0000-000000000001
 @stockInOtherId = 00000000-0000-0000-0000-000000000001
 @stockInSalesReturnId = 00000000-0000-0000-0000-000000000001
+@stockBatchId = 00000000-0000-0000-0000-000000000001
+@stockOutSaleId = 00000000-0000-0000-0000-000000000001
+@stockOutPurchaseReturnId = 00000000-0000-0000-0000-000000000001
+@stockOutOtherId = 00000000-0000-0000-0000-000000000001
+@stockOutSaleDeleteDraftId = 00000000-0000-0000-0000-000000000001
+@stockOutPurchaseReturnDeleteDraftId = 00000000-0000-0000-0000-000000000001
+@stockOutOtherDeleteDraftId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -2198,3 +2205,319 @@ Content-Type: {{contentType}}
 DELETE {{SkyRoc_HostAddress}}/api/stock-in/sales-return/{{stockInSalesReturnId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### Stock Out (Sale) - List
+GET {{SkyRoc_HostAddress}}/api/stock-out/sale/list?current=1&size=10&businessStatus=1
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Sale) - Create Draft From Approved Order
+POST {{SkyRoc_HostAddress}}/api/stock-out/sale
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "saleOrderId": "{{orderId}}",
+  "customerId": "{{customerId}}",
+  "departmentId": null,
+  "outTime": "2026-07-05 08:00:00",
+  "remark": "订单销售出库",
+  "details": [
+    {
+      "saleOrderDetailId": "{{orderDetailId}}",
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 10,
+      "unitPrice": 6,
+      "remark": "按指定批次出库"
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockOutSaleId", response.body.data.id);
+%}
+
+### Stock Out (Sale) - Create Disposable Draft
+POST {{SkyRoc_HostAddress}}/api/stock-out/sale
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "saleOrderId": null,
+  "customerId": "{{customerId}}",
+  "departmentId": null,
+  "outTime": "2026-07-05 08:30:00",
+  "remark": "待删除销售出库草稿",
+  "details": [
+    {
+      "saleOrderDetailId": null,
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 1,
+      "unitPrice": 6
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockOutSaleDeleteDraftId", response.body.data.id);
+%}
+
+### Stock Out (Sale) - Delete Draft
+DELETE {{SkyRoc_HostAddress}}/api/stock-out/sale/{{stockOutSaleDeleteDraftId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Sale) - Get By Id
+GET {{SkyRoc_HostAddress}}/api/stock-out/sale/{{stockOutSaleId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Sale) - Update Draft
+PUT {{SkyRoc_HostAddress}}/api/stock-out/sale
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{stockOutSaleId}}",
+  "wareId": "{{wareId}}",
+  "saleOrderId": "{{orderId}}",
+  "customerId": "{{customerId}}",
+  "outTime": "2026-07-05 09:00:00",
+  "remark": "调整销售出库数量",
+  "details": [
+    {
+      "saleOrderDetailId": "{{orderDetailId}}",
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 8,
+      "unitPrice": 6
+    }
+  ]
+}
+
+### Stock Out (Sale) - Audit (Decrease Available Stock)
+POST {{SkyRoc_HostAddress}}/api/stock-out/sale/{{stockOutSaleId}}/audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核销售出库"
+}
+
+### Stock Out (Sale) - Reverse Audit (Restore Stock)
+POST {{SkyRoc_HostAddress}}/api/stock-out/sale/{{stockOutSaleId}}/reverse-audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "销售出库有误，反审核恢复库存"
+}
+
+### Stock Out (Purchase Return) - List
+GET {{SkyRoc_HostAddress}}/api/stock-out/purchase-return/list?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Purchase Return) - Create Draft
+POST {{SkyRoc_HostAddress}}/api/stock-out/purchase-return
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "supplierId": "{{supplierId}}",
+  "departmentId": null,
+  "outTime": "2026-07-05 08:00:00",
+  "remark": "采购质量问题退货",
+  "details": [
+    {
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 2,
+      "unitPrice": 4
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockOutPurchaseReturnId", response.body.data.id);
+%}
+
+### Stock Out (Purchase Return) - Create Disposable Draft
+POST {{SkyRoc_HostAddress}}/api/stock-out/purchase-return
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "supplierId": "{{supplierId}}",
+  "departmentId": null,
+  "outTime": "2026-07-05 08:30:00",
+  "remark": "待删除采购退货草稿",
+  "details": [
+    {
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 1,
+      "unitPrice": 4
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockOutPurchaseReturnDeleteDraftId", response.body.data.id);
+%}
+
+### Stock Out (Purchase Return) - Delete Draft
+DELETE {{SkyRoc_HostAddress}}/api/stock-out/purchase-return/{{stockOutPurchaseReturnDeleteDraftId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Purchase Return) - Get By Id
+GET {{SkyRoc_HostAddress}}/api/stock-out/purchase-return/{{stockOutPurchaseReturnId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Purchase Return) - Update Draft
+PUT {{SkyRoc_HostAddress}}/api/stock-out/purchase-return
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{stockOutPurchaseReturnId}}",
+  "wareId": "{{wareId}}",
+  "supplierId": "{{supplierId}}",
+  "outTime": "2026-07-05 09:00:00",
+  "remark": "调整采购退货数量",
+  "details": [
+    {
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 3,
+      "unitPrice": 4
+    }
+  ]
+}
+
+### Stock Out (Purchase Return) - Audit
+POST {{SkyRoc_HostAddress}}/api/stock-out/purchase-return/{{stockOutPurchaseReturnId}}/audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核采购退货出库"
+}
+
+### Stock Out (Purchase Return) - Reverse Audit
+POST {{SkyRoc_HostAddress}}/api/stock-out/purchase-return/{{stockOutPurchaseReturnId}}/reverse-audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "撤销采购退货出库"
+}
+
+### Stock Out (Other) - List
+GET {{SkyRoc_HostAddress}}/api/stock-out/other/list?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Other) - Create Draft
+POST {{SkyRoc_HostAddress}}/api/stock-out/other
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "departmentId": null,
+  "outTime": "2026-07-05 08:00:00",
+  "remark": "报损其他出库",
+  "details": [
+    {
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 1,
+      "unitPrice": 5
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockOutOtherId", response.body.data.id);
+%}
+
+### Stock Out (Other) - Create Disposable Draft
+POST {{SkyRoc_HostAddress}}/api/stock-out/other
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "departmentId": null,
+  "outTime": "2026-07-05 08:30:00",
+  "remark": "待删除其他出库草稿",
+  "details": [
+    {
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 1,
+      "unitPrice": 5
+    }
+  ]
+}
+
+> {%
+    client.global.set("stockOutOtherDeleteDraftId", response.body.data.id);
+%}
+
+### Stock Out (Other) - Delete Draft
+DELETE {{SkyRoc_HostAddress}}/api/stock-out/other/{{stockOutOtherDeleteDraftId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Other) - Get By Id
+GET {{SkyRoc_HostAddress}}/api/stock-out/other/{{stockOutOtherId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Out (Other) - Update Draft
+PUT {{SkyRoc_HostAddress}}/api/stock-out/other
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{stockOutOtherId}}",
+  "wareId": "{{wareId}}",
+  "outTime": "2026-07-05 09:00:00",
+  "remark": "调整报损数量",
+  "details": [
+    {
+      "stockBatchId": "{{stockBatchId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "quantity": 2,
+      "unitPrice": 5
+    }
+  ]
+}
+
+### Stock Out (Other) - Audit
+POST {{SkyRoc_HostAddress}}/api/stock-out/other/{{stockOutOtherId}}/audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核其他出库"
+}
+
+### Stock Out (Other) - Reverse Audit
+POST {{SkyRoc_HostAddress}}/api/stock-out/other/{{stockOutOtherId}}/reverse-audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "撤销其他出库"
+}

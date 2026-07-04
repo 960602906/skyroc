@@ -19,6 +19,19 @@ public class SaleOrderRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public virtual async Task<SaleOrder?> GetByIdForUpdateAsync(Guid id)
+    {
+        if (!Context.Database.IsNpgsql())
+        {
+            return await GetByIdAsync(id);
+        }
+
+        var lockedOrders = DbSet.FromSqlInterpolated(
+            $"SELECT * FROM sale_order WHERE id = {id} FOR UPDATE");
+        return await BuildDetailQuery(lockedOrders).FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    /// <inheritdoc />
     public override async Task<(IEnumerable<SaleOrder> Data, int Total)> GetPagedAsync(
         Expression<Func<SaleOrder, bool>>? predicate,
         int pageNumber,
@@ -64,9 +77,9 @@ public class SaleOrderRepository(ApplicationDbContext context)
             : await DbSet.Where(x => idList.Contains(x.Id)).ToListAsync();
     }
 
-    private IQueryable<SaleOrder> BuildDetailQuery()
+    private IQueryable<SaleOrder> BuildDetailQuery(IQueryable<SaleOrder>? source = null)
     {
-        return DbSet
+        return (source ?? DbSet)
             .Include(x => x.Customer)
             .Include(x => x.Quotation)
             .Include(x => x.Ware)

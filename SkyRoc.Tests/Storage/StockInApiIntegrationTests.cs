@@ -109,6 +109,65 @@ public class StockInApiIntegrationTests
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
+    [Fact]
+    public async Task OtherOutbound_AuditDecreasesStock_ReverseRestores_ThroughHttpApi()
+    {
+        using var factory = new StockInApiFactory();
+        var seed = await factory.SeedCatalogAsync();
+        var stockBatchId = await factory.SeedStockBatchAsync(seed);
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.PermissionsHeader, PermissionCodes.All);
+
+        var createResponse = await client.PostAsJsonAsync("/api/stock-out/other", new CreateOtherStockOutDto
+        {
+            WareId = seed.WareId,
+            OutTime = new DateTime(2026, 7, 5, 8, 0, 0, DateTimeKind.Utc),
+            Remark = "其他出库集成测试",
+            Details =
+            [
+                new CreateStockOutDetailDto
+                {
+                    StockBatchId = stockBatchId,
+                    GoodsUnitId = seed.GoodsUnitId,
+                    Quantity = 6m,
+                    UnitPrice = 5m
+                }
+            ]
+        });
+        var created = await ReadDataAsync<StockOutOrderDto>(createResponse);
+        Assert.Equal(StockDocumentStatus.Draft, created.BusinessStatus);
+
+        var auditResponse = await client.PostAsJsonAsync(
+            $"/api/stock-out/other/{created.Id}/audit",
+            new StockOutAuditDto { Remark = "审核出库" });
+        var audited = await ReadDataAsync<StockOutOrderDto>(auditResponse);
+        Assert.Equal(StockDocumentStatus.Audited, audited.BusinessStatus);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var batch = await context.StockBatches.SingleAsync();
+            Assert.Equal(14m, batch.CurrentQuantity);
+            Assert.Equal(14m, batch.AvailableQuantity);
+            var ledger = await context.StockLedgers.SingleAsync();
+            Assert.Equal(StockLedgerDirection.Decrease, ledger.Direction);
+            Assert.Equal(StockLedgerSourceType.OtherOutbound, ledger.SourceType);
+        }
+
+        var reverseResponse = await client.PostAsJsonAsync(
+            $"/api/stock-out/other/{created.Id}/reverse-audit",
+            new StockOutAuditDto { Remark = "反审核恢复" });
+        var reversed = await ReadDataAsync<StockOutOrderDto>(reverseResponse);
+        Assert.Equal(StockDocumentStatus.Reversed, reversed.BusinessStatus);
+
+        using var finalScope = factory.Services.CreateScope();
+        var finalContext = finalScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var restoredBatch = await finalContext.StockBatches.SingleAsync();
+        Assert.Equal(20m, restoredBatch.CurrentQuantity);
+        Assert.Equal(20m, restoredBatch.AvailableQuantity);
+        Assert.Equal(2, await finalContext.StockLedgers.CountAsync());
+    }
+
     private static async Task<T> ReadDataAsync<T>(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
@@ -156,6 +215,29 @@ public class StockInApiIntegrationTests
             await context.Purchasers.AddAsync(purchaser);
             await context.SaveChangesAsync();
             return new CatalogSeed(goods.Id, goodsUnit.Id, ware.Id, supplier.Id, purchaser.Id);
+        }
+
+        public async Task<Guid> SeedStockBatchAsync(CatalogSeed seed)
+        {
+            using var scope = Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stockBatch = new StockBatch
+            {
+                Id = Guid.NewGuid(),
+                WareId = seed.WareId,
+                GoodsId = seed.GoodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "IT_TOMATO",
+                BatchNo = "IT-BATCH-OUT-001",
+                BaseUnitId = seed.GoodsUnitId,
+                BaseUnitNameSnapshot = "千克",
+                CurrentQuantity = 20m,
+                AvailableQuantity = 20m,
+                UnitCost = 5m
+            };
+            await context.StockBatches.AddAsync(stockBatch);
+            await context.SaveChangesAsync();
+            return stockBatch.Id;
         }
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
