@@ -20,7 +20,7 @@ public class DepartmentsController(IDepartmentService departmentService) : Contr
     /// </summary>
     [HttpGet("tree")]
     [Authorize(Policy = PermissionCodes.System.Departments.Read)]
-    public async Task<IActionResult> GetTree()
+    public async Task<ActionResult<ApiResponse<PagedResult<DepartmentTreeDto>>>> GetTree()
     {
         var departments = await departmentService.GetDepartmentTreeAsync();
         return Ok(ApiResponse<PagedResult<DepartmentTreeDto>>.Ok(new PagedResult<DepartmentTreeDto>
@@ -37,7 +37,7 @@ public class DepartmentsController(IDepartmentService departmentService) : Contr
     /// </summary>
     [HttpGet("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.Departments.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<DepartmentDto>>> GetById(Guid id)
     {
         var department = await departmentService.GetByIdAsync(id);
         return Ok(ApiResponse<DepartmentDto>.Ok(department));
@@ -48,7 +48,7 @@ public class DepartmentsController(IDepartmentService departmentService) : Contr
     /// </summary>
     [HttpPost]
     [Authorize(Policy = PermissionCodes.System.Departments.Create)]
-    public async Task<IActionResult> Create([FromBody] CreateDepartmentDto dto)
+    public async Task<ActionResult<ApiResponse<DepartmentDto>>> Create([FromBody] CreateDepartmentDto dto)
     {
         var department = await departmentService.CreateAsync(dto);
         return Ok(ApiResponse<DepartmentDto>.Ok(department));
@@ -59,7 +59,7 @@ public class DepartmentsController(IDepartmentService departmentService) : Contr
     /// </summary>
     [HttpPut]
     [Authorize(Policy = PermissionCodes.System.Departments.Update)]
-    public async Task<IActionResult> Update([FromBody] UpdateDepartmentDto dto)
+    public async Task<ActionResult<ApiResponse<DepartmentDto>>> Update([FromBody] UpdateDepartmentDto dto)
     {
         var department = await departmentService.UpdateAsync(dto.Id, dto);
         return Ok(ApiResponse<DepartmentDto>.Ok(department, "Department updated successfully"));
@@ -70,7 +70,7 @@ public class DepartmentsController(IDepartmentService departmentService) : Contr
     /// </summary>
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.Departments.Delete)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
         var deleted = await departmentService.DeleteAsync(id);
         return Ok(ApiResponse<bool>.Ok(deleted));
@@ -81,7 +81,7 @@ public class DepartmentsController(IDepartmentService departmentService) : Contr
     /// </summary>
     [HttpDelete("batchDelete")]
     [Authorize(Policy = PermissionCodes.System.Departments.Delete)]
-    public async Task<IActionResult> BatchDelete([FromBody] List<Guid> ids)
+    public async Task<ActionResult<ApiResponse<bool>>> BatchDelete([FromBody] List<Guid> ids)
     {
         var deleted = await departmentService.BatchDeleteAsync(ids);
         return Ok(ApiResponse<bool>.Ok(deleted));
@@ -92,7 +92,7 @@ public class DepartmentsController(IDepartmentService departmentService) : Contr
     /// </summary>
     [HttpPatch("{id:guid}/status")]
     [Authorize(Policy = PermissionCodes.System.Departments.Update)]
-    public async Task<IActionResult> ToggleStatus(Guid id, [FromQuery] Status status)
+    public async Task<ActionResult<ApiResponse<DepartmentDto>>> ToggleStatus(Guid id, [FromQuery] Status status)
     {
         var department = await departmentService.ToggleStatusAsync(id, status);
         return Ok(ApiResponse<DepartmentDto>.Ok(department));
@@ -103,7 +103,7 @@ public class DepartmentsController(IDepartmentService departmentService) : Contr
     /// </summary>
     [HttpGet("{id:guid}/users")]
     [Authorize(Policy = PermissionCodes.System.Departments.Read)]
-    public async Task<IActionResult> GetUsers(Guid id)
+    public async Task<ActionResult<ApiResponse<object>>> GetUsers(Guid id)
     {
         var users = await departmentService.GetUsersAsync(id);
         return Ok(ApiResponse<object>.Ok(new

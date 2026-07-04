@@ -23,7 +23,7 @@ public class CustomerTagsController(ICustomerTagService service)
     /// </summary>
     [HttpGet("tree")]
     [Authorize(Policy = PermissionCodes.Business.Customers.Read)]
-    public async Task<IActionResult> GetTree()
+    public async Task<ActionResult<ApiResponse<PagedResult<CustomerTagDto>>>> GetTree()
     {
         var result = await service.GetTreeAsync();
         return Ok(ApiResponse<PagedResult<CustomerTagDto>>.Ok(new PagedResult<CustomerTagDto>

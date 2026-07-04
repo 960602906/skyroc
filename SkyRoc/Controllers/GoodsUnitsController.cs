@@ -23,7 +23,7 @@ public class GoodsUnitsController(IGoodsUnitService service)
     /// </summary>
     [HttpGet("by-goods/{goodsId:guid}")]
     [Authorize(Policy = PermissionCodes.Business.Goods.Read)]
-    public async Task<IActionResult> GetByGoodsId(Guid goodsId)
+    public async Task<ActionResult<ApiResponse<List<GoodsUnitDto>>>> GetByGoodsId(Guid goodsId)
     {
         var result = await service.GetByGoodsIdAsync(goodsId);
         return Ok(ApiResponse<List<GoodsUnitDto>>.Ok(result));

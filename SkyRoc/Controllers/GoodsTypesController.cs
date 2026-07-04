@@ -23,7 +23,7 @@ public class GoodsTypesController(IGoodsTypeService service)
     /// </summary>
     [HttpGet("tree")]
     [Authorize(Policy = PermissionCodes.Business.Goods.Read)]
-    public async Task<IActionResult> GetTree()
+    public async Task<ActionResult<ApiResponse<PagedResult<GoodsTypeDto>>>> GetTree()
     {
         var result = await service.GetTreeAsync();
         return Ok(ApiResponse<PagedResult<GoodsTypeDto>>.Ok(new PagedResult<GoodsTypeDto>

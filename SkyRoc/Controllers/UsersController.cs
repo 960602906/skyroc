@@ -23,7 +23,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpGet("list")]
     [Authorize(Policy = PermissionCodes.System.Users.Read)]
-    public async Task<IActionResult> GetPagedMenus([FromQuery] UserQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<UserDto>>>> GetPagedMenus([FromQuery] UserQueryParameters parameters)
     {
         var result = await userService.GetPagedMenusAsync(parameters);
         return Ok(ApiResponse<PagedResult<UserDto>>.Ok(result));
@@ -35,7 +35,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpGet]
     [Authorize(Policy = PermissionCodes.System.Users.Read)]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<ApiResponse<IEnumerable<UserDto>>>> GetAll()
     {
         var users = await userService.GetAllUsersAsync();
         return Ok(ApiResponse<IEnumerable<UserDto>>.Ok(users));
@@ -48,7 +48,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpGet("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.Users.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<UserDto>>> GetById(Guid id)
     {
         var user = await userService.GetUserByIdAsync(id);
         return Ok(ApiResponse<UserDto>.Ok(user));
@@ -61,7 +61,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpPost]
     [Authorize(Policy = PermissionCodes.System.Users.Create)]
-    public async Task<IActionResult> Create([FromBody] CreateUserDto request)
+    public async Task<ActionResult<ApiResponse<UserDto>>> Create([FromBody] CreateUserDto request)
     {
         var user = await userService.CreateUserAsync(request);
         return Ok(ApiResponse<UserDto>.Ok(user));
@@ -74,7 +74,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpPut]
     [Authorize(Policy = PermissionCodes.System.Users.Update)]
-    public async Task<IActionResult> Update([FromBody] UpdateUserDto request)
+    public async Task<ActionResult<ApiResponse<string>>> Update([FromBody] UpdateUserDto request)
     {
         await userService.UpdateUserAsync(request.Id, request);
         return Ok(ApiResponse<string>.Ok("User updated successfully"));
@@ -87,7 +87,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpDelete("{id}")]
     [Authorize(Policy = PermissionCodes.System.Users.Delete)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse<string>>> Delete(Guid id)
     {
         await userService.DeleteUserAsync(id);
         return Ok(ApiResponse<string>.Ok("User deleted successfully"));
@@ -100,7 +100,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpDelete("batchDelete")]
     [Authorize(Policy = PermissionCodes.System.Users.Delete)]
-    public async Task<IActionResult> BatchDelete(List<Guid> ids)
+    public async Task<ActionResult<ApiResponse<string>>> BatchDelete(List<Guid> ids)
     {
         await userService.DeleteUsersAsync(ids);
         return Ok(ApiResponse<string>.Ok("User deleted successfully"));
@@ -113,7 +113,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpPost("assignRoles")]
     [Authorize(Policy = PermissionCodes.System.Users.AssignRoles)]
-    public async Task<IActionResult> AssignRoles([FromBody] AssignRolesDto request)
+    public async Task<ActionResult<ApiResponse<string>>> AssignRoles([FromBody] AssignRolesDto request)
     {
         await userService.AssignRolesToUserAsync(request.UserId, request.RoleIds);
         return Ok(ApiResponse<string>.Ok("Roles assigned successfully"));
@@ -126,7 +126,7 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <returns></returns>
     [HttpDelete("unassignRoles")]
     [Authorize(Policy = PermissionCodes.System.Users.AssignRoles)]
-    public async Task<IActionResult> UnassignRoles([FromBody] AssignRolesDto request)
+    public async Task<ActionResult<ApiResponse<string>>> UnassignRoles([FromBody] AssignRolesDto request)
     {
         await userService.RemoveRolesFromUserAsync(request.UserId, request.RoleIds);
         return Ok(ApiResponse<string>.Ok("Roles unassigned successfully"));

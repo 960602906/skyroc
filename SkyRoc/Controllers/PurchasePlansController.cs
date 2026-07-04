@@ -25,7 +25,8 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>分页后的采购计划集合。</returns>
     [HttpGet("list")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetPaged([FromQuery] PurchasePlanQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<PurchasePlanDto>>>> GetPaged(
+        [FromQuery] PurchasePlanQueryParameters parameters)
     {
         var result = await service.GetPagedAsync(parameters);
         return Ok(ApiResponse<PagedResult<PurchasePlanDto>>.Ok(result));
@@ -38,7 +39,7 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>采购计划详情。</returns>
     [HttpGet("{id:guid}")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<PurchasePlanDto>>> GetById(Guid id)
     {
         var result = await service.GetByIdAsync(id);
         return Ok(ApiResponse<PurchasePlanDto>.Ok(result));
@@ -51,7 +52,7 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>创建后的采购计划详情。</returns>
     [HttpPost]
     [ResourcePermission(PermissionActions.Create)]
-    public async Task<IActionResult> Create([FromBody] CreatePurchasePlanDto dto)
+    public async Task<ActionResult<ApiResponse<PurchasePlanDto>>> Create([FromBody] CreatePurchasePlanDto dto)
     {
         var result = await service.CreateAsync(dto);
         return Ok(ApiResponse<PurchasePlanDto>.Ok(result));
@@ -64,7 +65,8 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>本次生成的采购计划详情集合。</returns>
     [HttpPost("generate")]
     [ResourcePermission(PermissionActions.Create)]
-    public async Task<IActionResult> GenerateFromOrders([FromBody] GeneratePurchasePlanFromOrdersDto dto)
+    public async Task<ActionResult<ApiResponse<List<PurchasePlanDto>>>> GenerateFromOrders(
+        [FromBody] GeneratePurchasePlanFromOrdersDto dto)
     {
         var result = await service.GenerateFromOrdersAsync(dto);
         return Ok(ApiResponse<List<PurchasePlanDto>>.Ok(result));
@@ -77,7 +79,8 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>更新后的采购计划详情集合。</returns>
     [HttpPut("supplier")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> AssignSupplier([FromBody] AssignPurchasePlanSupplierDto dto)
+    public async Task<ActionResult<ApiResponse<List<PurchasePlanDto>>>> AssignSupplier(
+        [FromBody] AssignPurchasePlanSupplierDto dto)
     {
         var result = await service.AssignSupplierAsync(dto);
         return Ok(ApiResponse<List<PurchasePlanDto>>.Ok(result));
@@ -90,7 +93,8 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>更新后的采购计划详情集合。</returns>
     [HttpPut("purchaser")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> AssignPurchaser([FromBody] AssignPurchasePlanPurchaserDto dto)
+    public async Task<ActionResult<ApiResponse<List<PurchasePlanDto>>>> AssignPurchaser(
+        [FromBody] AssignPurchasePlanPurchaserDto dto)
     {
         var result = await service.AssignPurchaserAsync(dto);
         return Ok(ApiResponse<List<PurchasePlanDto>>.Ok(result));
@@ -103,7 +107,7 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>合并产生的新采购计划详情。</returns>
     [HttpPost("merge")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> Merge([FromBody] MergePurchasePlansDto dto)
+    public async Task<ActionResult<ApiResponse<PurchasePlanDto>>> Merge([FromBody] MergePurchasePlansDto dto)
     {
         var result = await service.MergeAsync(dto);
         return Ok(ApiResponse<PurchasePlanDto>.Ok(result));
@@ -116,7 +120,7 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>来源订单及其需求数量摘要。</returns>
     [HttpGet("{planId:guid}/split-orders")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetSplittableOrders(Guid planId)
+    public async Task<ActionResult<ApiResponse<List<SplittablePurchasePlanOrderDto>>>> GetSplittableOrders(Guid planId)
     {
         var result = await service.GetSplittableOrdersAsync(planId);
         return Ok(ApiResponse<List<SplittablePurchasePlanOrderDto>>.Ok(result));
@@ -129,7 +133,8 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>拆分产生的新采购计划详情。</returns>
     [HttpPost("split/orders")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> SplitByOrders([FromBody] SplitPurchasePlanByOrdersDto dto)
+    public async Task<ActionResult<ApiResponse<PurchasePlanDto>>> SplitByOrders(
+        [FromBody] SplitPurchasePlanByOrdersDto dto)
     {
         var result = await service.SplitByOrdersAsync(dto);
         return Ok(ApiResponse<PurchasePlanDto>.Ok(result));
@@ -142,7 +147,8 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     /// <returns>拆分产生的新采购计划详情。</returns>
     [HttpPost("split/quantity")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> SplitByQuantity([FromBody] SplitPurchasePlanByQuantityDto dto)
+    public async Task<ActionResult<ApiResponse<PurchasePlanDto>>> SplitByQuantity(
+        [FromBody] SplitPurchasePlanByQuantityDto dto)
     {
         var result = await service.SplitByQuantityAsync(dto);
         return Ok(ApiResponse<PurchasePlanDto>.Ok(result));

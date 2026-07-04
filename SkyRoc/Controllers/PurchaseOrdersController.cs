@@ -25,7 +25,8 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     /// <returns>采购单分页结果。</returns>
     [HttpGet("list")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetPaged([FromQuery] PurchaseOrderQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<PurchaseOrderDto>>>> GetPaged(
+        [FromQuery] PurchaseOrderQueryParameters parameters)
     {
         var result = await service.GetPagedAsync(parameters);
         return Ok(ApiResponse<PagedResult<PurchaseOrderDto>>.Ok(result));
@@ -38,7 +39,7 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     /// <returns>采购单完整详情。</returns>
     [HttpGet("{id:guid}")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<PurchaseOrderDto>>> GetById(Guid id)
     {
         var result = await service.GetByIdAsync(id);
         return Ok(ApiResponse<PurchaseOrderDto>.Ok(result));
@@ -51,7 +52,7 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     /// <returns>创建后的采购单详情。</returns>
     [HttpPost]
     [ResourcePermission(PermissionActions.Create)]
-    public async Task<IActionResult> Create([FromBody] CreatePurchaseOrderDto dto)
+    public async Task<ActionResult<ApiResponse<PurchaseOrderDto>>> Create([FromBody] CreatePurchaseOrderDto dto)
     {
         var result = await service.CreateAsync(dto);
         return Ok(ApiResponse<PurchaseOrderDto>.Ok(result));
@@ -64,7 +65,7 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     /// <returns>更新后的采购单详情。</returns>
     [HttpPut]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> Update([FromBody] UpdatePurchaseOrderDto dto)
+    public async Task<ActionResult<ApiResponse<PurchaseOrderDto>>> Update([FromBody] UpdatePurchaseOrderDto dto)
     {
         var result = await service.UpdateAsync(dto);
         return Ok(ApiResponse<PurchaseOrderDto>.Ok(result));
@@ -77,7 +78,7 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     /// <returns>删除成功标记。</returns>
     [HttpDelete("{id:guid}")]
     [ResourcePermission(PermissionActions.Delete)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
         var result = await service.DeleteAsync(id);
         return Ok(ApiResponse<bool>.Ok(result));
@@ -90,7 +91,8 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     /// <returns>按采购模式、供应商和采购员分组生成的采购单集合。</returns>
     [HttpPost("generate-from-plans")]
     [ResourcePermission(PermissionActions.Create)]
-    public async Task<IActionResult> GenerateFromPlans([FromBody] GeneratePurchaseOrdersFromPlansDto dto)
+    public async Task<ActionResult<ApiResponse<List<PurchaseOrderDto>>>> GenerateFromPlans(
+        [FromBody] GeneratePurchaseOrdersFromPlansDto dto)
     {
         var result = await service.GenerateFromPlansAsync(dto);
         return Ok(ApiResponse<List<PurchaseOrderDto>>.Ok(result));
@@ -103,7 +105,7 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     /// <returns>完成后的采购单详情。</returns>
     [HttpPost("{id:guid}/complete")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> Complete(Guid id)
+    public async Task<ActionResult<ApiResponse<PurchaseOrderDto>>> Complete(Guid id)
     {
         var result = await service.CompleteAsync(id);
         return Ok(ApiResponse<PurchaseOrderDto>.Ok(result));
@@ -116,7 +118,7 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     /// <returns>取消后的采购单详情。</returns>
     [HttpPost("{id:guid}/cancel")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> Cancel(Guid id)
+    public async Task<ActionResult<ApiResponse<PurchaseOrderDto>>> Cancel(Guid id)
     {
         var result = await service.CancelAsync(id);
         return Ok(ApiResponse<PurchaseOrderDto>.Ok(result));

@@ -25,7 +25,7 @@ public class StocktakingController(IStocktakingService service) : ControllerBase
     /// <returns>盘点单分页结果。</returns>
     [HttpGet("list")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetPaged([FromQuery] StocktakingQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<StocktakingOrderDto>>>> GetPaged([FromQuery] StocktakingQueryParameters parameters)
     {
         var result = await service.GetPagedAsync(parameters);
         return Ok(ApiResponse<PagedResult<StocktakingOrderDto>>.Ok(result));
@@ -38,7 +38,7 @@ public class StocktakingController(IStocktakingService service) : ControllerBase
     /// <returns>包含批次账面、实盘和差异数量的盘点详情。</returns>
     [HttpGet("{id:guid}")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<StocktakingOrderDto>>> GetById(Guid id)
     {
         var result = await service.GetByIdAsync(id);
         return Ok(ApiResponse<StocktakingOrderDto>.Ok(result));
@@ -51,7 +51,7 @@ public class StocktakingController(IStocktakingService service) : ControllerBase
     /// <returns>创建后的库存盘点详情。</returns>
     [HttpPost]
     [ResourcePermission(PermissionActions.Create)]
-    public async Task<IActionResult> Create([FromBody] CreateStocktakingDto dto)
+    public async Task<ActionResult<ApiResponse<StocktakingOrderDto>>> Create([FromBody] CreateStocktakingDto dto)
     {
         var result = await service.CreateAsync(dto);
         return Ok(ApiResponse<StocktakingOrderDto>.Ok(result));
@@ -65,7 +65,7 @@ public class StocktakingController(IStocktakingService service) : ControllerBase
     /// <returns>审核并完成库存调整后的盘点详情。</returns>
     [HttpPost("{id:guid}/audit")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> Audit(Guid id, [FromBody] StocktakingAuditDto? dto)
+    public async Task<ActionResult<ApiResponse<StocktakingOrderDto>>> Audit(Guid id, [FromBody] StocktakingAuditDto? dto)
     {
         var result = await service.AuditAsync(id, dto?.Remark);
         return Ok(ApiResponse<StocktakingOrderDto>.Ok(result));

@@ -25,7 +25,7 @@ public class MenusController(
     /// <returns></returns>
     [HttpGet("list")]
     [Authorize(Policy = PermissionCodes.System.Menus.Read)]
-    public async Task<IActionResult> GetPagedMenus([FromQuery] MenuQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<MenuDto>>>> GetPagedMenus([FromQuery] MenuQueryParameters parameters)
     {
         var result = await menuService.GetPagedMenusAsync(parameters);
         return Ok(ApiResponse<PagedResult<MenuDto>>.Ok(result));
@@ -37,7 +37,7 @@ public class MenusController(
     /// <returns></returns>
     [HttpGet]
     [Authorize(Policy = PermissionCodes.System.Menus.Read)]
-    public async Task<IActionResult> GetAllMenus()
+    public async Task<ActionResult<ApiResponse<List<MenuDto>>>> GetAllMenus()
     {
         var menus = await menuService.GetAllMenusAsync();
         return Ok(ApiResponse<List<MenuDto>>.Ok(menus));
@@ -49,7 +49,7 @@ public class MenusController(
     /// <returns></returns>
     [HttpGet("tree")]
     [Authorize(Policy = PermissionCodes.System.Menus.Read)]
-    public async Task<IActionResult> GetAllMenusTreeAsync()
+    public async Task<ActionResult<ApiResponse<PagedResult<MenuTreeDto>>>> GetAllMenusTreeAsync()
     {
         var menus = await menuService.GetAllMenusTreeAsync();
         return Ok(ApiResponse<PagedResult<MenuTreeDto>>.Ok(new PagedResult<MenuTreeDto>
@@ -68,7 +68,7 @@ public class MenusController(
     /// <returns></returns>
     [HttpGet("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.Menus.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<MenuDto>>> GetById(Guid id)
     {
         var menu = await menuService.GetMenuByIdAsync(id);
         return Ok(ApiResponse<MenuDto>.Ok(menu));
@@ -81,7 +81,7 @@ public class MenusController(
     /// <returns></returns>
     [HttpPost]
     [Authorize(Policy = PermissionCodes.System.Menus.Create)]
-    public async Task<IActionResult> Create([FromBody] CreateMenuDto dto)
+    public async Task<ActionResult<ApiResponse<MenuDto>>> Create([FromBody] CreateMenuDto dto)
     {
         var menu = await menuService.CreateMenuAsync(dto);
         return Ok(ApiResponse<MenuDto>.Ok(menu));
@@ -94,7 +94,7 @@ public class MenusController(
     /// <returns></returns>
     [HttpPut]
     [Authorize(Policy = PermissionCodes.System.Menus.Update)]
-    public async Task<IActionResult> Update([FromBody] UpdateMenuDto dto)
+    public async Task<ActionResult<ApiResponse<string>>> Update([FromBody] UpdateMenuDto dto)
     {
         await menuService.UpdateMenuAsync(dto.Id, dto);
         return Ok(ApiResponse<string>.Ok("Menu updated successfully"));
@@ -107,7 +107,7 @@ public class MenusController(
     /// <returns></returns>
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.Menus.Delete)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse<string>>> Delete(Guid id)
     {
         await menuService.DeleteMenuAsync(id);
         return Ok(ApiResponse<string>.Ok("Menu deleted successfully"));
@@ -120,7 +120,7 @@ public class MenusController(
     /// <returns></returns>
     [HttpDelete("batchDelete")]
     [Authorize(Policy = PermissionCodes.System.Menus.Delete)]
-    public async Task<IActionResult> BatchDelete([FromBody] List<Guid> menuIds)
+    public async Task<ActionResult<ApiResponse<string>>> BatchDelete([FromBody] List<Guid> menuIds)
     {
         await menuService.DeleteMenusAsync(menuIds);
         return Ok(ApiResponse<string>.Ok("Menus deleted successfully"));

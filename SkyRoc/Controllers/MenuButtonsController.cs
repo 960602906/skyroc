@@ -20,7 +20,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     /// </summary>
     [HttpGet("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.MenuButtons.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<MenuButtonDto>>> GetById(Guid id)
     {
         var menuButton = await menuButtonService.GetMenuButtonAsync(id);
         return Ok(ApiResponse<MenuButtonDto>.Ok(menuButton));
@@ -31,7 +31,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     /// </summary>
     [HttpPost]
     [Authorize(Policy = PermissionCodes.System.MenuButtons.Create)]
-    public async Task<IActionResult> Create([FromBody] CreateMenuButtonDto dto)
+    public async Task<ActionResult<ApiResponse<MenuButtonDto>>> Create([FromBody] CreateMenuButtonDto dto)
     {
         var menuButton = await menuButtonService.CreateMenuButtonAsync(dto);
         return Ok(ApiResponse<MenuButtonDto>.Ok(menuButton));
@@ -42,7 +42,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     /// </summary>
     [HttpPost("batch")]
     [Authorize(Policy = PermissionCodes.System.MenuButtons.Create)]
-    public async Task<IActionResult> BatchCreate([FromQuery] Guid menuId, [FromBody] List<CreateMenuButtonDto> dtos)
+    public async Task<ActionResult<ApiResponse<List<MenuButtonDto>>>> BatchCreate([FromQuery] Guid menuId, [FromBody] List<CreateMenuButtonDto> dtos)
     {
         var menuButtons = await menuButtonService.CreateMenuButtonsAsync(menuId, dtos);
         return Ok(ApiResponse<List<MenuButtonDto>>.Ok(menuButtons));
@@ -53,7 +53,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     /// </summary>
     [HttpPut]
     [Authorize(Policy = PermissionCodes.System.MenuButtons.Update)]
-    public async Task<IActionResult> Update([FromQuery] Guid menuId, [FromBody] UpdateMenuButtonDto dto)
+    public async Task<ActionResult<ApiResponse<MenuButtonDto>>> Update([FromQuery] Guid menuId, [FromBody] UpdateMenuButtonDto dto)
     {
         var menuButton = await menuButtonService.UpdateMenuButtonAsync(menuId, dto);
         return Ok(ApiResponse<MenuButtonDto>.Ok(menuButton, "Menu button updated successfully"));
@@ -64,7 +64,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     /// </summary>
     [HttpPut("replace")]
     [Authorize(Policy = PermissionCodes.System.MenuButtons.Update)]
-    public async Task<IActionResult> Replace([FromQuery] Guid menuId, [FromBody] List<CreateMenuButtonDto> dtos)
+    public async Task<ActionResult<ApiResponse<List<MenuButtonDto>>>> Replace([FromQuery] Guid menuId, [FromBody] List<CreateMenuButtonDto> dtos)
     {
         var menuButtons = await menuButtonService.ReplaceMenuButtonsAsync(menuId, dtos);
         return Ok(ApiResponse<List<MenuButtonDto>>.Ok(menuButtons));
@@ -75,7 +75,7 @@ public class MenuButtonsController(IMenuButtonService menuButtonService) : Contr
     /// </summary>
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.MenuButtons.Delete)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse<string>>> Delete(Guid id)
     {
         await menuButtonService.DeleteMenuButtonAsync(id);
         return Ok(ApiResponse<string>.Ok("Menu button deleted successfully"));

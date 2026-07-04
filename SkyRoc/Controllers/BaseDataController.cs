@@ -23,7 +23,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpGet("list")]
     [ResourcePermission(PermissionActions.Read)]
-    public virtual async Task<IActionResult> GetPaged([FromQuery] TQuery parameters)
+    public virtual async Task<ActionResult<ApiResponse<PagedResult<TDto>>>> GetPaged([FromQuery] TQuery parameters)
     {
         var result = await service.GetPagedAsync(parameters);
         return Ok(ApiResponse<PagedResult<TDto>>.Ok(result));
@@ -34,7 +34,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpGet]
     [ResourcePermission(PermissionActions.Read)]
-    public virtual async Task<IActionResult> GetAll()
+    public virtual async Task<ActionResult<ApiResponse<List<TDto>>>> GetAll()
     {
         var result = await service.GetAllAsync();
         return Ok(ApiResponse<List<TDto>>.Ok(result));
@@ -45,7 +45,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpGet("{id:guid}")]
     [ResourcePermission(PermissionActions.Read)]
-    public virtual async Task<IActionResult> GetById(Guid id)
+    public virtual async Task<ActionResult<ApiResponse<TDto>>> GetById(Guid id)
     {
         var result = await service.GetByIdAsync(id);
         return Ok(ApiResponse<TDto>.Ok(result));
@@ -56,7 +56,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpPost]
     [ResourcePermission(PermissionActions.Create)]
-    public virtual async Task<IActionResult> Create([FromBody] TCreateDto dto)
+    public virtual async Task<ActionResult<ApiResponse<TDto>>> Create([FromBody] TCreateDto dto)
     {
         var result = await service.CreateAsync(dto);
         return Ok(ApiResponse<TDto>.Ok(result));
@@ -67,7 +67,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpPut]
     [ResourcePermission(PermissionActions.Update)]
-    public virtual async Task<IActionResult> Update([FromBody] TUpdateDto dto)
+    public virtual async Task<ActionResult<ApiResponse<TDto>>> Update([FromBody] TUpdateDto dto)
     {
         var result = await service.UpdateAsync(dto.Id, dto);
         return Ok(ApiResponse<TDto>.Ok(result));
@@ -78,7 +78,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpDelete("{id:guid}")]
     [ResourcePermission(PermissionActions.Delete)]
-    public virtual async Task<IActionResult> Delete(Guid id)
+    public virtual async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
         var result = await service.DeleteAsync(id);
         return Ok(ApiResponse<bool>.Ok(result));
@@ -89,7 +89,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpDelete("batchDelete")]
     [ResourcePermission(PermissionActions.Delete)]
-    public virtual async Task<IActionResult> BatchDelete([FromBody] List<Guid> ids)
+    public virtual async Task<ActionResult<ApiResponse<bool>>> BatchDelete([FromBody] List<Guid> ids)
     {
         var result = await service.BatchDeleteAsync(ids);
         return Ok(ApiResponse<bool>.Ok(result));
@@ -100,7 +100,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpPatch("{id:guid}/status")]
     [ResourcePermission(PermissionActions.Update)]
-    public virtual async Task<IActionResult> ToggleStatus(Guid id, [FromQuery] Status status)
+    public virtual async Task<ActionResult<ApiResponse<TDto>>> ToggleStatus(Guid id, [FromQuery] Status status)
     {
         var result = await service.ToggleStatusAsync(id, status);
         return Ok(ApiResponse<TDto>.Ok(result));

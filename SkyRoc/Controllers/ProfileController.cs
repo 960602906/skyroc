@@ -18,7 +18,7 @@ public class ProfileController(IUserService userService) : ControllerBase
     ///     获取当前用户个人资料
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public async Task<ActionResult<ApiResponse<ProfileDto>>> Get()
     {
         var profile = await userService.GetCurrentProfileAsync();
         return Ok(ApiResponse<ProfileDto>.Ok(profile));
@@ -28,7 +28,7 @@ public class ProfileController(IUserService userService) : ControllerBase
     ///     更新当前用户个人资料
     /// </summary>
     [HttpPut]
-    public async Task<IActionResult> Update([FromBody] UpdateProfileDto request)
+    public async Task<ActionResult<ApiResponse<string>>> Update([FromBody] UpdateProfileDto request)
     {
         await userService.UpdateCurrentProfileAsync(request);
         return Ok(ApiResponse<string>.Ok("个人资料更新成功"));
@@ -38,7 +38,7 @@ public class ProfileController(IUserService userService) : ControllerBase
     ///     修改当前用户密码
     /// </summary>
     [HttpPut("updatePwd")]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
+    public async Task<ActionResult<ApiResponse<string>>> ChangePassword([FromBody] ChangePasswordDto request)
     {
         await userService.ChangeCurrentPasswordAsync(request);
         return Ok(ApiResponse<string>.Ok("密码修改成功"));

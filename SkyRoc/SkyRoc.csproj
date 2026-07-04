@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,5 +21,20 @@
         <ProjectReference Include="..\Application\Application.csproj"/>
         <ProjectReference Include="..\Infrastructure\Infrastructure.csproj"/>
     </ItemGroup>
+
+    <Target Name="CopyReferencedXmlDocumentation" AfterTargets="Build">
+        <Copy SourceFiles="$(MSBuildThisFileDirectory)..\Application\bin\$(Configuration)\$(TargetFramework)\Application.xml"
+              DestinationFolder="$(OutputPath)"
+              SkipUnchangedFiles="true"
+              Condition="Exists('$(MSBuildThisFileDirectory)..\Application\bin\$(Configuration)\$(TargetFramework)\Application.xml')"/>
+        <Copy SourceFiles="$(MSBuildThisFileDirectory)..\Domain\bin\$(Configuration)\$(TargetFramework)\Domain.xml"
+              DestinationFolder="$(OutputPath)"
+              SkipUnchangedFiles="true"
+              Condition="Exists('$(MSBuildThisFileDirectory)..\Domain\bin\$(Configuration)\$(TargetFramework)\Domain.xml')"/>
+        <Copy SourceFiles="$(MSBuildThisFileDirectory)..\Shared\bin\$(Configuration)\$(TargetFramework)\Shared.xml"
+              DestinationFolder="$(OutputPath)"
+              SkipUnchangedFiles="true"
+              Condition="Exists('$(MSBuildThisFileDirectory)..\Shared\bin\$(Configuration)\$(TargetFramework)\Shared.xml')"/>
+    </Target>
 
 </Project>

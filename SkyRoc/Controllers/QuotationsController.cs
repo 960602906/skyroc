@@ -23,7 +23,7 @@ public class QuotationsController(IQuotationService service)
     /// </summary>
     [HttpPatch("{id:guid}/audit")]
     [Authorize(Policy = PermissionCodes.Business.Pricing.Audit)]
-    public async Task<IActionResult> ToggleAudit(Guid id, [FromQuery] bool isAudited)
+    public async Task<ActionResult<ApiResponse<QuotationDto>>> ToggleAudit(Guid id, [FromQuery] bool isAudited)
     {
         var result = await service.ToggleAuditAsync(id, isAudited);
         return Ok(ApiResponse<QuotationDto>.Ok(result));

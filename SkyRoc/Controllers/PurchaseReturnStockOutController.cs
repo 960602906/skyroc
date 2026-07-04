@@ -28,7 +28,7 @@ public class PurchaseReturnStockOutController(IStockOutService service) : Contro
     /// <returns>采购退货出库单分页结果。</returns>
     [HttpGet("list")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetPaged([FromQuery] StockOutOrderQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<StockOutOrderDto>>>> GetPaged([FromQuery] StockOutOrderQueryParameters parameters)
     {
         var result = await service.GetPagedAsync(OrderType, parameters);
         return Ok(ApiResponse<PagedResult<StockOutOrderDto>>.Ok(result));
@@ -41,7 +41,7 @@ public class PurchaseReturnStockOutController(IStockOutService service) : Contro
     /// <returns>采购退货出库单完整详情。</returns>
     [HttpGet("{id:guid}")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<StockOutOrderDto>>> GetById(Guid id)
     {
         var result = await service.GetByIdAsync(OrderType, id);
         return Ok(ApiResponse<StockOutOrderDto>.Ok(result));
@@ -54,7 +54,7 @@ public class PurchaseReturnStockOutController(IStockOutService service) : Contro
     /// <returns>创建后的采购退货出库单详情。</returns>
     [HttpPost]
     [ResourcePermission(PermissionActions.Create)]
-    public async Task<IActionResult> Create([FromBody] CreatePurchaseReturnStockOutDto dto)
+    public async Task<ActionResult<ApiResponse<StockOutOrderDto>>> Create([FromBody] CreatePurchaseReturnStockOutDto dto)
     {
         var result = await service.CreatePurchaseReturnAsync(dto);
         return Ok(ApiResponse<StockOutOrderDto>.Ok(result));
@@ -67,7 +67,7 @@ public class PurchaseReturnStockOutController(IStockOutService service) : Contro
     /// <returns>更新后的采购退货出库单详情。</returns>
     [HttpPut]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> Update([FromBody] UpdatePurchaseReturnStockOutDto dto)
+    public async Task<ActionResult<ApiResponse<StockOutOrderDto>>> Update([FromBody] UpdatePurchaseReturnStockOutDto dto)
     {
         var result = await service.UpdatePurchaseReturnAsync(dto);
         return Ok(ApiResponse<StockOutOrderDto>.Ok(result));
@@ -80,7 +80,7 @@ public class PurchaseReturnStockOutController(IStockOutService service) : Contro
     /// <returns>删除成功标记。</returns>
     [HttpDelete("{id:guid}")]
     [ResourcePermission(PermissionActions.Delete)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
         var result = await service.DeleteAsync(OrderType, id);
         return Ok(ApiResponse<bool>.Ok(result));
@@ -94,7 +94,7 @@ public class PurchaseReturnStockOutController(IStockOutService service) : Contro
     /// <returns>审核后的采购退货出库单详情。</returns>
     [HttpPost("{id:guid}/audit")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> Audit(Guid id, [FromBody] StockOutAuditDto? dto)
+    public async Task<ActionResult<ApiResponse<StockOutOrderDto>>> Audit(Guid id, [FromBody] StockOutAuditDto? dto)
     {
         var result = await service.AuditAsync(OrderType, id, dto?.Remark);
         return Ok(ApiResponse<StockOutOrderDto>.Ok(result));
@@ -108,7 +108,7 @@ public class PurchaseReturnStockOutController(IStockOutService service) : Contro
     /// <returns>反审核后的采购退货出库单详情。</returns>
     [HttpPost("{id:guid}/reverse-audit")]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> ReverseAudit(Guid id, [FromBody] StockOutAuditDto? dto)
+    public async Task<ActionResult<ApiResponse<StockOutOrderDto>>> ReverseAudit(Guid id, [FromBody] StockOutAuditDto? dto)
     {
         var result = await service.ReverseAuditAsync(OrderType, id, dto?.Remark);
         return Ok(ApiResponse<StockOutOrderDto>.Ok(result));

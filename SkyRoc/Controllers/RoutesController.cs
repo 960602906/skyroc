@@ -27,7 +27,7 @@ public class RoutesController(IDeliveryRouteService service)
     /// <returns>包含最新客户关系的配送路线详情。</returns>
     [HttpPut("{routeId:guid}/customers")]
     [Authorize(Policy = PermissionCodes.Business.Delivery.Update)]
-    public async Task<IActionResult> DispatchCustomers(Guid routeId, [FromBody] DispatchRouteCustomersDto dto)
+    public async Task<ActionResult<ApiResponse<DeliveryRouteDto>>> DispatchCustomers(Guid routeId, [FromBody] DispatchRouteCustomersDto dto)
     {
         var result = await service.DispatchCustomersAsync(routeId, dto.CustomerIds);
         return Ok(ApiResponse<DeliveryRouteDto>.Ok(result));

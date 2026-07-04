@@ -23,7 +23,8 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// </summary>
     [HttpGet("list")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetPaged([FromQuery] SaleOrderQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<SaleOrderDto>>>> GetPaged(
+        [FromQuery] SaleOrderQueryParameters parameters)
     {
         var result = await service.GetPagedAsync(parameters);
         return Ok(ApiResponse<PagedResult<SaleOrderDto>>.Ok(result));
@@ -34,7 +35,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// </summary>
     [HttpGet("{id:guid}")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<SaleOrderDto>>> GetById(Guid id)
     {
         var result = await service.GetByIdAsync(id);
         return Ok(ApiResponse<SaleOrderDto>.Ok(result));
@@ -45,7 +46,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// </summary>
     [HttpPost]
     [ResourcePermission(PermissionActions.Create)]
-    public async Task<IActionResult> Create([FromBody] CreateSaleOrderDto dto)
+    public async Task<ActionResult<ApiResponse<SaleOrderDto>>> Create([FromBody] CreateSaleOrderDto dto)
     {
         var result = await service.CreateAsync(dto);
         return Ok(ApiResponse<SaleOrderDto>.Ok(result));
@@ -56,7 +57,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// </summary>
     [HttpPut]
     [ResourcePermission(PermissionActions.Update)]
-    public async Task<IActionResult> Update([FromBody] UpdateSaleOrderDto dto)
+    public async Task<ActionResult<ApiResponse<SaleOrderDto>>> Update([FromBody] UpdateSaleOrderDto dto)
     {
         var result = await service.UpdateAsync(dto);
         return Ok(ApiResponse<SaleOrderDto>.Ok(result));
@@ -67,7 +68,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// </summary>
     [HttpDelete("{id:guid}")]
     [ResourcePermission(PermissionActions.Delete)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
         var result = await service.DeleteAsync(id);
         return Ok(ApiResponse<bool>.Ok(result));
@@ -78,7 +79,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// </summary>
     [HttpPost("{id:guid}/approve")]
     [Authorize(Policy = PermissionCodes.Business.Orders.Audit)]
-    public async Task<IActionResult> Approve(Guid id, [FromBody] SaleOrderAuditDto? dto)
+    public async Task<ActionResult<ApiResponse<SaleOrderDto>>> Approve(Guid id, [FromBody] SaleOrderAuditDto? dto)
     {
         var result = await service.ApproveAsync(id, dto?.Remark);
         return Ok(ApiResponse<SaleOrderDto>.Ok(result));
@@ -89,7 +90,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// </summary>
     [HttpPost("{id:guid}/reject")]
     [Authorize(Policy = PermissionCodes.Business.Orders.Audit)]
-    public async Task<IActionResult> Reject(Guid id, [FromBody] SaleOrderAuditDto? dto)
+    public async Task<ActionResult<ApiResponse<SaleOrderDto>>> Reject(Guid id, [FromBody] SaleOrderAuditDto? dto)
     {
         var result = await service.RejectAsync(id, dto?.Remark);
         return Ok(ApiResponse<SaleOrderDto>.Ok(result));
@@ -100,7 +101,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     /// </summary>
     [HttpPost("{id:guid}/resubmit")]
     [Authorize(Policy = PermissionCodes.Business.Orders.Audit)]
-    public async Task<IActionResult> Resubmit(Guid id, [FromBody] SaleOrderAuditDto? dto)
+    public async Task<ActionResult<ApiResponse<SaleOrderDto>>> Resubmit(Guid id, [FromBody] SaleOrderAuditDto? dto)
     {
         var result = await service.ResubmitAsync(id, dto?.Remark);
         return Ok(ApiResponse<SaleOrderDto>.Ok(result));

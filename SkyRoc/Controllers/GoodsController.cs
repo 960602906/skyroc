@@ -23,7 +23,7 @@ public class GoodsController(IGoodsService service)
     /// </summary>
     [HttpPatch("{id:guid}/sale-status")]
     [Authorize(Policy = PermissionCodes.Business.Goods.Update)]
-    public async Task<IActionResult> ToggleSaleStatus(Guid id, [FromQuery] bool isOnSale)
+    public async Task<ActionResult<ApiResponse<GoodsDto>>> ToggleSaleStatus(Guid id, [FromQuery] bool isOnSale)
     {
         var result = await service.ToggleSaleStatusAsync(id, isOnSale);
         return Ok(ApiResponse<GoodsDto>.Ok(result));

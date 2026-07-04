@@ -23,7 +23,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpGet("list")]
     [Authorize(Policy = PermissionCodes.System.Roles.Read)]
-    public async Task<IActionResult> GetPagedMenus([FromQuery] RoleQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<RoleDto>>>> GetPagedMenus([FromQuery] RoleQueryParameters parameters)
     {
         var result = await roleService.GetPagedMenusAsync(parameters);
         return Ok(ApiResponse<PagedResult<RoleDto>>.Ok(result));
@@ -35,7 +35,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpGet]
     [Authorize(Policy = PermissionCodes.System.Roles.Read)]
-    public async Task<IActionResult> GetAllRoles()
+    public async Task<ActionResult<ApiResponse<IEnumerable<RoleDto>>>> GetAllRoles()
     {
         var roles = await roleService.GetAllRolesAsync();
         return Ok(ApiResponse<IEnumerable<RoleDto>>.Ok(roles));
@@ -48,7 +48,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpGet("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.Roles.Read)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<RoleDto>>> GetById(Guid id)
     {
         var roles = await roleService.GetRoleByIdAsync(id);
         return Ok(ApiResponse<RoleDto>.Ok(roles));
@@ -61,7 +61,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpPost]
     [Authorize(Policy = PermissionCodes.System.Roles.Create)]
-    public async Task<IActionResult> Create([FromBody] CreateRoleDto dto)
+    public async Task<ActionResult<ApiResponse<RoleDto>>> Create([FromBody] CreateRoleDto dto)
     {
         // ✅ 方法 1：获取当前用户 ID
         // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -79,7 +79,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpPut]
     [Authorize(Policy = PermissionCodes.System.Roles.Update)]
-    public async Task<IActionResult> Update([FromBody] UpdateRoleDto dto)
+    public async Task<ActionResult<ApiResponse<string>>> Update([FromBody] UpdateRoleDto dto)
     {
         await roleService.UpdateRoleAsync(dto.Id, dto);
         return Ok(ApiResponse<string>.Ok("Role updated successfully"));
@@ -92,7 +92,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = PermissionCodes.System.Roles.Delete)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse<string>>> Delete(Guid id)
     {
         await roleService.DeleteRoleAsync(id);
         return Ok(ApiResponse<string>.Ok("Role deleted successfully"));
@@ -105,7 +105,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpDelete("batchDelete")]
     [Authorize(Policy = PermissionCodes.System.Roles.Delete)]
-    public async Task<IActionResult> BatchDeleteRoles(List<Guid> roleIds)
+    public async Task<ActionResult<ApiResponse<string>>> BatchDeleteRoles(List<Guid> roleIds)
     {
         await roleService.DeleteAllRolesAsync(roleIds);
         return Ok(ApiResponse<string>.Ok("Roles deleted successfully"));
@@ -119,7 +119,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpPost("assignMenus")]
     [Authorize(Policy = PermissionCodes.System.Roles.AssignMenus)]
-    public async Task<IActionResult> AssignMenus([FromBody] AssignMenusDto dto)
+    public async Task<ActionResult<ApiResponse<string>>> AssignMenus([FromBody] AssignMenusDto dto)
     {
         await roleService.AssignMenusToRoleAsync(dto.RoleId, dto.MenuIds);
         return Ok(ApiResponse<string>.Ok("Role assigned successfully"));
@@ -132,7 +132,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpPost("unassignRoles")]
     [Authorize(Policy = PermissionCodes.System.Roles.AssignMenus)]
-    public async Task<IActionResult> UnAssignMenus([FromBody] AssignMenusDto dto)
+    public async Task<ActionResult<ApiResponse<string>>> UnAssignMenus([FromBody] AssignMenusDto dto)
     {
         await roleService.RemoveMenusFromRoleAsync(dto.RoleId, dto.MenuIds);
         return Ok(ApiResponse<string>.Ok("Role unassigned successfully"));

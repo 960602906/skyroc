@@ -25,7 +25,7 @@ public class StockQueryController(IStockQueryService service) : ControllerBase
     /// <returns>仓库商品粒度的库存总览分页结果。</returns>
     [HttpGet("overview")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetOverview([FromQuery] StockOverviewQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<StockOverviewDto>>>> GetOverview([FromQuery] StockOverviewQueryParameters parameters)
     {
         var result = await service.GetOverviewAsync(parameters);
         return Ok(ApiResponse<PagedResult<StockOverviewDto>>.Ok(result));
@@ -38,7 +38,7 @@ public class StockQueryController(IStockQueryService service) : ControllerBase
     /// <returns>库存批次分页结果。</returns>
     [HttpGet("batches")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetBatches([FromQuery] StockBatchQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<StockBatchDto>>>> GetBatches([FromQuery] StockBatchQueryParameters parameters)
     {
         var result = await service.GetBatchesAsync(parameters);
         return Ok(ApiResponse<PagedResult<StockBatchDto>>.Ok(result));
@@ -51,7 +51,7 @@ public class StockQueryController(IStockQueryService service) : ControllerBase
     /// <returns>包含来源单据、带方向数量和批次余额的台账分页结果。</returns>
     [HttpGet("ledgers")]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<IActionResult> GetLedgers([FromQuery] StockLedgerQueryParameters parameters)
+    public async Task<ActionResult<ApiResponse<PagedResult<StockLedgerDto>>>> GetLedgers([FromQuery] StockLedgerQueryParameters parameters)
     {
         var result = await service.GetLedgersAsync(parameters);
         return Ok(ApiResponse<PagedResult<StockLedgerDto>>.Ok(result));

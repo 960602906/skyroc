@@ -66,7 +66,7 @@ Permission codes use `module:resource:action` format (see `Shared/Constants/Perm
 public class OrdersController(ISaleOrderService service) : ControllerBase
 {
     [ResourcePermission(PermissionActions.Read)]                 // method-level action
-    public async Task<IActionResult> GetPaged(...) { ... }
+    public async Task<ActionResult<ApiResponse<PagedResult<SaleOrderDto>>>> GetPaged(...) { ... }
 }
 ```
 
@@ -87,4 +87,8 @@ This project follows a strict task-ordered workflow. Before feature work, read `
 
 ## Testing
 
-xUnit + EF Core InMemory + coverlet + `Microsoft.AspNetCore.Mvc.Testing` (integration tests use `WebApplicationFactory` against the `Program` partial class). Tests are grouped by feature under `SkyRoc.Tests/` (e.g. `Orders/`, `Customers/`, `Mapping/`, `Caching/`, `Authorization/`, `Architecture/`). Name test methods as behavior statements: `GetByIdAsync_ReturnsCustomer_WhenCustomerExists`. Place regression tests beside the matching feature folder. Run the full test project before submitting; no coverage threshold is enforced.
+xUnit + EF Core InMemory + coverlet + `Microsoft.AspNetCore.Mvc.Testing` (integration tests use `WebApplicationFactory` against the `Program` partial class). Tests are grouped by feature under `SkyRoc.Tests/` (e.g. `Orders/`, `Customers/`, `Mapping/`, `Caching/`, `Authorization/`, `Architecture/`, `Documentation/`). Name test methods as behavior statements: `GetByIdAsync_ReturnsCustomer_WhenCustomerExists`. Place regression tests beside the matching feature folder. Run the full test project before submitting; no coverage threshold is enforced.
+
+## Swagger / OpenAPI
+
+See **Swagger / OpenAPI** section in `AGENTS.md`. Controllers must return `ActionResult<ApiResponse<T>>` (not `IActionResult`). DTO XML lives in Application/Domain/Shared assemblies and is loaded via `SwaggerExtensions`. New controllers need Tag mapping and Documentation tests when response contracts change.
