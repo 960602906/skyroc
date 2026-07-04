@@ -316,5 +316,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<DeliveryException> DeliveryExceptions { get; set; }
 
+    /// <summary>
+    /// 配送任务表。
+    /// </summary>
+    public DbSet<DeliveryTask> DeliveryTasks { get; set; }
+
     #endregion
 }

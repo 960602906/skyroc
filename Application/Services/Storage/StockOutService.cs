@@ -30,6 +30,7 @@ public class StockOutService(
     ISupplierRepository supplierRepository,
     IDepartmentRepository departmentRepository,
     ISaleOrderRepository saleOrderRepository,
+    IDeliveryTaskRepository deliveryTaskRepository,
     IGoodsUnitRepository goodsUnitRepository,
     IUnitOfWork unitOfWork,
     IMapper mapper,
@@ -278,6 +279,11 @@ public class StockOutService(
             SaleOrder? saleOrder = null;
             if (order.OrderType == StockOutOrderType.Sale && order.SaleOrderId.HasValue)
             {
+                if (await deliveryTaskRepository.ExistsAsync(task => task.StockOutOrderId == order.Id))
+                {
+                    throw new BusinessException($"出库单 {order.OutNo} 已生成配送任务，无法反审核");
+                }
+
                 saleOrder = await saleOrderRepository.GetByIdForUpdateAsync(order.SaleOrderId.Value)
                             ?? throw new BusinessException("来源销售订单不存在，无法反审核");
             }

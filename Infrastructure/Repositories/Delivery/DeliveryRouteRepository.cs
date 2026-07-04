@@ -22,6 +22,27 @@ public class DeliveryRouteRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<CustomerRoute>> GetEnabledCustomerRelationsAsync(
+        IReadOnlyCollection<Guid> customerIds)
+    {
+        if (customerIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await _context.Set<CustomerRoute>()
+            .AsNoTracking()
+            .Include(x => x.Route)
+            .Where(x => customerIds.Contains(x.CustomerId)
+                        && x.Route != null
+                        && x.Route.Status == Shared.Constants.Status.Enable)
+            .OrderBy(x => x.Route!.Sort)
+            .ThenBy(x => x.Sort)
+            .ThenBy(x => x.RouteId)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc />
     public async Task ReplaceCustomerRelationsAsync(Guid routeId, IEnumerable<Guid>? customerIds)
     {
         var relations = await _context.Set<CustomerRoute>()

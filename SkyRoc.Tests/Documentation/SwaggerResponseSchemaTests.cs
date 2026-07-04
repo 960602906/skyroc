@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Shared.Constants;
 using Xunit;
 
 namespace SkyRoc.Tests.Documentation;
@@ -83,5 +84,30 @@ public class SwaggerResponseSchemaTests
 
         var tags = listOperation.GetProperty("tags").EnumerateArray().Select(t => t.GetString()).ToList();
         Assert.Contains("销售订单", tags);
+    }
+
+    [Fact]
+    public async Task Swagger_DocumentsDeliveryTaskAndExceptionContracts()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("DeliveryTaskDto", out _));
+        Assert.True(schemas.TryGetProperty("CreateDeliveryExceptionDto", out _));
+        Assert.True(paths.TryGetProperty("/api/delivery-tasks/generate/{stockOutOrderId}", out _));
+        Assert.True(paths.TryGetProperty("/api/delivery-tasks/intelligent-plan", out _));
+        Assert.True(paths.TryGetProperty("/api/delivery-exceptions", out _));
+
+        var operation = paths.GetProperty("/api/delivery-tasks").GetProperty("get");
+        Assert.Contains(PermissionCodes.Business.Delivery.Read, operation.GetProperty("description").GetString());
+        Assert.Contains("配送", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+        Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
     }
 }

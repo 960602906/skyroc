@@ -13,6 +13,11 @@ public class DeliveryException : BaseEntity
     public string ExceptionNo { get; set; } = string.Empty;
 
     /// <summary>
+    /// 关联配送任务主键；历史上未关联任务的异常记录可为空，新登记异常必须填写。
+    /// </summary>
+    public Guid? DeliveryTaskId { get; set; }
+
+    /// <summary>
     /// 上报异常的司机主键；未指定司机时可为空。
     /// </summary>
     public Guid? DriverId { get; set; }
@@ -41,6 +46,11 @@ public class DeliveryException : BaseEntity
     /// 异常处理完成时间（UTC）。
     /// </summary>
     public DateTime? HandleTime { get; set; }
+
+    /// <summary>
+    /// 异常所属配送任务。
+    /// </summary>
+    public virtual DeliveryTask? DeliveryTask { get; set; }
 
     /// <summary>
     /// 上报异常的司机。

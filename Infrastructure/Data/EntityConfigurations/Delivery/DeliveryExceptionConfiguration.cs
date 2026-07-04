@@ -19,6 +19,7 @@ public class DeliveryExceptionConfiguration : IEntityTypeConfiguration<DeliveryE
         builder.ConfigureBaseEntity();
 
         builder.Property(x => x.ExceptionNo).HasColumnName("exception_no").HasMaxLength(50).IsRequired();
+        builder.Property(x => x.DeliveryTaskId).HasColumnName("delivery_task_id");
         builder.Property(x => x.DriverId).HasColumnName("driver_id");
         builder.Property(x => x.CustomerId).HasColumnName("customer_id");
         builder.Property(x => x.Description).HasColumnName("description").HasMaxLength(1000).IsRequired();
@@ -33,6 +34,7 @@ public class DeliveryExceptionConfiguration : IEntityTypeConfiguration<DeliveryE
             .HasColumnType("timestamp with time zone");
 
         builder.HasIndex(x => x.ExceptionNo).IsUnique().HasDatabaseName("idx_delivery_exception_no");
+        builder.HasIndex(x => x.DeliveryTaskId).HasDatabaseName("idx_delivery_exception_task_id");
         builder.HasIndex(x => x.DriverId).HasDatabaseName("idx_delivery_exception_driver_id");
         builder.HasIndex(x => x.CustomerId).HasDatabaseName("idx_delivery_exception_customer_id");
 
@@ -40,6 +42,11 @@ public class DeliveryExceptionConfiguration : IEntityTypeConfiguration<DeliveryE
             .WithMany()
             .HasForeignKey(x => x.DriverId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(x => x.DeliveryTask)
+            .WithMany(x => x.Exceptions)
+            .HasForeignKey(x => x.DeliveryTaskId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Customer)
             .WithMany()

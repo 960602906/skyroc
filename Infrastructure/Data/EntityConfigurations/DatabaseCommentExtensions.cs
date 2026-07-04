@@ -68,7 +68,8 @@ public static class DatabaseCommentExtensions
         [typeof(Driver)] = "司机档案，记录执行配送任务的司机及其所属承运商",
         [typeof(DeliveryRoute)] = "配送路线档案，维护配送分区路线及排序",
         [typeof(CustomerRoute)] = "客户与配送路线的关系，记录客户归属路线和路线内配送顺序",
-        [typeof(DeliveryException)] = "配送异常，记录配送过程中上报的异常及处理状态"
+        [typeof(DeliveryException)] = "配送异常，记录配送过程中上报的异常及处理状态",
+        [typeof(DeliveryTask)] = "配送任务，记录销售出库后的客户、司机、路线和履约状态"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -106,6 +107,16 @@ public static class DatabaseCommentExtensions
         ["HandleStatus"] = "配送异常处理状态：待处理或已处理",
         ["HandleRemark"] = "配送异常处理说明",
         ["HandleTime"] = "配送异常处理完成时间（UTC）",
+        ["DeliveryTaskId"] = "关联配送任务主键",
+        ["TaskNo"] = "配送任务业务唯一编号",
+        ["DriverNameSnapshot"] = "配送任务分配时的司机姓名快照",
+        ["DriverPhoneSnapshot"] = "配送任务分配时的司机电话快照",
+        ["CarrierNameSnapshot"] = "配送任务分配时的承运商名称快照",
+        ["RouteNameSnapshot"] = "配送任务规划时的路线名称快照",
+        ["RouteSequence"] = "客户在配送路线内的执行顺序",
+        ["DeliveryStatus"] = "配送任务状态：待分配、已分配、配送中、异常或已签收",
+        ["AssignedTime"] = "最近一次分配司机的时间（UTC）",
+        ["PlannedTime"] = "最近一次路线规划时间（UTC）",
         ["Code"] = "业务唯一编码",
         ["CompanyId"] = "所属公司主键",
         ["Component"] = "前端路由加载的组件路径",
@@ -320,6 +331,7 @@ public static class DatabaseCommentExtensions
     private static readonly IReadOnlyDictionary<(Type EntityType, string PropertyName), string> EntityPropertyComments =
         new Dictionary<(Type EntityType, string PropertyName), string>
         {
+            [(typeof(DeliveryTask), nameof(DeliveryTask.StockOutOrderId))] = "来源销售出库单主键，同一出库单只能生成一条配送任务",
             [(typeof(StockBatch), nameof(StockBatch.ProductDate))] = "库存批次商品生产日期，仅记录自然日",
             [(typeof(StockInDetail), nameof(StockInDetail.GoodsUnitId))] = "入库计量单位主键",
             [(typeof(StockInDetail), nameof(StockInDetail.GoodsUnitNameSnapshot))] = "入库发生时的计量单位名称快照",

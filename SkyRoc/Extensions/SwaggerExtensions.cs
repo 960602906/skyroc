@@ -49,7 +49,9 @@ public static class SwaggerExtensions
         ["StockQuery"] = "库存",
         ["Drivers"] = "配送",
         ["Carriers"] = "配送",
-        ["Routes"] = "配送"
+        ["Routes"] = "配送",
+        ["DeliveryTasks"] = "配送",
+        ["DeliveryExceptions"] = "配送"
     };
 
     /// <summary>

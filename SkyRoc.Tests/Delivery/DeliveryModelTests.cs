@@ -35,6 +35,22 @@ public class DeliveryModelTests
         Assert.Equal("delivery_route", GetEntityType<DeliveryRoute>().GetTableName());
         Assert.Equal("customer_route", GetEntityType<CustomerRoute>().GetTableName());
         Assert.Equal("delivery_exception", GetEntityType<DeliveryException>().GetTableName());
+        Assert.Equal("delivery_task", GetEntityType<DeliveryTask>().GetTableName());
+    }
+
+    [Fact]
+    public void DeliveryTask_EnforcesUniqueSourceAndConfiguresDispatchReferences()
+    {
+        var entityType = GetEntityType<DeliveryTask>();
+
+        Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_delivery_task_no").IsUnique);
+        Assert.True(entityType.GetIndexes().Single(
+            x => x.GetDatabaseName() == "idx_delivery_task_stock_out_order_id").IsUnique);
+        Assert.Equal(
+            DeliveryTaskStatus.PendingAssign,
+            entityType.FindProperty(nameof(DeliveryTask.DeliveryStatus))!.GetDefaultValue());
+        AssertForeignKey<DeliveryTask, Driver>(nameof(DeliveryTask.DriverId), DeleteBehavior.Restrict);
+        AssertForeignKey<DeliveryTask, DeliveryRoute>(nameof(DeliveryTask.RouteId), DeleteBehavior.SetNull);
     }
 
     [Fact]
@@ -89,6 +105,7 @@ public class DeliveryModelTests
             entityType.FindProperty(nameof(DeliveryException.HandleStatus))!.GetDefaultValue());
         AssertForeignKey<DeliveryException, Driver>(nameof(DeliveryException.DriverId), DeleteBehavior.SetNull);
         AssertForeignKey<DeliveryException, Customer>(nameof(DeliveryException.CustomerId), DeleteBehavior.Restrict);
+        AssertForeignKey<DeliveryException, DeliveryTask>(nameof(DeliveryException.DeliveryTaskId), DeleteBehavior.Restrict);
     }
 
     private IEntityType GetEntityType<TEntity>()

@@ -48,6 +48,15 @@ public class DriverService(
         await ValidateCarrierAsync(dto.CarrierId);
     }
 
+    /// <inheritdoc />
+    protected override async Task ValidateDeleteAsync(Guid id)
+    {
+        if (await repository.HasDeliveryTasksAsync(id))
+        {
+            throw new BusinessException("司机已关联配送任务，不能删除；如不再使用请停用");
+        }
+    }
+
     private async Task ValidateCarrierAsync(Guid? carrierId)
     {
         if (carrierId.HasValue && !await carrierRepository.ExistsAsync(carrierId.Value))

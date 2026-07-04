@@ -6,6 +6,7 @@ using Application.QueryParameters;
 using Application.Services;
 using Application.Validator;
 using AutoMapper;
+using Domain.Entities.Delivery;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
 using Domain.Entities.Purchases;
@@ -174,6 +175,41 @@ public class StockOutServiceTests
         Assert.True(reverted.HasOutSale);
         Assert.Equal(OrderOutStorageStatus.PartiallyGenerated, reverted.OutStorageStatus);
         Assert.Equal(firstOutTime, reverted.OutDate);
+    }
+
+    [Fact]
+    public async Task ReverseAuditAsync_RejectsSaleOutboundThatHasGeneratedDeliveryTask()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedCatalogAsync(context, batchQuantity: 30m);
+        var source = await SeedSaleOrderAsync(context, seed, SaleOrderStatus.SortingPending, 10m);
+        var service = CreateService(context, new RecordingUnitOfWork(context));
+        var outbound = await service.CreateSaleAsync(SaleRequest(
+            seed,
+            10m,
+            saleOrderId: source.OrderId,
+            saleOrderDetailId: source.DetailId));
+        await service.AuditAsync(StockOutOrderType.Sale, outbound.Id, null);
+        await context.DeliveryTasks.AddAsync(new DeliveryTask
+        {
+            Id = Guid.NewGuid(),
+            TaskNo = "DT20260704001",
+            StockOutOrderId = outbound.Id,
+            SaleOrderId = source.OrderId,
+            CustomerId = seed.CustomerId,
+            CustomerNameSnapshot = "零售客户",
+            WareId = seed.WareId,
+            WareNameSnapshot = "中心仓",
+            OutTime = new DateTime(2026, 7, 5, 8, 0, 0, DateTimeKind.Utc)
+        });
+        await context.SaveChangesAsync();
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(() =>
+            service.ReverseAuditAsync(StockOutOrderType.Sale, outbound.Id, null));
+
+        Assert.Contains("已生成配送任务", exception.Message);
+        Assert.Equal(StockDocumentStatus.Audited, (await context.StockOutOrders.SingleAsync()).BusinessStatus);
+        Assert.Single(await context.StockLedgers.ToListAsync());
     }
 
     [Fact]
@@ -408,6 +444,7 @@ public class StockOutServiceTests
             new SupplierRepository(context),
             new DepartmentRepository(context),
             saleOrderRepository ?? new SaleOrderRepository(context),
+            new DeliveryTaskRepository(context),
             new GoodsUnitRepository(context),
             unitOfWork,
             mapper,

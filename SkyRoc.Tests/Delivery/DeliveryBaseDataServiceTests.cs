@@ -139,6 +139,35 @@ public class DeliveryBaseDataServiceTests
     }
 
     [Fact]
+    public async Task Delete_driver_should_reject_driver_referenced_by_delivery_task()
+    {
+        await using var context = CreateDbContext();
+        var service = CreateDriverService(context);
+        var driver = await service.CreateAsync(new CreateDriverDto { Name = "配送司机", Code = "DRIVER_TASK" });
+        await context.DeliveryTasks.AddAsync(new DeliveryTask
+        {
+            Id = Guid.NewGuid(),
+            TaskNo = "DT20260704002",
+            StockOutOrderId = Guid.NewGuid(),
+            SaleOrderId = Guid.NewGuid(),
+            CustomerId = Guid.NewGuid(),
+            CustomerNameSnapshot = "测试客户",
+            WareId = Guid.NewGuid(),
+            WareNameSnapshot = "测试仓库",
+            DriverId = driver.Id,
+            DriverNameSnapshot = driver.Name,
+            DeliveryStatus = DeliveryTaskStatus.Assigned,
+            OutTime = new DateTime(2026, 7, 4, 2, 0, 0, DateTimeKind.Utc)
+        });
+        await context.SaveChangesAsync();
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(() => service.DeleteAsync(driver.Id));
+
+        Assert.Contains("已关联配送任务", exception.Message);
+        Assert.NotNull(await context.Drivers.SingleOrDefaultAsync(x => x.Id == driver.Id));
+    }
+
+    [Fact]
     public async Task Create_route_should_persist_initial_customer_relations()
     {
         await using var context = CreateDbContext();

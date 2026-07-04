@@ -2792,3 +2792,74 @@ Content-Type: {{contentType}}
 DELETE {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### Delivery Tasks - Generate From Audited Sale Stock Out
+POST {{SkyRoc_HostAddress}}/api/delivery-tasks/generate/{{stockOutSaleId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+> {%
+    client.global.set("deliveryTaskId", response.body.data.id);
+%}
+
+### Delivery Tasks - Order Task List
+GET {{SkyRoc_HostAddress}}/api/delivery-tasks?current=1&size=10&customerId={{customerId}}&deliveryStatus=1
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Delivery Tasks - Get By Id
+GET {{SkyRoc_HostAddress}}/api/delivery-tasks/{{deliveryTaskId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Delivery Tasks - Assign Driver
+PUT {{SkyRoc_HostAddress}}/api/delivery-tasks/driver
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "taskIds": [
+    "{{deliveryTaskId}}"
+  ],
+  "driverId": "{{driverId}}"
+}
+
+### Delivery Tasks - Driver Task List
+GET {{SkyRoc_HostAddress}}/api/delivery-tasks/driver?current=1&size=10&driverId={{driverId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Delivery Tasks - Intelligent Route Plan
+PUT {{SkyRoc_HostAddress}}/api/delivery-tasks/intelligent-plan
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "taskIds": [
+    "{{deliveryTaskId}}"
+  ]
+}
+
+### Delivery Exceptions - Create
+POST {{SkyRoc_HostAddress}}/api/delivery-exceptions
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "deliveryTaskId": "{{deliveryTaskId}}",
+  "description": "客户临时闭店，已联系改约"
+}
+
+> {%
+    client.global.set("deliveryExceptionId", response.body.data.id);
+%}
+
+### Delivery Exceptions - List
+GET {{SkyRoc_HostAddress}}/api/delivery-exceptions?current=1&size=10&deliveryTaskId={{deliveryTaskId}}&handleStatus=0
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Delivery Exceptions - Get By Id
+GET {{SkyRoc_HostAddress}}/api/delivery-exceptions/{{deliveryExceptionId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
