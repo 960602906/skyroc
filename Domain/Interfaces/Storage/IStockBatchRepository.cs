@@ -8,6 +8,13 @@ namespace Domain.Interfaces;
 public interface IStockBatchRepository : IRepository<StockBatch>
 {
     /// <summary>
+    /// 批量读取指定库存批次，用于盘点创建时一次性固化账面数量和成本快照。
+    /// </summary>
+    /// <param name="ids">待读取的库存批次主键集合。</param>
+    /// <returns>实际存在的库存批次集合；不存在的主键不会出现在结果中。</returns>
+    Task<IReadOnlyList<StockBatch>> GetByIdsAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>
     /// 按仓库、商品和批次号读取库存批次，用于入库审核时定位既有批次。
     /// </summary>
     /// <param name="wareId">批次所在仓库主键。</param>

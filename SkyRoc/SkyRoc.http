@@ -43,6 +43,7 @@
 @stockOutSaleDeleteDraftId = 00000000-0000-0000-0000-000000000001
 @stockOutPurchaseReturnDeleteDraftId = 00000000-0000-0000-0000-000000000001
 @stockOutOtherDeleteDraftId = 00000000-0000-0000-0000-000000000001
+@stocktakingId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -2520,4 +2521,44 @@ Content-Type: {{contentType}}
 
 {
   "remark": "撤销其他出库"
+}
+
+### Stocktaking - List
+GET {{SkyRoc_HostAddress}}/api/stocktaking/list?current=1&size=10&wareId={{wareId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stocktaking - Create Draft
+POST {{SkyRoc_HostAddress}}/api/stocktaking
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "wareId": "{{wareId}}",
+  "remark": "月末库存盘点",
+  "details": [
+    {
+      "stockBatchId": "{{stockBatchId}}",
+      "actualQuantity": 98.5,
+      "remark": "现场复核后确认盘亏"
+    }
+  ]
+}
+
+> {%
+    client.global.set("stocktakingId", response.body.data.id);
+%}
+
+### Stocktaking - Get By Id
+GET {{SkyRoc_HostAddress}}/api/stocktaking/{{stocktakingId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stocktaking - Audit And Apply Adjustment
+POST {{SkyRoc_HostAddress}}/api/stocktaking/{{stocktakingId}}/audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "审核月末盘点差异并调整库存"
 }

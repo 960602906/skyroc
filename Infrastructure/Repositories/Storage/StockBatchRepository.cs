@@ -12,6 +12,20 @@ public class StockBatchRepository(ApplicationDbContext context)
     : Repository<StockBatch>(context), IStockBatchRepository
 {
     /// <inheritdoc />
+    public virtual async Task<IReadOnlyList<StockBatch>> GetByIdsAsync(IReadOnlyCollection<Guid> ids)
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        return await DbSet
+            .AsNoTracking()
+            .Where(batch => ids.Contains(batch.Id))
+            .ToListAsync();
+    }
+
+    /// <inheritdoc />
     public async Task<StockBatch?> GetByIdentityAsync(Guid wareId, Guid goodsId, string batchNo)
     {
         var normalizedBatchNo = batchNo.Trim();
