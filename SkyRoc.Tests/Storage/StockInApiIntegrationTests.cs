@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using Application.DTOs.Storage;
 using Domain.Entities.Goods;
 using Domain.Entities.Purchases;
@@ -27,6 +28,91 @@ namespace SkyRoc.Tests.Storage;
 
 public class StockInApiIntegrationTests
 {
+    [Fact]
+    public async Task StockQueryEndpoints_ReturnOverviewBatchesAndLedger_ThroughHttpApi()
+    {
+        using var factory = new StockInApiFactory();
+        var seed = await factory.SeedCatalogAsync();
+        var querySeed = await factory.SeedStockQueryAsync(seed);
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.PermissionsHeader, PermissionCodes.Business.Storage.Read);
+
+        var overviewResponse = await client.GetAsync(
+            $"/api/stock/overview?current=1&size=10&wareId={seed.WareId}&goodsId={seed.GoodsId}");
+        var overviewPage = await ReadDataAsync<PagedResult<StockOverviewDto>>(overviewResponse);
+        var overview = Assert.Single(overviewPage.Records!);
+        Assert.Equal(1, overviewPage.Total);
+        Assert.Equal(15m, overview.CurrentQuantity);
+        Assert.Equal(12m, overview.AvailableQuantity);
+        Assert.Equal(3m, overview.OccupiedQuantity);
+        Assert.Equal(5.3333m, overview.WeightedUnitCost);
+        Assert.Equal(80m, overview.StockValue);
+
+        var batchResponse = await client.GetAsync(
+            $"/api/stock/batches?current=1&size=1&goodsId={seed.GoodsId}");
+        var batchPage = await ReadDataAsync<PagedResult<StockBatchDto>>(batchResponse);
+        Assert.Equal(2, batchPage.Total);
+        var firstExpiringBatch = Assert.Single(batchPage.Records!);
+        Assert.Equal(querySeed.FirstBatchId, firstExpiringBatch.Id);
+        Assert.Equal(3m, firstExpiringBatch.OccupiedQuantity);
+        Assert.Equal(40m, firstExpiringBatch.StockValue);
+
+        var ledgerResponse = await client.GetAsync(
+            $"/api/stock/ledgers?current=1&size=10&stockBatchId={querySeed.FirstBatchId}&direction=2");
+        var ledgerPage = await ReadDataAsync<PagedResult<StockLedgerDto>>(ledgerResponse);
+        var ledger = Assert.Single(ledgerPage.Records!);
+        Assert.Equal(StockLedgerDirection.Decrease, ledger.Direction);
+        Assert.Equal(StockLedgerSourceType.OtherOutbound, ledger.SourceType);
+        Assert.Equal(-2m, ledger.SignedChangeQuantity);
+        Assert.Equal(10m, ledger.BalanceQuantity);
+    }
+
+    [Fact]
+    public async Task StockQueryEndpoints_RequireAuthenticationAndStorageReadPermission()
+    {
+        using var factory = new StockInApiFactory();
+        using var anonymousClient = factory.CreateClient();
+
+        var anonymousResponse = await anonymousClient.GetAsync("/api/stock/overview?current=1&size=10");
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
+
+        using var forbiddenClient = factory.CreateClient();
+        forbiddenClient.DefaultRequestHeaders.Add(
+            TestAuthHandler.PermissionsHeader,
+            PermissionCodes.Business.Goods.Read);
+        var forbiddenResponse = await forbiddenClient.GetAsync("/api/stock/batches?current=1&size=10");
+        Assert.Equal(HttpStatusCode.Forbidden, forbiddenResponse.StatusCode);
+
+        using var allowedClient = factory.CreateClient();
+        allowedClient.DefaultRequestHeaders.Add(
+            TestAuthHandler.PermissionsHeader,
+            PermissionCodes.Business.Storage.Read);
+        var allowedResponse = await allowedClient.GetAsync("/api/stock/ledgers?current=1&size=10");
+        Assert.Equal(HttpStatusCode.OK, allowedResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Swagger_DocumentsStockQueryRoutesAndReadPermission()
+    {
+        using var factory = new StockInApiFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var paths = document.RootElement.GetProperty("paths");
+        foreach (var path in new[] { "/api/stock/overview", "/api/stock/batches", "/api/stock/ledgers" })
+        {
+            var operation = paths.GetProperty(path).GetProperty("get");
+            Assert.Contains(
+                PermissionCodes.Business.Storage.Read,
+                operation.GetProperty("description").GetString());
+            Assert.Equal("Bearer", operation.GetProperty("security")[0].EnumerateObject().Single().Name);
+            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+        }
+    }
+
     [Fact]
     public async Task PurchaseInbound_AuditIncreasesStock_ReverseRollsBack_ThroughHttpApi()
     {
@@ -240,6 +326,92 @@ public class StockInApiIntegrationTests
             return stockBatch.Id;
         }
 
+        public async Task<StockQuerySeed> SeedStockQueryAsync(CatalogSeed seed)
+        {
+            using var scope = Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var firstBatch = new StockBatch
+            {
+                Id = Guid.NewGuid(),
+                WareId = seed.WareId,
+                GoodsId = seed.GoodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "IT_TOMATO",
+                BatchNo = "IT-QUERY-001",
+                BaseUnitId = seed.GoodsUnitId,
+                BaseUnitNameSnapshot = "千克",
+                CurrentQuantity = 10m,
+                AvailableQuantity = 7m,
+                UnitCost = 4m,
+                ExpireDate = new DateOnly(2026, 7, 10),
+                LastMovementTime = new DateTime(2026, 7, 5, 9, 0, 0, DateTimeKind.Utc)
+            };
+            var secondBatch = new StockBatch
+            {
+                Id = Guid.NewGuid(),
+                WareId = seed.WareId,
+                GoodsId = seed.GoodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "IT_TOMATO",
+                BatchNo = "IT-QUERY-002",
+                BaseUnitId = seed.GoodsUnitId,
+                BaseUnitNameSnapshot = "千克",
+                CurrentQuantity = 5m,
+                AvailableQuantity = 5m,
+                UnitCost = 8m,
+                ExpireDate = new DateOnly(2026, 7, 20),
+                LastMovementTime = new DateTime(2026, 7, 5, 8, 0, 0, DateTimeKind.Utc)
+            };
+            var sourceOrderId = Guid.NewGuid();
+            var inboundLedger = new StockLedger
+            {
+                Id = Guid.NewGuid(),
+                StockBatchId = firstBatch.Id,
+                WareId = seed.WareId,
+                WareNameSnapshot = "入库集成仓",
+                GoodsId = seed.GoodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "IT_TOMATO",
+                BatchNoSnapshot = firstBatch.BatchNo,
+                BaseUnitNameSnapshot = "千克",
+                Direction = StockLedgerDirection.Increase,
+                SourceType = StockLedgerSourceType.PurchaseInbound,
+                SourceOrderId = sourceOrderId,
+                SourceDetailId = Guid.NewGuid(),
+                ChangeQuantity = 12m,
+                BalanceQuantity = 12m,
+                UnitCost = 4m,
+                TotalCost = 48m,
+                OccurredTime = new DateTime(2026, 7, 5, 8, 0, 0, DateTimeKind.Utc)
+            };
+            var outboundLedger = new StockLedger
+            {
+                Id = Guid.NewGuid(),
+                StockBatchId = firstBatch.Id,
+                WareId = seed.WareId,
+                WareNameSnapshot = "入库集成仓",
+                GoodsId = seed.GoodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "IT_TOMATO",
+                BatchNoSnapshot = firstBatch.BatchNo,
+                BaseUnitNameSnapshot = "千克",
+                Direction = StockLedgerDirection.Decrease,
+                SourceType = StockLedgerSourceType.OtherOutbound,
+                SourceOrderId = Guid.NewGuid(),
+                SourceDetailId = Guid.NewGuid(),
+                ChangeQuantity = 2m,
+                BalanceQuantity = 10m,
+                UnitCost = 4m,
+                TotalCost = 8m,
+                OccurredTime = new DateTime(2026, 7, 5, 9, 0, 0, DateTimeKind.Utc)
+            };
+
+            await context.StockBatches.AddRangeAsync(firstBatch, secondBatch);
+            await context.StockLedgers.AddRangeAsync(inboundLedger, outboundLedger);
+            await context.SaveChangesAsync();
+            return new StockQuerySeed(firstBatch.Id);
+        }
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Development");
@@ -352,4 +524,6 @@ public class StockInApiIntegrationTests
         Guid WareId,
         Guid SupplierId,
         Guid PurchaserId);
+
+    private sealed record StockQuerySeed(Guid FirstBatchId);
 }

@@ -10,6 +10,7 @@ using Domain.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared.Constants;
+using static Shared.Constants.NumericPrecision;
 using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services;
@@ -330,13 +331,4 @@ public class StocktakingService(
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    private static decimal RoundQuantity(decimal quantity)
-    {
-        return decimal.Round(quantity, 6, MidpointRounding.AwayFromZero);
-    }
-
-    private static decimal RoundMoney(decimal money)
-    {
-        return decimal.Round(money, 4, MidpointRounding.AwayFromZero);
-    }
 }

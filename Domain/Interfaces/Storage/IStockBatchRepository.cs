@@ -1,4 +1,6 @@
 using Domain.Entities.Storage;
+using Domain.Queries.Storage;
+using Domain.ReadModels.Storage;
 
 namespace Domain.Interfaces;
 
@@ -7,6 +9,30 @@ namespace Domain.Interfaces;
 /// </summary>
 public interface IStockBatchRepository : IRepository<StockBatch>
 {
+    /// <summary>
+    /// 按仓库和商品聚合库存批次余额、可用量及货值并分页返回。
+    /// </summary>
+    /// <param name="criteria">仓库、分类、商品、关键字和零库存筛选条件。</param>
+    /// <param name="pageNumber">从 1 开始的页码。</param>
+    /// <param name="pageSize">每页记录数。</param>
+    /// <returns>仓库商品库存聚合行及筛选后的总分组数。</returns>
+    Task<(IReadOnlyList<StockOverviewReadModel> Items, int Total)> GetOverviewPagedAsync(
+        StockOverviewCriteria criteria,
+        int pageNumber,
+        int pageSize);
+
+    /// <summary>
+    /// 分页读取库存批次及当前仓库、商品、分类和基础单位资料。
+    /// </summary>
+    /// <param name="criteria">批次筛选条件。</param>
+    /// <param name="pageNumber">从 1 开始的页码。</param>
+    /// <param name="pageSize">每页记录数。</param>
+    /// <returns>匹配的库存批次及筛选后的总记录数。</returns>
+    Task<(IReadOnlyList<StockBatch> Items, int Total)> GetQueryPagedAsync(
+        StockBatchCriteria criteria,
+        int pageNumber,
+        int pageSize);
+
     /// <summary>
     /// 批量读取指定库存批次，用于盘点创建时一次性固化账面数量和成本快照。
     /// </summary>

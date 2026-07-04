@@ -11,6 +11,7 @@ using Domain.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared.Constants;
+using static Shared.Constants.NumericPrecision;
 using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services;
@@ -604,11 +605,6 @@ public class PurchasePlanService(
     /// <summary>
     /// 将采购数量统一保留到数据库定义的六位小数精度。
     /// </summary>
-    private static decimal RoundQuantity(decimal quantity)
-    {
-        return decimal.Round(quantity, 6, MidpointRounding.AwayFromZero);
-    }
-
     /// <summary>
     /// 根据一张已审核订单构建采购计划，按商品聚合明细并保留订单来源关系。
     /// </summary>

@@ -2562,3 +2562,18 @@ Content-Type: {{contentType}}
 {
   "remark": "审核月末盘点差异并调整库存"
 }
+
+### Stock Query - Overview By Warehouse And Goods
+GET {{SkyRoc_HostAddress}}/api/stock/overview?current=1&size=10&wareId={{wareId}}&goodsId={{goodsId}}&includeZeroStock=false
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Query - Batches By Warehouse And Expiry
+GET {{SkyRoc_HostAddress}}/api/stock/batches?current=1&size=10&wareId={{wareId}}&goodsId={{goodsId}}&expireDateEnd=2026-12-31&includeZeroStock=false
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Stock Query - Ledger By Batch And Time
+GET {{SkyRoc_HostAddress}}/api/stock/ledgers?current=1&size=10&stockBatchId={{stockBatchId}}&occurredTimeStart=2026-07-01T00:00:00Z&occurredTimeEnd=2026-07-31T23:59:59Z
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}

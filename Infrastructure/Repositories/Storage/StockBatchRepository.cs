@@ -1,16 +1,163 @@
 using Domain.Entities.Storage;
 using Domain.Interfaces;
+using Domain.Queries.Storage;
+using Domain.ReadModels.Storage;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
 /// <summary>
-/// 库存批次仓储，按仓库、商品和批次号定位批次以支持入出库审核时的余额更新。
+/// 库存批次仓储，支持库存总览聚合、批次分页，以及入出库审核时按唯一标识定位余额记录。
 /// </summary>
 public class StockBatchRepository(ApplicationDbContext context)
     : Repository<StockBatch>(context), IStockBatchRepository
 {
+    /// <inheritdoc />
+    public async Task<(IReadOnlyList<StockOverviewReadModel> Items, int Total)> GetOverviewPagedAsync(
+        StockOverviewCriteria criteria,
+        int pageNumber,
+        int pageSize)
+    {
+        var query = DbSet.AsNoTracking().AsQueryable();
+        if (!criteria.IncludeZeroStock)
+        {
+            query = query.Where(batch => batch.CurrentQuantity > 0m);
+        }
+
+        if (!string.IsNullOrWhiteSpace(criteria.Keyword))
+        {
+            var keyword = criteria.Keyword;
+            query = query.Where(batch => batch.Goods.Name.Contains(keyword)
+                                         || batch.Goods.Code.Contains(keyword));
+        }
+
+        if (criteria.WareId.HasValue)
+        {
+            query = query.Where(batch => batch.WareId == criteria.WareId.Value);
+        }
+
+        if (criteria.GoodsTypeId.HasValue)
+        {
+            query = query.Where(batch => batch.Goods.GoodsTypeId == criteria.GoodsTypeId.Value);
+        }
+
+        if (criteria.GoodsId.HasValue)
+        {
+            query = query.Where(batch => batch.GoodsId == criteria.GoodsId.Value);
+        }
+
+        var groupedQuery = query
+            .GroupBy(batch => new
+            {
+                batch.WareId,
+                WareName = batch.Ware.Name,
+                batch.Goods.GoodsTypeId,
+                GoodsTypeName = batch.Goods.GoodsType.Name,
+                batch.GoodsId,
+                GoodsName = batch.Goods.Name,
+                GoodsCode = batch.Goods.Code,
+                batch.BaseUnitId,
+                BaseUnitName = batch.BaseUnit.Name
+            })
+            .Select(group => new StockOverviewReadModel
+            {
+                WareId = group.Key.WareId,
+                WareName = group.Key.WareName,
+                GoodsTypeId = group.Key.GoodsTypeId,
+                GoodsTypeName = group.Key.GoodsTypeName,
+                GoodsId = group.Key.GoodsId,
+                GoodsName = group.Key.GoodsName,
+                GoodsCode = group.Key.GoodsCode,
+                BaseUnitId = group.Key.BaseUnitId,
+                BaseUnitName = group.Key.BaseUnitName,
+                CurrentQuantity = group.Sum(batch => batch.CurrentQuantity),
+                AvailableQuantity = group.Sum(batch => batch.AvailableQuantity),
+                StockValue = group.Sum(batch => batch.CurrentQuantity * batch.UnitCost),
+                LastMovementTime = group.Max(batch => batch.LastMovementTime)
+            });
+
+        var total = await groupedQuery.CountAsync();
+        var items = await groupedQuery
+            .OrderBy(item => item.GoodsCode)
+            .ThenBy(item => item.WareName)
+            .ThenBy(item => item.GoodsId)
+            .ThenBy(item => item.WareId)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        return (items, total);
+    }
+
+    /// <inheritdoc />
+    public async Task<(IReadOnlyList<StockBatch> Items, int Total)> GetQueryPagedAsync(
+        StockBatchCriteria criteria,
+        int pageNumber,
+        int pageSize)
+    {
+        var query = DbSet
+            .AsNoTracking()
+            .Include(batch => batch.Ware)
+            .Include(batch => batch.Goods)
+            .ThenInclude(goods => goods.GoodsType)
+            .Include(batch => batch.BaseUnit)
+            .AsQueryable();
+        if (!criteria.IncludeZeroStock)
+        {
+            query = query.Where(batch => batch.CurrentQuantity > 0m);
+        }
+
+        if (!string.IsNullOrWhiteSpace(criteria.Keyword))
+        {
+            var keyword = criteria.Keyword;
+            query = query.Where(batch => batch.Goods.Name.Contains(keyword)
+                                         || batch.Goods.Code.Contains(keyword)
+                                         || batch.BatchNo.Contains(keyword));
+        }
+
+        if (criteria.WareId.HasValue)
+        {
+            query = query.Where(batch => batch.WareId == criteria.WareId.Value);
+        }
+
+        if (criteria.GoodsTypeId.HasValue)
+        {
+            query = query.Where(batch => batch.Goods.GoodsTypeId == criteria.GoodsTypeId.Value);
+        }
+
+        if (criteria.GoodsId.HasValue)
+        {
+            query = query.Where(batch => batch.GoodsId == criteria.GoodsId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(criteria.BatchNo))
+        {
+            query = query.Where(batch => batch.BatchNo == criteria.BatchNo);
+        }
+
+        if (criteria.ExpireDateStart.HasValue)
+        {
+            query = query.Where(batch => batch.ExpireDate >= criteria.ExpireDateStart.Value);
+        }
+
+        if (criteria.ExpireDateEnd.HasValue)
+        {
+            query = query.Where(batch => batch.ExpireDate <= criteria.ExpireDateEnd.Value);
+        }
+
+        var total = await query.CountAsync();
+        var items = await query
+            .OrderBy(batch => batch.ExpireDate == null)
+            .ThenBy(batch => batch.ExpireDate)
+            .ThenBy(batch => batch.Goods.Code)
+            .ThenBy(batch => batch.BatchNo)
+            .ThenBy(batch => batch.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        return (items, total);
+    }
+
     /// <inheritdoc />
     public virtual async Task<IReadOnlyList<StockBatch>> GetByIdsAsync(IReadOnlyCollection<Guid> ids)
     {

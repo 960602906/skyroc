@@ -326,14 +326,9 @@ public class SaleOrderService(
             throw new BusinessException($"商品 {goods.Name} 未配置基础单位");
         }
 
-        var baseQuantity = decimal.Round(
-            quantity * goodsUnit.ConversionRate,
-            6,
-            MidpointRounding.AwayFromZero);
-        var totalPrice = decimal.Round(
-            baseQuantity / fixedGoodsUnit.ConversionRate * fixedPrice,
-            4,
-            MidpointRounding.AwayFromZero);
+        var baseQuantity = NumericPrecision.RoundQuantity(quantity * goodsUnit.ConversionRate);
+        var totalPrice = NumericPrecision.RoundMoney(
+            baseQuantity / fixedGoodsUnit.ConversionRate * fixedPrice);
 
         return new SaleOrderDetail
         {
