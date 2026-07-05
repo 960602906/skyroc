@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
 using Domain.Entities.Goods;
@@ -71,7 +72,11 @@ public static class DatabaseCommentExtensions
         [typeof(DeliveryRoute)] = "配送路线档案，维护配送分区路线及排序",
         [typeof(CustomerRoute)] = "客户与配送路线的关系，记录客户归属路线和路线内配送顺序",
         [typeof(DeliveryException)] = "配送异常，记录配送过程中上报的异常及处理状态",
-        [typeof(DeliveryTask)] = "配送任务，记录销售出库后的客户、司机、路线和履约状态"
+        [typeof(DeliveryTask)] = "配送任务，记录销售出库后的客户、司机、路线和履约状态",
+        [typeof(AfterSale)] = "售后单，记录来源订单、客户、审核状态和结算金额快照",
+        [typeof(AfterSaleGoods)] = "售后商品明细，记录商品、单位、原因、处理方式和退款金额快照",
+        [typeof(AfterSaleAuditLog)] = "售后审核记录，保存提交、审核、驳回、重提和反审核轨迹",
+        [typeof(PickupTask)] = "售后取货任务，记录退货商品的司机分配、取货地址和执行状态"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -81,6 +86,12 @@ public static class DatabaseCommentExtensions
         ["Address"] = "联系或经营地址",
         ["AllocatedQuantity"] = "采购单从来源计划占用的数量，按采购单位计量",
         ["ActualQuantity"] = "盘点实际数量，按商品基础单位计量",
+        ["ActualRefundQuantity"] = "最终批准退款或退货的数量，按申请商品单位计量",
+        ["AfterSaleGoodsId"] = "需要回收商品的售后商品明细主键",
+        ["AfterSaleId"] = "所属售后单主键",
+        ["AfterSaleNo"] = "售后单业务唯一编号",
+        ["AfterSaleType"] = "售后申请类型：仅退款或退货退款",
+        ["AfterStatus"] = "售后单状态：待提交、待审核、待退货、待退款或已完成",
         ["AdjustmentTime"] = "盘点差异流水生成完成时间（UTC）",
         ["AuditTime"] = "审核动作发生时间（UTC）",
         ["AuditUserId"] = "执行审核的系统用户主键",
@@ -88,6 +99,7 @@ public static class DatabaseCommentExtensions
         ["BankAccount"] = "银行账号",
         ["BankName"] = "开户银行名称",
         ["BaseQuantity"] = "按商品基础单位换算后的数量",
+        ["BaseRefundQuantity"] = "最终批准数量换算到商品基础单位后的数量",
         ["AvailableQuantity"] = "扣除占用后的可出库数量，按商品基础单位计量",
         ["BalanceQuantity"] = "库存流水生效后的批次账面数量，按基础单位计量",
         ["BaseUnitId"] = "商品基础单位主键",
@@ -140,6 +152,7 @@ public static class DatabaseCommentExtensions
         ["ContactNameSnapshot"] = "业务发生时的联系人姓名快照",
         ["ContactPhone"] = "业务联系人电话号码",
         ["ContactPhoneSnapshot"] = "业务发生时的联系人电话快照",
+        ["CompletedTime"] = "任务完成时间（UTC）",
         ["ConversionRate"] = "当前单位换算为基础单位的比例",
         ["CurrentQuantity"] = "批次当前账面数量，按商品基础单位计量",
         ["CreateBy"] = "创建记录的用户主键",
@@ -186,6 +199,7 @@ public static class DatabaseCommentExtensions
         ["GoodsTypeNameSnapshot"] = "业务发生时的商品分类名称快照",
         ["GoodsUnitId"] = "下单商品单位主键",
         ["GoodsUnitNameSnapshot"] = "下单时的商品单位名称快照",
+        ["HandleType"] = "售后处理方式：减免、补货、换货、账单核算、客户沟通或其他",
         ["HasOutSale"] = "是否已生成销售出库单",
         ["HasPurchasePlan"] = "是否已生成采购计划",
         ["HideInMenu"] = "是否在导航菜单中隐藏",
@@ -249,8 +263,11 @@ public static class DatabaseCommentExtensions
         ["Phone"] = "联系电话",
         ["PlanDate"] = "计划采购交期（UTC）",
         ["PlannedQuantity"] = "计划采购数量，按采购单位计量",
+        ["PlannedPickupTime"] = "计划上门取货时间（UTC）",
         ["PlanNo"] = "采购计划业务编号",
         ["PreviousStatus"] = "审核动作发生前的订单状态",
+        ["PickupAddressSnapshot"] = "售后取货地址快照",
+        ["PickupStatus"] = "取货任务状态：待分配、待取货、取货中、已完成或已取消",
         ["PrintStatus"] = "订单打印状态",
         ["ProductDate"] = "采购商品生产日期，仅记录自然日",
         ["ProtocolPrice"] = "协议约定的商品单价",
@@ -280,6 +297,8 @@ public static class DatabaseCommentExtensions
         ["RegistrationAuthority"] = "企业登记机关",
         ["RegistrationStatus"] = "企业工商登记状态",
         ["Remark"] = "业务备注",
+        ["ReasonType"] = "售后原因分类",
+        ["RefundAmount"] = "当前售后商品最终退款或减免金额",
         ["RequestParams"] = "请求参数的脱敏序列化内容",
         ["RequiredQuantity"] = "需求数量，按采购单位计量",
         ["ResponseResult"] = "响应结果的脱敏序列化内容",
@@ -291,10 +310,12 @@ public static class DatabaseCommentExtensions
         ["RoleId"] = "关联角色主键",
         ["SaleOrderDetailId"] = "来源销售订单商品明细主键",
         ["SaleOrderId"] = "来源销售订单主键",
+        ["SaleOrderNoSnapshot"] = "售后建单时的销售订单编号快照",
         ["SettlementPrice"] = "订单最终结算金额",
         ["SourceDetailId"] = "库存流水来源业务明细主键",
         ["SourceOrderId"] = "库存流水来源业务主单主键",
         ["SourceType"] = "库存流水业务来源类型",
+        ["Source"] = "售后来源标识",
         ["Sort"] = "同级记录的排序值",
         ["Spec"] = "商品规格型号",
         ["Status"] = "记录启用状态",
@@ -346,6 +367,23 @@ public static class DatabaseCommentExtensions
     private static readonly IReadOnlyDictionary<(Type EntityType, string PropertyName), string> EntityPropertyComments =
         new Dictionary<(Type EntityType, string PropertyName), string>
         {
+            [(typeof(AfterSale), nameof(AfterSale.OrderPrice))] = "售后建单时的原订单金额，按系统业务币种计量",
+            [(typeof(AfterSale), nameof(AfterSale.SettlementPrice))] = "售后处理后的客户结算金额，按系统业务币种计量",
+            [(typeof(AfterSaleAuditLog), nameof(AfterSaleAuditLog.Action))] = "售后审核轨迹动作：提交、通过、驳回、重提或反审核",
+            [(typeof(AfterSaleAuditLog), nameof(AfterSaleAuditLog.PreviousStatus))] = "审核动作发生前的售后单状态",
+            [(typeof(AfterSaleAuditLog), nameof(AfterSaleAuditLog.CurrentStatus))] = "审核动作完成后的售后单状态",
+            [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.SaleOrderDetailId))] = "来源销售订单商品明细主键；手工录入时可为空",
+            [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.GoodsUnitId))] = "申请退款或退货所使用的商品单位主键",
+            [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.GoodsUnitNameSnapshot))] = "售后建单时的申请单位名称快照",
+            [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.UnitPrice))] = "售后核算采用的订单单价快照",
+            [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.SupplierNameSnapshot))] = "售后建单时的原商品供应商名称快照",
+            [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.DepartmentNameSnapshot))] = "售后建单或定责时的部门名称快照",
+            [(typeof(PickupTask), nameof(PickupTask.TaskNo))] = "售后取货任务业务唯一编号",
+            [(typeof(PickupTask), nameof(PickupTask.AfterSaleId))] = "所属售后单主键，必须与关联售后商品的所属售后单一致",
+            [(typeof(PickupTask), nameof(PickupTask.DriverNameSnapshot))] = "取货任务最近一次分配时的司机姓名快照",
+            [(typeof(PickupTask), nameof(PickupTask.DriverPhoneSnapshot))] = "取货任务最近一次分配时的司机电话快照",
+            [(typeof(PickupTask), nameof(PickupTask.AssignedTime))] = "取货任务最近一次分配司机的时间（UTC）",
+            [(typeof(PickupTask), nameof(PickupTask.StartedTime))] = "司机开始执行取货任务的时间（UTC）",
             [(typeof(DeliveryTask), nameof(DeliveryTask.StockOutOrderId))] = "来源销售出库单主键，同一出库单只能生成一条配送任务",
             [(typeof(OrderReceipt), nameof(OrderReceipt.DeliveryTaskId))] = "对应配送任务主键，每个配送任务只能产生一张签收回单",
             [(typeof(OrderReceipt), nameof(OrderReceipt.StockOutOrderId))] = "对应销售出库单主键，用于追溯本次实际交付商品",

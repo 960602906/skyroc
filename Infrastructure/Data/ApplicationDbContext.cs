@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Domain.Entities;
+using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
 using Domain.Entities.Goods;
@@ -330,6 +331,26 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 配送任务表。
     /// </summary>
     public DbSet<DeliveryTask> DeliveryTasks { get; set; }
+
+    /// <summary>
+    /// 售后单主表。
+    /// </summary>
+    public DbSet<AfterSale> AfterSales { get; set; }
+
+    /// <summary>
+    /// 售后商品明细表。
+    /// </summary>
+    public DbSet<AfterSaleGoods> AfterSaleGoods { get; set; }
+
+    /// <summary>
+    /// 售后审核记录表。
+    /// </summary>
+    public DbSet<AfterSaleAuditLog> AfterSaleAuditLogs { get; set; }
+
+    /// <summary>
+    /// 售后取货任务表。
+    /// </summary>
+    public DbSet<PickupTask> PickupTasks { get; set; }
 
     #endregion
 }
