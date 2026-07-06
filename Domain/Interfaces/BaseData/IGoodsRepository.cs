@@ -18,4 +18,3 @@ public interface IGoodsRepository : INamedCodeRepository<GoodsEntity>
     /// </summary>
     Task ReplaceSupplierRelationsAsync(Guid goodsId, IEnumerable<Guid>? supplierIds, Guid? defaultSupplierId);
 }
-

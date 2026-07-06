@@ -119,6 +119,19 @@ public static class PermissionCodes
             public const string Update = $"{Resource}:update";
             public const string Delete = $"{Resource}:delete";
         }
+
+        /// <summary>
+        /// 售后单查询、草稿维护和审核状态流转权限。
+        /// </summary>
+        public static class AfterSales
+        {
+            public const string Resource = "business:after-sales";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+            public const string Audit = $"{Resource}:audit";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -174,6 +187,11 @@ public static class PermissionCodes
         Business.Delivery.Read,
         Business.Delivery.Create,
         Business.Delivery.Update,
-        Business.Delivery.Delete
+        Business.Delivery.Delete,
+        Business.AfterSales.Read,
+        Business.AfterSales.Create,
+        Business.AfterSales.Update,
+        Business.AfterSales.Delete,
+        Business.AfterSales.Audit
     ];
 }

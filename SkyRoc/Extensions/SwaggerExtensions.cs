@@ -51,7 +51,8 @@ public static class SwaggerExtensions
         ["Carriers"] = "配送",
         ["Routes"] = "配送",
         ["DeliveryTasks"] = "配送",
-        ["DeliveryExceptions"] = "配送"
+        ["DeliveryExceptions"] = "配送",
+        ["AfterSales"] = "售后"
     };
 
     /// <summary>
@@ -66,7 +67,7 @@ public static class SwaggerExtensions
                 Title = "SkyRoc API",
                 Version = "v1",
                 Description =
-                    "SkyRoc 生鲜供应链后台 API。覆盖认证与系统权限、基础资料、定价、销售订单、采购、库存与配送等模块。" +
+                    "SkyRoc 生鲜供应链后台 API。覆盖认证与系统权限、基础资料、定价、销售订单、采购、库存、配送与售后等模块。" +
                     "所有成功响应均包装为 `{ code, msg, data }`，其中 `code=200` 表示成功。"
             });
 

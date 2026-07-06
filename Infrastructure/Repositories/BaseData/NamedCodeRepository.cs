@@ -45,7 +45,7 @@ public abstract class NamedCodeRepository<TEntity>(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task<List<TEntity>> GetByIdsAsync(IEnumerable<Guid> ids)
+    public virtual async Task<List<TEntity>> GetByIdsAsync(IEnumerable<Guid> ids)
     {
         var idList = ids.Distinct().ToList();
         return idList.Count == 0

@@ -47,6 +47,8 @@
 @carrierId = 00000000-0000-0000-0000-000000000001
 @driverId = 00000000-0000-0000-0000-000000000001
 @routeId = 00000000-0000-0000-0000-000000000001
+@afterSaleId = 00000000-0000-0000-0000-000000000001
+@afterSaleDeleteDraftId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -2914,3 +2916,160 @@ Content-Type: {{contentType}}
   "receiptImageUrl": "https://files.example.com/receipts/{{orderReceiptId}}.jpg",
   "remark": "纸质回单已扫描归档"
 }
+
+### After Sales - List
+GET {{SkyRoc_HostAddress}}/api/after-sales?current=1&size=10&customerId={{customerId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### After Sales - Create Draft From Sale Order
+POST {{SkyRoc_HostAddress}}/api/after-sales
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "saleOrderId": "{{orderId}}",
+  "customerId": "{{customerId}}",
+  "source": "后台建单",
+  "contactName": "李老师",
+  "contactPhone": "13800000000",
+  "pickupAddress": "学校后门",
+  "remark": "客户反馈部分商品质量异常",
+  "goods": [
+    {
+      "saleOrderDetailId": "{{orderDetailId}}",
+      "actualRefundQuantity": 1,
+      "afterSaleType": 1,
+      "supplierId": "{{supplierId}}",
+      "departmentId": "{{departmentId}}",
+      "reasonType": 6,
+      "handleType": 1,
+      "remark": "协商货品减免"
+    }
+  ]
+}
+
+> {%
+    client.global.set("afterSaleId", response.body.data.id);
+%}
+
+### After Sales - Get By Id
+GET {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### After Sales - Update Draft
+PUT {{SkyRoc_HostAddress}}/api/after-sales
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "id": "{{afterSaleId}}",
+  "contactName": "李老师",
+  "contactPhone": "13800000000",
+  "pickupAddress": "学校后门",
+  "remark": "核实后保留一千克减免",
+  "goods": [
+    {
+      "saleOrderDetailId": "{{orderDetailId}}",
+      "actualRefundQuantity": 1,
+      "afterSaleType": 1,
+      "supplierId": "{{supplierId}}",
+      "departmentId": "{{departmentId}}",
+      "reasonType": 6,
+      "handleType": 1
+    }
+  ]
+}
+
+### After Sales - Submit
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleId}}/submit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "提交售后审核"
+}
+
+### After Sales - Reject
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleId}}/reject
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "请补充客户沟通记录"
+}
+
+### After Sales - Resubmit
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleId}}/resubmit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "已补充客户沟通记录"
+}
+
+### After Sales - Approve
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleId}}/approve
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "同意减免并进入退款处理"
+}
+
+### After Sales - Reverse Audit
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleId}}/reverse
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "退款金额需要重新核对"
+}
+
+### After Sales - Approve Again
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleId}}/approve
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "金额复核无误"
+}
+
+### After Sales - Complete
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleId}}/complete
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### After Sales - Create Customer Draft For Deletion
+POST {{SkyRoc_HostAddress}}/api/after-sales
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "saleOrderId": null,
+  "customerId": "{{customerId}}",
+  "source": "后台建单",
+  "remark": "待删除的客户沟通草稿",
+  "goods": [
+    {
+      "saleOrderDetailId": null,
+      "goodsId": "{{goodsId}}",
+      "goodsUnitId": "{{goodsUnitId}}",
+      "actualRefundQuantity": 1,
+      "unitPrice": 0,
+      "afterSaleType": 1,
+      "reasonType": 13,
+      "handleType": 5
+    }
+  ]
+}
+
+> {%
+    client.global.set("afterSaleDeleteDraftId", response.body.data.id);
+%}
+
+### After Sales - Delete Unsubmitted Draft
+DELETE {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleDeleteDraftId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}

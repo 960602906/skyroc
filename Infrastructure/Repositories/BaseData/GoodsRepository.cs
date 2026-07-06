@@ -34,6 +34,20 @@ public class GoodsRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public override async Task<List<GoodsEntity>> GetByIdsAsync(IEnumerable<Guid> ids)
+    {
+        var idList = ids.Where(id => id != Guid.Empty).Distinct().ToList();
+        return idList.Count == 0
+            ? []
+            : await DbSet
+                .Include(x => x.GoodsType)
+                .Include(x => x.BaseUnit)
+                .Include(x => x.DefaultSupplier)
+                .Where(x => idList.Contains(x.Id))
+                .ToListAsync();
+    }
+
+    /// <inheritdoc />
     public async Task ReplaceSupplierRelationsAsync(Guid goodsId, IEnumerable<Guid>? supplierIds, Guid? defaultSupplierId)
     {
         var relations = await _context.Set<GoodsSupplierRelation>()

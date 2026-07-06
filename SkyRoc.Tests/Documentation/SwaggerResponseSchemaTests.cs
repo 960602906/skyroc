@@ -116,4 +116,34 @@ public class SwaggerResponseSchemaTests
         Assert.Contains("配送", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
         Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
     }
+
+    [Fact]
+    public async Task Swagger_DocumentsAfterSaleStateMachineContracts()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("AfterSaleDto", out _));
+        Assert.True(schemas.TryGetProperty("CreateAfterSaleDto", out var createSchema));
+        Assert.Contains("待提交", createSchema.GetProperty("description").GetString());
+        Assert.True(paths.TryGetProperty("/api/after-sales", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/{id}/submit", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/{id}/approve", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/{id}/reject", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/{id}/resubmit", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/{id}/reverse", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/{id}/complete", out _));
+
+        var operation = paths.GetProperty("/api/after-sales").GetProperty("get");
+        Assert.Contains(PermissionCodes.Business.AfterSales.Read, operation.GetProperty("description").GetString());
+        Assert.Contains("售后", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+        Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+    }
 }
