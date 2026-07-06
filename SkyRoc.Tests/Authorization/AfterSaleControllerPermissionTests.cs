@@ -55,6 +55,28 @@ public class AfterSaleControllerPermissionTests
         }
     }
 
+    [Fact]
+    public void PickupTasksController_DeclaresAfterSaleReadAndUpdatePermissions()
+    {
+        var resource = Assert.Single(typeof(PickupTasksController).GetCustomAttributes<PermissionResourceAttribute>());
+        Assert.Equal(PermissionCodes.Business.AfterSales.Resource, resource.Resource);
+
+        var expected = new Dictionary<string, string>
+        {
+            [nameof(PickupTasksController.GetPaged)] = PermissionActions.Read,
+            [nameof(PickupTasksController.Assign)] = PermissionActions.Update,
+            [nameof(PickupTasksController.Start)] = PermissionActions.Update,
+            [nameof(PickupTasksController.Complete)] = PermissionActions.Update
+        };
+        foreach (var (actionName, permissionAction) in expected)
+        {
+            var action = typeof(PickupTasksController).GetMethod(actionName)
+                         ?? throw new InvalidOperationException($"Action {actionName} was not found.");
+            var attribute = Assert.Single(action.GetCustomAttributes<ResourcePermissionAttribute>());
+            Assert.Equal(permissionAction, attribute.Action);
+        }
+    }
+
     private static MethodInfo GetAction(string name)
     {
         return typeof(AfterSalesController).GetMethod(name)

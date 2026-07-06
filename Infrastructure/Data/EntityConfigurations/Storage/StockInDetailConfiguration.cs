@@ -20,6 +20,7 @@ public class StockInDetailConfiguration : IEntityTypeConfiguration<StockInDetail
 
         builder.Property(x => x.StockInOrderId).HasColumnName("stock_in_order_id");
         builder.Property(x => x.PurchaseOrderDetailId).HasColumnName("purchase_order_detail_id");
+        builder.Property(x => x.PickupTaskId).HasColumnName("pickup_task_id");
         builder.Property(x => x.StockBatchId).HasColumnName("stock_batch_id");
         builder.Property(x => x.GoodsId).HasColumnName("goods_id");
         builder.Property(x => x.GoodsNameSnapshot).HasColumnName("goods_name_snapshot").HasMaxLength(150).IsRequired();
@@ -38,11 +39,13 @@ public class StockInDetailConfiguration : IEntityTypeConfiguration<StockInDetail
 
         builder.HasIndex(x => x.StockInOrderId).HasDatabaseName("idx_stock_in_detail_order_id");
         builder.HasIndex(x => x.PurchaseOrderDetailId).HasDatabaseName("idx_stock_in_detail_purchase_detail_id");
+        builder.HasIndex(x => x.PickupTaskId).IsUnique().HasDatabaseName("idx_stock_in_detail_pickup_task_id");
         builder.HasIndex(x => x.StockBatchId).HasDatabaseName("idx_stock_in_detail_batch_id");
         builder.HasIndex(x => x.GoodsId).HasDatabaseName("idx_stock_in_detail_goods_id");
 
         builder.HasOne(x => x.StockInOrder).WithMany(x => x.Details).HasForeignKey(x => x.StockInOrderId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.PurchaseOrderDetail).WithMany().HasForeignKey(x => x.PurchaseOrderDetailId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.PickupTask).WithOne(x => x.StockInDetail).HasForeignKey<StockInDetail>(x => x.PickupTaskId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.StockBatch).WithMany().HasForeignKey(x => x.StockBatchId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Goods).WithMany().HasForeignKey(x => x.GoodsId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.GoodsUnit).WithMany().HasForeignKey(x => x.GoodsUnitId).OnDelete(DeleteBehavior.Restrict);

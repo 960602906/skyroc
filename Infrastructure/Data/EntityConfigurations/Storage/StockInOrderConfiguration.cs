@@ -23,6 +23,7 @@ public class StockInOrderConfiguration : IEntityTypeConfiguration<StockInOrder>
         builder.Property(x => x.WareId).HasColumnName("ware_id");
         builder.Property(x => x.WareNameSnapshot).HasColumnName("ware_name_snapshot").HasMaxLength(150).IsRequired();
         builder.Property(x => x.PurchaseOrderId).HasColumnName("purchase_order_id");
+        builder.Property(x => x.AfterSaleId).HasColumnName("after_sale_id");
         builder.Property(x => x.SupplierId).HasColumnName("supplier_id");
         builder.Property(x => x.SupplierNameSnapshot).HasColumnName("supplier_name_snapshot").HasMaxLength(150);
         builder.Property(x => x.CustomerId).HasColumnName("customer_id");
@@ -48,9 +49,11 @@ public class StockInOrderConfiguration : IEntityTypeConfiguration<StockInOrder>
         builder.HasIndex(x => x.InNo).IsUnique().HasDatabaseName("idx_stock_in_order_in_no");
         builder.HasIndex(x => new { x.WareId, x.BusinessStatus, x.InTime }).HasDatabaseName("idx_stock_in_order_ware_status_time");
         builder.HasIndex(x => x.PurchaseOrderId).HasDatabaseName("idx_stock_in_order_purchase_order_id");
+        builder.HasIndex(x => x.AfterSaleId).HasDatabaseName("idx_stock_in_order_after_sale_id");
 
         builder.HasOne(x => x.Ware).WithMany().HasForeignKey(x => x.WareId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.PurchaseOrder).WithMany().HasForeignKey(x => x.PurchaseOrderId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.AfterSale).WithMany().HasForeignKey(x => x.AfterSaleId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(x => x.Department).WithMany().HasForeignKey(x => x.DepartmentId).OnDelete(DeleteBehavior.SetNull);

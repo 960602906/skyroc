@@ -93,6 +93,8 @@ public class AfterSaleRepository(ApplicationDbContext context)
             .Include(x => x.Goods)
             .Include(x => x.AuditLogs)
             .Include(x => x.PickupTasks)
+                .ThenInclude(x => x.StockInDetail)
+                    .ThenInclude(x => x!.StockInOrder)
             .AsSplitQuery();
     }
 }

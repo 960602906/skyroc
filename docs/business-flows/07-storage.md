@@ -161,6 +161,8 @@ flowchart TD
 | 修改 | PUT | `/business/stock/in/after/sale` |
 | 删除 | DELETE | `/business/stock/in/after/sale/{ids}` |
 
+SkyRoc 当前实现允许销售退货入库继续手工建单，也支持携带 `afterSaleId` 和逐行 `pickupTaskId` 从已完成售后取货任务建单。来源建单会锁定取货任务，校验客户、商品、单位、批准退货数量和售后价格快照，并以取货任务唯一索引防止重复入库；审核后仍沿用销售退货库存流水和移动加权成本规则。
+
 ## 销售出库流程
 
 ```mermaid
@@ -278,4 +280,3 @@ flowchart TD
 - 商品批次选择要独立组件，出库必须从批次库存选择。
 - 审核、反审核、删除要做统一状态机配置。
 - 库存模块必须明确数量精度、单位换算和反审核回滚规则。
-

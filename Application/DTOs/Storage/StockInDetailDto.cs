@@ -16,6 +16,11 @@ public class StockInDetailDto : BaseDto
     public Guid? PurchaseOrderDetailId { get; set; }
 
     /// <summary>
+    /// 来源售后取货任务主键；手工销售退货入库以及其他入库类型为空。
+    /// </summary>
+    public Guid? PickupTaskId { get; set; }
+
+    /// <summary>
     /// 审核入库后对应的库存批次主键；未审核时为空。
     /// </summary>
     public Guid? StockBatchId { get; set; }

@@ -88,6 +88,7 @@ public class AfterSaleServiceTests
 
         Assert.Equal(expectedStatus, approved.AfterStatus);
         Assert.Equal(expectedSettlementCents / 100m, approved.SettlementPrice);
+        Assert.Equal(afterSaleType == AfterSaleType.ReturnAndRefund ? 1 : 0, approved.PickupTasks.Count);
         Assert.Collection(
             approved.AuditLogs,
             log => Assert.Equal(AfterSaleAuditAction.Submit, log.Action),
@@ -181,16 +182,7 @@ public class AfterSaleServiceTests
         var created = await service.CreateAsync(request);
         await service.SubmitAsync(created.Id, null);
         var approved = await service.ApproveAsync(created.Id, null);
-        await context.PickupTasks.AddAsync(new PickupTask
-        {
-            Id = Guid.NewGuid(),
-            TaskNo = "PU-LOCK-001",
-            AfterSaleId = approved.Id,
-            AfterSaleGoodsId = Assert.Single(approved.Goods).Id,
-            PickupAddressSnapshot = "学校后门"
-        });
-        await context.SaveChangesAsync();
-        context.ChangeTracker.Clear();
+        Assert.Single(approved.PickupTasks);
 
         var completeException = await Assert.ThrowsAsync<Application.Exceptions.BusinessException>(() =>
             service.CompleteAsync(created.Id));
@@ -200,6 +192,25 @@ public class AfterSaleServiceTests
         Assert.Contains("未完成的取货任务", completeException.Message);
         Assert.Contains("已生成取货任务", exception.Message);
         Assert.Equal(AfterSaleStatus.ReturnPending, (await service.GetByIdAsync(created.Id)).AfterStatus);
+    }
+
+    [Fact]
+    public async Task ApproveAsync_RetryReturnsSamePickupTaskWithoutDuplicateAuditLog()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedOrderAsync(context, 10m, 25m, null);
+        var service = CreateService(context);
+        var request = CreateRequest(seed, 1m);
+        request.Goods[0].AfterSaleType = AfterSaleType.ReturnAndRefund;
+        var created = await service.CreateAsync(request);
+        await service.SubmitAsync(created.Id, null);
+
+        var first = await service.ApproveAsync(created.Id, "同意退货");
+        var repeated = await service.ApproveAsync(created.Id, "网络重试");
+
+        Assert.Equal(Assert.Single(first.PickupTasks).Id, Assert.Single(repeated.PickupTasks).Id);
+        Assert.Equal(2, repeated.AuditLogs.Count);
+        Assert.Equal(1, await context.PickupTasks.CountAsync());
     }
 
     [Fact]
@@ -288,6 +299,8 @@ public class AfterSaleServiceTests
             new AfterSaleRepository(context),
             new AfterSaleGoodsRepository(context),
             new AfterSaleAuditLogRepository(context),
+            new PickupTaskRepository(context),
+            new StockInOrderRepository(context),
             new SaleOrderRepository(context),
             new CustomerRepository(context),
             new GoodsRepository(context),

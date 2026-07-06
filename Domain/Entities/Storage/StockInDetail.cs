@@ -1,4 +1,5 @@
 using Domain.Entities.Goods;
+using Domain.Entities.AfterSales;
 using Domain.Entities.Purchases;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -18,6 +19,11 @@ public class StockInDetail : BaseEntity
     /// 来源采购单商品明细主键；非采购入库时为空。
     /// </summary>
     public Guid? PurchaseOrderDetailId { get; set; }
+
+    /// <summary>
+    /// 来源售后取货任务主键；同一已完成任务最多生成一条销售退货入库明细。
+    /// </summary>
+    public Guid? PickupTaskId { get; set; }
 
     /// <summary>
     /// 审核入库后对应的库存批次主键；草稿阶段可为空。
@@ -103,6 +109,11 @@ public class StockInDetail : BaseEntity
     /// 来源采购单商品明细。
     /// </summary>
     public virtual PurchaseOrderDetail? PurchaseOrderDetail { get; set; }
+
+    /// <summary>
+    /// 来源售后取货任务，用于校验退回商品、单位和数量并防止重复入库。
+    /// </summary>
+    public virtual PickupTask? PickupTask { get; set; }
 
     /// <summary>
     /// 审核入库后对应的库存批次。

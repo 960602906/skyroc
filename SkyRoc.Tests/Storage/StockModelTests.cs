@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
@@ -92,9 +93,13 @@ public class StockModelTests
 
         AssertForeignKey<StockInOrder, Ware>(nameof(StockInOrder.WareId), DeleteBehavior.Restrict);
         AssertForeignKey<StockInOrder, PurchaseOrder>(nameof(StockInOrder.PurchaseOrderId), DeleteBehavior.Restrict);
+        AssertForeignKey<StockInOrder, AfterSale>(nameof(StockInOrder.AfterSaleId), DeleteBehavior.Restrict);
         AssertForeignKey<StockInDetail, StockInOrder>(nameof(StockInDetail.StockInOrderId), DeleteBehavior.Cascade);
         AssertForeignKey<StockInDetail, PurchaseOrderDetail>(nameof(StockInDetail.PurchaseOrderDetailId), DeleteBehavior.Restrict);
+        AssertForeignKey<StockInDetail, PickupTask>(nameof(StockInDetail.PickupTaskId), DeleteBehavior.Restrict);
         AssertForeignKey<StockInDetail, StockBatch>(nameof(StockInDetail.StockBatchId), DeleteBehavior.Restrict);
+        Assert.True(detailType.GetIndexes().Single(
+            index => index.GetDatabaseName() == "idx_stock_in_detail_pickup_task_id").IsUnique);
     }
 
     [Fact]

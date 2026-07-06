@@ -14,6 +14,11 @@ public class UpdateSalesReturnStockInDto
     public Guid Id { get; set; }
 
     /// <summary>
+    /// 来源售后单主键；有值时不得更换，且全部商品行必须保留原取货任务来源。
+    /// </summary>
+    public Guid? AfterSaleId { get; set; }
+
+    /// <summary>
     /// 接收退货商品的仓库主键。
     /// </summary>
     public Guid WareId { get; set; }

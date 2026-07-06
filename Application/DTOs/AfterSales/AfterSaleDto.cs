@@ -55,4 +55,7 @@ public class AfterSaleDto : BaseDto
 
     /// <summary>提交、审核、驳回、重提和反审核轨迹。</summary>
     public List<AfterSaleAuditLogDto> AuditLogs { get; set; } = [];
+
+    /// <summary>退货退款商品生成的取货任务，按任务编号稳定排序。</summary>
+    public List<PickupTaskDto> PickupTasks { get; set; } = [];
 }

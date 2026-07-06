@@ -29,7 +29,12 @@ public class AfterSaleMappingProfile : Profile
                 x => x.AuditLogs,
                 opt => opt.MapFrom(src => src.AuditLogs
                     .OrderBy(log => log.AuditTime)
-                    .ThenBy(log => log.Id)));
+                    .ThenBy(log => log.Id)))
+            .ForMember(
+                x => x.PickupTasks,
+                opt => opt.MapFrom(src => src.PickupTasks
+                    .OrderBy(task => task.TaskNo)
+                    .ThenBy(task => task.Id)));
 
         CreateMap<AfterSaleGoods, AfterSaleGoodsDto>()
             .ForMember(x => x.GoodsName, opt => opt.MapFrom(src => src.GoodsNameSnapshot))
@@ -42,5 +47,22 @@ public class AfterSaleMappingProfile : Profile
 
         CreateMap<AfterSaleAuditLog, AfterSaleAuditLogDto>()
             .ForMember(x => x.AuditUserName, opt => opt.MapFrom(src => src.AuditUserNameSnapshot));
+
+        CreateMap<PickupTask, PickupTaskDto>()
+            .ForMember(x => x.AfterSaleNo, opt => opt.MapFrom(src => src.AfterSale.AfterSaleNo))
+            .ForMember(x => x.CustomerId, opt => opt.MapFrom(src => src.AfterSale.CustomerId))
+            .ForMember(x => x.CustomerName, opt => opt.MapFrom(src => src.AfterSale.CustomerNameSnapshot))
+            .ForMember(x => x.GoodsId, opt => opt.MapFrom(src => src.AfterSaleGoods.GoodsId))
+            .ForMember(x => x.GoodsName, opt => opt.MapFrom(src => src.AfterSaleGoods.GoodsNameSnapshot))
+            .ForMember(x => x.Quantity, opt => opt.MapFrom(src => src.AfterSaleGoods.ActualRefundQuantity))
+            .ForMember(x => x.GoodsUnitName, opt => opt.MapFrom(src => src.AfterSaleGoods.GoodsUnitNameSnapshot))
+            .ForMember(x => x.DriverName, opt => opt.MapFrom(src => src.DriverNameSnapshot))
+            .ForMember(x => x.DriverPhone, opt => opt.MapFrom(src => src.DriverPhoneSnapshot))
+            .ForMember(x => x.ContactName, opt => opt.MapFrom(src => src.ContactNameSnapshot))
+            .ForMember(x => x.ContactPhone, opt => opt.MapFrom(src => src.ContactPhoneSnapshot))
+            .ForMember(x => x.PickupAddress, opt => opt.MapFrom(src => src.PickupAddressSnapshot))
+            .ForMember(x => x.StockInOrderId, opt => opt.MapFrom(src => src.StockInDetail == null
+                ? (Guid?)null
+                : src.StockInDetail.StockInOrderId));
     }
 }

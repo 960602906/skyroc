@@ -5,6 +5,7 @@ using Application.interfaces;
 using Application.QueryParameters;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Entities.AfterSales;
 using Domain.Entities.Goods;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
@@ -32,6 +33,8 @@ public class StockInService(
     ICustomerRepository customerRepository,
     IDepartmentRepository departmentRepository,
     IPurchaseOrderRepository purchaseOrderRepository,
+    IPickupTaskRepository pickupTaskRepository,
+    IAfterSaleRepository afterSaleRepository,
     IGoodsRepository goodsRepository,
     IGoodsUnitRepository goodsUnitRepository,
     IUnitOfWork unitOfWork,
@@ -152,12 +155,60 @@ public class StockInService(
     public async Task<StockInOrderDto> CreateSalesReturnAsync(CreateSalesReturnStockInDto dto)
     {
         await ValidateAsync(createSalesReturnValidator, dto);
-        var order = await BuildBaseOrderAsync(StockInOrderType.SalesReturn, dto.WareId, dto.InTime, dto.Remark);
-        await ApplyCustomerAsync(order, dto.CustomerId);
-        await ApplyDepartmentAsync(order, dto.DepartmentId);
-        await BuildDetailsAsync(order, dto.Details);
-        await ValidateSourceRelationshipsAsync(order, lockPurchaseOrder: false);
-        return await PersistNewOrderAsync(order);
+        var pickupTaskIds = dto.Details
+            .Where(x => x.PickupTaskId.HasValue)
+            .Select(x => x.PickupTaskId!.Value)
+            .OrderBy(x => x)
+            .ToArray();
+        if (dto.AfterSaleId.HasValue
+            && (pickupTaskIds.Length != dto.Details.Count
+                || pickupTaskIds.Length != pickupTaskIds.Distinct().Count()))
+        {
+            throw new BusinessException("关联售后单时，每个入库商品行必须选择且只能选择一个不同的取货任务");
+        }
+
+        if (!dto.AfterSaleId.HasValue && pickupTaskIds.Length > 0)
+        {
+            throw new BusinessException("关联取货任务前必须选择来源售后单");
+        }
+
+        Guid orderId = Guid.Empty;
+        var reused = false;
+        await ExecuteInTransactionAsync(async () =>
+        {
+            if (pickupTaskIds.Length > 0)
+            {
+                await pickupTaskRepository.GetByIdsAsync(pickupTaskIds, forUpdate: true);
+                var existingOrders = await stockInOrderRepository.GetByPickupTaskIdsAsync(pickupTaskIds);
+                if (existingOrders.Count > 0)
+                {
+                    var exactMatch = existingOrders.Count == 1
+                                     && MatchesSalesReturnRetry(existingOrders[0], dto);
+                    if (!exactMatch)
+                    {
+                        throw new BusinessException("取货任务已办理入库，且当前请求与原销售退货入库单不一致");
+                    }
+
+                    orderId = existingOrders[0].Id;
+                    reused = true;
+                    return;
+                }
+            }
+
+            var order = await BuildBaseOrderAsync(StockInOrderType.SalesReturn, dto.WareId, dto.InTime, dto.Remark);
+            order.AfterSaleId = dto.AfterSaleId;
+            await ApplyCustomerAsync(order, dto.CustomerId);
+            await ApplyDepartmentAsync(order, dto.DepartmentId);
+            await BuildDetailsAsync(order, dto.Details);
+            await ValidateSourceRelationshipsAsync(order, lockPurchaseOrder: false, lockPickupTasks: true);
+            await stockInOrderRepository.AddAsync(order);
+            orderId = order.Id;
+        });
+
+        logger.LogInformation(
+            reused ? "销售退货入库创建重试返回既有单据: {StockInOrderId}" : "销售退货入库单创建成功: {StockInOrderId}",
+            orderId);
+        return mapper.Map<StockInOrderDto>(await GetRequiredOrderAsync(StockInOrderType.SalesReturn, orderId));
     }
 
     /// <inheritdoc />
@@ -166,6 +217,24 @@ public class StockInService(
         await ValidateAsync(updateSalesReturnValidator, dto);
         var order = await GetRequiredOrderAsync(StockInOrderType.SalesReturn, dto.Id);
         EnsureEditable(order, "编辑");
+        if (dto.AfterSaleId != order.AfterSaleId)
+        {
+            throw new BusinessException("销售退货入库的来源售后单不允许更换");
+        }
+
+        var existingPickupTaskIds = order.Details
+            .Where(x => x.PickupTaskId.HasValue)
+            .Select(x => x.PickupTaskId!.Value)
+            .ToHashSet();
+        var requestedPickupTaskIds = dto.Details
+            .Where(x => x.PickupTaskId.HasValue)
+            .Select(x => x.PickupTaskId!.Value)
+            .ToHashSet();
+        if (!existingPickupTaskIds.SetEquals(requestedPickupTaskIds))
+        {
+            throw new BusinessException("销售退货入库的来源取货任务不允许增删或更换");
+        }
+
         var details = await PrepareDetailsAsync(order, dto.Details);
 
         await ExecuteInTransactionAsync(async () =>
@@ -176,7 +245,7 @@ public class StockInService(
             await ApplyCustomerAsync(order, dto.CustomerId);
             await ApplyDepartmentAsync(order, dto.DepartmentId);
             SynchronizeDetails(order, details);
-            await ValidateSourceRelationshipsAsync(order, lockPurchaseOrder: false);
+            await ValidateSourceRelationshipsAsync(order, lockPurchaseOrder: false, lockPickupTasks: true);
             ApplyUpdateAudit(order);
             await stockInOrderRepository.UpdateAsync(order);
         });
@@ -247,10 +316,28 @@ public class StockInService(
     {
         var reverseTime = DateTime.UtcNow;
         var normalizedRemark = Normalize(remark);
+        var sourceSnapshot = await GetRequiredOrderAsync(orderType, id);
         StockInOrder? reversedOrder = null;
         await ExecuteInTransactionAsync(async () =>
         {
+            AfterSale? lockedAfterSale = null;
+            if (orderType == StockInOrderType.SalesReturn && sourceSnapshot.AfterSaleId.HasValue)
+            {
+                lockedAfterSale = await afterSaleRepository.GetByIdForUpdateAsync(sourceSnapshot.AfterSaleId.Value)
+                                  ?? throw new BusinessException("销售退货入库关联的售后单不存在");
+            }
+
             var order = await GetRequiredOrderForUpdateAsync(orderType, id);
+            if (order.AfterSaleId != sourceSnapshot.AfterSaleId)
+            {
+                throw new BusinessException("销售退货入库来源已发生变化，请重试");
+            }
+
+            if (lockedAfterSale?.AfterStatus == AfterSaleStatus.Completed)
+            {
+                throw new BusinessException("来源售后单已完成，销售退货入库不能反审核");
+            }
+
             if (order.BusinessStatus != StockDocumentStatus.Audited)
             {
                 throw new BusinessException($"入库单 {order.InNo} 未处于已审核状态，无法反审核");
@@ -406,6 +493,7 @@ public class StockInService(
         var dto = prepared.Dto;
         var baseQuantity = RoundQuantity(dto.Quantity * prepared.Unit.ConversionRate);
         detail.PurchaseOrderDetailId = dto.PurchaseOrderDetailId;
+        detail.PickupTaskId = dto.PickupTaskId;
         detail.GoodsId = prepared.Goods.Id;
         detail.GoodsNameSnapshot = prepared.Goods.Name;
         detail.GoodsCodeSnapshot = prepared.Goods.Code;
@@ -671,17 +759,36 @@ public class StockInService(
         }
     }
 
-    private async Task ValidateSourceRelationshipsAsync(StockInOrder order, bool lockPurchaseOrder)
+    private async Task ValidateSourceRelationshipsAsync(
+        StockInOrder order,
+        bool lockPurchaseOrder,
+        bool lockPickupTasks = false)
     {
-        if (order.OrderType != StockInOrderType.Purchase)
+        if (order.OrderType == StockInOrderType.Other)
         {
-            if (order.PurchaseOrderId.HasValue
-                || order.Details.Any(detail => detail.PurchaseOrderDetailId.HasValue))
+            if (order.PurchaseOrderId.HasValue || order.AfterSaleId.HasValue
+                || order.Details.Any(detail => detail.PurchaseOrderDetailId.HasValue || detail.PickupTaskId.HasValue))
             {
-                throw new BusinessException("非采购入库不能关联采购单或采购单商品明细");
+                throw new BusinessException("其他入库不能关联采购单、售后单或取货任务");
             }
 
             return;
+        }
+
+        if (order.OrderType == StockInOrderType.SalesReturn)
+        {
+            if (order.PurchaseOrderId.HasValue || order.Details.Any(detail => detail.PurchaseOrderDetailId.HasValue))
+            {
+                throw new BusinessException("销售退货入库不能关联采购单或采购单商品明细");
+            }
+
+            await ValidatePickupTaskSourcesAsync(order, lockPickupTasks);
+            return;
+        }
+
+        if (order.AfterSaleId.HasValue || order.Details.Any(detail => detail.PickupTaskId.HasValue))
+        {
+            throw new BusinessException("采购入库不能关联售后单或取货任务");
         }
 
         if (!order.PurchaseOrderId.HasValue)
@@ -763,6 +870,106 @@ public class StockInService(
                     $"采购单商品 {sourceDetail.GoodsNameSnapshot} 入库数量超过剩余可入库数量");
             }
         }
+    }
+
+    private async Task ValidatePickupTaskSourcesAsync(StockInOrder order, bool forUpdate)
+    {
+        var taskIds = order.Details
+            .Where(x => x.PickupTaskId.HasValue)
+            .Select(x => x.PickupTaskId!.Value)
+            .ToList();
+        if (!order.AfterSaleId.HasValue)
+        {
+            if (taskIds.Count > 0)
+            {
+                throw new BusinessException("关联取货任务前必须选择来源售后单");
+            }
+
+            return;
+        }
+
+        if (taskIds.Count != order.Details.Count || taskIds.Count != taskIds.Distinct().Count())
+        {
+            throw new BusinessException("关联售后单时，每个入库商品行必须选择且只能选择一个不同的取货任务");
+        }
+
+        var tasks = await pickupTaskRepository.GetByIdsAsync(taskIds, forUpdate);
+        if (tasks.Count != taskIds.Count)
+        {
+            throw new BusinessException("部分来源取货任务不存在");
+        }
+
+        var tasksById = tasks.ToDictionary(x => x.Id);
+        foreach (var detail in order.Details)
+        {
+            var task = tasksById[detail.PickupTaskId!.Value];
+            if (task.AfterSaleId != order.AfterSaleId.Value || task.AfterSale.CustomerId != order.CustomerId)
+            {
+                throw new BusinessException("取货任务与来源售后单或退货客户不一致");
+            }
+
+            if (task.AfterSale.AfterStatus != AfterSaleStatus.ReturnPending)
+            {
+                throw new BusinessException($"取货任务 {task.TaskNo} 的售后单不处于待退货状态");
+            }
+
+            if (task.PickupStatus != Domain.Entities.AfterSales.PickupTaskStatus.Completed)
+            {
+                throw new BusinessException($"取货任务 {task.TaskNo} 尚未完成，不能办理退货入库");
+            }
+
+            if (task.AfterSaleGoods.AfterSaleType != Domain.Entities.AfterSales.AfterSaleType.ReturnAndRefund)
+            {
+                throw new BusinessException($"取货任务 {task.TaskNo} 不属于退货退款商品");
+            }
+
+            if (task.StockInDetail is not null && task.StockInDetail.StockInOrderId != order.Id)
+            {
+                throw new BusinessException($"取货任务 {task.TaskNo} 已办理销售退货入库");
+            }
+
+            var source = task.AfterSaleGoods;
+            if (source.GoodsId != detail.GoodsId || source.GoodsUnitId != detail.GoodsUnitId)
+            {
+                throw new BusinessException($"入库商品或单位与取货任务 {task.TaskNo} 不一致");
+            }
+
+            if (RoundQuantity(source.ActualRefundQuantity) != RoundQuantity(detail.Quantity)
+                || RoundQuantity(source.BaseRefundQuantity) != RoundQuantity(detail.BaseQuantity))
+            {
+                throw new BusinessException($"入库数量与取货任务 {task.TaskNo} 的批准退货数量不一致");
+            }
+
+            if (RoundMoney(source.UnitPrice) != RoundMoney(detail.UnitPrice))
+            {
+                throw new BusinessException($"入库单价与取货任务 {task.TaskNo} 的售后价格快照不一致");
+            }
+        }
+    }
+
+    private static bool MatchesSalesReturnRetry(StockInOrder existing, CreateSalesReturnStockInDto request)
+    {
+        if (existing.AfterSaleId != request.AfterSaleId
+            || existing.CustomerId != request.CustomerId
+            || existing.WareId != request.WareId
+            || existing.Details.Count != request.Details.Count)
+        {
+            return false;
+        }
+
+        var existingByTaskId = existing.Details
+            .Where(x => x.PickupTaskId.HasValue)
+            .ToDictionary(x => x.PickupTaskId!.Value);
+        return request.Details.All(item =>
+            item.PickupTaskId.HasValue
+            && existingByTaskId.TryGetValue(item.PickupTaskId.Value, out var detail)
+            && detail.GoodsId == item.GoodsId
+            && detail.GoodsUnitId == item.GoodsUnitId
+            && RoundQuantity(detail.Quantity) == RoundQuantity(item.Quantity)
+            && RoundMoney(detail.UnitPrice) == RoundMoney(item.UnitPrice)
+            && detail.BatchNo == item.BatchNo.Trim()
+            && detail.ProductDate == item.ProductDate
+            && detail.ExpireDate == item.ExpireDate);
     }
 
     private async Task ApplySupplierAsync(StockInOrder order, Guid? supplierId)

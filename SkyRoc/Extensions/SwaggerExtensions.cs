@@ -52,7 +52,8 @@ public static class SwaggerExtensions
         ["Routes"] = "配送",
         ["DeliveryTasks"] = "配送",
         ["DeliveryExceptions"] = "配送",
-        ["AfterSales"] = "售后"
+        ["AfterSales"] = "售后",
+        ["PickupTasks"] = "售后"
     };
 
     /// <summary>

@@ -32,6 +32,28 @@ public class StockInOrderRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<StockInOrder>> GetByIdsForUpdateAsync(IReadOnlyCollection<Guid> ids)
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        var orderedIds = ids.Distinct().OrderBy(x => x).ToArray();
+        if (!Context.Database.IsNpgsql())
+        {
+            return await BuildDetailQuery()
+                .Where(x => orderedIds.Contains(x.Id))
+                .OrderBy(x => x.Id)
+                .ToListAsync();
+        }
+
+        var lockedOrders = DbSet.FromSqlInterpolated(
+            $"SELECT * FROM stock_in_order WHERE id = ANY({orderedIds}) ORDER BY id FOR UPDATE");
+        return await BuildDetailQuery(lockedOrders).OrderBy(x => x.Id).ToListAsync();
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyDictionary<Guid, decimal>> GetReceivedBaseQuantitiesAsync(
         IReadOnlyCollection<Guid> purchaseOrderDetailIds,
         Guid? excludeOrderId = null)
@@ -98,6 +120,21 @@ public class StockInOrderRepository(ApplicationDbContext context)
             && (!excludeId.HasValue || x.Id != excludeId.Value));
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<StockInOrder>> GetByPickupTaskIdsAsync(IReadOnlyCollection<Guid> pickupTaskIds)
+    {
+        if (pickupTaskIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await BuildDetailQuery()
+            .Where(order => order.OrderType == StockInOrderType.SalesReturn
+                            && order.Details.Any(detail => detail.PickupTaskId.HasValue
+                                                           && pickupTaskIds.Contains(detail.PickupTaskId.Value)))
+            .ToListAsync();
+    }
+
     /// <summary>
     /// 构建包含仓库、业务方和商品明细聚合的入库单查询。
     /// </summary>
@@ -110,6 +147,7 @@ public class StockInOrderRepository(ApplicationDbContext context)
             .Include(x => x.Customer)
             .Include(x => x.Department)
             .Include(x => x.Purchaser)
+            .Include(x => x.AfterSale)
             .Include(x => x.Details)
                 .ThenInclude(x => x.Goods)
             .Include(x => x.Details)

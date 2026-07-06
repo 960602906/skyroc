@@ -11,6 +11,11 @@ public class CreateStockInDetailDto
     public Guid? PurchaseOrderDetailId { get; set; }
 
     /// <summary>
+    /// 来源售后取货任务主键；仅销售退货入库使用，任务必须已完成且最多入库一次。
+    /// </summary>
+    public Guid? PickupTaskId { get; set; }
+
+    /// <summary>
     /// 入库商品主键。
     /// </summary>
     public Guid GoodsId { get; set; }

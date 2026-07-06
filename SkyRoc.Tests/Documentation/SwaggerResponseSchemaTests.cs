@@ -131,6 +131,8 @@ public class SwaggerResponseSchemaTests
         var schemas = root.GetProperty("components").GetProperty("schemas");
 
         Assert.True(schemas.TryGetProperty("AfterSaleDto", out _));
+        Assert.True(schemas.TryGetProperty("PickupTaskDto", out _));
+        Assert.True(schemas.TryGetProperty("AssignPickupTaskDto", out _));
         Assert.True(schemas.TryGetProperty("CreateAfterSaleDto", out var createSchema));
         Assert.Contains("待提交", createSchema.GetProperty("description").GetString());
         Assert.True(paths.TryGetProperty("/api/after-sales", out _));
@@ -140,10 +142,18 @@ public class SwaggerResponseSchemaTests
         Assert.True(paths.TryGetProperty("/api/after-sales/{id}/resubmit", out _));
         Assert.True(paths.TryGetProperty("/api/after-sales/{id}/reverse", out _));
         Assert.True(paths.TryGetProperty("/api/after-sales/{id}/complete", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks/{id}/assign", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks/{id}/start", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks/{id}/complete", out _));
 
         var operation = paths.GetProperty("/api/after-sales").GetProperty("get");
         Assert.Contains(PermissionCodes.Business.AfterSales.Read, operation.GetProperty("description").GetString());
         Assert.Contains("售后", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
         Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+
+        var pickupOperation = paths.GetProperty("/api/after-sales/pickup-tasks").GetProperty("get");
+        Assert.Contains(PermissionCodes.Business.AfterSales.Read, pickupOperation.GetProperty("description").GetString());
+        Assert.Contains("售后", pickupOperation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
     }
 }

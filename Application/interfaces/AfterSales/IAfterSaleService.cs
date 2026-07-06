@@ -27,7 +27,7 @@ public interface IAfterSaleService
     /// <summary>将首次创建的售后草稿提交审核。</summary>
     Task<AfterSaleDto> SubmitAsync(Guid id, string? remark);
 
-    /// <summary>审核通过待审核售后，并进入实物处理或退款处理阶段。</summary>
+    /// <summary>审核通过待审核售后，退货退款商品幂等生成取货任务并进入实物处理阶段。</summary>
     Task<AfterSaleDto> ApproveAsync(Guid id, string? remark);
 
     /// <summary>驳回待审核售后到可修改草稿并记录必填原因。</summary>
@@ -39,6 +39,6 @@ public interface IAfterSaleService
     /// <summary>撤销尚未完成且未生成取货任务的审核结论，返回待审核。</summary>
     Task<AfterSaleDto> ReverseAsync(Guid id, string? remark);
 
-    /// <summary>完成待退货、补货、换货或待退款处理的售后单。</summary>
+    /// <summary>完成售后单；退货退款必须已完成取货并审核对应销售退货入库。</summary>
     Task<AfterSaleDto> CompleteAsync(Guid id);
 }

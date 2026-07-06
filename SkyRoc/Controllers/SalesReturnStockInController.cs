@@ -48,9 +48,9 @@ public class SalesReturnStockInController(IStockInService service) : ControllerB
     }
 
     /// <summary>
-    /// 创建销售退货入库草稿及商品明细。需要库存创建权限。
+    /// 创建销售退货入库草稿及商品明细；关联已完成取货任务时按来源幂等返回。需要库存创建权限。
     /// </summary>
-    /// <param name="dto">销售退货入库创建请求。</param>
+    /// <param name="dto">销售退货入库创建请求，可携带售后单和逐行取货任务来源。</param>
     /// <returns>创建后的销售退货入库单详情。</returns>
     [HttpPost]
     [ResourcePermission(PermissionActions.Create)]

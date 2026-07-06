@@ -1,4 +1,5 @@
 using Domain.Entities.Delivery;
+using Domain.Entities.Storage;
 
 namespace Domain.Entities.AfterSales;
 
@@ -96,4 +97,9 @@ public class PickupTask : BaseEntity
     /// 当前分配的取货司机。
     /// </summary>
     public virtual Driver? Driver { get; set; }
+
+    /// <summary>
+    /// 由当前已完成取货任务生成的销售退货入库明细；尚未衔接入库时为空。
+    /// </summary>
+    public virtual StockInDetail? StockInDetail { get; set; }
 }

@@ -164,10 +164,26 @@ flowchart TD
 | 批量分配司机 | PUT | `/business/after/sale/goods/pickUp/batch/driver/{driver}/{ids}` |
 | 批量更新状态 | PUT | `/business/after/sale/goods/pickUp/batch/status/{status}/{ids}` |
 
+### SkyRoc 当前取货与库存联动
+
+- 售后审核通过时，仅对“退货退款”商品逐行生成取货任务；售后商品唯一约束和审核重试逻辑共同保证不重复生成。
+- 取货任务按“待分配 -> 待取货 -> 取货中 -> 已完成”流转，开始前可重新分配启用司机。
+- 已完成任务可作为销售退货入库明细来源；售后单、客户、商品、单位、批准数量和价格快照必须一致，同一任务最多入库一次。
+- 完全相同的取货任务集合重复创建销售退货入库时返回原单；同来源但仓库或商品批次等内容不一致时拒绝。
+- 退货退款售后只有在全部取货任务完成且对应销售退货入库审核通过后才能完成。
+
+当前接口：
+
+| 动作 | 方法 | URL |
+| --- | --- | --- |
+| 取货任务列表 | GET | `/api/after-sales/pickup-tasks` |
+| 分配司机 | PUT | `/api/after-sales/pickup-tasks/{id}/assign` |
+| 开始取货 | POST | `/api/after-sales/pickup-tasks/{id}/start` |
+| 完成取货 | POST | `/api/after-sales/pickup-tasks/{id}/complete` |
+
 ## React 重写提示
 
 - 售后新建页和审核页字段高度相似，应拆出 `AfterSaleForm` 和 `AfterSaleGoodsTable`。
 - 售后原因和处理方式要做成常量枚举，后续最好由后端字典提供。
 - 从订单创建售后时，需要复用订单详情和客户商品价格接口。
 - 取货任务建议作为 after-sales 子域，不要混进配送主任务。
-

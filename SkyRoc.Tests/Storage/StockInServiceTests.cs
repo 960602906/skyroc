@@ -440,6 +440,8 @@ public class StockInServiceTests
             new CustomerRepository(context),
             new DepartmentRepository(context),
             new PurchaseOrderRepository(context),
+            new PickupTaskRepository(context),
+            new AfterSaleRepository(context),
             new GoodsRepository(context),
             new GoodsUnitRepository(context),
             unitOfWork,

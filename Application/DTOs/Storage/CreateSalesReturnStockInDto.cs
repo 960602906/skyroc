@@ -9,6 +9,11 @@ namespace Application.DTOs.Storage;
 public class CreateSalesReturnStockInDto
 {
     /// <summary>
+    /// 来源售后单主键；通过已完成取货任务办理入库时必填，手工退货入库时为空。
+    /// </summary>
+    public Guid? AfterSaleId { get; set; }
+
+    /// <summary>
     /// 接收退货商品的仓库主键。
     /// </summary>
     public Guid WareId { get; set; }

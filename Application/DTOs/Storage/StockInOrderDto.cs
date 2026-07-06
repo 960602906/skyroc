@@ -41,6 +41,11 @@ public class StockInOrderDto : BaseDto
     public Guid? PurchaseOrderId { get; set; }
 
     /// <summary>
+    /// 来源售后单主键；手工销售退货入库以及其他入库类型为空。
+    /// </summary>
+    public Guid? AfterSaleId { get; set; }
+
+    /// <summary>
     /// 供货供应商主键；采购入库时通常填写。
     /// </summary>
     public Guid? SupplierId { get; set; }

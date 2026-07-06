@@ -58,7 +58,7 @@ public interface IStockInService
     Task<StockInOrderDto> UpdateOtherAsync(UpdateOtherStockInDto dto);
 
     /// <summary>
-    /// 创建销售退货入库草稿，记录客户退回商品。
+    /// 创建销售退货入库草稿；关联已完成取货任务时校验来源快照并按任务集合幂等返回。
     /// </summary>
     /// <param name="dto">销售退货入库创建请求。</param>
     /// <returns>创建后的销售退货入库单详情。</returns>

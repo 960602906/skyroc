@@ -86,7 +86,7 @@ public class AfterSalesController(IAfterSaleService service) : ControllerBase
         return Ok(ApiResponse<AfterSaleDto>.Ok(result));
     }
 
-    /// <summary>审核通过售后并进入实物处理或退款处理阶段。</summary>
+    /// <summary>审核通过售后并进入实物或退款处理；退货退款商品会幂等生成取货任务。</summary>
     /// <param name="id">售后单主键。</param>
     /// <param name="dto">可选审核意见。</param>
     /// <returns>审核通过后的售后单。</returns>
@@ -134,9 +134,9 @@ public class AfterSalesController(IAfterSaleService service) : ControllerBase
         return Ok(ApiResponse<AfterSaleDto>.Ok(result));
     }
 
-    /// <summary>完成待退货、补货、换货或待退款处理。</summary>
+    /// <summary>完成待退货、补货、换货或待退款处理；退货退款必须已完成并审核退货入库。</summary>
     /// <param name="id">售后单主键。</param>
-    /// <returns>进入已完成状态的售后单。</returns>
+    /// <returns>全部实物及库存处理完成后进入已完成状态的售后单。</returns>
     [HttpPost("{id:guid}/complete")]
     [ResourcePermission(PermissionActions.Update)]
     public async Task<ActionResult<ApiResponse<AfterSaleDto>>> Complete(Guid id)

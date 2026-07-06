@@ -3073,3 +3073,118 @@ Content-Type: {{contentType}}
 DELETE {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleDeleteDraftId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### After Sales Stock Link - Create Return And Refund Draft
+POST {{SkyRoc_HostAddress}}/api/after-sales
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "saleOrderId": "{{orderId}}",
+  "customerId": "{{customerId}}",
+  "source": "客户退货",
+  "contactName": "李老师",
+  "contactPhone": "13800000000",
+  "pickupAddress": "学校后门",
+  "goods": [
+    {
+      "saleOrderDetailId": "{{orderDetailId}}",
+      "actualRefundQuantity": 1,
+      "afterSaleType": 2,
+      "reasonType": 6,
+      "handleType": 1,
+      "remark": "质量问题退货退款"
+    }
+  ]
+}
+
+> {%
+    client.global.set("afterSaleReturnId", response.body.data.id);
+%}
+
+### After Sales Stock Link - Submit Return
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleReturnId}}/submit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "提交退货审核"
+}
+
+### After Sales Stock Link - Approve And Generate Pickup Task
+POST {{SkyRoc_HostAddress}}/api/after-sales/{{afterSaleReturnId}}/approve
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "同意退货并安排取货"
+}
+
+> {%
+    client.global.set("pickupTaskId", response.body.data.pickupTasks[0].id);
+    client.global.set("returnGoodsId", response.body.data.goods[0].goodsId);
+    client.global.set("returnGoodsUnitId", response.body.data.goods[0].goodsUnitId);
+    client.global.set("returnUnitPrice", response.body.data.goods[0].unitPrice);
+%}
+
+### Pickup Tasks - List Generated Task
+GET {{SkyRoc_HostAddress}}/api/after-sales/pickup-tasks?current=1&size=10&afterSaleId={{afterSaleReturnId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Pickup Tasks - Assign Driver
+PUT {{SkyRoc_HostAddress}}/api/after-sales/pickup-tasks/{{pickupTaskId}}/assign
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "driverId": "{{driverId}}",
+  "plannedPickupTime": "2026-07-07 08:30:00",
+  "remark": "学校后门取货"
+}
+
+### Pickup Tasks - Start Pickup
+POST {{SkyRoc_HostAddress}}/api/after-sales/pickup-tasks/{{pickupTaskId}}/start
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Pickup Tasks - Complete Pickup
+POST {{SkyRoc_HostAddress}}/api/after-sales/pickup-tasks/{{pickupTaskId}}/complete
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### After Sales Stock Link - Create Idempotent Sales Return Stock In
+POST {{SkyRoc_HostAddress}}/api/stock-in/sales-return
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "afterSaleId": "{{afterSaleReturnId}}",
+  "wareId": "{{wareId}}",
+  "customerId": "{{customerId}}",
+  "inTime": "2026-07-07 09:00:00",
+  "remark": "售后取货完成后入库",
+  "details": [
+    {
+      "pickupTaskId": "{{pickupTaskId}}",
+      "goodsId": "{{returnGoodsId}}",
+      "goodsUnitId": "{{returnGoodsUnitId}}",
+      "quantity": 1,
+      "unitPrice": {{returnUnitPrice}},
+      "batchNo": "RETURN-20260707"
+    }
+  ]
+}
+
+> {%
+    client.global.set("afterSaleStockInId", response.body.data.id);
+%}
+
+### After Sales Stock Link - Audit Sales Return Stock In
+POST {{SkyRoc_HostAddress}}/api/stock-in/sales-return/{{afterSaleStockInId}}/audit
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "退货质检通过并正式入库"
+}

@@ -1,4 +1,5 @@
 using Domain.Entities.Customers;
+using Domain.Entities.AfterSales;
 using Domain.Entities.Purchases;
 
 namespace Domain.Entities.Storage;
@@ -37,6 +38,11 @@ public class StockInOrder : BaseEntity
     /// 来源采购单主键；仅采购入库时填写。
     /// </summary>
     public Guid? PurchaseOrderId { get; set; }
+
+    /// <summary>
+    /// 来源售后单主键；仅由已完成取货任务生成的销售退货入库填写。
+    /// </summary>
+    public Guid? AfterSaleId { get; set; }
 
     /// <summary>
     /// 供货供应商主键；采购入库时通常填写。
@@ -152,6 +158,11 @@ public class StockInOrder : BaseEntity
     /// 来源采购单。
     /// </summary>
     public virtual PurchaseOrder? PurchaseOrder { get; set; }
+
+    /// <summary>
+    /// 来源售后单，用于从退货入库追溯客户售后处理。
+    /// </summary>
+    public virtual AfterSale? AfterSale { get; set; }
 
     /// <summary>
     /// 供货供应商档案。

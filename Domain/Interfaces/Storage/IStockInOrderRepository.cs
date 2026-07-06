@@ -15,6 +15,13 @@ public interface IStockInOrderRepository : IRepository<StockInOrder>
     Task<StockInOrder?> GetByIdForUpdateAsync(Guid id);
 
     /// <summary>
+    /// 在当前数据库事务内按主键稳定顺序批量锁定入库单聚合，避免售后完成逐单查询。
+    /// </summary>
+    /// <param name="ids">待锁定的入库单主键集合。</param>
+    /// <returns>存在的入库单聚合，按主键升序排列。</returns>
+    Task<IReadOnlyList<StockInOrder>> GetByIdsForUpdateAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>
     /// 汇总指定采购明细已经正式审核入库且尚未反审核的基础单位数量。
     /// </summary>
     /// <param name="purchaseOrderDetailIds">来源采购单明细主键集合。</param>
@@ -31,4 +38,11 @@ public interface IStockInOrderRepository : IRepository<StockInOrder>
     /// <param name="excludeId">编辑场景需要排除的入库单主键。</param>
     /// <returns>存在同号入库单时返回 <c>true</c>。</returns>
     Task<bool> ExistsInNoAsync(string inNo, Guid? excludeId = null);
+
+    /// <summary>
+    /// 查询已引用指定取货任务的销售退货入库单，用于重试返回既有结果和阻止跨单重复入库。
+    /// </summary>
+    /// <param name="pickupTaskIds">来源取货任务主键集合。</param>
+    /// <returns>包含任一指定任务来源的入库单聚合。</returns>
+    Task<IReadOnlyList<StockInOrder>> GetByPickupTaskIdsAsync(IReadOnlyCollection<Guid> pickupTaskIds);
 }

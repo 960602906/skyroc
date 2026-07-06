@@ -10,6 +10,7 @@ using Domain.Entities.Customers;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
 using Domain.Entities.Purchases;
+using Domain.Entities.Storage;
 using Domain.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -20,12 +21,14 @@ using ValidationException = Application.Exceptions.ValidationException;
 namespace Application.Services;
 
 /// <summary>
-/// 售后流程服务，事务化维护草稿、来源数量占用和审核状态轨迹。
+/// 售后流程服务，事务化维护草稿、来源数量占用、取货生成、退货入库完成条件和审核轨迹。
 /// </summary>
 public class AfterSaleService(
     IAfterSaleRepository afterSaleRepository,
     IAfterSaleGoodsRepository afterSaleGoodsRepository,
     IAfterSaleAuditLogRepository auditLogRepository,
+    IPickupTaskRepository pickupTaskRepository,
+    IStockInOrderRepository stockInOrderRepository,
     ISaleOrderRepository saleOrderRepository,
     ICustomerRepository customerRepository,
     IGoodsRepository goodsRepository,
@@ -168,15 +171,41 @@ public class AfterSaleService(
     }
 
     /// <inheritdoc />
-    public Task<AfterSaleDto> ApproveAsync(Guid id, string? remark)
+    public async Task<AfterSaleDto> ApproveAsync(Guid id, string? remark)
     {
-        return TransitionAsync(id, AfterSaleAuditAction.Approve, remark, entity =>
+        EnsureOptionalRemark(remark, "操作说明");
+        var repeated = false;
+        await ExecuteInTransactionAsync(async () =>
         {
+            var entity = await GetRequiredForUpdateAsync(id);
+            if (entity.AfterStatus is AfterSaleStatus.ReturnPending or AfterSaleStatus.RefundPending
+                && GetLatestAuditAction(entity) == AfterSaleAuditAction.Approve)
+            {
+                await GeneratePickupTasksAsync(entity);
+                repeated = true;
+                return;
+            }
+
             EnsureStatus(entity, AfterSaleStatus.PendingAudit, "审核通过");
-            return RequiresPhysicalHandling(entity.Goods)
+            var previousStatus = entity.AfterStatus;
+            var targetStatus = RequiresPhysicalHandling(entity.Goods)
                 ? AfterSaleStatus.ReturnPending
                 : AfterSaleStatus.RefundPending;
+            entity.AfterStatus = targetStatus;
+            ApplyUpdateAudit(entity);
+            await GeneratePickupTasksAsync(entity);
+            await auditLogRepository.AddAsync(CreateAuditLog(
+                entity.Id,
+                AfterSaleAuditAction.Approve,
+                previousStatus,
+                targetStatus,
+                remark));
         });
+
+        logger.LogInformation(
+            repeated ? "售后审核重试保持幂等: {AfterSaleId}" : "售后审核通过: {AfterSaleId}",
+            id);
+        return await GetByIdAsync(id);
     }
 
     /// <inheritdoc />
@@ -240,6 +269,34 @@ public class AfterSaleService(
             if (entity.PickupTasks.Any(task => task.PickupStatus != PickupTaskStatus.Completed))
             {
                 throw new BusinessException("售后单仍有未完成的取货任务，不能完成处理");
+            }
+
+            var returnGoodsIds = entity.Goods
+                .Where(goods => goods.AfterSaleType == AfterSaleType.ReturnAndRefund)
+                .Select(goods => goods.Id)
+                .ToHashSet();
+            if (!returnGoodsIds.SetEquals(entity.PickupTasks.Select(task => task.AfterSaleGoodsId)))
+            {
+                throw new BusinessException("售后退货商品缺少对应取货任务，不能完成处理");
+            }
+
+            if (entity.PickupTasks.Any(task => task.StockInDetail is null))
+            {
+                throw new BusinessException("售后单仍有未完成审核的销售退货入库，不能完成处理");
+            }
+
+            var stockInOrderIds = entity.PickupTasks
+                .Select(task => task.StockInDetail!.StockInOrderId)
+                .Distinct()
+                .OrderBy(stockInOrderId => stockInOrderId)
+                .ToList();
+            var stockInOrders = await stockInOrderRepository.GetByIdsForUpdateAsync(stockInOrderIds);
+            if (stockInOrders.Count != stockInOrderIds.Count
+                || stockInOrders.Any(stockInOrder =>
+                    stockInOrder.BusinessStatus != StockDocumentStatus.Audited
+                    || stockInOrder.AfterSaleId != entity.Id))
+            {
+                throw new BusinessException("售后单仍有未完成审核的销售退货入库，不能完成处理");
             }
 
             entity.AfterStatus = AfterSaleStatus.Completed;
@@ -531,6 +588,48 @@ public class AfterSaleService(
         }
 
         throw new BusinessException("售后单号生成失败，请重试");
+    }
+
+    private async Task GeneratePickupTasksAsync(AfterSale entity)
+    {
+        var returnGoods = entity.Goods
+            .Where(x => x.AfterSaleType == AfterSaleType.ReturnAndRefund)
+            .OrderBy(x => x.Id)
+            .ToList();
+        if (returnGoods.Count == 0)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(entity.PickupAddressSnapshot))
+        {
+            throw new BusinessException("退货退款商品审核通过前必须填写取货地址");
+        }
+
+        var existingGoodsIds = entity.PickupTasks.Select(x => x.AfterSaleGoodsId).ToHashSet();
+        var tasks = new List<PickupTask>();
+        foreach (var goods in returnGoods.Where(x => !existingGoodsIds.Contains(x.Id)))
+        {
+            var task = new PickupTask
+            {
+                Id = Guid.NewGuid(),
+                TaskNo = $"PU{DateTime.UtcNow:yyyyMMddHHmmssfff}{Guid.NewGuid():N}"[..42].ToUpperInvariant(),
+                AfterSaleId = entity.Id,
+                AfterSaleGoodsId = goods.Id,
+                ContactNameSnapshot = entity.ContactNameSnapshot,
+                ContactPhoneSnapshot = entity.ContactPhoneSnapshot,
+                PickupAddressSnapshot = entity.PickupAddressSnapshot.Trim(),
+                PickupStatus = PickupTaskStatus.PendingAssign
+            };
+            ApplyCreateAudit(task);
+            tasks.Add(task);
+            entity.PickupTasks.Add(task);
+        }
+
+        if (tasks.Count > 0)
+        {
+            await pickupTaskRepository.AddRangeAsync(tasks);
+        }
     }
 
     private AfterSaleAuditLog CreateAuditLog(
