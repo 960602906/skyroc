@@ -37,6 +37,8 @@ Use four-space indentation: PascalCase for types, methods, and public members; c
 
 For pure derived response values that depend only on fields of the same object, prefer read-only computed properties instead of storing or mapping duplicate state. All quantity, price, cost, and amount calculations must use `Shared.Constants.NumericPrecision`; do not hardcode decimal scales or midpoint rounding modes in services, mappings, or DTOs.
 
+Use AutoMapper for direct structural mappings that contain no business decisions. Do not hide validation, repository lookups, source precedence, snapshot selection, state transitions, or `NumericPrecision` calculations in mapping profiles, custom resolvers, or `AfterMap`; construct such entities explicitly in the application service or a dedicated factory, and reserve AutoMapper for the mechanical mapping portions and response models. When an explicit construction helper develops a long positional parameter list—especially repeated `Guid`, `string`, or `decimal` values—replace those arguments with a named parameter object such as an internal `*Snapshot` or `*BuildContext`, or extract a focused factory. Prefer named property initialization so source fields remain reviewable and cannot be silently swapped.
+
 ## Documentation Comment Requirements
 
 Comments are part of the definition of done, not optional cleanup. Add concise XML documentation to domain entities and their public properties, repository interfaces and implementations, application service interfaces and implementations, controllers, actions, and public request/response members. Comments must explain business meaning, units, status semantics, side effects, and important constraints instead of merely repeating the identifier.
