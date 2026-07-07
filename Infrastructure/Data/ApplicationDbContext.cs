@@ -9,6 +9,7 @@ using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
+using Domain.Entities.Traceability;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Data.EntityConfigurations;
 
@@ -392,6 +393,31 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 供应商结算单明细表。
     /// </summary>
     public DbSet<SupplierSettlementDetail> SupplierSettlementDetails { get; set; }
+
+    /// <summary>
+    /// 检测报告主表。
+    /// </summary>
+    public DbSet<InspectionReport> InspectionReports { get; set; }
+
+    /// <summary>
+    /// 检测报告商品明细表。
+    /// </summary>
+    public DbSet<InspectionReportGoods> InspectionReportGoods { get; set; }
+
+    /// <summary>
+    /// 检测报告附件表。
+    /// </summary>
+    public DbSet<InspectionAttachment> InspectionAttachments { get; set; }
+
+    /// <summary>
+    /// 商品溯源记录表。
+    /// </summary>
+    public DbSet<TraceRecord> TraceRecords { get; set; }
+
+    /// <summary>
+    /// 外部报送日志表。
+    /// </summary>
+    public DbSet<ExternalPushLog> ExternalPushLogs { get; set; }
 
     #endregion
 }

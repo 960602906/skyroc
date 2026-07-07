@@ -8,6 +8,7 @@ using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
+using Domain.Entities.Traceability;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data.EntityConfigurations;
@@ -85,7 +86,12 @@ public static class DatabaseCommentExtensions
         [typeof(SupplierBill)] = "供应商待结单据，按采购入库或采购退货出库汇总应付金额和结款状态",
         [typeof(SupplierBillDetail)] = "供应商待结单据明细，记录入库或退货商品行对供应商应付的影响",
         [typeof(SupplierSettlement)] = "供应商结算单，记录向供应商付款、优惠和对应待结单据余额核销结果",
-        [typeof(SupplierSettlementDetail)] = "供应商结算单明细，记录单张待结单据在本次结款中的金额变化"
+        [typeof(SupplierSettlementDetail)] = "供应商结算单明细，记录单张待结单据在本次结款中的金额变化",
+        [typeof(InspectionReport)] = "检测报告，按采购入库单记录商品质量检测机构、时间和整单结论快照",
+        [typeof(InspectionReportGoods)] = "检测报告商品明细，按入库商品行记录商品、单位、批次快照和单品检测结论",
+        [typeof(InspectionAttachment)] = "检测报告附件，记录报告文件或现场图片的访问地址和展示顺序",
+        [typeof(TraceRecord)] = "商品溯源记录，将销售订单商品行与采购入库来源和检测报告串联供二维码展示",
+        [typeof(ExternalPushLog)] = "外部报送日志，只追加记录向外部监管或溯源平台每次报送的请求、响应和结果状态"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -414,7 +420,29 @@ public static class DatabaseCommentExtensions
         ["SupplierBillNoSnapshot"] = "被核销供应商待结单据编号快照",
         ["SupplierId"] = "关联供应商主键",
         ["SupplierNameSnapshot"] = "业务发生时的供应商名称快照",
-        ["SupplierSettlementId"] = "所属供应商结算单主键"
+        ["SupplierSettlementId"] = "所属供应商结算单主键",
+        ["AttachmentType"] = "附件类型：报告文件或现场图片",
+        ["BusinessId"] = "报送来源业务主键，按业务类型指向订单、报告或溯源记录",
+        ["BusinessNoSnapshot"] = "报送发起时的来源业务编号快照",
+        ["BusinessType"] = "报送来源业务类型：销售订单、检测报告或溯源记录",
+        ["Conclusion"] = "质量检测结论：待定、合格或不合格",
+        ["FileSize"] = "附件文件大小，单位为字节",
+        ["FileUrl"] = "附件的可访问存储地址",
+        ["InNoSnapshot"] = "建报时的来源采购入库单编号快照",
+        ["InspectionNo"] = "检测报告业务唯一编号",
+        ["InspectionOrg"] = "出具检测结论的检测机构名称",
+        ["InspectionReportId"] = "关联检测报告主键",
+        ["InspectTime"] = "检测完成时间（UTC）",
+        ["PlatformCode"] = "目标外部平台的稳定标识编码",
+        ["PushStatus"] = "外部报送状态：待报送、报送成功或报送失败",
+        ["PushTime"] = "报送发起时间（UTC）",
+        ["RequestContent"] = "报送请求报文的脱敏序列化内容",
+        ["ResponseContent"] = "外部平台响应报文的脱敏序列化内容",
+        ["ResponseTime"] = "外部平台返回响应的时间（UTC）",
+        ["RetryCount"] = "当前业务在本次记录前已重试报送的次数",
+        ["SampleQuantity"] = "送检商品数量，按送检单位计量且必须大于零",
+        ["SampleTime"] = "商品抽样时间（UTC）",
+        ["TraceNo"] = "溯源记录业务唯一编号，作为二维码对外访问标识"
     };
 
     private static readonly IReadOnlyDictionary<(Type EntityType, string PropertyName), string> EntityPropertyComments =
@@ -497,7 +525,39 @@ public static class DatabaseCommentExtensions
             [(typeof(StockOutOrder), nameof(StockOutOrder.SupplierNameSnapshot))] = "出库发生时的供应商名称快照",
             [(typeof(StocktakingOrder), nameof(StocktakingOrder.BusinessStatus))] = "盘点单状态：草稿、待审核、已审核、已反审核或已删除",
             [(typeof(DeliveryRoute), nameof(DeliveryRoute.Description))] = "配送路线描述，说明覆盖区域或配送顺序",
-            [(typeof(DeliveryException), nameof(DeliveryException.Description))] = "配送异常描述，说明配送过程中发生的具体问题"
+            [(typeof(DeliveryException), nameof(DeliveryException.Description))] = "配送异常描述，说明配送过程中发生的具体问题",
+            [(typeof(InspectionReport), nameof(InspectionReport.StockInOrderId))] = "来源采购入库单主键，报告商品明细必须来自该入库单",
+            [(typeof(InspectionReport), nameof(InspectionReport.WareId))] = "接收入库商品的仓库主键",
+            [(typeof(InspectionReport), nameof(InspectionReport.WareNameSnapshot))] = "建报时的仓库名称快照",
+            [(typeof(InspectionReport), nameof(InspectionReport.SupplierId))] = "供货供应商主键；来源入库单没有供应商时为空",
+            [(typeof(InspectionReport), nameof(InspectionReport.SupplierNameSnapshot))] = "建报时的供应商名称快照",
+            [(typeof(InspectionReport), nameof(InspectionReport.Remark))] = "报告级业务备注，对全部报告商品生效",
+            [(typeof(InspectionReportGoods), nameof(InspectionReportGoods.GoodsId))] = "送检商品主键",
+            [(typeof(InspectionReportGoods), nameof(InspectionReportGoods.GoodsNameSnapshot))] = "建报时的商品名称快照",
+            [(typeof(InspectionReportGoods), nameof(InspectionReportGoods.GoodsCodeSnapshot))] = "建报时的商品编码快照",
+            [(typeof(InspectionReportGoods), nameof(InspectionReportGoods.GoodsTypeNameSnapshot))] = "建报时的商品分类名称快照；商品未挂分类时为空",
+            [(typeof(InspectionReportGoods), nameof(InspectionReportGoods.GoodsUnitId))] = "送检数量使用的计量单位主键，与来源入库明细的入库单位一致",
+            [(typeof(InspectionReportGoods), nameof(InspectionReportGoods.GoodsUnitNameSnapshot))] = "建报时的送检计量单位名称快照",
+            [(typeof(InspectionReportGoods), nameof(InspectionReportGoods.BatchNoSnapshot))] = "建报时的入库批次号快照，用于追溯到具体库存批次",
+            [(typeof(InspectionReportGoods), nameof(InspectionReportGoods.Remark))] = "仅针对当前报告商品行的检测说明或不合格原因",
+            [(typeof(InspectionAttachment), nameof(InspectionAttachment.FileName))] = "附件原始文件名，含扩展名",
+            [(typeof(InspectionAttachment), nameof(InspectionAttachment.Sort))] = "同一报告内附件的展示顺序，值越小越靠前",
+            [(typeof(TraceRecord), nameof(TraceRecord.SaleOrderNoSnapshot))] = "生成溯源时的销售订单编号快照",
+            [(typeof(TraceRecord), nameof(TraceRecord.CustomerId))] = "下单客户主键",
+            [(typeof(TraceRecord), nameof(TraceRecord.CustomerNameSnapshot))] = "生成溯源时的客户名称快照",
+            [(typeof(TraceRecord), nameof(TraceRecord.GoodsId))] = "溯源商品主键",
+            [(typeof(TraceRecord), nameof(TraceRecord.GoodsNameSnapshot))] = "生成溯源时的商品名称快照",
+            [(typeof(TraceRecord), nameof(TraceRecord.GoodsCodeSnapshot))] = "生成溯源时的商品编码快照",
+            [(typeof(TraceRecord), nameof(TraceRecord.GoodsTypeNameSnapshot))] = "生成溯源时的商品分类名称快照；商品未挂分类时为空",
+            [(typeof(TraceRecord), nameof(TraceRecord.SupplierId))] = "采购来源供应商主键；入库来源缺失或没有供应商时为空",
+            [(typeof(TraceRecord), nameof(TraceRecord.SupplierNameSnapshot))] = "生成溯源时的供应商名称快照",
+            [(typeof(TraceRecord), nameof(TraceRecord.WareId))] = "采购来源入库仓库主键；入库来源缺失时为空",
+            [(typeof(TraceRecord), nameof(TraceRecord.WareNameSnapshot))] = "生成溯源时的入库仓库名称快照",
+            [(typeof(TraceRecord), nameof(TraceRecord.BatchNoSnapshot))] = "生成溯源时的入库批次号快照",
+            [(typeof(TraceRecord), nameof(TraceRecord.StockInDetailId))] = "采购来源入库商品明细主键；尚未匹配到入库来源时为空",
+            [(typeof(TraceRecord), nameof(TraceRecord.InspectionReportId))] = "关联检测报告主键；来源入库商品尚未出具报告时为空",
+            [(typeof(TraceRecord), nameof(TraceRecord.Remark))] = "溯源记录备注，记录来源匹配差异或人工补录说明",
+            [(typeof(ExternalPushLog), nameof(ExternalPushLog.ErrorMessage))] = "报送失败时记录的错误摘要；成功时为空"
         };
 
     /// <summary>
