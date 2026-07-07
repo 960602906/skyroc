@@ -247,6 +247,10 @@ public class AfterSaleStockIntegrationTests
             new PickupTaskRepository(context),
             new StockInOrderRepository(context),
             new SaleOrderRepository(context),
+            new CustomerBillService(
+                new CustomerBillRepository(context),
+                new AfterSaleRepository(context),
+                new FakeCurrentUserService()),
             new CustomerRepository(context),
             new GoodsRepository(context),
             new GoodsUnitRepository(context),

@@ -7,6 +7,7 @@ using Application.Validator;
 using AutoMapper;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
+using Domain.Entities.Finance;
 using Domain.Entities.Goods;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 using Domain.Entities.Orders;
@@ -302,6 +303,17 @@ public class DeliveryTaskServiceTests
         Assert.Equal(SaleOrderStatus.Signed, order.OrderStatus);
         Assert.Equal(25m, order.SettlementPrice);
         Assert.Equal(OrderCustomerCheckStatus.Accepted, Assert.Single(order.Details).CustomerCheckStatus);
+        var bill = await context.CustomerBills.Include(x => x.Details).SingleAsync();
+        Assert.Equal(seed.SaleOrderId, bill.SaleOrderId);
+        Assert.Equal(25m, bill.OrderAmount);
+        Assert.Equal(0m, bill.AfterSaleAdjustmentAmount);
+        Assert.Equal(25m, bill.ReceivableAmount);
+        Assert.Equal(CustomerBillStatus.Pending, bill.BillStatus);
+        var billDetail = Assert.Single(bill.Details);
+        Assert.Equal(CustomerBillDetailSourceType.OrderAcceptance, billDetail.SourceType);
+        Assert.Equal(seed.StockOutDetailId, check.StockOutDetailId);
+        Assert.Equal(seed.SaleOrderDetailId, billDetail.SourceDetailId);
+        Assert.Equal(25m, billDetail.Amount);
     }
 
     [Fact]
@@ -494,6 +506,10 @@ public class DeliveryTaskServiceTests
             new StockOutOrderRepository(context),
             new SaleOrderRepository(context),
             new OrderReceiptRepository(context),
+            new CustomerBillService(
+                new CustomerBillRepository(context),
+                new AfterSaleRepository(context),
+                new FakeCurrentUserService()),
             new DriverRepository(context),
             new DeliveryRouteRepository(context),
             new RecordingUnitOfWork(context),
@@ -599,7 +615,7 @@ public class DeliveryTaskServiceTests
         };
         await context.AddRangeAsync(customer, ware, goods, goodsUnit, saleOrder, saleOrderDetail, stockOut, stockOutDetail);
         await context.SaveChangesAsync();
-        return new DeliverySeed(customer.Id, stockOut.Id, saleOrder.Id, stockOutDetail.Id);
+        return new DeliverySeed(customer.Id, stockOut.Id, saleOrder.Id, saleOrderDetail.Id, stockOutDetail.Id);
     }
 
     private static SignDeliveryTaskDto CreateSignRequest(Guid stockOutDetailId)
@@ -623,6 +639,7 @@ public class DeliveryTaskServiceTests
         Guid CustomerId,
         Guid StockOutOrderId,
         Guid SaleOrderId,
+        Guid SaleOrderDetailId,
         Guid StockOutDetailId);
 
     private sealed class FakeCurrentUserService : ICurrentUserService

@@ -2,6 +2,7 @@ using Domain.Entities;
 using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
+using Domain.Entities.Finance;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
@@ -76,7 +77,9 @@ public static class DatabaseCommentExtensions
         [typeof(AfterSale)] = "售后单，记录来源订单、客户、审核状态和结算金额快照",
         [typeof(AfterSaleGoods)] = "售后商品明细，记录商品、单位、原因、处理方式和退款金额快照",
         [typeof(AfterSaleAuditLog)] = "售后审核记录，保存提交、审核、驳回、重提和反审核轨迹",
-        [typeof(PickupTask)] = "售后取货任务，记录退货商品的司机分配、取货地址和执行状态"
+        [typeof(PickupTask)] = "售后取货任务，记录退货商品的司机分配、取货地址和执行状态",
+        [typeof(CustomerBill)] = "客户账单，按销售订单汇总签收应收、售后调整和结款状态",
+        [typeof(CustomerBillDetail)] = "客户账单明细，记录订单验收和售后调整对客户应收的影响"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -106,6 +109,9 @@ public static class DatabaseCommentExtensions
         ["BaseUnitNameSnapshot"] = "业务发生时的基础单位名称快照",
         ["BatchNo"] = "仓库商品批次号",
         ["BatchNoSnapshot"] = "库存业务发生时的批次号快照",
+        ["BillDate"] = "账单生成或最近一次同步的业务日期（UTC）",
+        ["BillNo"] = "客户账单业务唯一编号",
+        ["BillStatus"] = "客户账单结款状态：待结款、部分结款或已结款",
         ["BookQuantity"] = "盘点快照时的账面数量，按基础单位计量",
         ["Brand"] = "商品品牌",
         ["Browser"] = "发起操作的浏览器信息",
@@ -164,6 +170,7 @@ public static class DatabaseCommentExtensions
         ["CustomerCheckStatus"] = "客户验收状态",
         ["CustomerCodeSnapshot"] = "下单时的客户编码快照",
         ["CustomerId"] = "关联客户主键",
+        ["CustomerBillId"] = "所属客户账单主键",
         ["CustomerNameSnapshot"] = "业务发生时的客户名称快照",
         ["CustomerProtocolId"] = "客户协议价主键",
         ["CustomerTagId"] = "客户标签主键",
@@ -362,7 +369,16 @@ public static class DatabaseCommentExtensions
         ["DifferenceQuantity"] = "盘点实盘数量减账面数量，正数盘盈、负数盘亏",
         ["Direction"] = "库存流水增减方向",
         ["InNo"] = "入库单业务唯一编号",
-        ["InTime"] = "计划或实际入库时间（UTC）"
+        ["InTime"] = "计划或实际入库时间（UTC）",
+        ["SourceDocumentId"] = "来源业务单据主键，用于追溯订单或售后来源",
+        ["SourceDetailId"] = "来源业务明细主键，用于幂等识别订单商品或售后商品",
+        ["SourceType"] = "账单明细来源类型：订单验收或售后调整",
+        ["Amount"] = "账单明细金额，正数增加应收、负数冲减应收",
+        ["BusinessTime"] = "来源业务事实发生时间（UTC）",
+        ["OrderAmount"] = "订单签收形成的正向应收金额，按系统业务币种计量",
+        ["AfterSaleAdjustmentAmount"] = "售后完成形成的应收调整金额，负数表示冲减客户应收",
+        ["ReceivableAmount"] = "当前账单应收金额，按系统业务币种计量",
+        ["SettledAmount"] = "已结款金额，按系统业务币种计量"
     };
 
     private static readonly IReadOnlyDictionary<(Type EntityType, string PropertyName), string> EntityPropertyComments =
@@ -379,6 +395,14 @@ public static class DatabaseCommentExtensions
             [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.UnitPrice))] = "售后核算采用的订单单价快照",
             [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.SupplierNameSnapshot))] = "售后建单时的原商品供应商名称快照",
             [(typeof(AfterSaleGoods), nameof(AfterSaleGoods.DepartmentNameSnapshot))] = "售后建单或定责时的部门名称快照",
+            [(typeof(CustomerBill), nameof(CustomerBill.SaleOrderNoSnapshot))] = "客户账单来源销售订单编号快照",
+            [(typeof(CustomerBill), nameof(CustomerBill.Remark))] = "客户账单备注，记录人工调整说明或同步异常说明",
+            [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.GoodsUnitId))] = "客户账单明细使用的商品单位主键",
+            [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.GoodsUnitNameSnapshot))] = "客户账单明细使用的商品单位名称快照",
+            [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.Quantity))] = "账单数量，正数表示确认销售、负数表示售后冲减，按当前商品单位计量",
+            [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.BaseQuantity))] = "账单基础数量，正数表示确认销售、负数表示售后冲减，按基础单位计量",
+            [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.UnitPrice))] = "账单采用的商品单价，按当前商品单位和系统业务币种计量",
+            [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.Remark))] = "账单明细备注，记录验收差异、售后原因或调整说明",
             [(typeof(PickupTask), nameof(PickupTask.TaskNo))] = "售后取货任务业务唯一编号",
             [(typeof(PickupTask), nameof(PickupTask.AfterSaleId))] = "所属售后单主键，必须与关联售后商品的所属售后单一致",
             [(typeof(PickupTask), nameof(PickupTask.DriverNameSnapshot))] = "取货任务最近一次分配时的司机姓名快照",
@@ -401,6 +425,8 @@ public static class DatabaseCommentExtensions
             [(typeof(StockInOrder), nameof(StockInOrder.AfterSaleId))] = "来源售后单主键，仅由已完成取货任务生成的销售退货入库填写",
             [(typeof(StockInOrder), nameof(StockInOrder.PrintStatus))] = "入库单打印状态：0 未打印，1 已打印",
             [(typeof(StockInOrder), nameof(StockInOrder.SupplierNameSnapshot))] = "入库发生时的供应商名称快照",
+            [(typeof(StockLedger), nameof(StockLedger.SourceType))] = "库存流水业务来源类型",
+            [(typeof(StockLedger), nameof(StockLedger.SourceDetailId))] = "库存流水来源业务明细主键",
             [(typeof(StockOutDetail), nameof(StockOutDetail.GoodsUnitId))] = "出库计量单位主键",
             [(typeof(StockOutDetail), nameof(StockOutDetail.GoodsUnitNameSnapshot))] = "出库发生时的计量单位名称快照",
             [(typeof(StockOutOrder), nameof(StockOutOrder.BusinessStatus))] = "出库单状态：草稿、待审核、已审核、已反审核或已删除",

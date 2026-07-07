@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
+using Domain.Entities.Finance;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
@@ -351,6 +352,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 售后取货任务表。
     /// </summary>
     public DbSet<PickupTask> PickupTasks { get; set; }
+
+    /// <summary>
+    /// 客户账单主表。
+    /// </summary>
+    public DbSet<CustomerBill> CustomerBills { get; set; }
+
+    /// <summary>
+    /// 客户账单明细表。
+    /// </summary>
+    public DbSet<CustomerBillDetail> CustomerBillDetails { get; set; }
 
     #endregion
 }

@@ -6,6 +6,7 @@ using Application.interfaces;
 using AutoMapper;
 using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
+using Domain.Entities.Finance;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
 using Domain.Interfaces;
@@ -172,6 +173,37 @@ public class AfterSaleServiceTests
     }
 
     [Fact]
+    public async Task CompleteAsync_AppendsCustomerBillAdjustment_WhenSignedOrderAlreadyHasBill()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedOrderAsync(context, 10m, 25m, 10m, SaleOrderStatus.Signed);
+        var saleOrder = await new SaleOrderRepository(context).GetByIdAsync(seed.OrderId);
+        await new CustomerBillService(
+            new CustomerBillRepository(context),
+            new AfterSaleRepository(context),
+            new FakeCurrentUserService()).SyncOrderAcceptanceAsync(saleOrder!);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+        var service = CreateService(context);
+        var created = await service.CreateAsync(CreateRequest(seed, 2m));
+        await service.SubmitAsync(created.Id, null);
+        await service.ApproveAsync(created.Id, null);
+
+        await service.CompleteAsync(created.Id);
+
+        var updatedBill = await context.CustomerBills.Include(x => x.Details).SingleAsync();
+        Assert.Equal(25m, updatedBill.OrderAmount);
+        Assert.Equal(-5m, updatedBill.AfterSaleAdjustmentAmount);
+        Assert.Equal(20m, updatedBill.ReceivableAmount);
+        Assert.Equal(2, updatedBill.Details.Count);
+        var adjustment = Assert.Single(
+            updatedBill.Details,
+            x => x.SourceType == CustomerBillDetailSourceType.AfterSaleAdjustment);
+        Assert.Equal(-2m, adjustment.Quantity);
+        Assert.Equal(-5m, adjustment.Amount);
+    }
+
+    [Fact]
     public async Task ReverseAsync_RejectsAfterSaleWithDownstreamPickupTask()
     {
         await using var context = CreateDbContext();
@@ -302,6 +334,10 @@ public class AfterSaleServiceTests
             new PickupTaskRepository(context),
             new StockInOrderRepository(context),
             new SaleOrderRepository(context),
+            new CustomerBillService(
+                new CustomerBillRepository(context),
+                new AfterSaleRepository(context),
+                new FakeCurrentUserService()),
             new CustomerRepository(context),
             new GoodsRepository(context),
             new GoodsUnitRepository(context),
@@ -327,7 +363,8 @@ public class AfterSaleServiceTests
         ApplicationDbContext context,
         decimal quantity,
         decimal totalPrice,
-        decimal? acceptedBaseQuantity)
+        decimal? acceptedBaseQuantity,
+        SaleOrderStatus orderStatus = SaleOrderStatus.SortingPending)
     {
         var customer = new Customer { Id = Guid.NewGuid(), Name = "学校客户", Code = "SCHOOL" };
         var goodsType = new GoodsType { Id = Guid.NewGuid(), Name = "蔬菜", Code = "VEG" };
@@ -356,7 +393,7 @@ public class AfterSaleServiceTests
             CustomerNameSnapshot = customer.Name,
             CustomerCodeSnapshot = customer.Code,
             OrderDate = new DateTime(2026, 7, 6, 8, 0, 0, DateTimeKind.Utc),
-            OrderStatus = SaleOrderStatus.SortingPending,
+            OrderStatus = orderStatus,
             OrderPrice = totalPrice,
             SettlementPrice = totalPrice
         };
@@ -390,10 +427,10 @@ public class AfterSaleServiceTests
         await context.SaleOrders.AddAsync(order);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
-        return new OrderSeed(order.Id, detail.Id, customer.Id);
+        return new OrderSeed(order.Id, detail.Id, customer.Id, goods.Id, unit.Id);
     }
 
-    private sealed record OrderSeed(Guid OrderId, Guid OrderDetailId, Guid CustomerId);
+    private sealed record OrderSeed(Guid OrderId, Guid OrderDetailId, Guid CustomerId, Guid GoodsId, Guid GoodsUnitId);
 
     private sealed class FakeCurrentUserService : ICurrentUserService
     {

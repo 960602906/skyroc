@@ -28,4 +28,11 @@ public interface IAfterSaleRepository : IRepository<AfterSale>
     Task<IReadOnlyDictionary<Guid, decimal>> GetReservedBaseQuantitiesAsync(
         IEnumerable<Guid> saleOrderDetailIds,
         Guid? excludeAfterSaleId = null);
+
+    /// <summary>
+    /// 读取指定销售订单下已完成的售后单，用于订单签收生成账单时补齐已生效财务调整。
+    /// </summary>
+    /// <param name="saleOrderId">来源销售订单主键。</param>
+    /// <returns>包含售后商品明细的已完成售后单集合。</returns>
+    Task<List<AfterSale>> GetCompletedBySaleOrderIdAsync(Guid saleOrderId);
 }

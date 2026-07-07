@@ -87,9 +87,20 @@ public class AfterSaleRepository(ApplicationDbContext context)
         return totals.ToDictionary(x => x.SaleOrderDetailId, x => x.Quantity);
     }
 
+    /// <inheritdoc />
+    public Task<List<AfterSale>> GetCompletedBySaleOrderIdAsync(Guid saleOrderId)
+    {
+        return BuildDetailQuery()
+            .AsNoTracking()
+            .Where(x => x.SaleOrderId == saleOrderId && x.AfterStatus == AfterSaleStatus.Completed)
+            .ToListAsync();
+    }
+
     private IQueryable<AfterSale> BuildDetailQuery(IQueryable<AfterSale>? source = null)
     {
         return (source ?? DbSet)
+            .Include(x => x.SaleOrder)
+                .ThenInclude(x => x!.Details)
             .Include(x => x.Goods)
             .Include(x => x.AuditLogs)
             .Include(x => x.PickupTasks)

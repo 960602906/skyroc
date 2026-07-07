@@ -30,6 +30,7 @@ public class AfterSaleService(
     IPickupTaskRepository pickupTaskRepository,
     IStockInOrderRepository stockInOrderRepository,
     ISaleOrderRepository saleOrderRepository,
+    ICustomerBillService customerBillService,
     ICustomerRepository customerRepository,
     IGoodsRepository goodsRepository,
     IGoodsUnitRepository goodsUnitRepository,
@@ -301,6 +302,13 @@ public class AfterSaleService(
 
             entity.AfterStatus = AfterSaleStatus.Completed;
             ApplyUpdateAudit(entity);
+            if (entity.SaleOrderId.HasValue)
+            {
+                entity.SaleOrder = await saleOrderRepository.GetByIdForUpdateAsync(entity.SaleOrderId.Value)
+                                   ?? throw new BusinessException("售后单关联的销售订单不存在");
+            }
+
+            await customerBillService.ApplyAfterSaleAdjustmentAsync(entity);
         });
 
         logger.LogInformation("售后处理完成: {AfterSaleId}", id);

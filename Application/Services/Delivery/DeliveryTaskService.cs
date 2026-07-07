@@ -24,6 +24,7 @@ public class DeliveryTaskService(
     IStockOutOrderRepository stockOutOrderRepository,
     ISaleOrderRepository saleOrderRepository,
     IOrderReceiptRepository orderReceiptRepository,
+    ICustomerBillService customerBillService,
     IDriverRepository driverRepository,
     IDeliveryRouteRepository deliveryRouteRepository,
     IUnitOfWork unitOfWork,
@@ -291,6 +292,7 @@ public class DeliveryTaskService(
             if (!hasIncompleteDeliveries && saleOrder.OutStorageStatus == OrderOutStorageStatus.Generated)
             {
                 await ApplyCompletedOrderAcceptanceAsync(saleOrder, checkDetails);
+                await customerBillService.SyncOrderAcceptanceAsync(saleOrder);
             }
 
             receiptId = receipt.Id;
