@@ -152,7 +152,7 @@ flowchart TD
 通用能力：
 
 - 分页：`pageNum`、`pageSize`。
-- 表头配置：后端保存表格字段显示顺序。
+- 表头配置：旧项目由后端保存表格字段显示顺序；本次重写已移出需求范围，不迁移（详见下文“表头配置”）。
 - 批量选择：支持当前页选择和全选查询结果。
 - 导入导出：统一 multipart job 接口。
 - 打印：选择模板 -> 获取打印数据 -> 预览/打印。
@@ -237,6 +237,8 @@ flowchart TD
 
 ## 表头配置
 
+> 已移出重写需求范围：P4-07 只保留安全文件上传，不再实现用户级表头配置保存/读取。以下为旧系统参考，除非产品重新确认需求，否则不迁移对应后端接口。
+
 旧项目通过 `src/utils/headerColumnsSetting.js` 维护表格字段配置。
 
 | 动作 | 方法 | URL |
@@ -244,7 +246,7 @@ flowchart TD
 | 当前表头配置 | GET | `/business/table/setting/current` |
 | 保存表头配置 | POST | `/business/table/setting` |
 
-React 重写建议：
+旧项目 React 重写建议（仅在恢复需求时参考）：
 
 - 每个列表定义稳定的 `tableKey`。
 - 默认列配置写在前端。
