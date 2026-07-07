@@ -3243,3 +3243,56 @@ Content-Type: {{contentType}}
 {
   "remark": "客户流水录入错误，作废后重新结款"
 }
+
+### Supplier Settlement - Pending Bills
+GET {{SkyRoc_HostAddress}}/api/supplier-settlements/bills?current=1&size=10&pendingOnly=true&supplierId={{supplierId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+> {%
+    if (response.body.data.records.length > 0) {
+        client.global.set("supplierBillId", response.body.data.records[0].id);
+    }
+%}
+
+### Supplier Settlement - Create Settlement
+POST {{SkyRoc_HostAddress}}/api/supplier-settlements
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "settlementDate": "2026-07-07 11:00:00",
+  "serialNo": "BANK-SUP-20260707-001",
+  "remark": "向供应商付款并给予尾差优惠",
+  "details": [
+    {
+      "supplierBillId": "{{supplierBillId}}",
+      "paymentAmount": 100,
+      "discountAmount": 5,
+      "remark": "本次结清或部分结清待结单据"
+    }
+  ]
+}
+
+> {%
+    client.global.set("supplierSettlementId", response.body.data.id);
+%}
+
+### Supplier Settlement - List Settlements
+GET {{SkyRoc_HostAddress}}/api/supplier-settlements?current=1&size=10&supplierId={{supplierId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Supplier Settlement - Detail
+GET {{SkyRoc_HostAddress}}/api/supplier-settlements/{{supplierSettlementId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Supplier Settlement - Void Settlement
+DELETE {{SkyRoc_HostAddress}}/api/supplier-settlements/{{supplierSettlementId}}/void
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "供应商付款流水录入错误，作废后重新结算"
+}

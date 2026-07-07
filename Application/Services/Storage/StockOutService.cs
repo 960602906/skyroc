@@ -31,6 +31,7 @@ public class StockOutService(
     IDepartmentRepository departmentRepository,
     ISaleOrderRepository saleOrderRepository,
     IDeliveryTaskRepository deliveryTaskRepository,
+    ISupplierBillService supplierBillService,
     IGoodsUnitRepository goodsUnitRepository,
     IUnitOfWork unitOfWork,
     IMapper mapper,
@@ -254,6 +255,11 @@ public class StockOutService(
                 await RefreshSaleOrderOutboundStatusAsync(saleOrder, order.Id, order.Details, order.OutTime);
             }
 
+            if (orderType == StockOutOrderType.PurchaseReturn)
+            {
+                await supplierBillService.SyncPurchaseReturnOutAsync(order);
+            }
+
             auditedOrder = order;
         });
 
@@ -286,6 +292,11 @@ public class StockOutService(
 
                 saleOrder = await saleOrderRepository.GetByIdForUpdateAsync(order.SaleOrderId.Value)
                             ?? throw new BusinessException("来源销售订单不存在，无法反审核");
+            }
+
+            if (orderType == StockOutOrderType.PurchaseReturn)
+            {
+                await supplierBillService.EnsureCanReverseSourceDocumentAsync(null, order.Id);
             }
 
             var activeLedgers = await stockLedgerRepository.GetActiveBySourceOrderAsync(order.Id);
@@ -328,6 +339,11 @@ public class StockOutService(
             if (saleOrder is not null)
             {
                 await RefreshSaleOrderOutboundStatusAsync(saleOrder, order.Id, [], null);
+            }
+
+            if (orderType == StockOutOrderType.PurchaseReturn)
+            {
+                await supplierBillService.RemoveBySourceDocumentAsync(null, order.Id);
             }
 
             reversedOrder = order;

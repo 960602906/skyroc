@@ -81,7 +81,11 @@ public static class DatabaseCommentExtensions
         [typeof(CustomerBill)] = "客户账单，按销售订单汇总签收应收、售后调整和结款状态",
         [typeof(CustomerBillDetail)] = "客户账单明细，记录订单验收和售后调整对客户应收的影响",
         [typeof(CustomerSettlement)] = "客户结款凭证，记录客户付款、优惠和对应账单余额核销结果",
-        [typeof(CustomerSettlementDetail)] = "客户结款凭证明细，记录单张客户账单在本次结款中的金额变化"
+        [typeof(CustomerSettlementDetail)] = "客户结款凭证明细，记录单张客户账单在本次结款中的金额变化",
+        [typeof(SupplierBill)] = "供应商待结单据，按采购入库或采购退货出库汇总应付金额和结款状态",
+        [typeof(SupplierBillDetail)] = "供应商待结单据明细，记录入库或退货商品行对供应商应付的影响",
+        [typeof(SupplierSettlement)] = "供应商结算单，记录向供应商付款、优惠和对应待结单据余额核销结果",
+        [typeof(SupplierSettlementDetail)] = "供应商结算单明细，记录单张待结单据在本次结款中的金额变化"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -397,7 +401,20 @@ public static class DatabaseCommentExtensions
         ["CustomerBillNoSnapshot"] = "被核销客户账单编号快照",
         ["ReceivableAmountSnapshot"] = "结款时账单应收金额快照",
         ["PreviousSettledAmount"] = "本次结款前账单已结金额快照",
-        ["CurrentSettledAmount"] = "本次结款后账单已结金额快照"
+        ["CurrentSettledAmount"] = "本次结款后账单已结金额快照",
+        ["DocumentAmount"] = "来源出入库单据绝对金额合计，按系统业务币种计量且始终为非负数",
+        ["PayableAmount"] = "当前待结绝对金额，采购入库为正、采购退货为负，按系统业务币种计量",
+        ["PayableAmountSnapshot"] = "结款时单据应付金额快照",
+        ["SourceDocumentNoSnapshot"] = "来源出入库单业务编号快照",
+        ["StockInDetailId"] = "来源采购入库商品明细主键",
+        ["StockInOrderId"] = "来源采购入库单主键",
+        ["StockOutDetailId"] = "来源采购退货出库商品明细主键",
+        ["StockOutOrderId"] = "来源采购退货出库单主键",
+        ["SupplierBillId"] = "所属或被核销的供应商待结单据主键",
+        ["SupplierBillNoSnapshot"] = "被核销供应商待结单据编号快照",
+        ["SupplierId"] = "关联供应商主键",
+        ["SupplierNameSnapshot"] = "业务发生时的供应商名称快照",
+        ["SupplierSettlementId"] = "所属供应商结算单主键"
     };
 
     private static readonly IReadOnlyDictionary<(Type EntityType, string PropertyName), string> EntityPropertyComments =
@@ -427,6 +444,28 @@ public static class DatabaseCommentExtensions
             [(typeof(CustomerSettlementDetail), nameof(CustomerSettlementDetail.SaleOrderId))] = "被核销账单来源销售订单主键",
             [(typeof(CustomerSettlementDetail), nameof(CustomerSettlementDetail.SaleOrderNoSnapshot))] = "被核销账单来源销售订单编号快照",
             [(typeof(CustomerSettlementDetail), nameof(CustomerSettlementDetail.Remark))] = "客户结款明细备注，记录单张账单的优惠或差异说明",
+            [(typeof(SupplierBill), nameof(SupplierBill.SourceType))] = "待结单据来源类型：采购入库或采购退货出库",
+            [(typeof(SupplierBill), nameof(SupplierBill.BillNo))] = "供应商待结单据业务唯一编号",
+            [(typeof(SupplierBill), nameof(SupplierBill.BillStatus))] = "供应商待结单据结款状态：待结款、部分结款或已结款",
+            [(typeof(SupplierBill), nameof(SupplierBill.Remark))] = "供应商待结单据备注，记录人工调整说明或同步异常说明",
+            [(typeof(SupplierBillDetail), nameof(SupplierBillDetail.SourceType))] = "明细来源类型：采购入库或采购退货出库",
+            [(typeof(SupplierBillDetail), nameof(SupplierBillDetail.GoodsUnitId))] = "供应商待结单据明细使用的商品单位主键",
+            [(typeof(SupplierBillDetail), nameof(SupplierBillDetail.GoodsUnitNameSnapshot))] = "供应商待结单据明细使用的商品单位名称快照",
+            [(typeof(SupplierBillDetail), nameof(SupplierBillDetail.Quantity))] = "账单数量，正数表示采购入库、负数表示采购退货，按当前商品单位计量",
+            [(typeof(SupplierBillDetail), nameof(SupplierBillDetail.BaseQuantity))] = "账单基础数量，正数表示采购入库、负数表示采购退货，按基础单位计量",
+            [(typeof(SupplierBillDetail), nameof(SupplierBillDetail.UnitPrice))] = "账单采用的商品单价，按当前商品单位和系统业务币种计量",
+            [(typeof(SupplierBillDetail), nameof(SupplierBillDetail.Amount))] = "账单明细应付金额，正数增加应付、负数冲减应付",
+            [(typeof(SupplierBillDetail), nameof(SupplierBillDetail.Remark))] = "账单明细备注，记录价格差异或退货原因",
+            [(typeof(SupplierSettlement), nameof(SupplierSettlement.SettlementNo))] = "供应商结算单业务唯一编号",
+            [(typeof(SupplierSettlement), nameof(SupplierSettlement.SettlementStatus))] = "供应商结算单状态：作废、待结款、部分结款或已结款",
+            [(typeof(SupplierSettlement), nameof(SupplierSettlement.Remark))] = "供应商结款或作废备注，记录付款渠道、优惠原因或回滚说明",
+            [(typeof(SupplierSettlementDetail), nameof(SupplierSettlementDetail.SourceType))] = "被核销单据来源类型快照：采购入库或采购退货出库",
+            [(typeof(SupplierSettlementDetail), nameof(SupplierSettlementDetail.SupplierBillId))] = "被核销的供应商待结单据主键",
+            [(typeof(SupplierSettlementDetail), nameof(SupplierSettlementDetail.Remark))] = "供应商结款明细备注，记录单张单据的优惠或差异说明",
+            [(typeof(StockInDetail), nameof(StockInDetail.StockInOrderId))] = "所属入库主单主键",
+            [(typeof(StockOutDetail), nameof(StockOutDetail.StockOutOrderId))] = "所属出库主单主键",
+            [(typeof(PurchasePlan), nameof(PurchasePlan.SupplierNameSnapshot))] = "采购业务发生时的供应商名称快照",
+            [(typeof(PurchaseOrder), nameof(PurchaseOrder.SupplierNameSnapshot))] = "采购业务发生时的供应商名称快照",
             [(typeof(PickupTask), nameof(PickupTask.TaskNo))] = "售后取货任务业务唯一编号",
             [(typeof(PickupTask), nameof(PickupTask.AfterSaleId))] = "所属售后单主键，必须与关联售后商品的所属售后单一致",
             [(typeof(PickupTask), nameof(PickupTask.DriverNameSnapshot))] = "取货任务最近一次分配时的司机姓名快照",

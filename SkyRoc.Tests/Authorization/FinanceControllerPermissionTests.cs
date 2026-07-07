@@ -35,4 +35,29 @@ public class FinanceControllerPermissionTests
             Assert.Equal(permissionAction, attribute.Action);
         }
     }
+
+    [Fact]
+    public void SupplierSettlementsController_DeclaresFinanceResourceAndActionPermissions()
+    {
+        var resource = Assert.Single(typeof(SupplierSettlementsController)
+            .GetCustomAttributes<PermissionResourceAttribute>());
+        Assert.Equal(PermissionCodes.Business.Finance.Resource, resource.Resource);
+
+        var expected = new Dictionary<string, string>
+        {
+            [nameof(SupplierSettlementsController.GetBills)] = PermissionActions.Read,
+            [nameof(SupplierSettlementsController.GetPaged)] = PermissionActions.Read,
+            [nameof(SupplierSettlementsController.GetById)] = PermissionActions.Read,
+            [nameof(SupplierSettlementsController.Create)] = PermissionActions.Create,
+            [nameof(SupplierSettlementsController.Void)] = PermissionActions.Delete
+        };
+
+        foreach (var (actionName, permissionAction) in expected)
+        {
+            var action = typeof(SupplierSettlementsController).GetMethod(actionName)
+                         ?? throw new InvalidOperationException($"{actionName} not found.");
+            var attribute = Assert.Single(action.GetCustomAttributes<ResourcePermissionAttribute>());
+            Assert.Equal(permissionAction, attribute.Action);
+        }
+    }
 }

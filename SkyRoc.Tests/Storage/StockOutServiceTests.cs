@@ -445,6 +445,10 @@ public class StockOutServiceTests
             new DepartmentRepository(context),
             saleOrderRepository ?? new SaleOrderRepository(context),
             new DeliveryTaskRepository(context),
+            new SupplierBillService(
+                new SupplierBillRepository(context),
+                new SupplierSettlementRepository(context),
+                new FakeCurrentUserService()),
             new GoodsUnitRepository(context),
             unitOfWork,
             mapper,

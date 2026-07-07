@@ -54,7 +54,8 @@ public static class SwaggerExtensions
         ["DeliveryExceptions"] = "配送",
         ["AfterSales"] = "售后",
         ["PickupTasks"] = "售后",
-        ["CustomerSettlements"] = "财务"
+        ["CustomerSettlements"] = "财务",
+        ["SupplierSettlements"] = "财务"
     };
 
     /// <summary>

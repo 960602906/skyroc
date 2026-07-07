@@ -373,5 +373,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<CustomerSettlementDetail> CustomerSettlementDetails { get; set; }
 
+    /// <summary>
+    /// 供应商待结单据主表。
+    /// </summary>
+    public DbSet<SupplierBill> SupplierBills { get; set; }
+
+    /// <summary>
+    /// 供应商待结单据明细表。
+    /// </summary>
+    public DbSet<SupplierBillDetail> SupplierBillDetails { get; set; }
+
+    /// <summary>
+    /// 供应商结算单主表。
+    /// </summary>
+    public DbSet<SupplierSettlement> SupplierSettlements { get; set; }
+
+    /// <summary>
+    /// 供应商结算单明细表。
+    /// </summary>
+    public DbSet<SupplierSettlementDetail> SupplierSettlementDetails { get; set; }
+
     #endregion
 }

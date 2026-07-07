@@ -6,6 +6,7 @@ using Application.QueryParameters;
 using Application.Services;
 using Application.Validator;
 using AutoMapper;
+using Domain.Entities.Finance;
 using Domain.Entities.Goods;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
@@ -74,6 +75,38 @@ public class StockInServiceTests
         Assert.Equal(created.Id, ledger.SourceOrderId);
         var detail = Assert.Single(audited.Details);
         Assert.Equal(batch.Id, detail.StockBatchId);
+    }
+
+    [Fact]
+    public async Task AuditAsync_CreatesSupplierBill_WhenPurchaseStockInAudited()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedCatalogAsync(context);
+        var service = CreateService(context, new RecordingUnitOfWork(context));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+
+        await service.AuditAsync(StockInOrderType.Purchase, created.Id, "首次入库");
+
+        var bill = Assert.Single(context.SupplierBills);
+        Assert.Equal(SupplierBillSourceType.PurchaseStockIn, bill.SourceType);
+        Assert.Equal(created.Id, bill.StockInOrderId);
+        Assert.Equal(30m, bill.DocumentAmount);
+        Assert.Equal(30m, bill.PayableAmount);
+        Assert.Equal(SupplierBillStatus.Pending, bill.BillStatus);
+    }
+
+    [Fact]
+    public async Task ReverseAuditAsync_RemovesSupplierBill_WhenPurchaseStockInReversed()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedCatalogAsync(context);
+        var service = CreateService(context, new RecordingUnitOfWork(context));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        await service.AuditAsync(StockInOrderType.Purchase, created.Id, null);
+
+        await service.ReverseAuditAsync(StockInOrderType.Purchase, created.Id, "撤销入库");
+
+        Assert.Empty(context.SupplierBills);
     }
 
     [Fact]
@@ -442,6 +475,10 @@ public class StockInServiceTests
             new PurchaseOrderRepository(context),
             new PickupTaskRepository(context),
             new AfterSaleRepository(context),
+            new SupplierBillService(
+                new SupplierBillRepository(context),
+                new SupplierSettlementRepository(context),
+                new FakeCurrentUserService()),
             new GoodsRepository(context),
             new GoodsUnitRepository(context),
             unitOfWork,

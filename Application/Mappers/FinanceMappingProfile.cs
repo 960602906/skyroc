@@ -31,5 +31,23 @@ public class FinanceMappingProfile : Profile
             .ForMember(x => x.CustomerBillNo, opt => opt.MapFrom(src => src.CustomerBillNoSnapshot))
             .ForMember(x => x.SaleOrderNo, opt => opt.MapFrom(src => src.SaleOrderNoSnapshot))
             .ForMember(x => x.ReceivableAmount, opt => opt.MapFrom(src => src.ReceivableAmountSnapshot));
+
+        CreateMap<SupplierBill, SupplierBillDto>()
+            .ForMember(x => x.SupplierName, opt => opt.MapFrom(src => src.SupplierNameSnapshot))
+            .ForMember(x => x.SourceDocumentNo, opt => opt.MapFrom(src => src.SourceDocumentNoSnapshot));
+
+        CreateMap<SupplierSettlement, SupplierSettlementDto>()
+            .ForMember(x => x.SupplierName, opt => opt.MapFrom(src => src.SupplierNameSnapshot))
+            .ForMember(x => x.VoidedByName, opt => opt.MapFrom(src => src.VoidedByNameSnapshot))
+            .ForMember(
+                x => x.Details,
+                opt => opt.MapFrom(src => src.Details
+                    .OrderBy(detail => detail.SupplierBillNoSnapshot)
+                    .ThenBy(detail => detail.Id)));
+
+        CreateMap<SupplierSettlementDetail, SupplierSettlementDetailDto>()
+            .ForMember(x => x.SupplierBillNo, opt => opt.MapFrom(src => src.SupplierBillNoSnapshot))
+            .ForMember(x => x.SourceDocumentNo, opt => opt.MapFrom(src => src.SourceDocumentNoSnapshot))
+            .ForMember(x => x.PayableAmount, opt => opt.MapFrom(src => src.PayableAmountSnapshot));
     }
 }

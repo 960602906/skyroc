@@ -35,6 +35,7 @@ public class StockInService(
     IPurchaseOrderRepository purchaseOrderRepository,
     IPickupTaskRepository pickupTaskRepository,
     IAfterSaleRepository afterSaleRepository,
+    ISupplierBillService supplierBillService,
     IGoodsRepository goodsRepository,
     IGoodsUnitRepository goodsUnitRepository,
     IUnitOfWork unitOfWork,
@@ -303,6 +304,12 @@ public class StockInService(
             order.AuditTime = auditTime;
             ApplyUpdateAudit(order);
             await stockInOrderRepository.UpdateAsync(order);
+
+            if (orderType == StockInOrderType.Purchase)
+            {
+                await supplierBillService.SyncPurchaseStockInAsync(order);
+            }
+
             auditedOrder = order;
         });
 
@@ -343,6 +350,11 @@ public class StockInService(
                 throw new BusinessException($"入库单 {order.InNo} 未处于已审核状态，无法反审核");
             }
 
+            if (orderType == StockInOrderType.Purchase)
+            {
+                await supplierBillService.EnsureCanReverseSourceDocumentAsync(order.Id, null);
+            }
+
             var activeLedgers = await stockLedgerRepository.GetActiveBySourceOrderAsync(order.Id);
             if (activeLedgers.Count == 0)
             {
@@ -381,6 +393,12 @@ public class StockInService(
             order.ReverseTime = reverseTime;
             ApplyUpdateAudit(order);
             await stockInOrderRepository.UpdateAsync(order);
+
+            if (orderType == StockInOrderType.Purchase)
+            {
+                await supplierBillService.RemoveBySourceDocumentAsync(order.Id, null);
+            }
+
             reversedOrder = order;
         });
 
