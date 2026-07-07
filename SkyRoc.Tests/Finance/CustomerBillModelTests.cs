@@ -37,6 +37,8 @@ public class CustomerBillModelTests
     {
         Assert.Equal("customer_bill", GetEntityType<CustomerBill>().GetTableName());
         Assert.Equal("customer_bill_detail", GetEntityType<CustomerBillDetail>().GetTableName());
+        Assert.Equal("customer_settlement", GetEntityType<CustomerSettlement>().GetTableName());
+        Assert.Equal("customer_settlement_detail", GetEntityType<CustomerSettlementDetail>().GetTableName());
     }
 
     [Fact]
@@ -47,6 +49,10 @@ public class CustomerBillModelTests
         Assert.Equal(3, (int)CustomerBillStatus.Settled);
         Assert.Equal(1, (int)CustomerBillDetailSourceType.OrderAcceptance);
         Assert.Equal(2, (int)CustomerBillDetailSourceType.AfterSaleAdjustment);
+        Assert.Equal(-1, (int)CustomerSettlementStatus.Voided);
+        Assert.Equal(1, (int)CustomerSettlementStatus.Pending);
+        Assert.Equal(2, (int)CustomerSettlementStatus.PartiallySettled);
+        Assert.Equal(3, (int)CustomerSettlementStatus.Settled);
     }
 
     [Fact]
@@ -88,6 +94,43 @@ public class CustomerBillModelTests
     }
 
     [Fact]
+    public void CustomerSettlement_ConfiguresStatusPrecisionAndUniqueNo()
+    {
+        var entityType = GetEntityType<CustomerSettlement>();
+
+        Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_customer_settlement_no").IsUnique);
+        Assert.Equal(CustomerSettlementStatus.Pending, entityType.FindProperty(nameof(CustomerSettlement.SettlementStatus))!.GetDefaultValue());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlement.ShouldAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlement.PaymentAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlement.DiscountAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlement.AppliedAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlement.RemainingAmount))!.GetScale());
+        Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_customer_settlement_amounts");
+        Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_customer_settlement_status");
+    }
+
+    [Fact]
+    public void CustomerSettlementDetail_ConfiguresBillUniquenessAndPrecision()
+    {
+        var entityType = GetEntityType<CustomerSettlementDetail>();
+        var billIndex = entityType.GetIndexes().Single(
+            x => x.GetDatabaseName() == "idx_customer_settlement_detail_settlement_bill");
+
+        Assert.True(billIndex.IsUnique);
+        Assert.Equal(
+            [nameof(CustomerSettlementDetail.CustomerSettlementId), nameof(CustomerSettlementDetail.CustomerBillId)],
+            billIndex.Properties.Select(x => x.Name));
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlementDetail.ReceivableAmountSnapshot))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlementDetail.PreviousSettledAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlementDetail.PaymentAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlementDetail.DiscountAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlementDetail.AppliedAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlementDetail.CurrentSettledAmount))!.GetScale());
+        Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlementDetail.RemainingAmount))!.GetScale());
+        Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_customer_settlement_detail_amounts");
+    }
+
+    [Fact]
     public void CustomerBillRelationships_CascadeDetailsAndProtectSourceHistory()
     {
         AssertForeignKey<CustomerBill, Customer>(nameof(CustomerBill.CustomerId), DeleteBehavior.Restrict);
@@ -99,6 +142,10 @@ public class CustomerBillModelTests
         AssertForeignKey<CustomerBillDetail, GoodsEntity>(nameof(CustomerBillDetail.GoodsId), DeleteBehavior.Restrict);
         AssertForeignKey<CustomerBillDetail, GoodsUnit>(nameof(CustomerBillDetail.GoodsUnitId), DeleteBehavior.Restrict);
         AssertForeignKey<CustomerBillDetail, GoodsUnit>(nameof(CustomerBillDetail.BaseUnitId), DeleteBehavior.SetNull);
+        AssertForeignKey<CustomerSettlement, Customer>(nameof(CustomerSettlement.CustomerId), DeleteBehavior.Restrict);
+        AssertForeignKey<CustomerSettlementDetail, CustomerSettlement>(nameof(CustomerSettlementDetail.CustomerSettlementId), DeleteBehavior.Cascade);
+        AssertForeignKey<CustomerSettlementDetail, CustomerBill>(nameof(CustomerSettlementDetail.CustomerBillId), DeleteBehavior.Restrict);
+        AssertForeignKey<CustomerSettlementDetail, SaleOrder>(nameof(CustomerSettlementDetail.SaleOrderId), DeleteBehavior.Restrict);
     }
 
     private IEntityType GetEntityType<TEntity>()

@@ -132,6 +132,18 @@ public static class PermissionCodes
             public const string Delete = $"{Resource}:delete";
             public const string Audit = $"{Resource}:audit";
         }
+
+        /// <summary>
+        /// 财务账单、客户结款和后续供应商结算权限。
+        /// </summary>
+        public static class Finance
+        {
+            public const string Resource = "business:finance";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -192,6 +204,10 @@ public static class PermissionCodes
         Business.AfterSales.Create,
         Business.AfterSales.Update,
         Business.AfterSales.Delete,
-        Business.AfterSales.Audit
+        Business.AfterSales.Audit,
+        Business.Finance.Read,
+        Business.Finance.Create,
+        Business.Finance.Update,
+        Business.Finance.Delete
     ];
 }

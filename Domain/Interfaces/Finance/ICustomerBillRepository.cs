@@ -22,6 +22,13 @@ public interface ICustomerBillRepository : IRepository<CustomerBill>
     Task<CustomerBill?> GetBySaleOrderIdForUpdateAsync(Guid saleOrderId);
 
     /// <summary>
+    /// 按主键集合读取客户账单并在当前事务中锁定，供结款创建和作废串行校验余额。
+    /// </summary>
+    /// <param name="ids">客户账单主键集合。</param>
+    /// <returns>按主键稳定排序的客户账单集合。</returns>
+    Task<IReadOnlyList<CustomerBill>> GetByIdsForUpdateAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>
     /// 检查客户账单编号是否已存在，避免自动编号冲突。
     /// </summary>
     /// <param name="billNo">待检查的账单编号。</param>

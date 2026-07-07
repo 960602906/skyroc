@@ -363,5 +363,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<CustomerBillDetail> CustomerBillDetails { get; set; }
 
+    /// <summary>
+    /// 客户结款凭证主表。
+    /// </summary>
+    public DbSet<CustomerSettlement> CustomerSettlements { get; set; }
+
+    /// <summary>
+    /// 客户结款凭证明细表。
+    /// </summary>
+    public DbSet<CustomerSettlementDetail> CustomerSettlementDetails { get; set; }
+
     #endregion
 }

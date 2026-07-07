@@ -79,7 +79,9 @@ public static class DatabaseCommentExtensions
         [typeof(AfterSaleAuditLog)] = "售后审核记录，保存提交、审核、驳回、重提和反审核轨迹",
         [typeof(PickupTask)] = "售后取货任务，记录退货商品的司机分配、取货地址和执行状态",
         [typeof(CustomerBill)] = "客户账单，按销售订单汇总签收应收、售后调整和结款状态",
-        [typeof(CustomerBillDetail)] = "客户账单明细，记录订单验收和售后调整对客户应收的影响"
+        [typeof(CustomerBillDetail)] = "客户账单明细，记录订单验收和售后调整对客户应收的影响",
+        [typeof(CustomerSettlement)] = "客户结款凭证，记录客户付款、优惠和对应账单余额核销结果",
+        [typeof(CustomerSettlementDetail)] = "客户结款凭证明细，记录单张客户账单在本次结款中的金额变化"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -378,7 +380,24 @@ public static class DatabaseCommentExtensions
         ["OrderAmount"] = "订单签收形成的正向应收金额，按系统业务币种计量",
         ["AfterSaleAdjustmentAmount"] = "售后完成形成的应收调整金额，负数表示冲减客户应收",
         ["ReceivableAmount"] = "当前账单应收金额，按系统业务币种计量",
-        ["SettledAmount"] = "已结款金额，按系统业务币种计量"
+        ["SettledAmount"] = "已结款金额，按系统业务币种计量",
+        ["SettlementNo"] = "客户结款凭证业务唯一编号",
+        ["SettlementDate"] = "客户实际结款日期（UTC）",
+        ["SerialNo"] = "外部交易流水号",
+        ["ShouldAmount"] = "结款前待结金额合计，按系统业务币种计量",
+        ["PaymentAmount"] = "实际收款金额，按系统业务币种计量",
+        ["DiscountAmount"] = "优惠减免金额，按系统业务币种计量",
+        ["AppliedAmount"] = "本次增加的已结金额，等于收款金额与优惠金额合计",
+        ["RemainingAmount"] = "本次处理后的剩余待结金额，按系统业务币种计量",
+        ["SettlementStatus"] = "客户结款状态：作废、待结款、部分结款或已结款",
+        ["VoidedTime"] = "凭证作废时间（UTC）",
+        ["VoidedBy"] = "作废操作人主键",
+        ["VoidedByNameSnapshot"] = "作废操作人名称快照",
+        ["CustomerSettlementId"] = "所属客户结款凭证主键",
+        ["CustomerBillNoSnapshot"] = "被核销客户账单编号快照",
+        ["ReceivableAmountSnapshot"] = "结款时账单应收金额快照",
+        ["PreviousSettledAmount"] = "本次结款前账单已结金额快照",
+        ["CurrentSettledAmount"] = "本次结款后账单已结金额快照"
     };
 
     private static readonly IReadOnlyDictionary<(Type EntityType, string PropertyName), string> EntityPropertyComments =
@@ -403,6 +422,11 @@ public static class DatabaseCommentExtensions
             [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.BaseQuantity))] = "账单基础数量，正数表示确认销售、负数表示售后冲减，按基础单位计量",
             [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.UnitPrice))] = "账单采用的商品单价，按当前商品单位和系统业务币种计量",
             [(typeof(CustomerBillDetail), nameof(CustomerBillDetail.Remark))] = "账单明细备注，记录验收差异、售后原因或调整说明",
+            [(typeof(CustomerSettlement), nameof(CustomerSettlement.Remark))] = "客户结款或作废备注，记录收款渠道、优惠原因或回滚说明",
+            [(typeof(CustomerSettlementDetail), nameof(CustomerSettlementDetail.CustomerBillId))] = "被核销的客户账单主键",
+            [(typeof(CustomerSettlementDetail), nameof(CustomerSettlementDetail.SaleOrderId))] = "被核销账单来源销售订单主键",
+            [(typeof(CustomerSettlementDetail), nameof(CustomerSettlementDetail.SaleOrderNoSnapshot))] = "被核销账单来源销售订单编号快照",
+            [(typeof(CustomerSettlementDetail), nameof(CustomerSettlementDetail.Remark))] = "客户结款明细备注，记录单张账单的优惠或差异说明",
             [(typeof(PickupTask), nameof(PickupTask.TaskNo))] = "售后取货任务业务唯一编号",
             [(typeof(PickupTask), nameof(PickupTask.AfterSaleId))] = "所属售后单主键，必须与关联售后商品的所属售后单一致",
             [(typeof(PickupTask), nameof(PickupTask.DriverNameSnapshot))] = "取货任务最近一次分配时的司机姓名快照",

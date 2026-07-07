@@ -37,6 +37,31 @@ public class CustomerBillRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<CustomerBill>> GetByIdsForUpdateAsync(IReadOnlyCollection<Guid> ids)
+    {
+        var normalizedIds = ids.Distinct().OrderBy(id => id).ToArray();
+        if (normalizedIds.Length == 0)
+        {
+            return [];
+        }
+
+        if (!Context.Database.IsNpgsql())
+        {
+            return await BuildDetailQuery()
+                .Where(x => normalizedIds.Contains(x.Id))
+                .OrderBy(x => x.Id)
+                .ToListAsync();
+        }
+
+        var lockedBills = DbSet.FromSqlRaw(
+            "SELECT * FROM customer_bill WHERE id = ANY({0}) ORDER BY id FOR UPDATE",
+            normalizedIds);
+        return await BuildDetailQuery(lockedBills)
+            .OrderBy(x => x.Id)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc />
     public Task<bool> ExistsBillNoAsync(string billNo)
     {
         var normalizedBillNo = billNo.Trim();

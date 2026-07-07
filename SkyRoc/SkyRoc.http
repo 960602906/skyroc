@@ -49,6 +49,8 @@
 @routeId = 00000000-0000-0000-0000-000000000001
 @afterSaleId = 00000000-0000-0000-0000-000000000001
 @afterSaleDeleteDraftId = 00000000-0000-0000-0000-000000000001
+@customerBillId = 00000000-0000-0000-0000-000000000001
+@customerSettlementId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -3187,4 +3189,57 @@ Content-Type: {{contentType}}
 
 {
   "remark": "退货质检通过并正式入库"
+}
+
+### Customer Settlement - Pending Bills
+GET {{SkyRoc_HostAddress}}/api/customer-settlements/bills?current=1&size=10&pendingOnly=true&customerId={{customerId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+> {%
+    if (response.body.data.records.length > 0) {
+        client.global.set("customerBillId", response.body.data.records[0].id);
+    }
+%}
+
+### Customer Settlement - Create Payment Voucher
+POST {{SkyRoc_HostAddress}}/api/customer-settlements
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "settlementDate": "2026-07-07 10:00:00",
+  "serialNo": "BANK-20260707-001",
+  "remark": "客户转账并给予尾差优惠",
+  "details": [
+    {
+      "customerBillId": "{{customerBillId}}",
+      "paymentAmount": 100,
+      "discountAmount": 5,
+      "remark": "本次结清或部分结清账单"
+    }
+  ]
+}
+
+> {%
+    client.global.set("customerSettlementId", response.body.data.id);
+%}
+
+### Customer Settlement - List Vouchers
+GET {{SkyRoc_HostAddress}}/api/customer-settlements?current=1&size=10&customerId={{customerId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Settlement - Detail
+GET {{SkyRoc_HostAddress}}/api/customer-settlements/{{customerSettlementId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Customer Settlement - Void Voucher
+DELETE {{SkyRoc_HostAddress}}/api/customer-settlements/{{customerSettlementId}}/void
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "remark": "客户流水录入错误，作废后重新结款"
 }

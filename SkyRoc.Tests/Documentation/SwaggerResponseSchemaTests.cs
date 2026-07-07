@@ -156,4 +156,36 @@ public class SwaggerResponseSchemaTests
         Assert.Contains(PermissionCodes.Business.AfterSales.Read, pickupOperation.GetProperty("description").GetString());
         Assert.Contains("售后", pickupOperation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
     }
+
+    [Fact]
+    public async Task Swagger_DocumentsCustomerSettlementContracts()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("CustomerBillDto", out _));
+        Assert.True(schemas.TryGetProperty("CustomerSettlementDto", out _));
+        Assert.True(schemas.TryGetProperty("CreateCustomerSettlementDto", out var createSchema));
+        Assert.Contains("客户结款凭证", createSchema.GetProperty("description").GetString());
+        Assert.True(paths.TryGetProperty("/api/customer-settlements/bills", out _));
+        Assert.True(paths.TryGetProperty("/api/customer-settlements", out _));
+        Assert.True(paths.TryGetProperty("/api/customer-settlements/{id}", out _));
+        Assert.True(paths.TryGetProperty("/api/customer-settlements/{id}/void", out _));
+
+        var listOperation = paths.GetProperty("/api/customer-settlements").GetProperty("get");
+        var createOperation = paths.GetProperty("/api/customer-settlements").GetProperty("post");
+        var voidOperation = paths.GetProperty("/api/customer-settlements/{id}/void").GetProperty("delete");
+        Assert.Contains(PermissionCodes.Business.Finance.Read, listOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Finance.Create, createOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Finance.Delete, voidOperation.GetProperty("description").GetString());
+        Assert.Contains("财务", listOperation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+        Assert.True(listOperation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+    }
 }
