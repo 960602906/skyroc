@@ -69,7 +69,7 @@ public class AfterSaleService(
         await ValidateAsync(createValidator, dto);
         var afterSaleId = Guid.NewGuid();
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var saleOrder = await GetAndValidateSaleOrderAsync(dto.SaleOrderId, dto.CustomerId);
             var customer = await GetRequiredCustomerAsync(saleOrder?.CustomerId ?? dto.CustomerId!.Value);
@@ -109,7 +109,7 @@ public class AfterSaleService(
     public async Task<AfterSaleDto> UpdateAsync(UpdateAfterSaleDto dto)
     {
         await ValidateAsync(updateValidator, dto);
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var entity = await GetRequiredForUpdateAsync(dto.Id);
             EnsureStatus(entity, AfterSaleStatus.Draft, "编辑");
@@ -140,7 +140,7 @@ public class AfterSaleService(
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id)
     {
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var entity = await GetRequiredForUpdateAsync(id);
             EnsureStatus(entity, AfterSaleStatus.Draft, "删除");
@@ -176,7 +176,7 @@ public class AfterSaleService(
     {
         EnsureOptionalRemark(remark, "操作说明");
         var repeated = false;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var entity = await GetRequiredForUpdateAsync(id);
             if (entity.AfterStatus is AfterSaleStatus.ReturnPending or AfterSaleStatus.RefundPending
@@ -259,7 +259,7 @@ public class AfterSaleService(
     /// <inheritdoc />
     public async Task<AfterSaleDto> CompleteAsync(Guid id)
     {
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var entity = await GetRequiredForUpdateAsync(id);
             if (entity.AfterStatus is not (AfterSaleStatus.ReturnPending or AfterSaleStatus.RefundPending))
@@ -322,7 +322,7 @@ public class AfterSaleService(
         Func<AfterSale, AfterSaleStatus> resolveTarget)
     {
         EnsureOptionalRemark(remark, "操作说明");
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var entity = await GetRequiredForUpdateAsync(id);
             var previousStatus = entity.AfterStatus;
@@ -771,25 +771,6 @@ public class AfterSaleService(
         if (!result.IsValid)
         {
             throw new ValidationException(result.Errors);
-        }
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
         }
     }
 

@@ -46,7 +46,7 @@ public class PickupTaskService(
             throw new ValidationException(validation.Errors);
         }
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var driver = await driverRepository.GetByIdForUpdateAsync(dto.DriverId)
                          ?? throw new BusinessException("司机不存在");
@@ -79,7 +79,7 @@ public class PickupTaskService(
     /// <inheritdoc />
     public async Task<PickupTaskDto> StartAsync(Guid id)
     {
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var task = await GetRequiredForUpdateAsync(id);
             if (task.PickupStatus != PickupTaskStatus.PendingPickup || !task.DriverId.HasValue)
@@ -100,7 +100,7 @@ public class PickupTaskService(
     /// <inheritdoc />
     public async Task<PickupTaskDto> CompleteAsync(Guid id)
     {
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var task = await GetRequiredForUpdateAsync(id);
             if (task.PickupStatus != PickupTaskStatus.PickingUp)
@@ -128,25 +128,6 @@ public class PickupTaskService(
     {
         return await pickupTaskRepository.GetByIdForUpdateAsync(id)
                ?? throw new NotFoundException("取货任务不存在");
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
-        }
     }
 
     private void ApplyUpdateAudit(PickupTask task)

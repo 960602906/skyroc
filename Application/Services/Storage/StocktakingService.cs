@@ -119,7 +119,7 @@ public class StocktakingService(
         var auditTime = DateTime.UtcNow;
         var normalizedRemark = Normalize(remark);
         StocktakingOrder? auditedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var order = await stocktakingOrderRepository.GetByIdForUpdateAsync(id)
                         ?? throw new NotFoundException("库存盘点单不存在");
@@ -292,25 +292,6 @@ public class StocktakingService(
         if (!result.IsValid)
         {
             throw new ValidationException(result.Errors);
-        }
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
         }
     }
 

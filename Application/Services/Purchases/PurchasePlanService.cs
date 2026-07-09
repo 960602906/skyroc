@@ -77,7 +77,7 @@ public class PurchasePlanService(
             plan.Details.Add(detail);
         }
 
-        await ExecuteInTransactionAsync(async () => await purchasePlanRepository.AddAsync(plan));
+        await unitOfWork.ExecuteInTransactionAsync(async () => await purchasePlanRepository.AddAsync(plan));
 
         logger.LogInformation("采购计划手工创建成功: {PlanId}, {PlanNo}", plan.Id, plan.PlanNo);
         return mapper.Map<PurchasePlanDto>(await GetRequiredPlanAsync(plan.Id));
@@ -114,7 +114,7 @@ public class PurchasePlanService(
         }
 
         var createdPlanIds = new List<Guid>();
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             foreach (var order in orders)
             {
@@ -157,7 +157,7 @@ public class PurchasePlanService(
                        ?? throw new BusinessException("供应商不存在");
         }
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             foreach (var plan in plans)
             {
@@ -183,7 +183,7 @@ public class PurchasePlanService(
                         ?? throw new BusinessException("采购员不存在");
         }
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             foreach (var plan in plans)
             {
@@ -250,7 +250,7 @@ public class PurchasePlanService(
             mergedPlan.Details.Add(mergedDetail);
         }
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await purchasePlanRepository.AddAsync(mergedPlan);
             await purchasePlanRepository.DeleteRangeAsync(plans);
@@ -454,7 +454,7 @@ public class PurchasePlanService(
     /// </summary>
     private async Task PersistSplitAsync(PurchasePlan sourcePlan, PurchasePlan splitPlan)
     {
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await purchasePlanRepository.UpdateAsync(sourcePlan);
             await purchasePlanRepository.AddAsync(splitPlan);
@@ -798,25 +798,6 @@ public class PurchasePlanService(
     private static string? NormalizeRemark(string? remark)
     {
         return string.IsNullOrWhiteSpace(remark) ? null : remark.Trim();
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
-        }
     }
 
     private void ApplyCreateAudit(BaseEntity entity)

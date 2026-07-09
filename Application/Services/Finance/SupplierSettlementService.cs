@@ -65,7 +65,7 @@ public class SupplierSettlementService(
         await ValidateAsync(createValidator, dto);
         var settlementId = Guid.NewGuid();
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var requestedBillIds = dto.Details.Select(x => x.SupplierBillId).ToList();
             if (requestedBillIds.Count != requestedBillIds.Distinct().Count())
@@ -175,7 +175,7 @@ public class SupplierSettlementService(
     public async Task<SupplierSettlementDto> VoidAsync(Guid id, VoidSupplierSettlementDto dto)
     {
         await ValidateAsync(voidValidator, dto);
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var settlement = await supplierSettlementRepository.GetByIdForUpdateAsync(id)
                              ?? throw new NotFoundException("供应商结算单不存在");
@@ -262,25 +262,6 @@ public class SupplierSettlementService(
         if (!result.IsValid)
         {
             throw new ValidationException(result.Errors);
-        }
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
         }
     }
 

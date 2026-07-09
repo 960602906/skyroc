@@ -96,7 +96,7 @@ public class StockInService(
         EnsureEditable(order, "编辑");
         var details = await PrepareDetailsAsync(order, dto.Details);
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await ApplyWareAsync(order, dto.WareId);
             order.InTime = dto.InTime;
@@ -136,7 +136,7 @@ public class StockInService(
         EnsureEditable(order, "编辑");
         var details = await PrepareDetailsAsync(order, dto.Details);
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await ApplyWareAsync(order, dto.WareId);
             order.InTime = dto.InTime;
@@ -175,7 +175,7 @@ public class StockInService(
 
         Guid orderId = Guid.Empty;
         var reused = false;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             if (pickupTaskIds.Length > 0)
             {
@@ -238,7 +238,7 @@ public class StockInService(
 
         var details = await PrepareDetailsAsync(order, dto.Details);
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await ApplyWareAsync(order, dto.WareId);
             order.InTime = dto.InTime;
@@ -260,7 +260,7 @@ public class StockInService(
     {
         var order = await GetRequiredOrderAsync(orderType, id);
         EnsureEditable(order, "删除");
-        await ExecuteInTransactionAsync(async () => await stockInOrderRepository.DeleteAsync(order));
+        await unitOfWork.ExecuteInTransactionAsync(async () => await stockInOrderRepository.DeleteAsync(order));
         logger.LogInformation("入库单删除成功: {StockInOrderId}, {InNo}", order.Id, order.InNo);
         return true;
     }
@@ -271,7 +271,7 @@ public class StockInService(
         var auditTime = DateTime.UtcNow;
         var normalizedRemark = Normalize(remark);
         StockInOrder? auditedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var order = await GetRequiredOrderForUpdateAsync(orderType, id);
             if (order.BusinessStatus is not (StockDocumentStatus.Draft or StockDocumentStatus.PendingAudit))
@@ -325,7 +325,7 @@ public class StockInService(
         var normalizedRemark = Normalize(remark);
         var sourceSnapshot = await GetRequiredOrderAsync(orderType, id);
         StockInOrder? reversedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             AfterSale? lockedAfterSale = null;
             if (orderType == StockInOrderType.SalesReturn && sourceSnapshot.AfterSaleId.HasValue)
@@ -429,7 +429,7 @@ public class StockInService(
 
     private async Task<StockInOrderDto> PersistNewOrderAsync(StockInOrder order)
     {
-        await ExecuteInTransactionAsync(async () => await stockInOrderRepository.AddAsync(order));
+        await unitOfWork.ExecuteInTransactionAsync(async () => await stockInOrderRepository.AddAsync(order));
         logger.LogInformation("入库单创建成功: {StockInOrderId}, {InNo}, {OrderType}", order.Id, order.InNo, order.OrderType);
         return mapper.Map<StockInOrderDto>(await GetRequiredOrderAsync(order.OrderType, order.Id));
     }
@@ -1094,25 +1094,6 @@ public class StockInService(
         if (!result.IsValid)
         {
             throw new ValidationException(result.Errors);
-        }
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
         }
     }
 

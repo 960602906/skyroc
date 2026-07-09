@@ -57,7 +57,7 @@ public class DeliveryExceptionService(
         }
 
         Guid exceptionId = Guid.Empty;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var task = await deliveryTaskRepository.GetByIdForUpdateAsync(dto.DeliveryTaskId)
                        ?? throw new NotFoundException("配送任务不存在");
@@ -104,7 +104,7 @@ public class DeliveryExceptionService(
             throw new ValidationException(validation.Errors);
         }
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var entity = await deliveryExceptionRepository.GetByIdForUpdateAsync(id)
                          ?? throw new NotFoundException("配送异常不存在");
@@ -161,24 +161,5 @@ public class DeliveryExceptionService(
         }
 
         throw new BusinessException("配送异常编号生成失败，请重试");
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
-        }
     }
 }

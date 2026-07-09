@@ -83,7 +83,7 @@ public class PurchaseOrderService(
             order.Details.Add(detail);
         }
 
-        await ExecuteInTransactionAsync(async () => await purchaseOrderRepository.AddAsync(order));
+        await unitOfWork.ExecuteInTransactionAsync(async () => await purchaseOrderRepository.AddAsync(order));
         logger.LogInformation("采购单手工创建成功: {PurchaseOrderId}, {PurchaseNo}", order.Id, order.PurchaseNo);
         return mapper.Map<PurchaseOrderDto>(await GetRequiredOrderAsync(order.Id));
     }
@@ -109,7 +109,7 @@ public class PurchaseOrderService(
             .ToDictionary(x => x.Key, x => RoundQuantity(x.Sum(item => item.Quantity)));
         ValidatePlanAvailability(originalAllocations, requestedAllocations, preparedDetails);
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await ApplyPartiesAsync(
                 order,
@@ -136,7 +136,7 @@ public class PurchaseOrderService(
     {
         var order = await GetRequiredOrderAsync(id);
         EnsureDraft(order, "删除");
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             ReleasePlanAllocations(order);
             await purchaseOrderRepository.DeleteAsync(order);
@@ -168,7 +168,7 @@ public class PurchaseOrderService(
             orders.Add(order);
         }
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             foreach (var order in orders)
             {
@@ -224,7 +224,7 @@ public class PurchaseOrderService(
 
         order.BusinessStatus = PurchaseOrderStatus.Completed;
         ApplyUpdateAudit(order);
-        await ExecuteInTransactionAsync(async () => await purchaseOrderRepository.UpdateAsync(order));
+        await unitOfWork.ExecuteInTransactionAsync(async () => await purchaseOrderRepository.UpdateAsync(order));
         logger.LogInformation("采购单完成: {PurchaseOrderId}, {PurchaseNo}", order.Id, order.PurchaseNo);
         return mapper.Map<PurchaseOrderDto>(await GetRequiredOrderAsync(order.Id));
     }
@@ -234,7 +234,7 @@ public class PurchaseOrderService(
     {
         var order = await GetRequiredOrderAsync(id);
         EnsureDraft(order, "取消");
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             ReleasePlanAllocations(order);
             order.BusinessStatus = PurchaseOrderStatus.Cancelled;
@@ -675,25 +675,6 @@ public class PurchaseOrderService(
         if (!result.IsValid)
         {
             throw new ValidationException(result.Errors);
-        }
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
         }
     }
 

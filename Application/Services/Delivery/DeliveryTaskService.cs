@@ -64,7 +64,7 @@ public class DeliveryTaskService(
 
         Guid taskId = Guid.Empty;
         var created = false;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var stockOut = await stockOutOrderRepository.GetByIdForUpdateAsync(stockOutOrderId)
                            ?? throw new NotFoundException("销售出库单不存在");
@@ -128,7 +128,7 @@ public class DeliveryTaskService(
         await ValidateAsync(assignDriverValidator, dto);
         var taskIds = dto.TaskIds.OrderBy(x => x).ToList();
         Driver? assignedDriver = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var driver = await driverRepository.GetByIdForUpdateAsync(dto.DriverId)
                          ?? throw new BusinessException("司机不存在");
@@ -164,7 +164,7 @@ public class DeliveryTaskService(
         await ValidateAsync(intelligentPlanValidator, dto);
         var taskIds = dto.TaskIds.OrderBy(x => x).ToList();
         var tasks = new List<DeliveryTask>(taskIds.Count);
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             foreach (var taskId in taskIds)
             {
@@ -209,7 +209,7 @@ public class DeliveryTaskService(
     public async Task<DeliveryTaskDto> StartDeliveryAsync(Guid id)
     {
         Guid saleOrderId = Guid.Empty;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var task = await GetRequiredTaskForUpdateAsync(id);
             if (task.DeliveryStatus != DeliveryTaskStatus.Assigned)
@@ -244,7 +244,7 @@ public class DeliveryTaskService(
     {
         await ValidateAsync(signValidator, dto);
         Guid receiptId = Guid.Empty;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var task = await GetRequiredTaskForUpdateAsync(id);
             if (task.DeliveryStatus != DeliveryTaskStatus.Delivering)
@@ -307,7 +307,7 @@ public class DeliveryTaskService(
     {
         await ValidateAsync(returnReceiptValidator, dto);
         Guid receiptId = Guid.Empty;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var task = await GetRequiredTaskForUpdateAsync(id);
             if (task.DeliveryStatus != DeliveryTaskStatus.Signed)
@@ -528,25 +528,6 @@ public class DeliveryTaskService(
         if (task.DeliveryStatus is not (DeliveryTaskStatus.PendingAssign or DeliveryTaskStatus.Assigned))
         {
             throw new BusinessException($"配送任务 {task.TaskNo} 当前状态不允许{operation}");
-        }
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
         }
     }
 

@@ -83,7 +83,7 @@ public class SaleOrderService(
         }
 
         RecalculateOrder(order);
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await saleOrderRepository.AddAsync(order);
             await orderAuditLogRepository.AddAsync(CreateAuditLog(
@@ -137,7 +137,7 @@ public class SaleOrderService(
             preparedDetails.Add((detailDto, detail));
         }
 
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             ApplyEditableFields(order, dto);
             ApplyCustomerSnapshot(order, customer);
@@ -183,7 +183,7 @@ public class SaleOrderService(
     public async Task<bool> DeleteAsync(Guid id)
     {
         var order = await GetRequiredOrderAsync(id);
-        await ExecuteInTransactionAsync(async () => await saleOrderRepository.DeleteAsync(order));
+        await unitOfWork.ExecuteInTransactionAsync(async () => await saleOrderRepository.DeleteAsync(order));
         logger.LogInformation("销售订单删除成功: {OrderId}, {OrderNo}", order.Id, order.OrderNo);
         return true;
     }
@@ -236,7 +236,7 @@ public class SaleOrderService(
         }
 
         var previousStatus = order.OrderStatus;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             order.OrderStatus = targetStatus;
             ApplyUpdateAudit(order);
@@ -373,25 +373,6 @@ public class SaleOrderService(
         }
 
         throw new BusinessException("订单号生成失败，请重试");
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
-        }
     }
 
     private void ApplyCreateAudit(Domain.Entities.BaseEntity entity)

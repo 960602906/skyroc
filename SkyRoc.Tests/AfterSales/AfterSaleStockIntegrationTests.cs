@@ -422,6 +422,41 @@ public class AfterSaleStockIntegrationTests
         }
 
         public Task<int> ExecuteSqlAsync(string sql, params object[] parameters) => throw new NotSupportedException();
+
+        public async Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default)
+        {
+            await BeginTransactionAsync(cancellationToken);
+            try
+            {
+                await action();
+                await CommitTransactionAsync(cancellationToken);
+            }
+            catch
+            {
+                if (HasActiveTransaction)
+                    await RollbackTransactionAsync(cancellationToken);
+
+                throw;
+            }
+        }
+
+        public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
+        {
+            await BeginTransactionAsync(cancellationToken);
+            try
+            {
+                var result = await action();
+                await CommitTransactionAsync(cancellationToken);
+                return result;
+            }
+            catch
+            {
+                if (HasActiveTransaction)
+                    await RollbackTransactionAsync(cancellationToken);
+
+                throw;
+            }
+        }
         public void ClearChangeTracking() => context.ChangeTracker.Clear();
         public void Dispose() { }
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;

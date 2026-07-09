@@ -84,7 +84,7 @@ public class StockOutService(
     {
         await ValidateAsync(updateSaleValidator, dto);
         StockOutOrder? updatedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var order = await GetRequiredOrderForUpdateAsync(StockOutOrderType.Sale, dto.Id);
             EnsureEditable(order, "编辑");
@@ -129,7 +129,7 @@ public class StockOutService(
     {
         await ValidateAsync(updatePurchaseReturnValidator, dto);
         StockOutOrder? updatedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var order = await GetRequiredOrderForUpdateAsync(StockOutOrderType.PurchaseReturn, dto.Id);
             EnsureEditable(order, "编辑");
@@ -171,7 +171,7 @@ public class StockOutService(
     {
         await ValidateAsync(updateOtherValidator, dto);
         StockOutOrder? updatedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var order = await GetRequiredOrderForUpdateAsync(StockOutOrderType.Other, dto.Id);
             EnsureEditable(order, "编辑");
@@ -197,7 +197,7 @@ public class StockOutService(
     public async Task<bool> DeleteAsync(StockOutOrderType orderType, Guid id)
     {
         StockOutOrder? deletedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var order = await GetRequiredOrderForUpdateAsync(orderType, id);
             EnsureEditable(order, "删除");
@@ -216,7 +216,7 @@ public class StockOutService(
         var auditTime = DateTime.UtcNow;
         var normalizedRemark = Normalize(remark);
         StockOutOrder? auditedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var order = await GetRequiredOrderForUpdateAsync(orderType, id);
             if (order.BusinessStatus is not (StockDocumentStatus.Draft or StockDocumentStatus.PendingAudit))
@@ -274,7 +274,7 @@ public class StockOutService(
         var reverseTime = DateTime.UtcNow;
         var normalizedRemark = Normalize(remark);
         StockOutOrder? reversedOrder = null;
-        await ExecuteInTransactionAsync(async () =>
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var order = await GetRequiredOrderForUpdateAsync(orderType, id);
             if (order.BusinessStatus != StockDocumentStatus.Audited)
@@ -376,7 +376,7 @@ public class StockOutService(
 
     private async Task<StockOutOrderDto> PersistNewOrderAsync(StockOutOrder order)
     {
-        await ExecuteInTransactionAsync(async () => await stockOutOrderRepository.AddAsync(order));
+        await unitOfWork.ExecuteInTransactionAsync(async () => await stockOutOrderRepository.AddAsync(order));
         logger.LogInformation("出库单创建成功: {StockOutOrderId}, {OutNo}, {OrderType}", order.Id, order.OutNo, order.OrderType);
         return mapper.Map<StockOutOrderDto>(await GetRequiredOrderAsync(order.OrderType, order.Id));
     }
@@ -878,25 +878,6 @@ public class StockOutService(
         if (!result.IsValid)
         {
             throw new ValidationException(result.Errors);
-        }
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            if (unitOfWork.HasActiveTransaction)
-            {
-                await unitOfWork.RollbackTransactionAsync();
-            }
-
-            throw;
         }
     }
 
