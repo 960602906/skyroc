@@ -23,13 +23,7 @@ public class StockQueryMappingProfile : Profile
                 opt => opt.MapFrom(src => NumericPrecision.RoundQuantity(src.AvailableQuantity)))
             .ForMember(x => x.StockValue, opt => opt.MapFrom(src => NumericPrecision.RoundMoney(src.StockValue)));
 
-        CreateMap<StockBatch, StockBatchDto>()
-            .ForMember(x => x.WareName, opt => opt.MapFrom(src => src.Ware.Name))
-            .ForMember(x => x.GoodsTypeId, opt => opt.MapFrom(src => src.Goods.GoodsTypeId))
-            .ForMember(x => x.GoodsTypeName, opt => opt.MapFrom(src => src.Goods.GoodsType.Name))
-            .ForMember(x => x.GoodsName, opt => opt.MapFrom(src => src.Goods.Name))
-            .ForMember(x => x.GoodsCode, opt => opt.MapFrom(src => src.Goods.Code))
-            .ForMember(x => x.BaseUnitName, opt => opt.MapFrom(src => src.BaseUnit.Name))
+        CreateMap<StockBatchReadModel, StockBatchDto>()
             .ForMember(x => x.CurrentQuantity,
                 opt => opt.MapFrom(src => NumericPrecision.RoundQuantity(src.CurrentQuantity)))
             .ForMember(x => x.AvailableQuantity,

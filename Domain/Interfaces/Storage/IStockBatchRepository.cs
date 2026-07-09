@@ -22,13 +22,13 @@ public interface IStockBatchRepository : IRepository<StockBatch>
         int pageSize);
 
     /// <summary>
-    /// 分页读取库存批次及当前仓库、商品、分类和基础单位资料。
+    /// 分页读取库存批次投影，仅返回展示所需的余额、成本、效期及关联资料名称。
     /// </summary>
     /// <param name="criteria">批次筛选条件。</param>
     /// <param name="pageNumber">从 1 开始的页码。</param>
     /// <param name="pageSize">每页记录数。</param>
-    /// <returns>匹配的库存批次及筛选后的总记录数。</returns>
-    Task<(IReadOnlyList<StockBatch> Items, int Total)> GetQueryPagedAsync(
+    /// <returns>匹配的库存批次投影及筛选后的总记录数。</returns>
+    Task<(IReadOnlyList<StockBatchReadModel> Items, int Total)> GetQueryPagedAsync(
         StockBatchCriteria criteria,
         int pageNumber,
         int pageSize);

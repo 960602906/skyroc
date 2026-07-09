@@ -37,7 +37,7 @@ public class StockQueryService(
             parameters.ToCriteria(),
             parameters.Current,
             parameters.Size);
-        return mapper.ToPagedResult<StockBatch, StockBatchDto>(
+        return mapper.ToPagedResult<StockBatchReadModel, StockBatchDto>(
             (result.Items, result.Total),
             parameters);
     }

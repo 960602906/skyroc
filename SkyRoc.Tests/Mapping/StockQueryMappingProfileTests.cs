@@ -35,19 +35,16 @@ public class StockQueryMappingProfileTests
         Assert.Null(typeof(StockOverviewDto).GetProperty(nameof(StockOverviewDto.OccupiedQuantity))!.SetMethod);
         Assert.Null(typeof(StockOverviewDto).GetProperty(nameof(StockOverviewDto.WeightedUnitCost))!.SetMethod);
 
-        var batch = mapper.Map<StockBatchDto>(new StockBatch
+        var batch = mapper.Map<StockBatchDto>(new StockBatchReadModel
         {
             CurrentQuantity = 10m,
             AvailableQuantity = 7m,
             UnitCost = 4m,
-            Ware = new Ware { Name = "中心仓" },
-            Goods = new GoodsEntity
-            {
-                Name = "番茄",
-                Code = "TOMATO",
-                GoodsType = new GoodsType { Name = "蔬菜" }
-            },
-            BaseUnit = new GoodsUnit { Name = "千克" }
+            WareName = "中心仓",
+            GoodsTypeName = "蔬菜",
+            GoodsName = "番茄",
+            GoodsCode = "TOMATO",
+            BaseUnitName = "千克"
         });
         Assert.Equal("中心仓", batch.WareName);
         Assert.Equal("蔬菜", batch.GoodsTypeName);

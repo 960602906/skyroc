@@ -90,18 +90,12 @@ public class StockBatchRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task<(IReadOnlyList<StockBatch> Items, int Total)> GetQueryPagedAsync(
+    public async Task<(IReadOnlyList<StockBatchReadModel> Items, int Total)> GetQueryPagedAsync(
         StockBatchCriteria criteria,
         int pageNumber,
         int pageSize)
     {
-        var query = DbSet
-            .AsNoTracking()
-            .Include(batch => batch.Ware)
-            .Include(batch => batch.Goods)
-            .ThenInclude(goods => goods.GoodsType)
-            .Include(batch => batch.BaseUnit)
-            .AsQueryable();
+        var query = DbSet.AsNoTracking().AsQueryable();
         if (!criteria.IncludeZeroStock)
         {
             query = query.Where(batch => batch.CurrentQuantity > 0m);
@@ -154,6 +148,26 @@ public class StockBatchRepository(ApplicationDbContext context)
             .ThenBy(batch => batch.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
+            .Select(batch => new StockBatchReadModel
+            {
+                Id = batch.Id,
+                WareId = batch.WareId,
+                WareName = batch.Ware.Name,
+                GoodsTypeId = batch.Goods.GoodsTypeId,
+                GoodsTypeName = batch.Goods.GoodsType.Name,
+                GoodsId = batch.GoodsId,
+                GoodsName = batch.Goods.Name,
+                GoodsCode = batch.Goods.Code,
+                BatchNo = batch.BatchNo,
+                BaseUnitId = batch.BaseUnitId,
+                BaseUnitName = batch.BaseUnit.Name,
+                CurrentQuantity = batch.CurrentQuantity,
+                AvailableQuantity = batch.AvailableQuantity,
+                UnitCost = batch.UnitCost,
+                ProductDate = batch.ProductDate,
+                ExpireDate = batch.ExpireDate,
+                LastMovementTime = batch.LastMovementTime
+            })
             .ToListAsync();
         return (items, total);
     }
