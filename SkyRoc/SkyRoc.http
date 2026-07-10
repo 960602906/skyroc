@@ -3379,3 +3379,28 @@ Accept: {{contentType}}
 GET {{SkyRoc_HostAddress}}/api/reports/after-sales?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59&reasonType=6
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### Reports - Daily Stock In Out Summary
+GET {{SkyRoc_HostAddress}}/api/reports/stock/daily?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Reports - Daily Goods Stock In Out Summary
+GET {{SkyRoc_HostAddress}}/api/reports/stock/daily-goods?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59&keyword=%E7%95%AA%E8%8C%84
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Reports - Purchase In Out Goods Summary
+GET {{SkyRoc_HostAddress}}/api/reports/purchase-in-out/goods?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Reports - Purchase In Out Supplier Summary
+GET {{SkyRoc_HostAddress}}/api/reports/purchase-in-out/suppliers?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59&keyword=%E4%BE%9B%E5%BA%94%E5%95%86
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Reports - Purchase In Out Purchaser Summary
+GET {{SkyRoc_HostAddress}}/api/reports/purchase-in-out/purchasers?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}

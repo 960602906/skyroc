@@ -4,6 +4,8 @@ using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Goods;
 using Domain.Entities.Orders;
+using Domain.Entities.Purchases;
+using Domain.Entities.Storage;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -159,6 +161,129 @@ public class ReportServiceTests
         Assert.Equal("蔬菜", vegetableItem.GoodsTypeName);
         Assert.Equal(8m, vegetableItem.SaleBaseQuantity);
         Assert.Empty(byLiveFruit.Records!);
+    }
+
+    [Fact]
+    public async Task DailyStockInOutSummary_UsesAuditedStockDocumentsAndDateFilters()
+    {
+        await using var context = CreateDbContext();
+        await SeedStockPurchaseReportsAsync(context);
+        var service = CreateService(context);
+
+        var page = await service.GetDailyStockInOutSummaryAsync(new StockReportQueryParameters
+        {
+            Current = 1,
+            Size = 10,
+            DateStart = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+            DateEnd = new DateTime(2026, 7, 1, 23, 59, 59, DateTimeKind.Utc)
+        });
+
+        var item = Assert.Single(page.Records!);
+        Assert.Equal(new DateOnly(2026, 7, 1), item.ReportDate);
+        Assert.Equal(12m, item.InBaseQuantity);
+        Assert.Equal(120m, item.InAmount);
+        Assert.Equal(3m, item.OutBaseQuantity);
+        Assert.Equal(30m, item.OutAmount);
+        Assert.Equal(1, item.InOrderCount);
+        Assert.Equal(1, item.OutOrderCount);
+    }
+
+    [Fact]
+    public async Task DailyGoodsStockInOutSummary_GroupsAuditedStockByDateAndGoods()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedStockPurchaseReportsAsync(context);
+        var service = CreateService(context);
+
+        var page = await service.GetDailyGoodsStockInOutSummaryAsync(new StockReportQueryParameters
+        {
+            Current = 1,
+            Size = 10,
+            GoodsIds = [seed.GoodsId],
+            DateStart = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+            DateEnd = new DateTime(2026, 7, 31, 23, 59, 59, DateTimeKind.Utc)
+        });
+
+        Assert.Equal(2, page.Total);
+        var firstDay = Assert.Single(page.Records!, x => x.ReportDate == new DateOnly(2026, 7, 1));
+        Assert.Equal(seed.GoodsId, firstDay.GoodsId);
+        Assert.Equal("番茄", firstDay.GoodsName);
+        Assert.Equal("TOMATO", firstDay.GoodsCode);
+        Assert.Equal("千克", firstDay.BaseUnitName);
+        Assert.Equal(12m, firstDay.InBaseQuantity);
+        Assert.Equal(120m, firstDay.InAmount);
+        Assert.Equal(3m, firstDay.OutBaseQuantity);
+        Assert.Equal(30m, firstDay.OutAmount);
+    }
+
+    [Fact]
+    public async Task PurchaseInOutSummaries_UsePurchaseInboundAndReturnOutboundOnly()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedStockPurchaseReportsAsync(context);
+        var service = CreateService(context);
+        var query = new PurchaseInOutReportQueryParameters
+        {
+            Current = 1,
+            Size = 10,
+            SupplierId = seed.SupplierId,
+            PurchaserId = seed.PurchaserId
+        };
+
+        var goods = await service.GetPurchaseInOutGoodsSummaryAsync(query);
+        var suppliers = await service.GetPurchaseInOutSupplierSummaryAsync(query);
+        var purchasers = await service.GetPurchaseInOutPurchaserSummaryAsync(query);
+
+        var goodsItem = Assert.Single(goods.Records!);
+        Assert.Equal(seed.GoodsId, goodsItem.GoodsId);
+        Assert.Equal(12m, goodsItem.InBaseQuantity);
+        Assert.Equal(120m, goodsItem.InAmount);
+        Assert.Equal(0m, goodsItem.OutBaseQuantity);
+        Assert.Equal(0m, goodsItem.OutAmount);
+        Assert.Equal(120m, goodsItem.NetAmount);
+
+        var supplierItem = Assert.Single(suppliers.Records!);
+        Assert.Equal(seed.SupplierId, supplierItem.SupplierId);
+        Assert.Equal("绿源供应商", supplierItem.SupplierName);
+        Assert.Equal(12m, supplierItem.InBaseQuantity);
+        Assert.Equal(0m, supplierItem.OutBaseQuantity);
+
+        var purchaserItem = Assert.Single(purchasers.Records!);
+        Assert.Equal(seed.PurchaserId, purchaserItem.PurchaserId);
+        Assert.Equal("张采购", purchaserItem.PurchaserName);
+        Assert.Equal(120m, purchaserItem.InAmount);
+        Assert.Equal(0m, purchaserItem.OutAmount);
+    }
+
+    [Fact]
+    public async Task PurchaseInOutPurchaserSummary_AssignsReturnToEarliestPurchaseInboundPurchaser()
+    {
+        await using var context = CreateDbContext();
+        var seed = await SeedStockPurchaseReportsAsync(context);
+        var service = CreateService(context);
+
+        var laterPurchaserPage = await service.GetPurchaseInOutPurchaserSummaryAsync(
+            new PurchaseInOutReportQueryParameters
+            {
+                Current = 1,
+                Size = 10,
+                PurchaserId = seed.PurchaserId
+            });
+        var originalPurchaserPage = await service.GetPurchaseInOutPurchaserSummaryAsync(
+            new PurchaseInOutReportQueryParameters
+            {
+                Current = 1,
+                Size = 10,
+                PurchaserId = seed.OtherPurchaserId
+            });
+
+        var laterPurchaser = Assert.Single(laterPurchaserPage.Records!);
+        Assert.Equal(12m, laterPurchaser.InBaseQuantity);
+        Assert.Equal(0m, laterPurchaser.OutBaseQuantity);
+
+        var originalPurchaser = Assert.Single(originalPurchaserPage.Records!);
+        Assert.Equal(2m, originalPurchaser.InBaseQuantity);
+        Assert.Equal(3m, originalPurchaser.OutBaseQuantity);
     }
 
     private static ReportService CreateService(ApplicationDbContext context)
@@ -419,10 +544,297 @@ public class ReportServiceTests
         context.ChangeTracker.Clear();
     }
 
+    private static async Task<StockPurchaseReportSeed> SeedStockPurchaseReportsAsync(ApplicationDbContext context)
+    {
+        var wareId = Guid.NewGuid();
+        var supplierId = Guid.NewGuid();
+        var purchaserId = Guid.NewGuid();
+        var otherPurchaserId = Guid.NewGuid();
+        var goodsId = Guid.NewGuid();
+        var unitId = Guid.NewGuid();
+        var purchaseOrderId = Guid.NewGuid();
+        var otherPurchaseOrderId = Guid.NewGuid();
+        var purchaseOrderDetailId = Guid.NewGuid();
+        var otherPurchaseOrderDetailId = Guid.NewGuid();
+        var stockBatchId = Guid.NewGuid();
+        var otherPurchaseInOrderId = Guid.NewGuid();
+        var purchaseInOrderId = Guid.NewGuid();
+        var otherInOrderId = Guid.NewGuid();
+        var purchaseReturnOrderId = Guid.NewGuid();
+        var draftOutOrderId = Guid.NewGuid();
+
+        await context.Wares.AddAsync(new Ware { Id = wareId, Name = "一号仓", Code = "WARE-01" });
+        await context.Suppliers.AddAsync(new Supplier { Id = supplierId, Name = "绿源供应商", Code = "SUP-01" });
+        await context.Purchasers.AddAsync(new Purchaser { Id = purchaserId, Name = "张采购", Code = "PUR-01" });
+        await context.Purchasers.AddAsync(new Purchaser { Id = otherPurchaserId, Name = "李采购", Code = "PUR-02" });
+        await context.Goods.AddAsync(new GoodsEntity
+        {
+            Id = goodsId,
+            Name = "番茄",
+            Code = "TOMATO",
+            BaseUnitId = unitId
+        });
+        await context.GoodsUnits.AddAsync(new GoodsUnit
+        {
+            Id = unitId,
+            GoodsId = goodsId,
+            Name = "千克",
+            Code = "KG",
+            IsBaseUnit = true,
+            ConversionRate = 1m
+        });
+        await context.StockBatches.AddAsync(new StockBatch
+        {
+            Id = stockBatchId,
+            WareId = wareId,
+            GoodsId = goodsId,
+            GoodsNameSnapshot = "番茄",
+            GoodsCodeSnapshot = "TOMATO",
+            BatchNo = "BATCH-001",
+            BaseUnitId = unitId,
+            BaseUnitNameSnapshot = "千克",
+            CurrentQuantity = 9m,
+            AvailableQuantity = 9m,
+            UnitCost = 10m
+        });
+        await context.PurchaseOrders.AddRangeAsync(
+            new PurchaseOrder
+            {
+                Id = otherPurchaseOrderId,
+                PurchaseNo = "PO-RPT-OTHER",
+                SupplierId = supplierId,
+                SupplierNameSnapshot = "绿源供应商",
+                PurchaserId = otherPurchaserId,
+                PurchaserNameSnapshot = "李采购",
+                PurchasePattern = PurchasePattern.SupplierDirect,
+                BusinessStatus = PurchaseOrderStatus.Completed
+            },
+            new PurchaseOrder
+            {
+                Id = purchaseOrderId,
+                PurchaseNo = "PO-RPT-001",
+                SupplierId = supplierId,
+                SupplierNameSnapshot = "绿源供应商",
+                PurchaserId = purchaserId,
+                PurchaserNameSnapshot = "张采购",
+                PurchasePattern = PurchasePattern.SupplierDirect,
+                BusinessStatus = PurchaseOrderStatus.Completed
+            });
+        await context.PurchaseOrderDetails.AddRangeAsync(
+            new PurchaseOrderDetail
+            {
+                Id = otherPurchaseOrderDetailId,
+                PurchaseOrderId = otherPurchaseOrderId,
+                GoodsId = goodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "TOMATO",
+                PurchaseUnitId = unitId,
+                PurchaseUnitNameSnapshot = "千克",
+                RequiredQuantity = 2m,
+                PurchaseQuantity = 2m,
+                PurchasePrice = 10m,
+                PurchaseTotalPrice = 20m
+            },
+            new PurchaseOrderDetail
+            {
+                Id = purchaseOrderDetailId,
+                PurchaseOrderId = purchaseOrderId,
+                GoodsId = goodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "TOMATO",
+                PurchaseUnitId = unitId,
+                PurchaseUnitNameSnapshot = "千克",
+                RequiredQuantity = 12m,
+                PurchaseQuantity = 12m,
+                PurchasePrice = 10m,
+                PurchaseTotalPrice = 120m
+            });
+        await context.StockInOrders.AddRangeAsync(
+            new StockInOrder
+            {
+                Id = otherPurchaseInOrderId,
+                InNo = "SI-PUR-OTHER",
+                OrderType = StockInOrderType.Purchase,
+                BusinessStatus = StockDocumentStatus.Audited,
+                WareId = wareId,
+                WareNameSnapshot = "一号仓",
+                PurchaseOrderId = otherPurchaseOrderId,
+                SupplierId = supplierId,
+                SupplierNameSnapshot = "绿源供应商",
+                PurchaserId = otherPurchaserId,
+                PurchaserNameSnapshot = "李采购",
+                PurchasePattern = PurchasePattern.SupplierDirect,
+                InTime = new DateTime(2026, 6, 30, 9, 0, 0, DateTimeKind.Utc),
+                TotalBaseQuantity = 2m,
+                TotalAmount = 20m
+            },
+            new StockInOrder
+            {
+                Id = purchaseInOrderId,
+                InNo = "SI-PUR-001",
+                OrderType = StockInOrderType.Purchase,
+                BusinessStatus = StockDocumentStatus.Audited,
+                WareId = wareId,
+                WareNameSnapshot = "一号仓",
+                PurchaseOrderId = purchaseOrderId,
+                SupplierId = supplierId,
+                SupplierNameSnapshot = "绿源供应商",
+                PurchaserId = purchaserId,
+                PurchaserNameSnapshot = "张采购",
+                PurchasePattern = PurchasePattern.SupplierDirect,
+                InTime = new DateTime(2026, 7, 1, 9, 0, 0, DateTimeKind.Utc),
+                TotalBaseQuantity = 12m,
+                TotalAmount = 120m
+            },
+            new StockInOrder
+            {
+                Id = otherInOrderId,
+                InNo = "SI-OTHER-001",
+                OrderType = StockInOrderType.Other,
+                BusinessStatus = StockDocumentStatus.Audited,
+                WareId = wareId,
+                WareNameSnapshot = "一号仓",
+                InTime = new DateTime(2026, 7, 2, 9, 0, 0, DateTimeKind.Utc),
+                TotalBaseQuantity = 5m,
+                TotalAmount = 50m
+            });
+        await context.StockInDetails.AddRangeAsync(
+            new StockInDetail
+            {
+                Id = Guid.NewGuid(),
+                StockInOrderId = otherPurchaseInOrderId,
+                PurchaseOrderDetailId = otherPurchaseOrderDetailId,
+                StockBatchId = stockBatchId,
+                GoodsId = goodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "TOMATO",
+                GoodsUnitId = unitId,
+                GoodsUnitNameSnapshot = "千克",
+                ConversionRate = 1m,
+                Quantity = 2m,
+                BaseQuantity = 2m,
+                UnitPrice = 10m,
+                TotalPrice = 20m,
+                BatchNo = "BATCH-001"
+            },
+            new StockInDetail
+            {
+                Id = Guid.NewGuid(),
+                StockInOrderId = purchaseInOrderId,
+                PurchaseOrderDetailId = purchaseOrderDetailId,
+                StockBatchId = stockBatchId,
+                GoodsId = goodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "TOMATO",
+                GoodsUnitId = unitId,
+                GoodsUnitNameSnapshot = "千克",
+                ConversionRate = 1m,
+                Quantity = 12m,
+                BaseQuantity = 12m,
+                UnitPrice = 10m,
+                TotalPrice = 120m,
+                BatchNo = "BATCH-001"
+            },
+            new StockInDetail
+            {
+                Id = Guid.NewGuid(),
+                StockInOrderId = otherInOrderId,
+                GoodsId = goodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "TOMATO",
+                GoodsUnitId = unitId,
+                GoodsUnitNameSnapshot = "千克",
+                ConversionRate = 1m,
+                Quantity = 5m,
+                BaseQuantity = 5m,
+                UnitPrice = 10m,
+                TotalPrice = 50m,
+                BatchNo = "BATCH-002"
+            });
+        await context.StockOutOrders.AddRangeAsync(
+            new StockOutOrder
+            {
+                Id = purchaseReturnOrderId,
+                OutNo = "SO-PUR-RETURN-001",
+                OrderType = StockOutOrderType.PurchaseReturn,
+                BusinessStatus = StockDocumentStatus.Audited,
+                WareId = wareId,
+                WareNameSnapshot = "一号仓",
+                SupplierId = supplierId,
+                SupplierNameSnapshot = "绿源供应商",
+                OutTime = new DateTime(2026, 7, 1, 15, 0, 0, DateTimeKind.Utc),
+                TotalBaseQuantity = 3m,
+                TotalAmount = 30m
+            },
+            new StockOutOrder
+            {
+                Id = draftOutOrderId,
+                OutNo = "SO-DRAFT-001",
+                OrderType = StockOutOrderType.PurchaseReturn,
+                BusinessStatus = StockDocumentStatus.Draft,
+                WareId = wareId,
+                WareNameSnapshot = "一号仓",
+                SupplierId = supplierId,
+                SupplierNameSnapshot = "绿源供应商",
+                OutTime = new DateTime(2026, 7, 1, 16, 0, 0, DateTimeKind.Utc),
+                TotalBaseQuantity = 99m,
+                TotalAmount = 990m
+            });
+        await context.StockOutDetails.AddRangeAsync(
+            new StockOutDetail
+            {
+                Id = Guid.NewGuid(),
+                StockOutOrderId = purchaseReturnOrderId,
+                StockBatchId = stockBatchId,
+                GoodsId = goodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "TOMATO",
+                GoodsUnitId = unitId,
+                GoodsUnitNameSnapshot = "千克",
+                ConversionRate = 1m,
+                Quantity = 3m,
+                BaseQuantity = 3m,
+                UnitPrice = 10m,
+                TotalPrice = 30m,
+                BatchNoSnapshot = "BATCH-001"
+            },
+            new StockOutDetail
+            {
+                Id = Guid.NewGuid(),
+                StockOutOrderId = draftOutOrderId,
+                GoodsId = goodsId,
+                GoodsNameSnapshot = "番茄",
+                GoodsCodeSnapshot = "TOMATO",
+                GoodsUnitId = unitId,
+                GoodsUnitNameSnapshot = "千克",
+                ConversionRate = 1m,
+                Quantity = 99m,
+                BaseQuantity = 99m,
+                UnitPrice = 10m,
+                TotalPrice = 990m,
+                BatchNoSnapshot = "BATCH-DRAFT"
+            });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+        return new StockPurchaseReportSeed(
+            WareId: wareId,
+            SupplierId: supplierId,
+            PurchaserId: purchaserId,
+            OtherPurchaserId: otherPurchaserId,
+            GoodsId: goodsId);
+    }
+
     private sealed record ReportSeed(
         Guid CustomerId,
         Guid TomatoId,
         Guid UnitId,
         Guid TagId,
         Guid GoodsTypeId);
+
+    private sealed record StockPurchaseReportSeed(
+        Guid WareId,
+        Guid SupplierId,
+        Guid PurchaserId,
+        Guid OtherPurchaserId,
+        Guid GoodsId);
 }

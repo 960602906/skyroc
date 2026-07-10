@@ -23,7 +23,12 @@ public class ReportControllerPermissionTests
             nameof(ReportsController.GetSalesCategorySummary),
             nameof(ReportsController.GetSalesCustomerSummary),
             nameof(ReportsController.GetSalesAreaSummary),
-            nameof(ReportsController.GetAfterSaleSummary)
+            nameof(ReportsController.GetAfterSaleSummary),
+            nameof(ReportsController.GetDailyStockInOutSummary),
+            nameof(ReportsController.GetDailyGoodsStockInOutSummary),
+            nameof(ReportsController.GetPurchaseInOutGoodsSummary),
+            nameof(ReportsController.GetPurchaseInOutSupplierSummary),
+            nameof(ReportsController.GetPurchaseInOutPurchaserSummary)
         };
 
         foreach (var actionName in expected)

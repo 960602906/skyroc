@@ -8,7 +8,7 @@ using Shared.Constants;
 namespace Application.Services;
 
 /// <summary>
-/// 销售与售后报表应用服务，负责筛选条件归一化和响应精度收口。
+/// 销售、售后、库存和采购报表应用服务，负责筛选条件归一化和响应精度收口。
 /// </summary>
 public class ReportService(IReportRepository repository) : IReportService
 {
@@ -95,6 +95,112 @@ public class ReportService(IReportRepository repository) : IReportService
         });
     }
 
+    /// <inheritdoc />
+    public async Task<PagedResult<DailyStockInOutSummaryDto>> GetDailyStockInOutSummaryAsync(
+        StockReportQueryParameters parameters)
+    {
+        var result = await repository.GetDailyStockInOutSummaryAsync(
+            ToFilter(parameters),
+            parameters.Current,
+            parameters.Size);
+        return MapPage(result, x => new DailyStockInOutSummaryDto
+        {
+            ReportDate = DateOnly.FromDateTime(x.ReportDate),
+            InBaseQuantity = NumericPrecision.RoundQuantity(x.InBaseQuantity),
+            InAmount = NumericPrecision.RoundMoney(x.InAmount),
+            OutBaseQuantity = NumericPrecision.RoundQuantity(x.OutBaseQuantity),
+            OutAmount = NumericPrecision.RoundMoney(x.OutAmount),
+            NetAmount = NumericPrecision.RoundMoney(x.InAmount - x.OutAmount),
+            InOrderCount = x.InOrderCount,
+            OutOrderCount = x.OutOrderCount
+        });
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResult<DailyGoodsStockInOutSummaryDto>> GetDailyGoodsStockInOutSummaryAsync(
+        StockReportQueryParameters parameters)
+    {
+        var result = await repository.GetDailyGoodsStockInOutSummaryAsync(
+            ToFilter(parameters),
+            parameters.Current,
+            parameters.Size);
+        return MapPage(result, x => new DailyGoodsStockInOutSummaryDto
+        {
+            ReportDate = DateOnly.FromDateTime(x.ReportDate),
+            GoodsId = x.GoodsId,
+            GoodsName = x.GoodsName,
+            GoodsCode = x.GoodsCode,
+            BaseUnitName = x.BaseUnitName,
+            InBaseQuantity = NumericPrecision.RoundQuantity(x.InBaseQuantity),
+            InAmount = NumericPrecision.RoundMoney(x.InAmount),
+            OutBaseQuantity = NumericPrecision.RoundQuantity(x.OutBaseQuantity),
+            OutAmount = NumericPrecision.RoundMoney(x.OutAmount),
+            NetAmount = NumericPrecision.RoundMoney(x.InAmount - x.OutAmount)
+        });
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResult<PurchaseInOutGoodsSummaryDto>> GetPurchaseInOutGoodsSummaryAsync(
+        PurchaseInOutReportQueryParameters parameters)
+    {
+        var result = await repository.GetPurchaseInOutGoodsSummaryAsync(
+            ToFilter(parameters),
+            parameters.Current,
+            parameters.Size);
+        return MapPage(result, x => new PurchaseInOutGoodsSummaryDto
+        {
+            GoodsId = x.GoodsId,
+            GoodsName = x.GoodsName,
+            GoodsCode = x.GoodsCode,
+            BaseUnitName = x.BaseUnitName,
+            InBaseQuantity = NumericPrecision.RoundQuantity(x.InBaseQuantity),
+            InAmount = NumericPrecision.RoundMoney(x.InAmount),
+            OutBaseQuantity = NumericPrecision.RoundQuantity(x.OutBaseQuantity),
+            OutAmount = NumericPrecision.RoundMoney(x.OutAmount),
+            NetAmount = NumericPrecision.RoundMoney(x.InAmount - x.OutAmount)
+        });
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResult<PurchaseInOutSupplierSummaryDto>> GetPurchaseInOutSupplierSummaryAsync(
+        PurchaseInOutReportQueryParameters parameters)
+    {
+        var result = await repository.GetPurchaseInOutSupplierSummaryAsync(
+            ToFilter(parameters),
+            parameters.Current,
+            parameters.Size);
+        return MapPage(result, x => new PurchaseInOutSupplierSummaryDto
+        {
+            SupplierId = x.SupplierId,
+            SupplierName = x.SupplierName,
+            InBaseQuantity = NumericPrecision.RoundQuantity(x.InBaseQuantity),
+            InAmount = NumericPrecision.RoundMoney(x.InAmount),
+            OutBaseQuantity = NumericPrecision.RoundQuantity(x.OutBaseQuantity),
+            OutAmount = NumericPrecision.RoundMoney(x.OutAmount),
+            NetAmount = NumericPrecision.RoundMoney(x.InAmount - x.OutAmount)
+        });
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResult<PurchaseInOutPurchaserSummaryDto>> GetPurchaseInOutPurchaserSummaryAsync(
+        PurchaseInOutReportQueryParameters parameters)
+    {
+        var result = await repository.GetPurchaseInOutPurchaserSummaryAsync(
+            ToFilter(parameters),
+            parameters.Current,
+            parameters.Size);
+        return MapPage(result, x => new PurchaseInOutPurchaserSummaryDto
+        {
+            PurchaserId = x.PurchaserId,
+            PurchaserName = x.PurchaserName,
+            InBaseQuantity = NumericPrecision.RoundQuantity(x.InBaseQuantity),
+            InAmount = NumericPrecision.RoundMoney(x.InAmount),
+            OutBaseQuantity = NumericPrecision.RoundQuantity(x.OutBaseQuantity),
+            OutAmount = NumericPrecision.RoundMoney(x.OutAmount),
+            NetAmount = NumericPrecision.RoundMoney(x.InAmount - x.OutAmount)
+        });
+    }
+
     private static SalesReportFilter ToFilter(SalesReportQueryParameters parameters)
     {
         return new SalesReportFilter
@@ -121,6 +227,33 @@ public class ReportService(IReportRepository repository) : IReportService
             ReasonType = parameters.ReasonType,
             AfterSaleType = parameters.AfterSaleType,
             HandleType = parameters.HandleType,
+            Keyword = NormalizeText(parameters.Keyword)
+        };
+    }
+
+    private static StockReportFilter ToFilter(StockReportQueryParameters parameters)
+    {
+        return new StockReportFilter
+        {
+            DateStart = parameters.DateStart,
+            DateEnd = parameters.DateEnd,
+            WareId = parameters.WareId,
+            GoodsIds = NormalizeIds(parameters.GoodsIds),
+            Keyword = NormalizeText(parameters.Keyword)
+        };
+    }
+
+    private static PurchaseInOutReportFilter ToFilter(PurchaseInOutReportQueryParameters parameters)
+    {
+        return new PurchaseInOutReportFilter
+        {
+            DateStart = parameters.DateStart,
+            DateEnd = parameters.DateEnd,
+            WareId = parameters.WareId,
+            SupplierId = parameters.SupplierId,
+            PurchaserId = parameters.PurchaserId,
+            PurchasePattern = parameters.PurchasePattern,
+            GoodsIds = NormalizeIds(parameters.GoodsIds),
             Keyword = NormalizeText(parameters.Keyword)
         };
     }

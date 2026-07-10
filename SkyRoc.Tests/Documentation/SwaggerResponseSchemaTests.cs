@@ -270,11 +270,21 @@ public class SwaggerResponseSchemaTests
         Assert.True(schemas.TryGetProperty("SalesCustomerSummaryDto", out _));
         Assert.True(schemas.TryGetProperty("SalesAreaSummaryDto", out _));
         Assert.True(schemas.TryGetProperty("AfterSaleSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("DailyStockInOutSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("DailyGoodsStockInOutSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("PurchaseInOutGoodsSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("PurchaseInOutSupplierSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("PurchaseInOutPurchaserSummaryDto", out _));
         Assert.True(paths.TryGetProperty("/api/reports/sales/goods", out _));
         Assert.True(paths.TryGetProperty("/api/reports/sales/categories", out _));
         Assert.True(paths.TryGetProperty("/api/reports/sales/customers", out _));
         Assert.True(paths.TryGetProperty("/api/reports/sales/areas", out _));
         Assert.True(paths.TryGetProperty("/api/reports/after-sales", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/stock/daily", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/stock/daily-goods", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/purchase-in-out/goods", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/purchase-in-out/suppliers", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/purchase-in-out/purchasers", out _));
 
         var reportPaths = new[]
         {
@@ -282,14 +292,22 @@ public class SwaggerResponseSchemaTests
             "/api/reports/sales/categories",
             "/api/reports/sales/customers",
             "/api/reports/sales/areas",
-            "/api/reports/after-sales"
+            "/api/reports/after-sales",
+            "/api/reports/stock/daily",
+            "/api/reports/stock/daily-goods",
+            "/api/reports/purchase-in-out/goods",
+            "/api/reports/purchase-in-out/suppliers",
+            "/api/reports/purchase-in-out/purchasers"
         };
         foreach (var path in reportPaths)
         {
             var operation = paths.GetProperty(path).GetProperty("get");
             Assert.Contains(PermissionCodes.Business.Reports.Read, operation.GetProperty("description").GetString());
             Assert.Contains("报表", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
-            Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+            var successResponse = operation.GetProperty("responses").GetProperty("200");
+            var content = successResponse.GetProperty("content").GetProperty("application/json");
+            var schemaReference = content.GetProperty("schema").GetProperty("$ref").GetString();
+            Assert.StartsWith("#/components/schemas/", schemaReference);
         }
     }
 }

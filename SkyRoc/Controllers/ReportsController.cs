@@ -10,7 +10,7 @@ using SkyRoc.Authorization;
 namespace SkyRoc.Controllers;
 
 /// <summary>
-/// 报表控制器，提供销售商品、分类、客户、区域和售后汇总只读查询。
+/// 报表控制器，提供销售、售后、库存和采购多维汇总只读查询。
 /// </summary>
 [ApiController]
 [Route("api/reports")]
@@ -76,5 +76,65 @@ public class ReportsController(IReportService service) : ControllerBase
     {
         var result = await service.GetAfterSaleSummaryAsync(parameters);
         return Ok(ApiResponse<PagedResult<AfterSaleSummaryDto>>.Ok(result));
+    }
+
+    /// <summary>按自然日汇总已审核库存入库与出库的数量、金额和单据数。</summary>
+    /// <param name="parameters">日期、仓库、商品和关键字筛选条件。</param>
+    /// <returns>日库存出入库汇总分页结果。</returns>
+    [HttpGet("stock/daily")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<PagedResult<DailyStockInOutSummaryDto>>>> GetDailyStockInOutSummary(
+        [FromQuery] StockReportQueryParameters parameters)
+    {
+        var result = await service.GetDailyStockInOutSummaryAsync(parameters);
+        return Ok(ApiResponse<PagedResult<DailyStockInOutSummaryDto>>.Ok(result));
+    }
+
+    /// <summary>按自然日和商品汇总已审核库存入库与出库的数量和金额。</summary>
+    /// <param name="parameters">日期、仓库、商品和关键字筛选条件。</param>
+    /// <returns>日商品库存出入库汇总分页结果。</returns>
+    [HttpGet("stock/daily-goods")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<PagedResult<DailyGoodsStockInOutSummaryDto>>>> GetDailyGoodsStockInOutSummary(
+        [FromQuery] StockReportQueryParameters parameters)
+    {
+        var result = await service.GetDailyGoodsStockInOutSummaryAsync(parameters);
+        return Ok(ApiResponse<PagedResult<DailyGoodsStockInOutSummaryDto>>.Ok(result));
+    }
+
+    /// <summary>按商品汇总采购入库与采购退货出库的数量和金额。</summary>
+    /// <param name="parameters">日期、仓库、供应商、采购员、采购模式、商品和关键字筛选条件。</param>
+    /// <returns>商品维度采购出入库汇总分页结果。</returns>
+    [HttpGet("purchase-in-out/goods")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<PagedResult<PurchaseInOutGoodsSummaryDto>>>> GetPurchaseInOutGoodsSummary(
+        [FromQuery] PurchaseInOutReportQueryParameters parameters)
+    {
+        var result = await service.GetPurchaseInOutGoodsSummaryAsync(parameters);
+        return Ok(ApiResponse<PagedResult<PurchaseInOutGoodsSummaryDto>>.Ok(result));
+    }
+
+    /// <summary>按供应商汇总采购入库与采购退货出库的数量和金额。</summary>
+    /// <param name="parameters">日期、仓库、供应商、采购员、采购模式、商品和关键字筛选条件。</param>
+    /// <returns>供应商维度采购出入库汇总分页结果。</returns>
+    [HttpGet("purchase-in-out/suppliers")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<PagedResult<PurchaseInOutSupplierSummaryDto>>>> GetPurchaseInOutSupplierSummary(
+        [FromQuery] PurchaseInOutReportQueryParameters parameters)
+    {
+        var result = await service.GetPurchaseInOutSupplierSummaryAsync(parameters);
+        return Ok(ApiResponse<PagedResult<PurchaseInOutSupplierSummaryDto>>.Ok(result));
+    }
+
+    /// <summary>按采购员汇总采购入库与采购退货出库的数量和金额；退货出库通过批次追溯原采购入库采购员。</summary>
+    /// <param name="parameters">日期、仓库、供应商、采购员、采购模式、商品和关键字筛选条件。</param>
+    /// <returns>采购员维度采购出入库汇总分页结果。</returns>
+    [HttpGet("purchase-in-out/purchasers")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<PagedResult<PurchaseInOutPurchaserSummaryDto>>>> GetPurchaseInOutPurchaserSummary(
+        [FromQuery] PurchaseInOutReportQueryParameters parameters)
+    {
+        var result = await service.GetPurchaseInOutPurchaserSummaryAsync(parameters);
+        return Ok(ApiResponse<PagedResult<PurchaseInOutPurchaserSummaryDto>>.Ok(result));
     }
 }
