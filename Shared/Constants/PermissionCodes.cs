@@ -156,6 +156,15 @@ public static class PermissionCodes
             public const string Update = $"{Resource}:update";
             public const string Delete = $"{Resource}:delete";
         }
+
+        /// <summary>
+        /// 销售、售后、库存和采购等报表查询权限。
+        /// </summary>
+        public static class Reports
+        {
+            public const string Resource = "business:report";
+            public const string Read = $"{Resource}:read";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -224,6 +233,7 @@ public static class PermissionCodes
         Business.Traceability.Read,
         Business.Traceability.Create,
         Business.Traceability.Update,
-        Business.Traceability.Delete
+        Business.Traceability.Delete,
+        Business.Reports.Read
     ];
 }

@@ -251,4 +251,45 @@ public class SwaggerResponseSchemaTests
         Assert.False(qrOperation.TryGetProperty("security", out _));
         Assert.True(qrOperation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
     }
+
+    [Fact]
+    public async Task Swagger_DocumentsReportContracts()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("SalesGoodsSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("SalesCategorySummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("SalesCustomerSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("SalesAreaSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("AfterSaleSummaryDto", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/sales/goods", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/sales/categories", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/sales/customers", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/sales/areas", out _));
+        Assert.True(paths.TryGetProperty("/api/reports/after-sales", out _));
+
+        var reportPaths = new[]
+        {
+            "/api/reports/sales/goods",
+            "/api/reports/sales/categories",
+            "/api/reports/sales/customers",
+            "/api/reports/sales/areas",
+            "/api/reports/after-sales"
+        };
+        foreach (var path in reportPaths)
+        {
+            var operation = paths.GetProperty(path).GetProperty("get");
+            Assert.Contains(PermissionCodes.Business.Reports.Read, operation.GetProperty("description").GetString());
+            Assert.Contains("报表", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+            Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+        }
+    }
 }

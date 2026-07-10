@@ -58,7 +58,8 @@ public static class SwaggerExtensions
         ["SupplierSettlements"] = "财务",
         ["InspectionReports"] = "溯源",
         ["TraceRecords"] = "溯源",
-        ["ExternalPushLogs"] = "溯源"
+        ["ExternalPushLogs"] = "溯源",
+        ["Reports"] = "报表"
     };
 
     /// <summary>

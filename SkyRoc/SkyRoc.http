@@ -3354,3 +3354,28 @@ Accept: {{contentType}}
 GET {{SkyRoc_HostAddress}}/api/traceability/push-logs?current=1&size=10&pushStatus=3
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### Reports - Sales Goods Summary
+GET {{SkyRoc_HostAddress}}/api/reports/sales/goods?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59&customerTagIds={{customerTagId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Reports - Sales Category Summary
+GET {{SkyRoc_HostAddress}}/api/reports/sales/categories?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Reports - Sales Customer Summary
+GET {{SkyRoc_HostAddress}}/api/reports/sales/customers?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59&customerId={{customerId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Reports - Sales Area Summary
+GET {{SkyRoc_HostAddress}}/api/reports/sales/areas?current=1&size=10&areaKeyword=%E6%B5%A6%E4%B8%9C
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Reports - After Sales Summary
+GET {{SkyRoc_HostAddress}}/api/reports/after-sales?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59&reasonType=6
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
