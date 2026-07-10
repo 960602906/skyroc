@@ -4,6 +4,7 @@ using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
 using Domain.Entities.Finance;
 using Domain.Entities.Goods;
+using Domain.Entities.ImportExport;
 using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
@@ -92,6 +93,7 @@ public static class DatabaseCommentExtensions
         [typeof(InspectionAttachment)] = "检测报告附件，记录报告文件或现场图片的访问地址和展示顺序",
         [typeof(TraceRecord)] = "商品溯源记录，将销售订单商品行与采购入库来源和检测报告串联供二维码展示",
         [typeof(ExternalPushLog)] = "外部报送日志，只追加记录向外部监管或溯源平台每次报送的请求、响应和结果状态"
+        , [typeof(ImportExportJob)] = "导入导出任务，记录 CSV 模板、导入或导出的执行状态和结果摘要"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -243,6 +245,17 @@ public static class DatabaseCommentExtensions
         ["IsBaseUnit"] = "是否为商品基础计量单位",
         ["IsDefault"] = "是否为默认关系或默认配置",
         ["IsOnSale"] = "商品是否允许上架销售",
+        ["JobNo"] = "导入导出任务业务唯一编号",
+        ["JobType"] = "导入导出的业务对象类型：当前为商品",
+        ["JobDirection"] = "任务方向：导入或导出",
+        ["JobStatus"] = "任务状态：处理中、成功或失败",
+        ["SourceFileName"] = "导入源文件或导出结果文件名",
+        ["TotalRows"] = "CSV 中处理的数据行总数，不含表头",
+        ["SuccessRows"] = "成功处理的数据行数",
+        ["FailureRows"] = "失败处理的数据行数",
+        ["ErrorSummary"] = "失败行号和原因摘要",
+        ["JobStartedAt"] = "任务开始读取或生成文件的时间（UTC）",
+        ["JobFinishedAt"] = "任务完成或失败的时间（UTC）",
         ["IsPrimary"] = "是否为主要供货关系",
         ["IsSuccess"] = "操作是否执行成功",
         ["IsTaxExempt"] = "商品分类是否免税",

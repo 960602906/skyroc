@@ -165,6 +165,16 @@ public static class PermissionCodes
             public const string Resource = "business:report";
             public const string Read = $"{Resource}:read";
         }
+
+        /// <summary>
+        /// 统一 CSV 模板、导入导出任务和任务状态查询权限。
+        /// </summary>
+        public static class ImportExport
+        {
+            public const string Resource = "business:import-export";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -234,6 +244,8 @@ public static class PermissionCodes
         Business.Traceability.Create,
         Business.Traceability.Update,
         Business.Traceability.Delete,
-        Business.Reports.Read
+        Business.Reports.Read,
+        Business.ImportExport.Read,
+        Business.ImportExport.Create
     ];
 }

@@ -51,6 +51,7 @@
 @afterSaleDeleteDraftId = 00000000-0000-0000-0000-000000000001
 @customerBillId = 00000000-0000-0000-0000-000000000001
 @customerSettlementId = 00000000-0000-0000-0000-000000000001
+@importExportJobId = 00000000-0000-0000-0000-000000000001
 
 ### Health
 GET {{SkyRoc_HostAddress}}/health
@@ -3434,3 +3435,33 @@ Accept: {{contentType}}
 GET {{SkyRoc_HostAddress}}/api/dashboard/pickup-statuses?dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### Import Export - Download Goods CSV Template
+GET {{SkyRoc_HostAddress}}/api/import-export/jobs/templates/1
+Authorization: Bearer {{accessToken}}
+Accept: text/csv
+
+### Import Export - Import Goods CSV
+POST {{SkyRoc_HostAddress}}/api/import-export/jobs/import/1
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=SkyRocImportBoundary
+
+--SkyRocImportBoundary
+Content-Disposition: form-data; name="file"; filename="goods-import.csv"
+Content-Type: text/csv
+
+Name,Code,GoodsTypeId,Spec,Brand,Origin,TaxRate,IsOnSale,Remark
+自动化示例商品,SKYROC_IMPORT_GOODS_001,{{goodsTypeId}},规格,品牌,产地,6,true,通过 HTTP 示例导入
+--SkyRocImportBoundary--
+
+> {% client.global.set("importExportJobId", response.body.data.id); %}
+
+### Import Export - Get Job Status
+GET {{SkyRoc_HostAddress}}/api/import-export/jobs/{{importExportJobId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Import Export - Export Goods CSV
+GET {{SkyRoc_HostAddress}}/api/import-export/jobs/export/1
+Authorization: Bearer {{accessToken}}
+Accept: text/csv

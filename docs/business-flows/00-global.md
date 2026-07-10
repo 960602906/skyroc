@@ -185,12 +185,18 @@ flowchart TD
   F --> H["提示错误 msg"]
 ```
 
-| 动作 | 方法 | URL |
-| --- | --- | --- |
-| 导出任务 | POST | `/business/multipart/job/exportJob/{jobType}` |
-| 导入任务 | POST | `/business/multipart/job/importJob/{jobType}` |
-| 下载模板 | POST | `/business/multipart/job/download/{jobType}` |
-| 文件上传 | POST | `/system/file/upload` |
+SkyRoc 当前采用同步 CSV 作业：请求处理期间直接读取/生成文件，任务表只保存方向、行数、状态、时间和失败摘要，不保存文件二进制，也不复用独立文件上传能力。
+
+| 动作 | 方法 | URL | 权限 |
+| --- | --- | --- | --- |
+| 下载模板 | GET | `/api/import-export/jobs/templates/{jobType}` | `business:import-export:create` |
+| 导入任务 | POST multipart/form-data | `/api/import-export/jobs/import/{jobType}` | `business:import-export:create` |
+| 导出文件 | GET | `/api/import-export/jobs/export/{jobType}` | `business:import-export:read` |
+| 任务状态 | GET | `/api/import-export/jobs/{id}` | `business:import-export:read` |
+
+当前 `jobType`：`1 = Goods`。商品导入模板为 UTF-8 BOM CSV，表头固定为 `Name,Code,GoodsTypeId,Spec,Brand,Origin,TaxRate,IsOnSale,Remark`；`GoodsTypeId` 必须是现存分类 UUID，税率使用 0 至 100 的百分比，`IsOnSale` 仅接受 `true` 或 `false`。服务先完成全文件格式、分类、名称和编码（含跨行及数据库既有值）校验；任一行失败则不写入任何商品行，并在任务状态中返回错误摘要。单个 CSV 限制为 2 MiB；文件存储与独立上传仍由后续文件上传能力负责。
+
+导出响应为 `text/csv`，并在 `X-Import-Export-Job-Id` 响应头返回可查询的任务主键。CSV 字段会对逗号、双引号和换行进行标准转义。
 
 ## 打印
 

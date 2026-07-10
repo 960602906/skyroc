@@ -60,7 +60,8 @@ public static class SwaggerExtensions
         ["TraceRecords"] = "溯源",
         ["ExternalPushLogs"] = "溯源",
         ["Reports"] = "报表",
-        ["Dashboard"] = "首页驾驶舱"
+        ["Dashboard"] = "首页驾驶舱",
+        ["ImportExportJobs"] = "导入导出"
     };
 
     /// <summary>

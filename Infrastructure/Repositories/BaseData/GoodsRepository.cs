@@ -20,6 +20,24 @@ public class GoodsRepository(ApplicationDbContext context)
     private readonly ApplicationDbContext _context = context;
 
     /// <inheritdoc />
+    public async Task<IReadOnlyCollection<string>> GetExistingNamesAsync(IEnumerable<string> names)
+    {
+        var values = names.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().ToList();
+        return values.Count == 0
+            ? []
+            : await DbSet.Where(x => values.Contains(x.Name)).Select(x => x.Name).ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyCollection<string>> GetExistingCodesAsync(IEnumerable<string> codes)
+    {
+        var values = codes.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().ToList();
+        return values.Count == 0
+            ? []
+            : await DbSet.Where(x => values.Contains(x.Code)).Select(x => x.Code).ToListAsync();
+    }
+
+    /// <inheritdoc />
     public override async Task<GoodsEntity?> GetByIdAsync(Guid id)
     {
         return await DbSet

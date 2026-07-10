@@ -5,6 +5,7 @@ using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
 using Domain.Entities.Finance;
 using Domain.Entities.Goods;
+using Domain.Entities.ImportExport;
 using Domain.Entities.Orders;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
@@ -418,6 +419,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 外部报送日志表。
     /// </summary>
     public DbSet<ExternalPushLog> ExternalPushLogs { get; set; }
+
+    /// <summary>
+    /// 导入导出任务表。
+    /// </summary>
+    public DbSet<ImportExportJob> ImportExportJobs { get; set; }
 
     #endregion
 }

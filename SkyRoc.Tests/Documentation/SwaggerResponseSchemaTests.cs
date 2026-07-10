@@ -342,4 +342,45 @@ public class SwaggerResponseSchemaTests
             Assert.StartsWith("#/components/schemas/", schemaReference);
         }
     }
+
+    [Fact]
+    public async Task Swagger_DocumentsImportExportJobContracts()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("ImportExportJobDto", out var jobSchema));
+        Assert.Contains("任务", jobSchema.GetProperty("description").GetString());
+        Assert.True(paths.TryGetProperty("/api/import-export/jobs/templates/{jobType}", out _));
+        Assert.True(paths.TryGetProperty("/api/import-export/jobs/import/{jobType}", out _));
+        Assert.True(paths.TryGetProperty("/api/import-export/jobs/export/{jobType}", out _));
+        Assert.True(paths.TryGetProperty("/api/import-export/jobs/{id}", out _));
+
+        var templateOperation = paths.GetProperty("/api/import-export/jobs/templates/{jobType}").GetProperty("get");
+        var importOperation = paths.GetProperty("/api/import-export/jobs/import/{jobType}").GetProperty("post");
+        var exportOperation = paths.GetProperty("/api/import-export/jobs/export/{jobType}").GetProperty("get");
+        var statusOperation = paths.GetProperty("/api/import-export/jobs/{id}").GetProperty("get");
+
+        foreach (var operation in new[] { templateOperation, importOperation, exportOperation, statusOperation })
+        {
+            Assert.Contains("导入导出", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+        }
+        Assert.Contains(PermissionCodes.Business.ImportExport.Create, templateOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.ImportExport.Create, importOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.ImportExport.Read, exportOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.ImportExport.Read, statusOperation.GetProperty("description").GetString());
+        Assert.True(templateOperation.GetProperty("responses").GetProperty("200").GetProperty("content").TryGetProperty("text/csv", out _));
+        Assert.True(exportOperation.GetProperty("responses").GetProperty("200").GetProperty("content").TryGetProperty("text/csv", out _));
+        Assert.True(importOperation.GetProperty("requestBody").GetProperty("content").TryGetProperty("multipart/form-data", out _));
+        Assert.True(statusOperation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+    }
 }

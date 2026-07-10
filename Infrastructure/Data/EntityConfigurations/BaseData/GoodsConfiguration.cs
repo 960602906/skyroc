@@ -31,6 +31,7 @@ public class GoodsConfiguration : IEntityTypeConfiguration<Goods>
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => x.Code).IsUnique().HasDatabaseName("idx_goods_code");
+        builder.HasIndex(x => x.Name).IsUnique().HasDatabaseName("idx_goods_name");
         builder.HasIndex(x => x.GoodsTypeId).HasDatabaseName("idx_goods_type_id");
         builder.HasIndex(x => x.DefaultSupplierId).HasDatabaseName("idx_goods_default_supplier_id");
         builder.HasIndex(x => x.DefaultWareId).HasDatabaseName("idx_goods_default_ware_id");
@@ -56,4 +57,3 @@ public class GoodsConfiguration : IEntityTypeConfiguration<Goods>
             .OnDelete(DeleteBehavior.SetNull);
     }
 }
-
