@@ -429,6 +429,144 @@ public class ReportRepository(ApplicationDbContext context) : IReportRepository
         return await ToPagedResultAsync(query, current, size);
     }
 
+    /// <inheritdoc />
+    public async Task<DashboardBriefReadModel> GetDashboardBriefAsync(DashboardFilter filter)
+    {
+        var query = ApplyDashboardSalesFilter(filter);
+        return new DashboardBriefReadModel
+        {
+            SaleAmount = await query.SumAsync(x => x.CustomerCheckPrice ?? 0m),
+            OrderCount = await query.Select(x => x.SaleOrderId).Distinct().CountAsync(),
+            CustomerCount = await query.Select(x => x.SaleOrder.CustomerId).Distinct().CountAsync()
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DashboardSalesTrendReadModel>> GetDashboardSalesTrendAsync(DashboardFilter filter)
+    {
+        return await ApplyDashboardSalesFilter(filter)
+            .GroupBy(x => x.SaleOrder.OrderDate.Date)
+            .Select(g => new DashboardSalesTrendReadModel
+            {
+                ReportDate = g.Key,
+                SaleAmount = g.Sum(x => x.CustomerCheckPrice ?? 0m),
+                OrderCount = g.Select(x => x.SaleOrderId).Distinct().Count(),
+                CustomerCount = g.Select(x => x.SaleOrder.CustomerId).Distinct().Count()
+            })
+            .OrderBy(x => x.ReportDate)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DashboardCustomerSalesRankReadModel>> GetDashboardCustomerSalesRankAsync(
+        DashboardFilter filter)
+    {
+        return await ApplyDashboardSalesFilter(filter)
+            .GroupBy(x => new
+            {
+                x.SaleOrder.CustomerId,
+                x.SaleOrder.CustomerNameSnapshot
+            })
+            .Select(g => new DashboardCustomerSalesRankReadModel
+            {
+                CustomerId = g.Key.CustomerId,
+                CustomerName = g.Key.CustomerNameSnapshot,
+                SaleAmount = g.Sum(x => x.CustomerCheckPrice ?? 0m),
+                OrderCount = g.Select(x => x.SaleOrderId).Distinct().Count()
+            })
+            .OrderByDescending(x => x.SaleAmount)
+            .ThenBy(x => x.CustomerName)
+            .Take(filter.RankSize)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DashboardGoodsTypeSalesRankReadModel>> GetDashboardGoodsTypeSalesRankAsync(
+        DashboardFilter filter)
+    {
+        return await ApplyDashboardSalesFilter(filter)
+            .GroupBy(x => x.GoodsTypeNameSnapshot ?? "未分类")
+            .Select(g => new DashboardGoodsTypeSalesRankReadModel
+            {
+                GoodsTypeName = g.Key,
+                SaleAmount = g.Sum(x => x.CustomerCheckPrice ?? 0m),
+                OrderCount = g.Select(x => x.SaleOrderId).Distinct().Count()
+            })
+            .OrderByDescending(x => x.SaleAmount)
+            .ThenBy(x => x.GoodsTypeName)
+            .Take(filter.RankSize)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<DashboardReconciliationReadModel> GetDashboardReconciliationAsync(DashboardFilter filter)
+    {
+        var query = context.CustomerBills.AsNoTracking().AsQueryable();
+        if (filter.DateStart.HasValue)
+        {
+            query = query.Where(x => x.BillDate >= filter.DateStart.Value);
+        }
+
+        if (filter.DateEnd.HasValue)
+        {
+            query = query.Where(x => x.BillDate <= filter.DateEnd.Value);
+        }
+
+        return new DashboardReconciliationReadModel
+        {
+            ReceivableAmount = await query.SumAsync(x => x.ReceivableAmount),
+            SettledAmount = await query.SumAsync(x => x.SettledAmount),
+            PendingAmount = await query.SumAsync(x => x.ReceivableAmount > x.SettledAmount
+                ? x.ReceivableAmount - x.SettledAmount
+                : 0m),
+            BillCount = await query.CountAsync()
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DashboardPickupStatusReadModel>> GetDashboardPickupStatusesAsync(
+        DashboardFilter filter)
+    {
+        var query = context.PickupTasks.AsNoTracking().AsQueryable();
+        if (filter.DateStart.HasValue)
+        {
+            query = query.Where(x => x.CreateTime.HasValue && x.CreateTime.Value >= filter.DateStart.Value);
+        }
+
+        if (filter.DateEnd.HasValue)
+        {
+            query = query.Where(x => x.CreateTime.HasValue && x.CreateTime.Value <= filter.DateEnd.Value);
+        }
+
+        return await query
+            .GroupBy(x => x.PickupStatus)
+            .Select(g => new DashboardPickupStatusReadModel
+            {
+                PickupStatus = g.Key,
+                TaskCount = g.Count()
+            })
+            .ToListAsync();
+    }
+
+    private IQueryable<SaleOrderDetail> ApplyDashboardSalesFilter(DashboardFilter filter)
+    {
+        var query = context.SaleOrderDetails
+            .AsNoTracking()
+            .Where(x => x.SaleOrder.OrderStatus == SaleOrderStatus.Signed);
+
+        if (filter.DateStart.HasValue)
+        {
+            query = query.Where(x => x.SaleOrder.OrderDate >= filter.DateStart.Value);
+        }
+
+        if (filter.DateEnd.HasValue)
+        {
+            query = query.Where(x => x.SaleOrder.OrderDate <= filter.DateEnd.Value);
+        }
+
+        return query;
+    }
+
     private IQueryable<SaleOrderDetail> ApplySalesFilter(SalesReportFilter filter)
     {
         var query = context.SaleOrderDetails

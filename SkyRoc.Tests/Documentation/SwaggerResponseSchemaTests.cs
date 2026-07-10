@@ -275,6 +275,12 @@ public class SwaggerResponseSchemaTests
         Assert.True(schemas.TryGetProperty("PurchaseInOutGoodsSummaryDto", out _));
         Assert.True(schemas.TryGetProperty("PurchaseInOutSupplierSummaryDto", out _));
         Assert.True(schemas.TryGetProperty("PurchaseInOutPurchaserSummaryDto", out _));
+        Assert.True(schemas.TryGetProperty("DashboardBriefDto", out _));
+        Assert.True(schemas.TryGetProperty("DashboardSalesTrendDto", out _));
+        Assert.True(schemas.TryGetProperty("DashboardCustomerSalesRankDto", out _));
+        Assert.True(schemas.TryGetProperty("DashboardGoodsTypeSalesRankDto", out _));
+        Assert.True(schemas.TryGetProperty("DashboardReconciliationDto", out _));
+        Assert.True(schemas.TryGetProperty("DashboardPickupStatusDto", out _));
         Assert.True(paths.TryGetProperty("/api/reports/sales/goods", out _));
         Assert.True(paths.TryGetProperty("/api/reports/sales/categories", out _));
         Assert.True(paths.TryGetProperty("/api/reports/sales/customers", out _));
@@ -285,6 +291,12 @@ public class SwaggerResponseSchemaTests
         Assert.True(paths.TryGetProperty("/api/reports/purchase-in-out/goods", out _));
         Assert.True(paths.TryGetProperty("/api/reports/purchase-in-out/suppliers", out _));
         Assert.True(paths.TryGetProperty("/api/reports/purchase-in-out/purchasers", out _));
+        Assert.True(paths.TryGetProperty("/api/dashboard/brief", out _));
+        Assert.True(paths.TryGetProperty("/api/dashboard/sales-trend", out _));
+        Assert.True(paths.TryGetProperty("/api/dashboard/customer-sales-rank", out _));
+        Assert.True(paths.TryGetProperty("/api/dashboard/goods-type-sales-rank", out _));
+        Assert.True(paths.TryGetProperty("/api/dashboard/reconciliation", out _));
+        Assert.True(paths.TryGetProperty("/api/dashboard/pickup-statuses", out _));
 
         var reportPaths = new[]
         {
@@ -304,6 +316,26 @@ public class SwaggerResponseSchemaTests
             var operation = paths.GetProperty(path).GetProperty("get");
             Assert.Contains(PermissionCodes.Business.Reports.Read, operation.GetProperty("description").GetString());
             Assert.Contains("报表", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+            var successResponse = operation.GetProperty("responses").GetProperty("200");
+            var content = successResponse.GetProperty("content").GetProperty("application/json");
+            var schemaReference = content.GetProperty("schema").GetProperty("$ref").GetString();
+            Assert.StartsWith("#/components/schemas/", schemaReference);
+        }
+
+        var dashboardPaths = new[]
+        {
+            "/api/dashboard/brief",
+            "/api/dashboard/sales-trend",
+            "/api/dashboard/customer-sales-rank",
+            "/api/dashboard/goods-type-sales-rank",
+            "/api/dashboard/reconciliation",
+            "/api/dashboard/pickup-statuses"
+        };
+        foreach (var path in dashboardPaths)
+        {
+            var operation = paths.GetProperty(path).GetProperty("get");
+            Assert.Contains(PermissionCodes.Business.Reports.Read, operation.GetProperty("description").GetString());
+            Assert.Contains("首页驾驶舱", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
             var successResponse = operation.GetProperty("responses").GetProperty("200");
             var content = successResponse.GetProperty("content").GetProperty("application/json");
             var schemaReference = content.GetProperty("schema").GetProperty("$ref").GetString();

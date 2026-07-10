@@ -128,4 +128,46 @@ public interface IReportRepository
         PurchaseInOutReportFilter filter,
         int current,
         int size);
+
+    /// <summary>
+    /// 汇总首页经营概览，统计周期内仅包含已签收订单的客户验收金额。
+    /// </summary>
+    /// <param name="filter">驾驶舱统计周期与排行条数。</param>
+    /// <returns>销售额、订单数和客户数聚合结果。</returns>
+    Task<DashboardBriefReadModel> GetDashboardBriefAsync(DashboardFilter filter);
+
+    /// <summary>
+    /// 按订单日期汇总首页销售趋势，统计周期内仅包含已签收订单的客户验收金额。
+    /// </summary>
+    /// <param name="filter">驾驶舱统计周期与排行条数。</param>
+    /// <returns>按自然日升序排列的销售趋势结果。</returns>
+    Task<IReadOnlyList<DashboardSalesTrendReadModel>> GetDashboardSalesTrendAsync(DashboardFilter filter);
+
+    /// <summary>
+    /// 按客户汇总首页销售排行，按客户验收销售金额降序截取指定条数。
+    /// </summary>
+    /// <param name="filter">驾驶舱统计周期与排行条数。</param>
+    /// <returns>客户销售排行结果。</returns>
+    Task<IReadOnlyList<DashboardCustomerSalesRankReadModel>> GetDashboardCustomerSalesRankAsync(DashboardFilter filter);
+
+    /// <summary>
+    /// 按商品分类快照汇总首页销售排行，按客户验收销售金额降序截取指定条数。
+    /// </summary>
+    /// <param name="filter">驾驶舱统计周期与排行条数。</param>
+    /// <returns>商品分类销售排行结果。</returns>
+    Task<IReadOnlyList<DashboardGoodsTypeSalesRankReadModel>> GetDashboardGoodsTypeSalesRankAsync(DashboardFilter filter);
+
+    /// <summary>
+    /// 按客户账单业务日期汇总首页对账数据，待结金额按单账单余额下限为零计算。
+    /// </summary>
+    /// <param name="filter">驾驶舱统计周期与排行条数。</param>
+    /// <returns>应收、已结、待结金额和账单数聚合结果。</returns>
+    Task<DashboardReconciliationReadModel> GetDashboardReconciliationAsync(DashboardFilter filter);
+
+    /// <summary>
+    /// 按取货任务创建时间和当前状态汇总首页取货状态。
+    /// </summary>
+    /// <param name="filter">驾驶舱统计周期与排行条数。</param>
+    /// <returns>实际存在状态的取货任务数量。</returns>
+    Task<IReadOnlyList<DashboardPickupStatusReadModel>> GetDashboardPickupStatusesAsync(DashboardFilter filter);
 }

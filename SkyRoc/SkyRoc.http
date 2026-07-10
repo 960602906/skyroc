@@ -3404,3 +3404,33 @@ Accept: {{contentType}}
 GET {{SkyRoc_HostAddress}}/api/reports/purchase-in-out/purchasers?current=1&size=10&dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
+
+### Dashboard - Brief
+GET {{SkyRoc_HostAddress}}/api/dashboard/brief?dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Dashboard - Sales Trend
+GET {{SkyRoc_HostAddress}}/api/dashboard/sales-trend?dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Dashboard - Customer Sales Rank
+GET {{SkyRoc_HostAddress}}/api/dashboard/customer-sales-rank?dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59&rankSize=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Dashboard - Goods Type Sales Rank
+GET {{SkyRoc_HostAddress}}/api/dashboard/goods-type-sales-rank?dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59&rankSize=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Dashboard - Reconciliation
+GET {{SkyRoc_HostAddress}}/api/dashboard/reconciliation?dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Dashboard - Pickup Statuses
+GET {{SkyRoc_HostAddress}}/api/dashboard/pickup-statuses?dateStart=2026-07-01%2000%3A00%3A00&dateEnd=2026-07-31%2023%3A59%3A59
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}

@@ -59,7 +59,8 @@ public static class SwaggerExtensions
         ["InspectionReports"] = "溯源",
         ["TraceRecords"] = "溯源",
         ["ExternalPushLogs"] = "溯源",
-        ["Reports"] = "报表"
+        ["Reports"] = "报表",
+        ["Dashboard"] = "首页驾驶舱"
     };
 
     /// <summary>

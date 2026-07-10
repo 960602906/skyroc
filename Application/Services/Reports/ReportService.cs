@@ -8,7 +8,7 @@ using Shared.Constants;
 namespace Application.Services;
 
 /// <summary>
-/// 销售、售后、库存和采购报表应用服务，负责筛选条件归一化和响应精度收口。
+/// 销售、售后、库存、采购报表与首页驾驶舱应用服务，负责筛选条件归一化和响应精度收口。
 /// </summary>
 public class ReportService(IReportRepository repository) : IReportService
 {
@@ -201,6 +201,89 @@ public class ReportService(IReportRepository repository) : IReportService
         });
     }
 
+    /// <inheritdoc />
+    public async Task<DashboardBriefDto> GetDashboardBriefAsync(DashboardQueryParameters parameters)
+    {
+        var result = await repository.GetDashboardBriefAsync(ToFilter(parameters));
+        return new DashboardBriefDto
+        {
+            SaleAmount = NumericPrecision.RoundMoney(result.SaleAmount),
+            OrderCount = result.OrderCount,
+            CustomerCount = result.CustomerCount
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DashboardSalesTrendDto>> GetDashboardSalesTrendAsync(
+        DashboardQueryParameters parameters)
+    {
+        var result = await repository.GetDashboardSalesTrendAsync(ToFilter(parameters));
+        return result.Select(x => new DashboardSalesTrendDto
+        {
+            ReportDate = DateOnly.FromDateTime(x.ReportDate),
+            SaleAmount = NumericPrecision.RoundMoney(x.SaleAmount),
+            OrderCount = x.OrderCount,
+            CustomerCount = x.CustomerCount
+        }).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DashboardCustomerSalesRankDto>> GetDashboardCustomerSalesRankAsync(
+        DashboardQueryParameters parameters)
+    {
+        var result = await repository.GetDashboardCustomerSalesRankAsync(ToFilter(parameters));
+        return result.Select(x => new DashboardCustomerSalesRankDto
+        {
+            CustomerId = x.CustomerId,
+            CustomerName = x.CustomerName,
+            SaleAmount = NumericPrecision.RoundMoney(x.SaleAmount),
+            OrderCount = x.OrderCount
+        }).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DashboardGoodsTypeSalesRankDto>> GetDashboardGoodsTypeSalesRankAsync(
+        DashboardQueryParameters parameters)
+    {
+        var result = await repository.GetDashboardGoodsTypeSalesRankAsync(ToFilter(parameters));
+        return result.Select(x => new DashboardGoodsTypeSalesRankDto
+        {
+            GoodsTypeName = x.GoodsTypeName,
+            SaleAmount = NumericPrecision.RoundMoney(x.SaleAmount),
+            OrderCount = x.OrderCount
+        }).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<DashboardReconciliationDto> GetDashboardReconciliationAsync(
+        DashboardQueryParameters parameters)
+    {
+        var result = await repository.GetDashboardReconciliationAsync(ToFilter(parameters));
+        return new DashboardReconciliationDto
+        {
+            ReceivableAmount = NumericPrecision.RoundMoney(result.ReceivableAmount),
+            SettledAmount = NumericPrecision.RoundMoney(result.SettledAmount),
+            PendingAmount = NumericPrecision.RoundMoney(result.PendingAmount),
+            BillCount = result.BillCount
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DashboardPickupStatusDto>> GetDashboardPickupStatusesAsync(
+        DashboardQueryParameters parameters)
+    {
+        var rows = await repository.GetDashboardPickupStatusesAsync(ToFilter(parameters));
+        var counts = rows.ToDictionary(x => x.PickupStatus, x => x.TaskCount);
+        return Enum.GetValues<Domain.Entities.AfterSales.PickupTaskStatus>()
+            .OrderBy(x => (int)x)
+            .Select(status => new DashboardPickupStatusDto
+            {
+                PickupStatus = status,
+                TaskCount = counts.GetValueOrDefault(status)
+            })
+            .ToList();
+    }
+
     private static SalesReportFilter ToFilter(SalesReportQueryParameters parameters)
     {
         return new SalesReportFilter
@@ -255,6 +338,16 @@ public class ReportService(IReportRepository repository) : IReportService
             PurchasePattern = parameters.PurchasePattern,
             GoodsIds = NormalizeIds(parameters.GoodsIds),
             Keyword = NormalizeText(parameters.Keyword)
+        };
+    }
+
+    private static DashboardFilter ToFilter(DashboardQueryParameters parameters)
+    {
+        return new DashboardFilter
+        {
+            DateStart = parameters.DateStart,
+            DateEnd = parameters.DateEnd,
+            RankSize = Math.Clamp(parameters.RankSize, 1, 100)
         };
     }
 
