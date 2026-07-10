@@ -55,7 +55,10 @@ public static class SwaggerExtensions
         ["AfterSales"] = "售后",
         ["PickupTasks"] = "售后",
         ["CustomerSettlements"] = "财务",
-        ["SupplierSettlements"] = "财务"
+        ["SupplierSettlements"] = "财务",
+        ["InspectionReports"] = "溯源",
+        ["TraceRecords"] = "溯源",
+        ["ExternalPushLogs"] = "溯源"
     };
 
     /// <summary>

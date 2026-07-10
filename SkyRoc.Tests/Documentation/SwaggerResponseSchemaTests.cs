@@ -220,4 +220,35 @@ public class SwaggerResponseSchemaTests
         Assert.Contains("财务", listOperation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
         Assert.True(listOperation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
     }
+
+    [Fact]
+    public async Task Swagger_DocumentsTraceabilityContractsAndPublicQrCode()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("InspectionReportDto", out _));
+        Assert.True(schemas.TryGetProperty("TraceRecordDto", out _));
+        Assert.True(schemas.TryGetProperty("ExternalPushLogDto", out _));
+        Assert.True(paths.TryGetProperty("/api/traceability/inspection-reports", out _));
+        Assert.True(paths.TryGetProperty("/api/traceability/traces", out _));
+        Assert.True(paths.TryGetProperty("/api/traceability/traces/qr/{traceNo}", out _));
+        Assert.True(paths.TryGetProperty("/api/traceability/push-logs", out _));
+
+        var reportOperation = paths.GetProperty("/api/traceability/inspection-reports").GetProperty("get");
+        Assert.Contains(PermissionCodes.Business.Traceability.Read, reportOperation.GetProperty("description").GetString());
+        Assert.Contains("溯源", reportOperation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+        Assert.True(reportOperation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+
+        var qrOperation = paths.GetProperty("/api/traceability/traces/qr/{traceNo}").GetProperty("get");
+        Assert.False(qrOperation.TryGetProperty("security", out _));
+        Assert.True(qrOperation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+    }
 }

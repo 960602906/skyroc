@@ -3296,3 +3296,61 @@ Content-Type: {{contentType}}
 {
   "remark": "供应商付款流水录入错误，作废后重新结算"
 }
+
+### Traceability - Eligible Purchase Stock-ins
+GET {{SkyRoc_HostAddress}}/api/traceability/inspection-reports/eligible-stock-ins?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+> {% if (response.body.data.records.length > 0) { client.global.set("traceStockInOrderId", response.body.data.records[0].id); } %}
+
+### Traceability - Eligible Purchase Stock-in Details
+GET {{SkyRoc_HostAddress}}/api/traceability/inspection-reports/eligible-stock-ins/{{traceStockInOrderId}}/details
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+> {% if (response.body.data.length > 0) { client.global.set("traceStockInDetailId", response.body.data[0].id); } %}
+
+### Traceability - Create Inspection Report
+POST {{SkyRoc_HostAddress}}/api/traceability/inspection-reports
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "stockInOrderId": "{{traceStockInOrderId}}",
+  "inspectionOrg": "市级农产品质量检测中心",
+  "sampleTime": "2026-07-10 09:00:00",
+  "inspectTime": "2026-07-10 15:00:00",
+  "conclusion": 2,
+  "remark": "采购入库批次抽样检测合格",
+  "goods": [{ "stockInDetailId": "{{traceStockInDetailId}}", "sampleQuantity": 1, "conclusion": 2 }],
+  "attachments": [{ "attachmentType": 1, "fileName": "inspection-report.pdf", "fileUrl": "/uploads/inspection-report.pdf", "fileSize": 1024, "sort": 0 }]
+}
+
+> {% client.global.set("inspectionReportId", response.body.data.id); %}
+
+### Traceability - List Inspection Reports
+GET {{SkyRoc_HostAddress}}/api/traceability/inspection-reports?current=1&size=10
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Traceability - Generate Order Traces
+POST {{SkyRoc_HostAddress}}/api/traceability/traces/sale-orders/{{saleOrderId}}/generate
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+> {% if (response.body.data.length > 0) { client.global.set("traceNo", response.body.data[0].traceNo); } %}
+
+### Traceability - List Traces
+GET {{SkyRoc_HostAddress}}/api/traceability/traces?current=1&size=10&saleOrderId={{saleOrderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Traceability - Public QR Detail
+GET {{SkyRoc_HostAddress}}/api/traceability/traces/qr/{{traceNo}}
+Accept: {{contentType}}
+
+### Traceability - External Push Logs
+GET {{SkyRoc_HostAddress}}/api/traceability/push-logs?current=1&size=10&pushStatus=3
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}

@@ -144,6 +144,18 @@ public static class PermissionCodes
             public const string Update = $"{Resource}:update";
             public const string Delete = $"{Resource}:delete";
         }
+
+        /// <summary>
+        /// 检测报告维护、商品溯源查询和外部报送结果读取权限。
+        /// </summary>
+        public static class Traceability
+        {
+            public const string Resource = "business:traceability";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -208,6 +220,10 @@ public static class PermissionCodes
         Business.Finance.Read,
         Business.Finance.Create,
         Business.Finance.Update,
-        Business.Finance.Delete
+        Business.Finance.Delete,
+        Business.Traceability.Read,
+        Business.Traceability.Create,
+        Business.Traceability.Update,
+        Business.Traceability.Delete
     ];
 }
