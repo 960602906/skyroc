@@ -3549,3 +3549,70 @@ Content-Type: {{contentType}}
 {
   "ids": ["{{orderId}}"]
 }
+
+### System Support - Create Service Period
+POST {{SkyRoc_HostAddress}}/api/system-settings/service-periods
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "午间配送",
+  "startTime": "10:00:00",
+  "endTime": "12:00:00",
+  "sortOrder": 10,
+  "isEnabled": true
+}
+
+> {% client.global.set("servicePeriodId", response.body.data.id); %}
+
+### System Support - Save Mini Program Order Settings
+PUT {{SkyRoc_HostAddress}}/api/system-settings/mini-program-order
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "isEnabled": true,
+  "maxAdvanceOrderDays": 7
+}
+
+### System Support - Save Sorting Weights
+PUT {{SkyRoc_HostAddress}}/api/system-settings/sorting-weights
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "orderTimeWeight": 1.0000,
+  "routeWeight": 0.5000,
+  "customerWeight": 0.2500
+}
+
+### System Support - Create Notice Draft
+POST {{SkyRoc_HostAddress}}/api/notices
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "配送时间调整",
+  "content": "明日午间配送窗口调整为 10:00 至 12:00。"
+}
+
+> {% client.global.set("noticeId", response.body.data.id); %}
+
+### System Support - Publish Notice
+PATCH {{SkyRoc_HostAddress}}/api/notices/{{noticeId}}/status
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "noticeStatus": 1
+}
+
+### System Support - Query Operation Logs
+GET {{SkyRoc_HostAddress}}/api/logs/operations?current=1&size=20&module=notices
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### System Support - Query Login Logs
+GET {{SkyRoc_HostAddress}}/api/logs/logins?current=1&size=20&isSuccess=true
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}

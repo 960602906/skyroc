@@ -139,29 +139,31 @@ flowchart TD
 
 ## 运营设置
 
+SkyRoc 使用日内服务时段、小程序下单开关和三项分拣权重构成运营设置。服务时段的结束时间必须晚于开始时间，不能跨日；小程序最多可提前 30 个自然日下单；分拣权重为最多四位小数的非负相对值。设置均由 `system:operation-setting:*` 权限保护。
+
 服务时间接口：
 
 | 动作 | 方法 | URL |
 | --- | --- | --- |
-| 服务时间列表 | GET | `/business/service/period/list` |
-| 新增服务时间 | POST | `/business/service/period` |
-| 服务时间详情 | GET | `/business/service/period/{id}` |
-| 修改服务时间 | PUT | `/business/service/period` |
-| 删除服务时间 | DELETE | `/business/service/period/{id}` |
+| 服务时间列表 | GET | `/api/system-settings/service-periods?includeDisabled=false` |
+| 服务时间详情 | GET | `/api/system-settings/service-periods/{id}` |
+| 新增服务时间 | POST | `/api/system-settings/service-periods` |
+| 修改服务时间 | PUT | `/api/system-settings/service-periods/{id}` |
+| 删除服务时间 | DELETE | `/api/system-settings/service-periods/{id}` |
 
 小程序下单设置：
 
 | 动作 | 方法 | URL |
 | --- | --- | --- |
-| 查询设置 | GET | `/business/setting/xcxOrder` |
-| 保存设置 | PUT | `/business/setting/xcxOrder/save` |
+| 查询设置 | GET | `/api/system-settings/mini-program-order` |
+| 保存设置 | PUT | `/api/system-settings/mini-program-order` |
 
 分拣权重：
 
 | 动作 | 方法 | URL |
 | --- | --- | --- |
-| 查询分拣权重 | GET | `/business/setting/sortingWeight` |
-| 保存分拣权重 | PUT | `/business/setting/sortingWeight/save` |
+| 查询分拣权重 | GET | `/api/system-settings/sorting-weights` |
+| 保存分拣权重 | PUT | `/api/system-settings/sorting-weights` |
 
 ## 通知和日志
 
@@ -184,18 +186,20 @@ flowchart TD
 
 | 动作 | 方法 | URL |
 | --- | --- | --- |
-| 通知列表 | GET | `/system/notice/list` |
-| 新增通知 | POST | `/system/notice` |
-| 修改通知 | PUT | `/system/notice` |
-| 修改状态 | PUT | `/system/notice/updateStatus` |
-| 删除通知 | DELETE | `/system/notice/{noticeIds}` |
+| 通知列表 | GET | `/api/notices?current=1&size=20&includeDraft=false` |
+| 新增通知草稿 | POST | `/api/notices` |
+| 修改通知内容 | PUT | `/api/notices/{id}` |
+| 发布或撤回 | PATCH | `/api/notices/{id}/status` |
+| 删除通知 | DELETE | `/api/notices/{id}` |
 
 日志接口：
 
 | 动作 | 方法 | URL |
 | --- | --- | --- |
-| 操作日志 | GET | `/monitor/operlog/list` |
-| 登录日志 | GET | `/monitor/logininfor/list` |
+| 操作日志 | GET | `/api/logs/operations` |
+| 登录日志 | GET | `/api/logs/logins` |
+
+公告正文只接受纯文本，拒绝 HTML 标记，前端必须按文本而非 `innerHTML` 渲染。关键写操作（`POST`、`PUT`、`PATCH`、`DELETE`）在认证和授权成功后由中间件记录模块、方法、路径、结果、执行耗时和当前操作人。审计使用独立的 DI/DbContext 作用域写入，绝不会提交原请求因异常遗留的 EF 追踪变更；它只保存已脱敏的查询参数与 HTTP 状态摘要，不读取请求正文或响应正文。密码、令牌和密钥类型参数会被替换为 `***`。登录认证无论成功或失败均写入独立登录日志，失败原因只记录安全摘要，绝不保存密码、访问令牌或刷新令牌；审计写入异常不会改变已确定的认证结果。两个日志接口都是只读的，使用 `system:log:read` 权限。
 
 ## React 重写提示
 

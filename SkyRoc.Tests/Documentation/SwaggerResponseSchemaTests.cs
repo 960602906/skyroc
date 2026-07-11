@@ -454,4 +454,45 @@ public class SwaggerResponseSchemaTests
         Assert.Contains(PermissionCodes.Business.Printing.Read, data.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.Printing.Update, confirm.GetProperty("description").GetString());
     }
+
+    [Fact]
+    public async Task Swagger_DocumentsSystemSupportContracts()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("ServicePeriodDto", out _));
+        Assert.True(schemas.TryGetProperty("NoticeDto", out var noticeSchema));
+        Assert.True(schemas.TryGetProperty("OperationLogDto", out _));
+        Assert.True(schemas.TryGetProperty("LoginLogDto", out _));
+        Assert.Contains("通知", noticeSchema.GetProperty("description").GetString());
+        Assert.True(paths.TryGetProperty("/api/system-settings/service-periods", out _));
+        Assert.True(paths.TryGetProperty("/api/system-settings/mini-program-order", out _));
+        Assert.True(paths.TryGetProperty("/api/system-settings/sorting-weights", out _));
+        Assert.True(paths.TryGetProperty("/api/notices", out _));
+        Assert.True(paths.TryGetProperty("/api/notices/{id}", out _));
+        Assert.True(paths.TryGetProperty("/api/logs/operations", out _));
+        Assert.True(paths.TryGetProperty("/api/logs/logins", out _));
+
+        var settings = paths.GetProperty("/api/system-settings/service-periods").GetProperty("post");
+        var notices = paths.GetProperty("/api/notices").GetProperty("post");
+        var operations = paths.GetProperty("/api/logs/operations").GetProperty("get");
+        foreach (var operation in new[] { settings, notices, operations })
+        {
+            Assert.Contains("系统支撑", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+            Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+        }
+        Assert.Contains(PermissionCodes.System.Operations.Create, settings.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.System.Notices.Create, notices.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.System.Logs.Read, operations.GetProperty("description").GetString());
+    }
 }

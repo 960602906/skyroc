@@ -12,6 +12,7 @@ using Domain.Entities.Printing;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
+using Domain.Entities.System;
 using Domain.Entities.Traceability;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Data.EntityConfigurations;
@@ -441,6 +442,26 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 打印模板字段定义表。
     /// </summary>
     public DbSet<PrintTemplateField> PrintTemplateFields { get; set; }
+
+    /// <summary>
+    /// 运营服务时段表。
+    /// </summary>
+    public DbSet<ServicePeriod> ServicePeriods { get; set; }
+
+    /// <summary>
+    /// 系统运营设置表。
+    /// </summary>
+    public DbSet<SystemSetting> SystemSettings { get; set; }
+
+    /// <summary>
+    /// 系统通知公告表。
+    /// </summary>
+    public DbSet<Notice> Notices { get; set; }
+
+    /// <summary>
+    /// 系统登录审计日志表。
+    /// </summary>
+    public DbSet<LoginLog> LoginLogs { get; set; }
 
     #endregion
 }

@@ -64,7 +64,10 @@ public static class SwaggerExtensions
         ["ImportExportJobs"] = "导入导出",
         ["Files"] = "文件上传",
         ["PrintTemplates"] = "打印",
-        ["PrintData"] = "打印"
+        ["PrintData"] = "打印",
+        ["SystemSettings"] = "系统支撑",
+        ["Notices"] = "系统支撑",
+        ["Logs"] = "系统支撑"
     };
 
     /// <summary>

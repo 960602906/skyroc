@@ -11,6 +11,7 @@ using Domain.Entities.Printing;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
+using Domain.Entities.System;
 using Domain.Entities.Traceability;
 using Microsoft.EntityFrameworkCore;
 
@@ -98,7 +99,11 @@ public static class DatabaseCommentExtensions
         [typeof(ImportExportJob)] = "导入导出任务，记录 CSV 模板、导入或导出的执行状态和结果摘要",
         [typeof(StoredFile)] = "受保护上传文件元数据，记录经签名校验后的文件存储键、类型、大小和创建人",
         [typeof(PrintTemplate)] = "打印模板，保存业务单据可复用的设计器 JSON 和启用状态",
-        [typeof(PrintTemplateField)] = "打印模板字段定义，记录设计器可绑定的数据路径、名称和展示顺序"
+        [typeof(PrintTemplateField)] = "打印模板字段定义，记录设计器可绑定的数据路径、名称和展示顺序",
+        [typeof(ServicePeriod)] = "运营服务时段，维护系统可提供服务或接受下单的日内时间窗口",
+        [typeof(SystemSetting)] = "系统运营设置，以稳定键和值 JSON 保存全局单例配置",
+        [typeof(Notice)] = "通知公告，记录后台发布给系统用户的标题、正文和可见状态",
+        [typeof(LoginLog)] = "登录日志，记录认证成功或失败的安全审计信息且不保存密码或令牌"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -590,7 +595,24 @@ public static class DatabaseCommentExtensions
             [(typeof(StoredFile), nameof(StoredFile.ContentType))] = "由文件签名验证后的 MIME 类型",
             [(typeof(StoredFile), nameof(StoredFile.FileSize))] = "文件实际大小，单位为字节",
             [(typeof(PrintTemplate), nameof(PrintTemplate.BusinessType))] = "打印模板适用的业务单据类型：销售订单、采购单、入库单、出库单、客户结款或供应商结算",
-            [(typeof(PrintTemplate), nameof(PrintTemplate.Name))] = "供管理员在打印模板列表和选择器中识别的模板名称"
+            [(typeof(PrintTemplate), nameof(PrintTemplate.Name))] = "供管理员在打印模板列表和选择器中识别的模板名称",
+            [(typeof(ServicePeriod), nameof(ServicePeriod.Name))] = "运营服务时段名称，同名时段不允许重复",
+            [(typeof(ServicePeriod), nameof(ServicePeriod.StartTime))] = "服务窗口开始的本地业务时刻，精确到秒",
+            [(typeof(ServicePeriod), nameof(ServicePeriod.EndTime))] = "服务窗口结束的本地业务时刻，必须晚于开始时刻",
+            [(typeof(ServicePeriod), nameof(ServicePeriod.SortOrder))] = "服务时段展示和匹配顺序，数值越小越靠前",
+            [(typeof(SystemSetting), nameof(SystemSetting.SettingKey))] = "运营设置稳定键：小程序下单或分拣权重",
+            [(typeof(SystemSetting), nameof(SystemSetting.SettingValue))] = "由对应强类型服务校验后的设置值 JSON",
+            [(typeof(Notice), nameof(Notice.Title))] = "通知公告标题",
+            [(typeof(Notice), nameof(Notice.Content))] = "通知公告纯文本正文，不允许 HTML 标记或脚本",
+            [(typeof(Notice), nameof(Notice.NoticeStatus))] = "公告状态：0 草稿，1 已发布",
+            [(typeof(Notice), nameof(Notice.PublishedTime))] = "最近一次发布公告的时间（UTC），草稿为空",
+            [(typeof(LoginLog), nameof(LoginLog.Username))] = "请求中提交的登录名，失败且用户不存在时仍保留",
+            [(typeof(LoginLog), nameof(LoginLog.UserId))] = "成功或已匹配失败登录对应的系统用户主键",
+            [(typeof(LoginLog), nameof(LoginLog.IsSuccess))] = "登录验证是否成功",
+            [(typeof(LoginLog), nameof(LoginLog.FailureReason))] = "失败原因安全摘要，不得包含密码或令牌",
+            [(typeof(LoginLog), nameof(LoginLog.IpAddress))] = "请求来源 IP 地址",
+            [(typeof(LoginLog), nameof(LoginLog.UserAgent))] = "客户端 User-Agent 摘要",
+            [(typeof(LoginLog), nameof(LoginLog.LoginTime))] = "登录校验完成时间（UTC）"
         };
 
     /// <summary>

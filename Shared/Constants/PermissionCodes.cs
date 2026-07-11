@@ -63,6 +63,33 @@ public static class PermissionCodes
             public const string Update = $"{Resource}:update";
             public const string Delete = $"{Resource}:delete";
         }
+
+        /// <summary>运营服务时段、小程序下单和分拣权重设置维护权限。</summary>
+        public static class Operations
+        {
+            public const string Resource = "system:operation-setting";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
+
+        /// <summary>通知公告的草稿、发布和删除维护权限。</summary>
+        public static class Notices
+        {
+            public const string Resource = "system:notice";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
+
+        /// <summary>操作和登录安全审计日志的只读查询权限。</summary>
+        public static class Logs
+        {
+            public const string Resource = "system:log";
+            public const string Read = $"{Resource}:read";
+        }
     }
 
     public static class Business
@@ -237,6 +264,15 @@ public static class PermissionCodes
         System.PrintTemplates.Create,
         System.PrintTemplates.Update,
         System.PrintTemplates.Delete,
+        System.Operations.Read,
+        System.Operations.Create,
+        System.Operations.Update,
+        System.Operations.Delete,
+        System.Notices.Read,
+        System.Notices.Create,
+        System.Notices.Update,
+        System.Notices.Delete,
+        System.Logs.Read,
         Business.Goods.Read,
         Business.Goods.Create,
         Business.Goods.Update,

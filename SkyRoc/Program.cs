@@ -7,6 +7,7 @@ using Infrastructure.Data;
 using Microsoft.Extensions.Options;
 using Shared.Common;
 using SkyRoc.Extensions;
+using SkyRoc.Middleware;
 using SkyRoc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -104,6 +105,8 @@ app.UseRouting();
 app.UseAuthentication();
 //  使用授权中间件
 app.UseAuthorization();
+// 记录已通过认证和授权的关键写操作；失败不影响原业务响应。
+app.UseMiddleware<OperationAuditMiddleware>();
 // 使用控制器路由
 app.MapControllers();
 // 健康检查端点

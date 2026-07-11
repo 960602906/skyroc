@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.Auth;
 using Application.Exceptions;
 using Application.interfaces;
+using Application.interfaces.System;
 using AutoMapper;
 using Domain.Interfaces;
 using Microsoft.Extensions.Options;
@@ -19,6 +20,7 @@ public class AuthService(
     IMapper mapper,
     IJwtService jwtService,
     ICurrentUserService currentUserService,
+    ILoginAuditService loginAuditService,
     IOptions<JwtSettings> jwtSettings)
     : IAuthService
 {
@@ -28,9 +30,17 @@ public class AuthService(
     public async Task<LoginResDto?> LoginAsync(LoginReqDto request)
     {
         var user = await userRepository.FindByUsernameAsync(request.Username);
-        if (user == null) throw new NotFoundException("用户不存在");
+        if (user == null)
+        {
+            await TryRecordLoginAuditAsync(request.Username, null, false, "用户不存在或密码错误");
+            throw new NotFoundException("用户不存在");
+        }
 
-        if (!PasswordHasher.Verify(user.PasswordHash, request.Password)) throw new BusinessException("密码错误");
+        if (!PasswordHasher.Verify(user.PasswordHash, request.Password))
+        {
+            await TryRecordLoginAuditAsync(request.Username, user.Id, false, "用户不存在或密码错误");
+            throw new BusinessException("密码错误");
+        }
 
         var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
         var roleList = roles.ToList();
@@ -61,6 +71,8 @@ public class AuthService(
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.Add(refreshExpire)
         }, refreshExpire);
+
+        await TryRecordLoginAuditAsync(request.Username, user.Id, true, null);
 
         return new LoginResDto
         {
@@ -180,5 +192,17 @@ public class AuthService(
             .Distinct(StringComparer.Ordinal)
             .OrderBy(code => code, StringComparer.Ordinal)
             .ToList();
+    }
+
+    private async Task TryRecordLoginAuditAsync(string username, Guid? userId, bool isSuccess, string? failureReason)
+    {
+        try
+        {
+            await loginAuditService.RecordAsync(username, userId, isSuccess, failureReason);
+        }
+        catch
+        {
+            // 审计故障不得改变认证结果，避免已签发令牌却向客户端返回失败。
+        }
     }
 }
