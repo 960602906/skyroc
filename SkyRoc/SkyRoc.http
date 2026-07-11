@@ -3608,11 +3608,11 @@ Content-Type: {{contentType}}
 }
 
 ### System Support - Query Operation Logs
-GET {{SkyRoc_HostAddress}}/api/logs/operations?current=1&size=20&module=notices
+GET {{SkyRoc_HostAddress}}/api/logs/operations?current=1&size=20&module=notices&keyword=delivery
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### System Support - Query Login Logs
-GET {{SkyRoc_HostAddress}}/api/logs/logins?current=1&size=20&isSuccess=true
+GET {{SkyRoc_HostAddress}}/api/logs/logins?current=1&size=20&isSuccess=true&keyword=admin
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}

@@ -5,6 +5,7 @@ using Application.Exceptions;
 using Application.interfaces;
 using Application.interfaces.System;
 using Application.QueryParameters.System;
+using AutoMapper;
 using Domain.Entities;
 using Domain.Entities.System;
 using Domain.Interfaces;
@@ -21,7 +22,8 @@ public class SystemSupportService(
     IOperationLogRepository operationLogRepository,
     ILoginLogRepository loginLogRepository,
     IUnitOfWork unitOfWork,
-    ICurrentUserService currentUserService) : ISystemSupportService
+    ICurrentUserService currentUserService,
+    IMapper mapper) : ISystemSupportService
 {
     private const int MaxNoticeContentLength = 20_000;
 
@@ -31,14 +33,15 @@ public class SystemSupportService(
         var periods = includeDisabled
             ? await servicePeriodRepository.GetAllAsync()
             : await servicePeriodRepository.FindAsync(x => x.Status == Status.Enable);
-        return periods.OrderBy(x => x.SortOrder).ThenBy(x => x.Name, StringComparer.Ordinal).Select(Map).ToList();
+        return mapper.Map<List<ServicePeriodDto>>(
+            periods.OrderBy(x => x.SortOrder).ThenBy(x => x.Name, StringComparer.Ordinal));
     }
 
     /// <inheritdoc />
     public async Task<ServicePeriodDto> GetServicePeriodAsync(Guid id)
     {
         var entity = await GetServicePeriodEntityAsync(id);
-        return Map(entity);
+        return mapper.Map<ServicePeriodDto>(entity);
     }
 
     /// <inheritdoc />
@@ -52,13 +55,18 @@ public class SystemSupportService(
 
         var period = new ServicePeriod
         {
-            Id = Guid.NewGuid(), Name = snapshot.Name, StartTime = snapshot.StartTime, EndTime = snapshot.EndTime,
-            SortOrder = snapshot.SortOrder, Status = snapshot.IsEnabled ? Status.Enable : Status.Disable,
-            CreateBy = currentUserService.GetUserId(), CreateName = currentUserService.GetUserName()
+            Id = Guid.NewGuid(),
+            Name = snapshot.Name,
+            StartTime = snapshot.StartTime,
+            EndTime = snapshot.EndTime,
+            SortOrder = snapshot.SortOrder,
+            Status = snapshot.IsEnabled ? Status.Enable : Status.Disable,
+            CreateBy = currentUserService.GetUserId(),
+            CreateName = currentUserService.GetUserName()
         };
         await servicePeriodRepository.AddAsync(period);
         await SaveWithUniqueConstraintAsync("服务时段名称已存在");
-        return Map(period);
+        return mapper.Map<ServicePeriodDto>(period);
     }
 
     /// <inheritdoc />
@@ -79,7 +87,7 @@ public class SystemSupportService(
         ApplyUpdateAudit(period);
         await servicePeriodRepository.UpdateAsync(period);
         await SaveWithUniqueConstraintAsync("服务时段名称已存在");
-        return Map(period);
+        return mapper.Map<ServicePeriodDto>(period);
     }
 
     /// <inheritdoc />
@@ -128,7 +136,7 @@ public class SystemSupportService(
         EnsurePage(current, size);
         Expression<Func<Notice, bool>>? predicate = includeDraft ? null : x => x.NoticeStatus == NoticeStatus.Published;
         var (data, total) = await noticeRepository.GetPagedAsync(predicate, current, size, x => x.CreateTime!, true);
-        return CreatePage(data.Select(Map).ToList(), total, current, size);
+        return CreatePage(mapper.Map<List<NoticeDto>>(data), total, current, size);
     }
 
     /// <inheritdoc />
@@ -137,12 +145,17 @@ public class SystemSupportService(
         var snapshot = ValidateNotice(dto);
         var entity = new Notice
         {
-            Id = Guid.NewGuid(), Title = snapshot.Title, Content = snapshot.Content, NoticeStatus = NoticeStatus.Draft,
-            Status = Status.Enable, CreateBy = currentUserService.GetUserId(), CreateName = currentUserService.GetUserName()
+            Id = Guid.NewGuid(),
+            Title = snapshot.Title,
+            Content = snapshot.Content,
+            NoticeStatus = NoticeStatus.Draft,
+            Status = Status.Enable,
+            CreateBy = currentUserService.GetUserId(),
+            CreateName = currentUserService.GetUserName()
         };
         await noticeRepository.AddAsync(entity);
         await unitOfWork.SaveChangesAsync();
-        return Map(entity);
+        return mapper.Map<NoticeDto>(entity);
     }
 
     /// <inheritdoc />
@@ -155,7 +168,7 @@ public class SystemSupportService(
         ApplyUpdateAudit(entity);
         await noticeRepository.UpdateAsync(entity);
         await unitOfWork.SaveChangesAsync();
-        return Map(entity);
+        return mapper.Map<NoticeDto>(entity);
     }
 
     /// <inheritdoc />
@@ -168,7 +181,7 @@ public class SystemSupportService(
         ApplyUpdateAudit(entity);
         await noticeRepository.UpdateAsync(entity);
         await unitOfWork.SaveChangesAsync();
-        return Map(entity);
+        return mapper.Map<NoticeDto>(entity);
     }
 
     /// <inheritdoc />
@@ -183,14 +196,20 @@ public class SystemSupportService(
     {
         ArgumentNullException.ThrowIfNull(query);
         ValidateTimeRange(query.StartTime, query.EndTime);
+        var keyword = Normalize(query.Keyword)?.ToLowerInvariant();
         var module = Normalize(query.Module);
         var operationType = Normalize(query.OperationType);
         var (data, total) = await operationLogRepository.GetPagedAsync(x =>
             (module == null || x.Module == module) && (operationType == null || x.OperationType == operationType) &&
+            (keyword == null || x.Desc.ToLower().Contains(keyword) || x.Url.ToLower().Contains(keyword) ||
+             (x.RequestParams != null && x.RequestParams.ToLower().Contains(keyword)) ||
+             (x.ResponseResult != null && x.ResponseResult.ToLower().Contains(keyword)) ||
+             (x.ErrorMessage != null && x.ErrorMessage.ToLower().Contains(keyword)) ||
+             (x.CreateName != null && x.CreateName.ToLower().Contains(keyword))) &&
             (!query.IsSuccess.HasValue || x.IsSuccess == query.IsSuccess) &&
             (!query.StartTime.HasValue || x.CreateTime >= query.StartTime) && (!query.EndTime.HasValue || x.CreateTime <= query.EndTime),
             query.Current, query.Size, x => x.CreateTime ?? DateTime.MinValue, true);
-        return CreatePage(data.Select(Map).ToList(), total, query.Current, query.Size);
+        return CreatePage(mapper.Map<List<OperationLogDto>>(data), total, query.Current, query.Size);
     }
 
     /// <inheritdoc />
@@ -198,12 +217,18 @@ public class SystemSupportService(
     {
         ArgumentNullException.ThrowIfNull(query);
         ValidateTimeRange(query.StartTime, query.EndTime);
-        var username = Normalize(query.Username);
+        var keyword = Normalize(query.Keyword)?.ToLowerInvariant();
+        var username = Normalize(query.Username)?.ToLowerInvariant();
         var (data, total) = await loginLogRepository.GetPagedAsync(x =>
-            (username == null || x.Username.Contains(username)) && (!query.IsSuccess.HasValue || x.IsSuccess == query.IsSuccess) &&
+            (username == null || x.Username.ToLower().Contains(username)) &&
+            (keyword == null || x.Username.ToLower().Contains(keyword) ||
+             (x.FailureReason != null && x.FailureReason.ToLower().Contains(keyword)) ||
+             x.IpAddress.ToLower().Contains(keyword) ||
+             (x.UserAgent != null && x.UserAgent.ToLower().Contains(keyword))) &&
+            (!query.IsSuccess.HasValue || x.IsSuccess == query.IsSuccess) &&
             (!query.StartTime.HasValue || x.LoginTime >= query.StartTime) && (!query.EndTime.HasValue || x.LoginTime <= query.EndTime),
             query.Current, query.Size, x => x.LoginTime, true);
-        return CreatePage(data.Select(Map).ToList(), total, query.Current, query.Size);
+        return CreatePage(mapper.Map<List<LoginLogDto>>(data), total, query.Current, query.Size);
     }
 
     private async Task<T> GetSettingAsync<T>(SystemSettingKey key, T defaultValue) where T : class
@@ -269,10 +294,6 @@ public class SystemSupportService(
         catch (Exception exception) when (exception.GetType().Name == "DbUpdateException") { throw new BusinessException(message); }
     }
     private static PagedResult<T> CreatePage<T>(List<T> records, int total, int current, int size) => new() { Records = records, Total = total, Current = current, Size = size };
-    private static ServicePeriodDto Map(ServicePeriod x) => new() { Id = x.Id, Name = x.Name, StartTime = x.StartTime, EndTime = x.EndTime, SortOrder = x.SortOrder, Status = x.Status, CreateTime = x.CreateTime, CreateBy = x.CreateBy, CreateName = x.CreateName, UpdateTime = x.UpdateTime, UpdateBy = x.UpdateBy, UpdateName = x.UpdateName };
-    private static NoticeDto Map(Notice x) => new() { Id = x.Id, Title = x.Title, Content = x.Content, NoticeStatus = x.NoticeStatus, PublishedTime = x.PublishedTime, Status = x.Status, CreateTime = x.CreateTime, CreateBy = x.CreateBy, CreateName = x.CreateName, UpdateTime = x.UpdateTime, UpdateBy = x.UpdateBy, UpdateName = x.UpdateName };
-    private static OperationLogDto Map(OperationLog x) => new() { Id = x.Id, Module = x.Module, OperationType = x.OperationType, Desc = x.Desc, Method = x.Method, Url = x.Url, RequestParams = x.RequestParams, ResponseResult = x.ResponseResult, IpAddress = x.IpAddress, ExecutionDuration = x.ExecutionDuration, IsSuccess = x.IsSuccess, ErrorMessage = x.ErrorMessage, CreateTime = x.CreateTime, CreateBy = x.CreateBy, CreateName = x.CreateName };
-    private static LoginLogDto Map(LoginLog x) => new() { Id = x.Id, Username = x.Username, UserId = x.UserId, IsSuccess = x.IsSuccess, FailureReason = x.FailureReason, IpAddress = x.IpAddress, UserAgent = x.UserAgent, LoginTime = x.LoginTime, CreateTime = x.CreateTime };
     private sealed record ServicePeriodSnapshot(string Name, TimeOnly StartTime, TimeOnly EndTime, int SortOrder, bool IsEnabled);
     private sealed record NoticeSnapshot(string Title, string Content);
 }

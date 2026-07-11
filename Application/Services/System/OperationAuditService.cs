@@ -19,18 +19,24 @@ public class OperationAuditService(
         ArgumentNullException.ThrowIfNull(entry);
         var entity = new OperationLog
         {
-            Id = Guid.NewGuid(), Module = Limit(entry.Module, 64), OperationType = Limit(entry.OperationType, 64),
-            Desc = Limit(entry.Description, 512), Method = Limit(entry.Method, 10), Url = Limit(entry.Url, 512),
-            RequestParams = LimitNullable(entry.RequestSummary, 4_000), ResponseResult = LimitNullable(entry.ResponseSummary, 1_000),
-            IpAddress = Limit(entry.IpAddress, 50), Browser = LimitNullable(entry.UserAgent, 255),
-            ExecutionDuration = Math.Max(0, entry.ExecutionDuration), IsSuccess = entry.IsSuccess,
-            ErrorMessage = LimitNullable(entry.ErrorMessage, 1_000), Status = Status.Enable,
-            CreateBy = currentUserService.GetUserId(), CreateName = currentUserService.GetUserName()
+            Id = Guid.NewGuid(),
+            Module = AuditTextSanitizer.Required(entry.Module, 64, "未知"),
+            OperationType = AuditTextSanitizer.Required(entry.OperationType, 64, "未知"),
+            Desc = AuditTextSanitizer.Required(entry.Description, 512, "未知"),
+            Method = AuditTextSanitizer.Required(entry.Method, 10, "未知"),
+            Url = AuditTextSanitizer.Required(entry.Url, 512, "未知"),
+            RequestParams = AuditTextSanitizer.Optional(entry.RequestSummary, 4_000),
+            ResponseResult = AuditTextSanitizer.Optional(entry.ResponseSummary, 1_000),
+            IpAddress = AuditTextSanitizer.Required(entry.IpAddress, 50, "未知"),
+            Browser = AuditTextSanitizer.Optional(entry.UserAgent, 255),
+            ExecutionDuration = Math.Max(0, entry.ExecutionDuration),
+            IsSuccess = entry.IsSuccess,
+            ErrorMessage = AuditTextSanitizer.Optional(entry.ErrorMessage, 1_000),
+            Status = Status.Enable,
+            CreateBy = currentUserService.GetUserId(),
+            CreateName = currentUserService.GetUserName()
         };
         await operationLogRepository.AddAsync(entity);
         await unitOfWork.SaveChangesAsync();
     }
-
-    private static string Limit(string value, int maxLength) => string.IsNullOrWhiteSpace(value) ? "未知" : value.Trim()[..Math.Min(value.Trim().Length, maxLength)];
-    private static string? LimitNullable(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) ? null : value.Trim()[..Math.Min(value.Trim().Length, maxLength)];
 }

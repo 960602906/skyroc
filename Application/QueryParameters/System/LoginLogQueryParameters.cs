@@ -3,6 +3,8 @@ namespace Application.QueryParameters.System;
 /// <summary>登录审计日志分页筛选条件。</summary>
 public class LoginLogQueryParameters : PagedQueryParameters
 {
+    /// <summary>内容关键字，不区分大小写匹配登录名、失败摘要、IP 和 User-Agent。</summary>
+    public string? Keyword { get; set; }
     /// <summary>登录名关键字，按不区分大小写的包含关系筛选。</summary>
     public string? Username { get; set; }
     /// <summary>按登录成功或失败筛选。</summary>

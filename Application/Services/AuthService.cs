@@ -29,58 +29,70 @@ public class AuthService(
     /// <inheritdoc />
     public async Task<LoginResDto?> LoginAsync(LoginReqDto request)
     {
-        var user = await userRepository.FindByUsernameAsync(request.Username);
-        if (user == null)
+        ArgumentNullException.ThrowIfNull(request);
+        Guid? auditUserId = null;
+        var isSuccess = false;
+        string? failureReason = "登录处理失败";
+        try
         {
-            await TryRecordLoginAuditAsync(request.Username, null, false, "用户不存在或密码错误");
-            throw new NotFoundException("用户不存在");
+            var user = await userRepository.FindByUsernameAsync(request.Username);
+            if (user == null)
+            {
+                failureReason = "用户不存在或密码错误";
+                throw new NotFoundException("用户不存在");
+            }
+
+            auditUserId = user.Id;
+            if (!PasswordHasher.Verify(user.PasswordHash, request.Password))
+            {
+                failureReason = "用户不存在或密码错误";
+                throw new BusinessException("密码错误");
+            }
+
+            var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
+            var roleList = roles.ToList();
+            var roleCodes = roleList.Select(r => r.Code).ToList();
+            var currentRoleId = roleList.FirstOrDefault()?.Id.ToString();
+            var permissionCodes = await GetPermissionCodesAsync(roleList);
+
+            var access = jwtService.GenerateAccessToken(user, roleCodes, permissionCodes, currentRoleId);
+            var refreshToken = jwtService.GenerateRefreshToken();
+            var refreshExpire = TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
+
+            await tokenCache.SaveAccessTokenAsync(new AccessTokenCacheDto
+            {
+                UserId = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                Roles = roleCodes.ToArray(),
+                Permissions = permissionCodes.ToArray(),
+                Jti = access.Jti,
+                LoginTime = DateTime.UtcNow,
+                ExpiresAt = access.ExpiresAt
+            }, TimeSpan.FromMinutes(_jwtSettings.ExpirationMinutes));
+
+            await tokenCache.SaveRefreshTokenAsync(new RefreshTokenCacheDto
+            {
+                UserId = user.Id,
+                Token = refreshToken,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.Add(refreshExpire)
+            }, refreshExpire);
+
+            isSuccess = true;
+            failureReason = null;
+            return new LoginResDto
+            {
+                Token = access.Token,
+                RefreshToken = refreshToken,
+                TokenType = AuthConstants.BearerScheme,
+                ExpiresIn = _jwtSettings.ExpirationMinutes * 60
+            };
         }
-
-        if (!PasswordHasher.Verify(user.PasswordHash, request.Password))
+        finally
         {
-            await TryRecordLoginAuditAsync(request.Username, user.Id, false, "用户不存在或密码错误");
-            throw new BusinessException("密码错误");
+            await TryRecordLoginAuditAsync(request.Username, auditUserId, isSuccess, failureReason);
         }
-
-        var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
-        var roleList = roles.ToList();
-        var roleCodes = roleList.Select(r => r.Code).ToList();
-        var currentRoleId = roleList.FirstOrDefault()?.Id.ToString();
-        var permissionCodes = await GetPermissionCodesAsync(roleList);
-
-        var access = jwtService.GenerateAccessToken(user, roleCodes, permissionCodes, currentRoleId);
-        var refreshToken = jwtService.GenerateRefreshToken();
-        var refreshExpire = TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
-
-        await tokenCache.SaveAccessTokenAsync(new AccessTokenCacheDto
-        {
-            UserId = user.Id,
-            Username = user.Username,
-            Email = user.Email,
-            Roles = roleCodes.ToArray(),
-            Permissions = permissionCodes.ToArray(),
-            Jti = access.Jti,
-            LoginTime = DateTime.UtcNow,
-            ExpiresAt = access.ExpiresAt
-        }, TimeSpan.FromMinutes(_jwtSettings.ExpirationMinutes));
-
-        await tokenCache.SaveRefreshTokenAsync(new RefreshTokenCacheDto
-        {
-            UserId = user.Id,
-            Token = refreshToken,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.Add(refreshExpire)
-        }, refreshExpire);
-
-        await TryRecordLoginAuditAsync(request.Username, user.Id, true, null);
-
-        return new LoginResDto
-        {
-            Token = access.Token,
-            RefreshToken = refreshToken,
-            TokenType = AuthConstants.BearerScheme,
-            ExpiresIn = _jwtSettings.ExpirationMinutes * 60
-        };
     }
 
     /// <summary>

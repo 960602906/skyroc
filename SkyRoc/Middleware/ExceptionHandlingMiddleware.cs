@@ -38,6 +38,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         }
 
         context.Response.Clear();
+        context.Response.StatusCode = ExceptionHttpStatusMapper.GetStatusCode(exception);
         context.Response.ContentType = "application/json; charset=utf-8";
         var response = CreateErrorResponse(exception);
         // 返回JSON响应
