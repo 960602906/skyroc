@@ -107,12 +107,12 @@ public class UpdateMenuDto
     ///     父级菜单ID
     /// </summary>
     public Guid? ParentId { get; set; }
-    
+
     /// <summary>
     ///  菜单按钮权限
     /// </summary>
     public List<CreateMenuButtonDto>? Buttons { get; set; }
-    
+
     /// <summary>
     ///     状态
     /// </summary>

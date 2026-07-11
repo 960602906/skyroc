@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Application.Validator.Department;
 
-public class CreateDepartmentValidator:AbstractValidator<CreateDepartmentDto>
+public class CreateDepartmentValidator : AbstractValidator<CreateDepartmentDto>
 {
     public CreateDepartmentValidator()
     {

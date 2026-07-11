@@ -4,9 +4,9 @@ using Domain.Entities;
 
 namespace Application.Mappers;
 
-public class DepartmentMappingProfile: Profile
+public class DepartmentMappingProfile : Profile
 {
-    public  DepartmentMappingProfile()
+    public DepartmentMappingProfile()
     {
         CreateMap<Department, DepartmentDto>();
         CreateMap<Department, DepartmentTreeDto>()

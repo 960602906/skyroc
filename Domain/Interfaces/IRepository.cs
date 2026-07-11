@@ -30,7 +30,7 @@ public interface IRepository<TEntity>
     ///     获取所有实体 
     /// </summary>
     Task<IEnumerable<TEntity>> GetAllAsync();
-    
+
     /// <summary>
     ///     条件查询
     /// </summary>

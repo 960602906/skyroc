@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Application.Validator.MenuButton;
 
-public class CreateMenuButtonValidator:AbstractValidator<CreateMenuButtonDto>
+public class CreateMenuButtonValidator : AbstractValidator<CreateMenuButtonDto>
 {
     public CreateMenuButtonValidator()
     {

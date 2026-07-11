@@ -14,6 +14,7 @@ internal sealed class SwaggerDocumentationWebApplicationFactory : WebApplication
         builder.UseSetting(
             "ConnectionStrings:DefaultConnection",
             "Host=localhost;Database=skyroc_tests;Username=test;Password=test");
+        builder.UseSetting("JwtSettings:SecretKey", "test-only-secret-key-with-at-least-32-bytes");
         builder.UseSetting("Redis:Enabled", "false");
     }
 }

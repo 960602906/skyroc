@@ -6,7 +6,7 @@ namespace Infrastructure.Data.EntityConfigurations;
 /// <summary>
 ///  部门配置
 /// </summary>
-public class DepartmentConfiguration:IEntityTypeConfiguration<Department>
+public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 {
     public void Configure(EntityTypeBuilder<Department> builder)
     {
@@ -78,18 +78,18 @@ public class DepartmentConfiguration:IEntityTypeConfiguration<Department>
             .HasColumnName("status")
             .HasColumnType("integer")
             .IsRequired();
-        
+
         // 唯一索引
         builder.HasIndex(x => x.Code)
             .IsUnique()
             .HasDatabaseName("idx_department_code");
-        
+
         // 外键：负责人
         builder.HasOne(x => x.Leader)
             .WithMany()
             .HasForeignKey(x => x.LeaderId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         // 自引用：父级部门
         builder.HasOne<Department>()
             .WithMany()

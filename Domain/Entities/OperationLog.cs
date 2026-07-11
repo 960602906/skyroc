@@ -2,7 +2,7 @@
 /// <summary>
 ///  操作日志实体
 /// </summary>
-public class OperationLog:BaseEntity
+public class OperationLog : BaseEntity
 {
     /// <summary>
     /// 操作模块（如：user, role, menu）
@@ -60,5 +60,5 @@ public class OperationLog:BaseEntity
     /// 错误信息
     /// </summary>
     public string? ErrorMessage { get; set; }
-   
+
 }

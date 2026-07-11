@@ -78,8 +78,11 @@ public class PrintServiceTests
         var service = CreateService(context);
         await service.CreateTemplateAsync(new CreatePrintTemplateDto
         {
-            TemplateCode = "DISABLED_TEMPLATE", Name = "停用模板", BusinessType = PrintBusinessType.SaleOrder,
-            DesignJson = "{}", IsEnabled = false
+            TemplateCode = "DISABLED_TEMPLATE",
+            Name = "停用模板",
+            BusinessType = PrintBusinessType.SaleOrder,
+            DesignJson = "{}",
+            IsEnabled = false
         });
 
         await Assert.ThrowsAsync<NotFoundException>(() => service.GetTemplateByCodeAsync("DISABLED_TEMPLATE"));
@@ -133,8 +136,11 @@ public class PrintServiceTests
         var service = CreateService(context);
         var exception = await Assert.ThrowsAsync<BusinessException>(() => service.CreateTemplateAsync(new CreatePrintTemplateDto
         {
-            TemplateCode = "INVALID_TEMPLATE", Name = new string('名', 101), BusinessType = PrintBusinessType.SaleOrder,
-            DesignJson = "{}", Fields = [new PrintTemplateFieldInputDto { FieldKey = "details[].goodsName", DisplayName = "错误字段", DisplayOrder = 0 }]
+            TemplateCode = "INVALID_TEMPLATE",
+            Name = new string('名', 101),
+            BusinessType = PrintBusinessType.SaleOrder,
+            DesignJson = "{}",
+            Fields = [new PrintTemplateFieldInputDto { FieldKey = "details[].goodsName", DisplayName = "错误字段", DisplayOrder = 0 }]
         }));
 
         Assert.Contains("模板名称长度", exception.Message);

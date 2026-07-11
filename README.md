@@ -1,255 +1,135 @@
 # SkyRoc
 
-`SkyRoc` 是一个基于 `.NET 9` 的生鲜供应链后台项目。第一阶段认证、系统权限与基础资料，第二阶段订单、采购、库存、配送和签收主链路，以及第三阶段售后与财务主链路均已完成，当前进入第四阶段查询与支撑能力开发。
+`SkyRoc` 是一个基于 .NET 9 和 PostgreSQL 的生鲜供应链 Web API，采用 Clean Architecture 分层。系统已覆盖认证授权、基础资料、订单、采购、库存、配送、售后、财务、溯源、报表、导入导出、安全文件、打印和运营支撑能力。
 
-当前项目采用分层架构，已经具备本地启动、默认种子初始化、Redis Token 缓存、Redis 运行时内存降级、Swagger 调试、HTTP 联调脚本和最小回归测试。
+P1 至 P4 的计划任务已全部完成；业务流程、Swagger、HTTP 示例、部署配置、格式和全量测试均已完成收口核对。
 
 ## 技术栈
 
-- `.NET 9`
-- `ASP.NET Core Web API`
-- `Entity Framework Core`
-- `PostgreSQL`
-- `Redis`
-- `JWT Bearer Authentication`
-- `FluentValidation`
-- `AutoMapper`
-- `xUnit`
+- .NET 9 / C# 13
+- ASP.NET Core Web API / Swashbuckle
+- Entity Framework Core 9 / PostgreSQL
+- Redis（不可用时可在单实例内降级为内存缓存）
+- JWT Bearer / 资源操作权限
+- FluentValidation / AutoMapper
+- xUnit / `WebApplicationFactory<Program>`
 
 ## 项目结构
 
-- [SkyRoc](./SkyRoc/): Web API 启动项目，包含控制器、中间件、启动配置和 HTTP 联调脚本
-- [Application](./Application/): 应用层，包含 DTO、业务服务、校验器、映射配置和异常定义
-- [Domain](./Domain/): 领域层，包含实体和仓储接口
-- [Infrastructure](./Infrastructure/): 基础设施层，包含 EF Core、仓储实现、事务、缓存、数据库种子和迁移
-- [Shared](./Shared/): 共享层，包含公共常量、通用响应模型、配置模型和工具类
-- [SkyRoc.Tests](./SkyRoc.Tests/): xUnit 测试，覆盖映射、缓存、授权、业务服务、完整主链路 API 集成、序列化和 Swagger 契约
+- [SkyRoc](./SkyRoc/)：Web API 入口、控制器、中间件、配置和 HTTP 示例
+- [Application](./Application/)：DTO、验证器、映射和应用服务
+- [Domain](./Domain/)：领域实体和仓储接口
+- [Infrastructure](./Infrastructure/)：EF Core、仓储、迁移、缓存和种子数据
+- [Shared](./Shared/)：公共常量、响应模型、选项和工具
+- [SkyRoc.Tests](./SkyRoc.Tests/)：单元、契约和真实 HTTP 集成测试
 
 ## 业务模块与开发进度
 
-**P1 系统权限与基础资料、P2 订单主链路、P3 售后与财务已经完成；P4 当前完成至 P4-09 系统支撑。** 第四阶段已交付溯源、销售/售后/库存/采购报表、首页驾驶舱、CSV 导入导出、安全文件上传、打印模板与业务打印数据，以及运营服务时段、小程序下单/分拣权重设置、通知公告和操作/登录安全审计查询。
-
 | 阶段 | 状态 | 范围 |
 | --- | --- | --- |
-| P1 系统权限与基础资料 | 已完成 | 认证、系统权限、基础资料、定价、回归测试与 API 契约 |
-| P2 订单主链路 | 已完成 | 订单、采购、入出库、库存查询、配送、签收回单和完整链路联调 |
-| P3 售后与财务 | 已完成 | 售后流程、客户账单/结款、供应商待结单据/结算单和第三阶段完整链路联调 |
-| P4 查询与支撑 | 进行中 | 已完成至 P4-09 系统支撑；剩余 P4-10 全项目收口 |
+| P1 系统权限与基础资料 | 已完成 | 认证、权限、基础资料、定价和第一阶段契约 |
+| P2 订单主链路 | 已完成 | 订单、采购、库存、配送、签收回单和完整链路联调 |
+| P3 售后与财务 | 已完成 | 售后、客户账单/结款、供应商结算和完整链路联调 |
+| P4 查询与支撑 | 已完成 | 溯源、报表、驾驶舱、导入导出、文件、打印、系统支撑与全项目收口 |
 
-完整模块状态见 [业务模块与开发进度](./docs/开发进度.md)，逐项交付物和验收条件见 [自动开发任务清单](./docs/自动开发任务清单.md)。每次开发只完成清单中第一个未勾选任务，验收通过后再推进断点。
+完整状态见 [开发进度](./docs/开发进度.md)，验收顺序见 [自动开发任务清单](./docs/自动开发任务清单.md)，业务口径见 [业务流程文档](./docs/business-flows/00-global.md)。
 
 ## 核心能力
 
-- 用户登录、刷新令牌、注销
-- 当前用户信息获取
-- 基于角色的动态路由返回
-- 基于稳定权限编码和 JWT 权限声明的授权策略
-- 用户管理
-- 角色管理
-- 菜单管理
-- 菜单按钮管理
-- 部门管理
-- 当前用户资料查询、更新和修改密码
-- 商品分类、商品档案和商品单位
-- 公司、客户、客户标签和子账号
-- 供应商、采购员和仓库基础资料
-- 报价单、报价商品、客户协议价和采购规则
-- 销售订单分页、详情、创建、编辑、删除和审核状态流转
-- 采购计划查询、生成、供应商/采购员分配、合并和拆分
-- 采购单 CRUD、完成/取消状态流转及计划来源追溯
-- 采购、其他、销售退货入库及审核/反审核
-- 销售、采购退货、其他出库及审核/反审核
-- 库存批次、只追加流水、盘点、库存总览、批次和台账查询
-- 承运商、司机、配送路线、配送任务和异常处理
-- 客户签收、商品验收、短收结算与回单归档
-- 售后单流程、取货任务与销售退货入库联动
-- 客户账单、客户结款凭证与供应商待结单据、供应商结算单
-- 服务时段、小程序下单与分拣权重设置、通知公告和安全审计日志查询
-- Redis 中的 AccessToken / RefreshToken 缓存
-- Redis 不可用时的运行时内存降级
-- 数据库迁移与默认种子初始化
+- 登录、令牌刷新、注销、个人中心、动态路由和细粒度授权
+- 用户、角色、菜单、部门以及商品、客户、供应商、采购员、仓库等基础资料
+- 报价、客户协议价和采购规则
+- 销售订单、审核、采购计划、采购单和来源追溯
+- 采购/其他/销售退货入库，销售/采购退货/其他出库，批次、流水、盘点和库存查询
+- 配送任务、路线、司机、异常、客户签收、验收和回单归档
+- 售后审核、取货任务、退货入库和客户账单调整
+- 客户结款、供应商待结单据和供应商结算
+- 检测报告、订单商品溯源、公开二维码详情和外部报送状态
+- 销售、售后、库存、采购报表和首页驾驶舱
+- CSV 导入导出、安全文件上传、打印模板和业务打印快照
+- 服务时段、小程序下单、分拣权重、通知公告和安全审计日志
 
-## 已暴露 API
+## API 与联调资料
 
-当前控制器位于 [SkyRoc/Controllers](./SkyRoc/Controllers/)，按能力分为：
+控制器位于 [SkyRoc/Controllers](./SkyRoc/Controllers/)，Swagger 在 Development 环境生成。接口统一返回 `ApiResponse<T>`，JSON 使用 camelCase，时间字段按既有转换器输出 `yyyy-MM-dd HH:mm:ss`。
 
-- 认证与权限：`Auth`、`Users`、`Roles`、`Menus`、`MenuButtons`、`Departments`
-- 商品与定价：`GoodsTypes`、`Goods`、`GoodsUnits`、`Quotations`、`QuotationGoods`、`CustomerProtocols`、`CustomerProtocolGoods`
-- 客户与采购基础资料：`Companies`、`Customers`、`CustomerTags`、`CustomerSubAccounts`、`Suppliers`、`Purchasers`、`PurchaseRules`、`Wares`
-- 订单：`Orders`
-- 采购：`PurchasePlans`、`PurchaseOrders`
-- 库存：`PurchaseStockIn`、`OtherStockIn`、`SalesReturnStockIn`、`SaleStockOut`、`PurchaseReturnStockOut`、`OtherStockOut`、`Stocktaking`、`StockQuery`
-- 配送：`Carriers`、`Drivers`、`Routes`、`DeliveryTasks`、`DeliveryExceptions`
-- 售后与财务：`AfterSales`、`PickupTasks`、`CustomerSettlements`、`SupplierSettlements`
-- 系统支撑：`SystemSettings`、`Notices`、`Logs`
-
-报表和溯源 API 尚未实现。
-
-HTTP 脚本当前共记录 332 个请求；第一阶段真实路由、响应约定和权限编码见 [第一阶段 API 契约](./docs/第一阶段API契约.md)。
-
-## 启动说明
-
-### 1. 环境要求
-
-- 已安装 `.NET SDK 9`
-- PostgreSQL 可连接
-- Redis 推荐可用，但不是本地启动的硬性前置条件
-
-### 2. 关键配置
-
-项目主要配置文件在 [appsettings.json](./SkyRoc/appsettings.json)。
-
-需要注意：
-
-- `ConnectionStrings:DefaultConnection` 当前在配置文件中配置
-- `JwtSettings` 已直接在配置文件中提供签名密钥
-- `DevSeed:Enabled=true` 时，开发种子账号密码直接从配置文件读取
-- `Redis:Enabled=true` 且 `Redis:ConnectionString` 有效时，项目优先使用 Redis
-- `launchSettings.json` 当前只用于声明开发环境和监听地址
-
-### 3. 本地运行
-
-在项目根目录执行：
-
-```powershell
-dotnet run --project .\SkyRoc\SkyRoc.csproj --launch-profile http
-```
-
-默认监听地址：
-
-- `http://localhost:5293`
-
-### 4. 数据库种子
-
-应用启动时会自动执行数据库迁移和默认种子初始化，逻辑位于 [DbSeeder.cs](./Infrastructure/Data/DbSeeder.cs)。
-
-当前默认会初始化：
-
-- 角色：`Admin` / `User`
-- 菜单与路由树
-- 用户角色关系
-- 角色菜单关系
-- 默认部门：`总部`、`研发部`
-
-## 默认账号
-
-仅当 `Development` 环境且 `DevSeed:Enabled=true` 时，才会初始化默认种子账号。
-
-如果数据库已经存在旧数据，种子不会覆盖已有记录。
-
-## 联调方式
-
-项目提供了覆盖基础资料、销售订单、采购、库存、配送和签收回单的 HTTP 联调脚本 [SkyRoc.http](./SkyRoc/SkyRoc.http)。
+HTTP 脚本当前共记录 378 个请求，见 [SkyRoc.http](./SkyRoc/SkyRoc.http)。脚本覆盖认证、基础资料、订单、采购、库存、配送、售后、财务、溯源、报表、驾驶舱、导入导出、文件、打印和系统支撑接口。
 
 推荐联调顺序：
 
-1. `Health`
-2. `Login`
-3. `Get User Info`
-4. `Get Routes`
-5. `Menus - Get Tree`
-6. `Departments - Get Tree`
-7. `Orders - Create` → `Approve`
-8. `Purchase Plans - Generate` → 分配供应商/采购员 → 生成并完成采购单
-9. `Stock In Purchase - Create` → `Audit`
-10. `Stock Out Sale - Create` → `Audit`
-11. `Delivery Tasks - Generate` → 分配司机 → 开始配送 → 签收 → 回单归档
+1. `Health`、`Login`、`Get User Info`、`Get Routes`
+2. 创建并审核销售订单
+3. 生成采购计划和采购单，完成采购入库
+4. 创建并审核销售出库，生成配送任务
+5. 分配司机、配送、签收和回单
+6. 按需执行售后、客户结款和供应商结算
 
-使用方式：
+## 安全配置
 
-- 先执行 `Login`
-- 将返回的 `token` 和 `refreshToken` 填回顶部变量
-- 将业务实体真实 ID 替换顶部占位变量后再调用更新、删除类接口
+仓库内 [appsettings.json](./SkyRoc/appsettings.json) 按项目维护者决定保留默认数据库连接；该连接的访问控制、轮换与历史处理由项目维护者自行管理。JWT 签名密钥和开发种子密码不提供默认值，启动前必须通过环境变量或外部密钥管理服务注入。
 
-## Swagger
-
-开发环境下会自动启用 Swagger。
-
-默认访问入口：
-
-- [http://localhost:5293/](http://localhost:5293/)
-
-受保护操作会显示 Bearer 认证要求；细粒度授权操作会同时显示所需权限码。登录和刷新令牌不会误标为需要 Bearer。
-
-## 认证与授权说明
-
-- 登录成功后会生成 `AccessToken` 和 `RefreshToken`
-- `AccessToken` 中包含：
-  - 用户 ID
-  - 用户名
-  - 邮箱
-  - 角色编码 `ClaimTypes.Role`
-  - 当前角色 ID `current_role_id`
-- `permission` Claim 包含角色菜单对应的按钮权限编码，管理员使用超级权限 `*:*:*`
-- API 权限策略采用 `module:resource:action` 编码，由统一授权要求和处理器校验
-- `getRoutes` 接口基于当前角色 ID 查询菜单并返回前端路由树
-
-相关实现可参考：
-
-- [AuthService.cs](./Application/Services/AuthService.cs)
-- [JwtService.cs](./Application/Services/JwtService.cs)
-- [AuthExtensions.cs](./SkyRoc/Extensions/AuthExtensions.cs)
-
-## Redis 缓存与降级说明
-
-缓存抽象位于 [ICacheService.cs](./Shared/Common/ICacheService.cs)，当前会在应用启动时根据 Redis 是否可用，选择 [RedisCacheService.cs](./Infrastructure/Caching/RedisCacheService.cs) 或 [MemoryCacheService.cs](./Infrastructure/Caching/MemoryCacheService.cs) 作为实现。
-
-当前行为如下：
-
-- 如果 `Redis:Enabled=true` 且启动时能建立连接，项目会直接使用 Redis 缓存
-- 如果 Redis 在启动时不可达，或者显式配置 `Redis:Enabled=false`，项目会直接以纯内存模式启动
-- 启动完成后不会在每个缓存请求上再次探测 Redis，也不会在运行时自动切换缓存实现
-
-需要特别注意：
-
-- 这里的启动期切换是为了保证登录、刷新令牌、注销等依赖 Token 缓存的流程尽量不中断
-- 内存缓存仅在当前进程内生效，不跨实例、不跨进程共享
-- 如果应用是以内存模式启动，后续即使 Redis 恢复，也不会自动切回 Redis，需重启应用
-- 因此在多实例部署场景下，内存模式只能作为兜底，不适合作为长期运行形态
-
-相关实现可参考：
-
-- [RedisServiceCollectionExtensions.cs](./Infrastructure/Caching/RedisServiceCollectionExtensions.cs)
-- [RedisCacheService.cs](./Infrastructure/Caching/RedisCacheService.cs)
-- [MemoryCacheService.cs](./Infrastructure/Caching/MemoryCacheService.cs)
-
-## 测试
-
-当前测试项目位于 [SkyRoc.Tests](./SkyRoc.Tests/)。
-
-已包含：
-
-- 部门树映射测试
-- 菜单树映射测试
-- Redis 启动时缓存选择测试
-- Redis 健康检查测试
-- 客户资料与天眼查补充逻辑测试
-- 固定日期格式序列化测试
-- 权限编码、JWT 权限声明和授权处理器允许/拒绝测试
-- 系统管理控制器权限策略映射回归测试
-- 商品定价及客户采购基础资料服务回归测试
-- Swagger 匿名/受保护操作认证契约测试
-- 订单模型、映射、验证、仓储、事务化服务和审核状态机测试
-- 订单认证授权、Swagger 权限说明和 HTTP API 主流程集成测试
-- 采购计划、采购单、入出库、库存盘点和库存查询测试
-- 配送基础资料、配送任务、异常、签收回单和状态聚合测试
-- 订单到回单归档的第二阶段真实 HTTP 完整链路测试
-- 售后冲减客户账单与客户/供应商结算的第三阶段真实 HTTP 完整链路测试
-- 检测报告、溯源记录和外部报送日志的溯源模型结构测试
-
-运行测试：
+PowerShell 示例：
 
 ```powershell
-dotnet test .\SkyRoc.Tests\SkyRoc.Tests.csproj
+$env:ConnectionStrings__DefaultConnection = "<PostgreSQL connection string>"
+$env:JwtSettings__SecretKey = "<high-entropy signing key>"
+$env:JwtSettings__Issuer = "skyroc"
+$env:JwtSettings__Audience = "skyroc"
+$env:Redis__Enabled = "false"
 ```
 
-## 当前已知情况
+生产部署要求：
 
-- 如果当前实例是以内存模式启动的，内存缓存数据不会自动同步回 Redis，多实例场景下仍需谨慎评估一致性
-- `appsettings.json` 当前保留数据库连接串、JWT 密钥和开发种子密码，如需上线建议再迁移到安全配置源
-- 项目已有 `OperationLog` 实体与仓储，但还没有完整操作审计链路
-- 缓存拦截器基础设施已经存在，但业务层尚未大规模接入 `Cacheable` / `CacheEvict`
+- 生产环境优先使用部署平台的密钥管理能力覆盖数据库连接串，并注入 JWT 密钥和外部 API Token。
+- JWT 签名密钥应为独立生成的高熵随机值，并建立轮换流程。
+- 多实例必须使用共享 Redis；内存降级只适合本地或单实例临时兜底。
+- `FileStorage__StorageRoot` 应指向受保护的持久卷，且不能映射为公开静态目录。
+- 反向代理终止 TLS 时，应正确转发协议和客户端地址，并限制可信代理范围。
+- 发布前运行数据库迁移、健康检查、构建和全量测试。
 
-## 建议下一步
+## 本地启动
 
-按 [自动开发任务清单](./docs/自动开发任务清单.md) 顺序执行，不跳项。当前任务是 **P4-02 溯源流程**；完成并验收后再领取 P4-03。
+环境要求：.NET SDK 9 和可连接的 PostgreSQL。Redis 可通过 `Redis__Enabled=false` 关闭。
+
+```powershell
+dotnet restore SkyRoc.sln
+dotnet build SkyRoc.sln --no-restore
+dotnet ef database update --project Infrastructure --startup-project SkyRoc
+dotnet run --project SkyRoc\SkyRoc.csproj --launch-profile http
+```
+
+默认地址为 `http://localhost:5293`，Development 环境的 Swagger UI 位于根路径。应用不会在启动时自动迁移数据库或写入开发种子，部署流程必须显式执行迁移；如需种子数据，应由受控初始化流程调用 [DbSeeder.cs](./Infrastructure/Data/DbSeeder.cs)，不得在生产环境启用开发账号。
+
+## Redis 缓存与降级
+
+缓存实现位于 [Infrastructure/Caching](./Infrastructure/Caching/)。启动时 Redis 可用则使用 Redis；Redis 被禁用或不可达则选择进程内缓存。启动完成后不会自动在两种实现间切换，内存缓存也不会跨实例共享，因此多实例部署不能把内存模式作为长期运行形态。
+
+## 数据库迁移
+
+设计时工厂位于 [DbContextFactory.cs](./Infrastructure/Data/DbContextFactory.cs)。
+
+```powershell
+dotnet ef migrations add <Name> --project Infrastructure --startup-project SkyRoc
+dotnet ef database update --project Infrastructure --startup-project SkyRoc
+dotnet ef migrations has-pending-model-changes --project Infrastructure --startup-project SkyRoc
+```
+
+每个持久化实体和字段都必须具有 PostgreSQL 注释；生成迁移后需检查 `Up` 和 `Down` 的表、字段、约束、索引及注释变化。
+
+## 验证
+
+```powershell
+dotnet build SkyRoc.sln --no-restore
+dotnet test SkyRoc.Tests\SkyRoc.Tests.csproj --no-build
+dotnet format SkyRoc.sln --verify-no-changes
+dotnet ef migrations has-pending-model-changes --project Infrastructure --startup-project SkyRoc
+```
+
+测试覆盖领域服务、状态机、权限、序列化、数据库结构与注释、Swagger 请求/响应契约以及三阶段真实 HTTP 主链路。部署配置和项目收口文档也有回归测试，防止敏感默认值或已清理断点重新进入仓库。
+
+## 已知边界
+
+- Redis 内存降级不提供跨实例一致性。
+- 外部平台报送当前只维护状态和日志，实际网络报送需按目标平台协议另行接入。
+- 当前导入导出作业只支持商品 CSV；新增 `jobType` 必须同步验证、权限、Swagger、HTTP 示例和业务文档。
+- 独立期初库存维护、采购协议价、配送单分组打印等仍属于明确记录的后续产品范围，不是 P4-10 收口缺陷。

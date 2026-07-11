@@ -40,7 +40,7 @@ public class CreateDepartmentDto
     /// 备注
     /// </summary>
     public string? Remark { get; set; }
-    
+
     /// <summary>
     ///     启用禁用状态
     /// </summary>

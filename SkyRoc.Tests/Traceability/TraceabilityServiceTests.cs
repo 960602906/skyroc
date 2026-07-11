@@ -194,24 +194,49 @@ public class TraceabilityServiceTests
 
         var untraceableDetail = new SaleOrderDetail
         {
-            Id = Guid.NewGuid(), SaleOrderId = saleOrder.Id, GoodsId = goods.Id, GoodsNameSnapshot = goods.Name,
-            GoodsCodeSnapshot = goods.Code, GoodsUnitId = stockInDetail.GoodsUnitId,
-            GoodsUnitNameSnapshot = stockInDetail.GoodsUnitNameSnapshot, Quantity = 1m, BaseQuantity = 1m,
-            UnitConversion = 1m, FixedPrice = 3m, TotalPrice = 3m
+            Id = Guid.NewGuid(),
+            SaleOrderId = saleOrder.Id,
+            GoodsId = goods.Id,
+            GoodsNameSnapshot = goods.Name,
+            GoodsCodeSnapshot = goods.Code,
+            GoodsUnitId = stockInDetail.GoodsUnitId,
+            GoodsUnitNameSnapshot = stockInDetail.GoodsUnitNameSnapshot,
+            Quantity = 1m,
+            BaseQuantity = 1m,
+            UnitConversion = 1m,
+            FixedPrice = 3m,
+            TotalPrice = 3m
         };
         var untraceableBatch = new StockBatch
         {
-            Id = Guid.NewGuid(), WareId = ware.Id, GoodsId = goods.Id, GoodsNameSnapshot = goods.Name,
-            GoodsCodeSnapshot = goods.Code, BatchNo = "BATCH-NO-SOURCE", BaseUnitId = stockInDetail.GoodsUnitId,
-            BaseUnitNameSnapshot = stockInDetail.GoodsUnitNameSnapshot, CurrentQuantity = 1m, AvailableQuantity = 1m
+            Id = Guid.NewGuid(),
+            WareId = ware.Id,
+            GoodsId = goods.Id,
+            GoodsNameSnapshot = goods.Name,
+            GoodsCodeSnapshot = goods.Code,
+            BatchNo = "BATCH-NO-SOURCE",
+            BaseUnitId = stockInDetail.GoodsUnitId,
+            BaseUnitNameSnapshot = stockInDetail.GoodsUnitNameSnapshot,
+            CurrentQuantity = 1m,
+            AvailableQuantity = 1m
         };
         context.StockOutDetails.Add(new StockOutDetail
         {
-            Id = Guid.NewGuid(), StockOutOrderId = stockOut.Id, SaleOrderDetailId = untraceableDetail.Id,
-            StockBatchId = untraceableBatch.Id, GoodsId = goods.Id, GoodsNameSnapshot = goods.Name,
-            GoodsCodeSnapshot = goods.Code, GoodsUnitId = stockInDetail.GoodsUnitId,
-            GoodsUnitNameSnapshot = stockInDetail.GoodsUnitNameSnapshot, ConversionRate = 1m, Quantity = 1m,
-            BaseQuantity = 1m, UnitPrice = 3m, TotalPrice = 3m, BatchNoSnapshot = untraceableBatch.BatchNo
+            Id = Guid.NewGuid(),
+            StockOutOrderId = stockOut.Id,
+            SaleOrderDetailId = untraceableDetail.Id,
+            StockBatchId = untraceableBatch.Id,
+            GoodsId = goods.Id,
+            GoodsNameSnapshot = goods.Name,
+            GoodsCodeSnapshot = goods.Code,
+            GoodsUnitId = stockInDetail.GoodsUnitId,
+            GoodsUnitNameSnapshot = stockInDetail.GoodsUnitNameSnapshot,
+            ConversionRate = 1m,
+            Quantity = 1m,
+            BaseQuantity = 1m,
+            UnitPrice = 3m,
+            TotalPrice = 3m,
+            BatchNoSnapshot = untraceableBatch.BatchNo
         });
         await context.AddRangeAsync(untraceableDetail, untraceableBatch);
         await context.SaveChangesAsync();

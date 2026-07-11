@@ -102,15 +102,15 @@ public sealed class CachingAsyncInterceptor(
         if (evicts.Length == 0) return;
 
         foreach (var evict in evicts)
-        foreach (var bucket in evict.Buckets)
-        {
-            if (string.IsNullOrWhiteSpace(bucket)) continue;
-            var setKey = BucketPrefix + bucket;
-            var keys = await cache.SetMembersAsync(setKey);
-            foreach (var k in keys) await cache.RemoveAsync(k);
-            await cache.RemoveAsync(setKey);
-            logger.LogDebug("[Cache] EVICT bucket={Bucket} count={Count}", bucket, keys.Count);
-        }
+            foreach (var bucket in evict.Buckets)
+            {
+                if (string.IsNullOrWhiteSpace(bucket)) continue;
+                var setKey = BucketPrefix + bucket;
+                var keys = await cache.SetMembersAsync(setKey);
+                foreach (var k in keys) await cache.RemoveAsync(k);
+                await cache.RemoveAsync(setKey);
+                logger.LogDebug("[Cache] EVICT bucket={Bucket} count={Count}", bucket, keys.Count);
+            }
     }
 
     private static T? GetAttribute<T>(MethodInfo interfaceMethod, MethodInfo? targetMethod) where T : Attribute

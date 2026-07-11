@@ -16,11 +16,12 @@ namespace SkyRoc.Extensions;
 public static class AuthExtensions
 {
     /// <summary>
-    ///     鉴权
+    ///     注册 JWT Bearer 认证、稳定权限码策略和资源操作授权处理器。
     /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
+    /// <param name="services">应用服务注册集合。</param>
+    /// <param name="configuration">提供 JWT 发行者、受众和签名密钥的应用配置。</param>
+    /// <returns>完成认证与授权注册后的原服务集合。</returns>
+    /// <exception cref="InvalidOperationException">JWT 配置缺失或签名密钥不足 32 个 UTF-8 字节时抛出。</exception>
     public static IServiceCollection AddAuthenticationServices(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -28,9 +29,12 @@ public static class AuthExtensions
         // JWT 鉴权配置
         var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>();
 
-        if (jwtSettings is null) throw new Exception("JwtSettings is null");
+        if (jwtSettings is null)
+            throw new InvalidOperationException("JwtSettings is not configured.");
         if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
             throw new InvalidOperationException("JwtSettings:SecretKey is not configured.");
+        if (Encoding.UTF8.GetByteCount(jwtSettings.SecretKey) < 32)
+            throw new InvalidOperationException("JwtSettings:SecretKey must contain at least 32 UTF-8 bytes.");
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
         services.AddAuthentication(options =>
             {

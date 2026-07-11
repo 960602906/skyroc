@@ -136,8 +136,13 @@ public class TraceabilityService(
             parameters.Current, parameters.Size, x => x.AuditTime!, true);
         return ToPaged(result.Data.Select(x => new InspectionStockInOrderDto
         {
-            Id = x.Id, InNo = x.InNo, WareId = x.WareId, WareName = x.WareNameSnapshot,
-            SupplierId = x.SupplierId, SupplierName = x.SupplierNameSnapshot, AuditTime = x.AuditTime
+            Id = x.Id,
+            InNo = x.InNo,
+            WareId = x.WareId,
+            WareName = x.WareNameSnapshot,
+            SupplierId = x.SupplierId,
+            SupplierName = x.SupplierNameSnapshot,
+            AuditTime = x.AuditTime
         }), result.Total, parameters);
     }
 
@@ -149,9 +154,15 @@ public class TraceabilityService(
         EnsureEligibleStockInOrder(order);
         return order.Details.OrderBy(x => x.Id).Select(x => new InspectionStockInDetailDto
         {
-            Id = x.Id, GoodsId = x.GoodsId, GoodsName = x.GoodsNameSnapshot, GoodsCode = x.GoodsCodeSnapshot,
-            GoodsTypeName = x.Goods.GoodsType.Name, GoodsUnitId = x.GoodsUnitId,
-            GoodsUnitName = x.GoodsUnitNameSnapshot, Quantity = x.Quantity, BatchNo = x.BatchNo
+            Id = x.Id,
+            GoodsId = x.GoodsId,
+            GoodsName = x.GoodsNameSnapshot,
+            GoodsCode = x.GoodsCodeSnapshot,
+            GoodsTypeName = x.Goods.GoodsType.Name,
+            GoodsUnitId = x.GoodsUnitId,
+            GoodsUnitName = x.GoodsUnitNameSnapshot,
+            Quantity = x.Quantity,
+            BatchNo = x.BatchNo
         }).ToList();
     }
 
@@ -203,13 +214,23 @@ public class TraceabilityService(
                 var source = group.First();
                 var trace = new TraceRecord
                 {
-                    Id = Guid.NewGuid(), TraceNo = await GenerateTraceNoAsync(), SaleOrderId = source.SaleOrderId,
-                    SaleOrderNoSnapshot = source.SaleOrderNo, SaleOrderDetailId = source.SaleOrderDetailId,
-                    CustomerId = source.CustomerId, CustomerNameSnapshot = source.CustomerName, GoodsId = source.GoodsId,
-                    GoodsNameSnapshot = source.GoodsName, GoodsCodeSnapshot = source.GoodsCode,
-                    GoodsTypeNameSnapshot = source.GoodsTypeName, StockInDetailId = source.StockInDetailId,
-                    SupplierId = source.SupplierId, SupplierNameSnapshot = source.SupplierName, WareId = source.WareId,
-                    WareNameSnapshot = source.WareName, BatchNoSnapshot = source.BatchNo,
+                    Id = Guid.NewGuid(),
+                    TraceNo = await GenerateTraceNoAsync(),
+                    SaleOrderId = source.SaleOrderId,
+                    SaleOrderNoSnapshot = source.SaleOrderNo,
+                    SaleOrderDetailId = source.SaleOrderDetailId,
+                    CustomerId = source.CustomerId,
+                    CustomerNameSnapshot = source.CustomerName,
+                    GoodsId = source.GoodsId,
+                    GoodsNameSnapshot = source.GoodsName,
+                    GoodsCodeSnapshot = source.GoodsCode,
+                    GoodsTypeNameSnapshot = source.GoodsTypeName,
+                    StockInDetailId = source.StockInDetailId,
+                    SupplierId = source.SupplierId,
+                    SupplierNameSnapshot = source.SupplierName,
+                    WareId = source.WareId,
+                    WareNameSnapshot = source.WareName,
+                    BatchNoSnapshot = source.BatchNo,
                     InspectionReportId = source.InspectionReportId
                 };
                 ApplyCreateAudit(trace);
@@ -237,9 +258,13 @@ public class TraceabilityService(
         {
             TraceRecord = new PublicTraceQrRecordDto
             {
-                TraceNo = trace.TraceNo, GoodsName = trace.GoodsNameSnapshot, GoodsCode = trace.GoodsCodeSnapshot,
-                GoodsTypeName = trace.GoodsTypeNameSnapshot, SupplierName = trace.SupplierNameSnapshot,
-                WareName = trace.WareNameSnapshot, BatchNo = trace.BatchNoSnapshot
+                TraceNo = trace.TraceNo,
+                GoodsName = trace.GoodsNameSnapshot,
+                GoodsCode = trace.GoodsCodeSnapshot,
+                GoodsTypeName = trace.GoodsTypeNameSnapshot,
+                SupplierName = trace.SupplierNameSnapshot,
+                WareName = trace.WareNameSnapshot,
+                BatchNo = trace.BatchNoSnapshot
             },
             InspectionReport = trace.InspectionReport is null ? null : new PublicInspectionReportDto
             {
@@ -249,9 +274,13 @@ public class TraceabilityService(
                 Conclusion = trace.InspectionReport.Conclusion,
                 Goods = trace.InspectionReport.Goods.OrderBy(x => x.StockInDetailId).Select(x => new PublicInspectionReportGoodsDto
                 {
-                    GoodsName = x.GoodsNameSnapshot, GoodsCode = x.GoodsCodeSnapshot,
-                    GoodsTypeName = x.GoodsTypeNameSnapshot, SampleQuantity = x.SampleQuantity,
-                    GoodsUnitName = x.GoodsUnitNameSnapshot, BatchNo = x.BatchNoSnapshot, Conclusion = x.Conclusion
+                    GoodsName = x.GoodsNameSnapshot,
+                    GoodsCode = x.GoodsCodeSnapshot,
+                    GoodsTypeName = x.GoodsTypeNameSnapshot,
+                    SampleQuantity = x.SampleQuantity,
+                    GoodsUnitName = x.GoodsUnitNameSnapshot,
+                    BatchNo = x.BatchNoSnapshot,
+                    Conclusion = x.Conclusion
                 }).ToList()
             }
         };
@@ -264,9 +293,17 @@ public class TraceabilityService(
             parameters.QueryBuild(), parameters.Current, parameters.Size, x => x.PushTime, true);
         return ToPaged(result.Data.Select(x => new ExternalPushLogDto
         {
-            Id = x.Id, BusinessType = x.BusinessType, BusinessId = x.BusinessId, BusinessNo = x.BusinessNoSnapshot,
-            PlatformCode = x.PlatformCode, PushStatus = x.PushStatus, PushTime = x.PushTime, ResponseTime = x.ResponseTime,
-            ErrorMessage = x.ErrorMessage, RetryCount = x.RetryCount, CreateTime = x.CreateTime
+            Id = x.Id,
+            BusinessType = x.BusinessType,
+            BusinessId = x.BusinessId,
+            BusinessNo = x.BusinessNoSnapshot,
+            PlatformCode = x.PlatformCode,
+            PushStatus = x.PushStatus,
+            PushTime = x.PushTime,
+            ResponseTime = x.ResponseTime,
+            ErrorMessage = x.ErrorMessage,
+            RetryCount = x.RetryCount,
+            CreateTime = x.CreateTime
         }), result.Total, parameters);
     }
 
@@ -308,11 +345,18 @@ public class TraceabilityService(
             }
             goods.Add(new InspectionReportGoods
             {
-                Id = Guid.NewGuid(), StockInDetailId = detail.Id, GoodsId = detail.GoodsId,
-                GoodsNameSnapshot = detail.GoodsNameSnapshot, GoodsCodeSnapshot = detail.GoodsCodeSnapshot,
-                GoodsTypeNameSnapshot = detail.Goods.GoodsType.Name, GoodsUnitId = detail.GoodsUnitId,
-                GoodsUnitNameSnapshot = detail.GoodsUnitNameSnapshot, SampleQuantity = quantity,
-                BatchNoSnapshot = detail.BatchNo, Conclusion = input.Conclusion, Remark = Normalize(input.Remark)
+                Id = Guid.NewGuid(),
+                StockInDetailId = detail.Id,
+                GoodsId = detail.GoodsId,
+                GoodsNameSnapshot = detail.GoodsNameSnapshot,
+                GoodsCodeSnapshot = detail.GoodsCodeSnapshot,
+                GoodsTypeNameSnapshot = detail.Goods.GoodsType.Name,
+                GoodsUnitId = detail.GoodsUnitId,
+                GoodsUnitNameSnapshot = detail.GoodsUnitNameSnapshot,
+                SampleQuantity = quantity,
+                BatchNoSnapshot = detail.BatchNo,
+                Conclusion = input.Conclusion,
+                Remark = Normalize(input.Remark)
             });
         }
         return goods;
@@ -322,8 +366,12 @@ public class TraceabilityService(
     {
         return inputs.Select(x => new InspectionAttachment
         {
-            Id = Guid.NewGuid(), AttachmentType = x.AttachmentType, FileName = x.FileName.Trim(),
-            FileUrl = x.FileUrl.Trim(), FileSize = x.FileSize, Sort = x.Sort
+            Id = Guid.NewGuid(),
+            AttachmentType = x.AttachmentType,
+            FileName = x.FileName.Trim(),
+            FileUrl = x.FileUrl.Trim(),
+            FileSize = x.FileSize,
+            Sort = x.Sort
         }).ToList();
     }
 
@@ -367,36 +415,71 @@ public class TraceabilityService(
 
     private static PagedResult<T> ToPaged<T>(IEnumerable<T> records, int total, PagedQueryParameters parameters) => new()
     {
-        Records = records.ToList(), Total = total, Current = parameters.Current, Size = parameters.Size
+        Records = records.ToList(),
+        Total = total,
+        Current = parameters.Current,
+        Size = parameters.Size
     };
 
     private static InspectionReportDto ToDto(InspectionReport report) => new()
     {
-        Id = report.Id, InspectionNo = report.InspectionNo, StockInOrderId = report.StockInOrderId, InNo = report.InNoSnapshot,
-        WareId = report.WareId, WareName = report.WareNameSnapshot, SupplierId = report.SupplierId,
-        SupplierName = report.SupplierNameSnapshot, InspectionOrg = report.InspectionOrg, SampleTime = report.SampleTime,
-        InspectTime = report.InspectTime, Conclusion = report.Conclusion, Remark = report.Remark, CreateTime = report.CreateTime,
+        Id = report.Id,
+        InspectionNo = report.InspectionNo,
+        StockInOrderId = report.StockInOrderId,
+        InNo = report.InNoSnapshot,
+        WareId = report.WareId,
+        WareName = report.WareNameSnapshot,
+        SupplierId = report.SupplierId,
+        SupplierName = report.SupplierNameSnapshot,
+        InspectionOrg = report.InspectionOrg,
+        SampleTime = report.SampleTime,
+        InspectTime = report.InspectTime,
+        Conclusion = report.Conclusion,
+        Remark = report.Remark,
+        CreateTime = report.CreateTime,
         Goods = report.Goods.OrderBy(x => x.StockInDetailId).Select(x => new InspectionReportGoodsDto
         {
-            Id = x.Id, StockInDetailId = x.StockInDetailId, GoodsId = x.GoodsId, GoodsName = x.GoodsNameSnapshot,
-            GoodsCode = x.GoodsCodeSnapshot, GoodsTypeName = x.GoodsTypeNameSnapshot, GoodsUnitId = x.GoodsUnitId,
-            GoodsUnitName = x.GoodsUnitNameSnapshot, SampleQuantity = x.SampleQuantity, BatchNo = x.BatchNoSnapshot,
-            Conclusion = x.Conclusion, Remark = x.Remark
+            Id = x.Id,
+            StockInDetailId = x.StockInDetailId,
+            GoodsId = x.GoodsId,
+            GoodsName = x.GoodsNameSnapshot,
+            GoodsCode = x.GoodsCodeSnapshot,
+            GoodsTypeName = x.GoodsTypeNameSnapshot,
+            GoodsUnitId = x.GoodsUnitId,
+            GoodsUnitName = x.GoodsUnitNameSnapshot,
+            SampleQuantity = x.SampleQuantity,
+            BatchNo = x.BatchNoSnapshot,
+            Conclusion = x.Conclusion,
+            Remark = x.Remark
         }).ToList(),
         Attachments = report.Attachments.OrderBy(x => x.Sort).ThenBy(x => x.Id).Select(x => new InspectionAttachmentDto
         {
-            Id = x.Id, AttachmentType = x.AttachmentType, FileName = x.FileName, FileUrl = x.FileUrl,
-            FileSize = x.FileSize, Sort = x.Sort
+            Id = x.Id,
+            AttachmentType = x.AttachmentType,
+            FileName = x.FileName,
+            FileUrl = x.FileUrl,
+            FileSize = x.FileSize,
+            Sort = x.Sort
         }).ToList()
     };
 
     private static TraceRecordDto ToDto(TraceRecord trace) => new()
     {
-        Id = trace.Id, TraceNo = trace.TraceNo, SaleOrderId = trace.SaleOrderId, SaleOrderNo = trace.SaleOrderNoSnapshot,
-        SaleOrderDetailId = trace.SaleOrderDetailId, CustomerName = trace.CustomerNameSnapshot, GoodsName = trace.GoodsNameSnapshot,
-        GoodsCode = trace.GoodsCodeSnapshot, GoodsTypeName = trace.GoodsTypeNameSnapshot, SupplierName = trace.SupplierNameSnapshot,
-        WareName = trace.WareNameSnapshot, BatchNo = trace.BatchNoSnapshot, InspectionReportId = trace.InspectionReportId,
-        Remark = trace.Remark, CreateTime = trace.CreateTime
+        Id = trace.Id,
+        TraceNo = trace.TraceNo,
+        SaleOrderId = trace.SaleOrderId,
+        SaleOrderNo = trace.SaleOrderNoSnapshot,
+        SaleOrderDetailId = trace.SaleOrderDetailId,
+        CustomerName = trace.CustomerNameSnapshot,
+        GoodsName = trace.GoodsNameSnapshot,
+        GoodsCode = trace.GoodsCodeSnapshot,
+        GoodsTypeName = trace.GoodsTypeNameSnapshot,
+        SupplierName = trace.SupplierNameSnapshot,
+        WareName = trace.WareNameSnapshot,
+        BatchNo = trace.BatchNoSnapshot,
+        InspectionReportId = trace.InspectionReportId,
+        Remark = trace.Remark,
+        CreateTime = trace.CreateTime
     };
 
     private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

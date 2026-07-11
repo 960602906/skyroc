@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace Application.Validator.MenuButton;
 
-public class UpdateMenuButtonValidator:AbstractValidator<UpdateMenuButtonDto>
+public class UpdateMenuButtonValidator : AbstractValidator<UpdateMenuButtonDto>
 {
     public UpdateMenuButtonValidator()
     {

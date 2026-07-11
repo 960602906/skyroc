@@ -1,6 +1,6 @@
 ﻿namespace Application.DTOs.Department;
 
-public class UpdateDepartmentDto: CreateDepartmentDto
+public class UpdateDepartmentDto : CreateDepartmentDto
 {
     /// <summary>
     ///     主键ID

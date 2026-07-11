@@ -293,9 +293,18 @@ public class ImportExportJobService(
     }
     private static ImportExportJobDto ToDto(ImportExportJob job) => new()
     {
-        Id = job.Id, JobNo = job.JobNo, JobType = job.JobType, Direction = job.JobDirection, JobStatus = job.JobStatus,
-        FileName = job.SourceFileName, TotalRows = job.TotalRows, SuccessRows = job.SuccessRows, FailureRows = job.FailureRows,
-        ErrorSummary = job.ErrorSummary, StartedTime = job.JobStartedAt, FinishedTime = job.JobFinishedAt
+        Id = job.Id,
+        JobNo = job.JobNo,
+        JobType = job.JobType,
+        Direction = job.JobDirection,
+        JobStatus = job.JobStatus,
+        FileName = job.SourceFileName,
+        TotalRows = job.TotalRows,
+        SuccessRows = job.SuccessRows,
+        FailureRows = job.FailureRows,
+        ErrorSummary = job.ErrorSummary,
+        StartedTime = job.JobStartedAt,
+        FinishedTime = job.JobFinishedAt
     };
     private sealed class GoodsImportRow
     {

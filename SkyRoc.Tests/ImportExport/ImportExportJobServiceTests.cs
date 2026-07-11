@@ -169,9 +169,14 @@ public class ImportExportJobServiceTests
         await using var context = CreateDbContext();
         var job = new ImportExportJob
         {
-            Id = Guid.NewGuid(), JobNo = "IE-OTHER", JobType = ImportExportJobType.Goods,
-            JobDirection = ImportExportDirection.Import, JobStatus = ImportExportJobStatus.Succeeded,
-            SourceFileName = "other.csv", JobStartedAt = DateTime.UtcNow, JobFinishedAt = DateTime.UtcNow,
+            Id = Guid.NewGuid(),
+            JobNo = "IE-OTHER",
+            JobType = ImportExportJobType.Goods,
+            JobDirection = ImportExportDirection.Import,
+            JobStatus = ImportExportJobStatus.Succeeded,
+            SourceFileName = "other.csv",
+            JobStartedAt = DateTime.UtcNow,
+            JobFinishedAt = DateTime.UtcNow,
             CreateBy = Guid.NewGuid()
         };
         await context.ImportExportJobs.AddAsync(job);
@@ -219,7 +224,11 @@ public class ImportExportJobServiceTests
         await context.GoodsTypes.AddAsync(type);
         await context.Goods.AddAsync(new GoodsEntity
         {
-            Id = Guid.NewGuid(), Name = "=HYPERLINK(\"https://unsafe\")", Code = "FORMULA", GoodsTypeId = type.Id, IsOnSale = true
+            Id = Guid.NewGuid(),
+            Name = "=HYPERLINK(\"https://unsafe\")",
+            Code = "FORMULA",
+            GoodsTypeId = type.Id,
+            IsOnSale = true
         });
         await context.SaveChangesAsync();
         var service = CreateService(context);

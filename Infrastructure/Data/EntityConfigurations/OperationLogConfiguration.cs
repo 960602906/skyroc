@@ -6,7 +6,7 @@ namespace Infrastructure.Data.EntityConfigurations;
 /// <summary>
 ///  操作日志配置
 /// </summary>
-public class OperationLogConfiguration: IEntityTypeConfiguration<OperationLog>
+public class OperationLogConfiguration : IEntityTypeConfiguration<OperationLog>
 {
     public void Configure(EntityTypeBuilder<OperationLog> builder)
     {
@@ -59,14 +59,14 @@ public class OperationLogConfiguration: IEntityTypeConfiguration<OperationLog>
 
         builder.Property(x => x.IsSuccess)
             .HasColumnName("is_success");
-        
+
         builder.Property(x => x.ExecutionDuration)
             .HasColumnName("execution_duration");
-        
+
         builder.Property(x => x.ErrorMessage)
             .HasColumnName("error_message");
-        
-        
+
+
         // 公共字段
         builder.Property(x => x.CreateTime)
             .HasColumnName("create_time")
@@ -97,7 +97,7 @@ public class OperationLogConfiguration: IEntityTypeConfiguration<OperationLog>
             .HasColumnName("status")
             .HasColumnType("integer")
             .IsRequired();
- 
+
         // 索引
         builder.HasIndex(x => x.CreateBy)
             .HasDatabaseName("idx_operation_log_create_by");
@@ -105,7 +105,7 @@ public class OperationLogConfiguration: IEntityTypeConfiguration<OperationLog>
             .HasDatabaseName("idx_operation_log_create_time");
         builder.HasIndex(x => new { x.Module, x.OperationType })
             .HasDatabaseName("idx_operation_log_module_type");
-        
+
         // ⭐ PostgreSQL 注释（可选）
         builder.ToTable(t => t.HasComment("操作日志表"));
     }

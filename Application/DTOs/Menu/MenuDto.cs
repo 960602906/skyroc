@@ -27,7 +27,7 @@ public class MenuDto : BaseDto
     ///     路由路径
     /// </summary>
     public string? Path { get; set; }
-    
+
     /// <summary>
     ///     父级菜单ID
     /// </summary>
@@ -102,7 +102,7 @@ public class MenuDto : BaseDto
     ///     若设置，路由将在标签页中固定显示，其值表示固定标签页的顺序（首页是特殊的，它将自动保持 fixed）
     /// </summary>
     public int? FixedIndexInTab { get; set; }
-    
+
     /// <summary>
     ///  菜单按钮权限
     /// </summary>
