@@ -3,6 +3,7 @@ using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
 using Domain.Entities.Finance;
+using Domain.Entities.Files;
 using Domain.Entities.Goods;
 using Domain.Entities.ImportExport;
 using Domain.Entities.Orders;
@@ -92,8 +93,9 @@ public static class DatabaseCommentExtensions
         [typeof(InspectionReportGoods)] = "检测报告商品明细，按入库商品行记录商品、单位、批次快照和单品检测结论",
         [typeof(InspectionAttachment)] = "检测报告附件，记录报告文件或现场图片的访问地址和展示顺序",
         [typeof(TraceRecord)] = "商品溯源记录，将销售订单商品行与采购入库来源和检测报告串联供二维码展示",
-        [typeof(ExternalPushLog)] = "外部报送日志，只追加记录向外部监管或溯源平台每次报送的请求、响应和结果状态"
-        , [typeof(ImportExportJob)] = "导入导出任务，记录 CSV 模板、导入或导出的执行状态和结果摘要"
+        [typeof(ExternalPushLog)] = "外部报送日志，只追加记录向外部监管或溯源平台每次报送的请求、响应和结果状态",
+        [typeof(ImportExportJob)] = "导入导出任务，记录 CSV 模板、导入或导出的执行状态和结果摘要",
+        [typeof(StoredFile)] = "受保护上传文件元数据，记录经签名校验后的文件存储键、类型、大小和创建人"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -570,7 +572,11 @@ public static class DatabaseCommentExtensions
             [(typeof(TraceRecord), nameof(TraceRecord.StockInDetailId))] = "采购来源入库商品明细主键；尚未匹配到入库来源时为空",
             [(typeof(TraceRecord), nameof(TraceRecord.InspectionReportId))] = "关联检测报告主键；来源入库商品尚未出具报告时为空",
             [(typeof(TraceRecord), nameof(TraceRecord.Remark))] = "溯源记录备注，记录来源匹配差异或人工补录说明",
-            [(typeof(ExternalPushLog), nameof(ExternalPushLog.ErrorMessage))] = "报送失败时记录的错误摘要；成功时为空"
+            [(typeof(ExternalPushLog), nameof(ExternalPushLog.ErrorMessage))] = "报送失败时记录的错误摘要；成功时为空",
+            [(typeof(StoredFile), nameof(StoredFile.StorageKey))] = "服务端随机生成的相对存储键，不包含用户输入路径",
+            [(typeof(StoredFile), nameof(StoredFile.OriginalFileName))] = "上传时保留的原始文件名，仅用于下载展示",
+            [(typeof(StoredFile), nameof(StoredFile.ContentType))] = "由文件签名验证后的 MIME 类型",
+            [(typeof(StoredFile), nameof(StoredFile.FileSize))] = "文件实际大小，单位为字节"
         };
 
     /// <summary>

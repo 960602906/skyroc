@@ -1,11 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application;
+using Application.interfaces;
 using Infrastructure;
 using Infrastructure.Data;
 using Microsoft.Extensions.Options;
 using Shared.Common;
 using SkyRoc.Extensions;
+using SkyRoc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 builder.Services.Configure<DevSeedOptions>(configuration.GetSection(DevSeedOptions.SectionName));
+builder.Services.AddSingleton<IFileStoragePathProvider, WebHostFileStoragePathProvider>();
 
 // ========================================
 // 1️⃣ 添加服务到容器

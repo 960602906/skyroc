@@ -54,6 +54,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.Configure<TianyanchaOptions>(configuration.GetSection(TianyanchaOptions.SectionName));
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
         services.AddHttpClient<ICompanyInfoProvider, TianyanchaCompanyInfoProvider>((provider, client) =>
         {
             var options = provider.GetRequiredService<IOptions<TianyanchaOptions>>().Value;

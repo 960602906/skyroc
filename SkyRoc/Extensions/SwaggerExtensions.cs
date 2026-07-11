@@ -61,7 +61,8 @@ public static class SwaggerExtensions
         ["ExternalPushLogs"] = "溯源",
         ["Reports"] = "报表",
         ["Dashboard"] = "首页驾驶舱",
-        ["ImportExportJobs"] = "导入导出"
+        ["ImportExportJobs"] = "导入导出",
+        ["Files"] = "文件上传"
     };
 
     /// <summary>

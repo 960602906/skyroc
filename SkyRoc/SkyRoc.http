@@ -3465,3 +3465,23 @@ Accept: {{contentType}}
 GET {{SkyRoc_HostAddress}}/api/import-export/jobs/export/1
 Authorization: Bearer {{accessToken}}
 Accept: text/csv
+
+### Files - Upload PDF
+POST {{SkyRoc_HostAddress}}/api/files
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=SkyRocFileBoundary
+
+--SkyRocFileBoundary
+Content-Disposition: form-data; name="file"; filename="inspection-report.pdf"
+Content-Type: application/pdf
+
+%PDF-1.7
+SkyRoc inspection report example
+--SkyRocFileBoundary--
+
+> {% client.global.set("uploadedFileId", response.body.data.id); %}
+
+### Files - Download Own File
+GET {{SkyRoc_HostAddress}}/api/files/{{uploadedFileId}}/download
+Authorization: Bearer {{accessToken}}
+Accept: application/pdf

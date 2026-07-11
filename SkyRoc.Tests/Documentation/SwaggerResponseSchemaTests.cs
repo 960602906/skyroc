@@ -383,4 +383,36 @@ public class SwaggerResponseSchemaTests
         Assert.True(importOperation.GetProperty("requestBody").GetProperty("content").TryGetProperty("multipart/form-data", out _));
         Assert.True(statusOperation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
     }
+
+    [Fact]
+    public async Task Swagger_DocumentsProtectedFileUploadContracts()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("StoredFileDto", out var fileSchema));
+        Assert.Contains("文件", fileSchema.GetProperty("description").GetString());
+        Assert.True(paths.TryGetProperty("/api/files", out _));
+        Assert.True(paths.TryGetProperty("/api/files/{id}/download", out _));
+
+        var upload = paths.GetProperty("/api/files").GetProperty("post");
+        var download = paths.GetProperty("/api/files/{id}/download").GetProperty("get");
+        foreach (var operation in new[] { upload, download })
+        {
+            Assert.Contains("文件上传", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+        }
+        Assert.Contains(PermissionCodes.Business.Files.Create, upload.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Files.Read, download.GetProperty("description").GetString());
+        Assert.True(upload.GetProperty("requestBody").GetProperty("content").TryGetProperty("multipart/form-data", out _));
+        Assert.True(download.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+    }
 }

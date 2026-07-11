@@ -175,6 +175,16 @@ public static class PermissionCodes
             public const string Read = $"{Resource}:read";
             public const string Create = $"{Resource}:create";
         }
+
+        /// <summary>
+        /// 受保护上传文件的创建与创建人下载权限。
+        /// </summary>
+        public static class Files
+        {
+            public const string Resource = "business:file";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -246,6 +256,8 @@ public static class PermissionCodes
         Business.Traceability.Delete,
         Business.Reports.Read,
         Business.ImportExport.Read,
-        Business.ImportExport.Create
+        Business.ImportExport.Create,
+        Business.Files.Read,
+        Business.Files.Create
     ];
 }

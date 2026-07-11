@@ -4,6 +4,7 @@ using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
 using Domain.Entities.Finance;
+using Domain.Entities.Files;
 using Domain.Entities.Goods;
 using Domain.Entities.ImportExport;
 using Domain.Entities.Orders;
@@ -424,6 +425,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 导入导出任务表。
     /// </summary>
     public DbSet<ImportExportJob> ImportExportJobs { get; set; }
+
+    /// <summary>
+    /// 受保护上传文件元数据表。
+    /// </summary>
+    public DbSet<StoredFile> StoredFiles { get; set; }
 
     #endregion
 }
