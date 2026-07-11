@@ -28,4 +28,9 @@ public interface ISupplierSettlementRepository : IRepository<SupplierSettlement>
     /// <param name="supplierBillId">供应商待结单据主键。</param>
     /// <returns>存在结算明细引用时返回 <c>true</c>。</returns>
     Task<bool> ExistsDetailByBillIdAsync(Guid supplierBillId);
+
+    /// <summary>批量读取包含核销明细的供应商结算单，用于打印快照。</summary>
+    /// <param name="ids">待读取的供应商结算单主键集合。</param>
+    /// <returns>存在的供应商结算单完整聚合集合。</returns>
+    Task<IReadOnlyList<SupplierSettlement>> GetByIdsAsync(IReadOnlyCollection<Guid> ids);
 }

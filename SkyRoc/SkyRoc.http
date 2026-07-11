@@ -3485,3 +3485,67 @@ SkyRoc inspection report example
 GET {{SkyRoc_HostAddress}}/api/files/{{uploadedFileId}}/download
 Authorization: Bearer {{accessToken}}
 Accept: application/pdf
+
+### Printing - Create Customer Delivery Template
+POST {{SkyRoc_HostAddress}}/api/print-templates
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "templateCode": "CUSTOMER_ORDER_DELIVERY",
+  "name": "客户配送单",
+  "businessType": 1,
+  "designJson": "{\"version\":\"1\",\"elements\":[]}",
+  "isEnabled": true,
+  "fields": [
+    { "fieldKey": "documentNo", "displayName": "订单号", "displayOrder": 0 },
+    { "fieldKey": "businessPartyName", "displayName": "客户名称", "displayOrder": 1 },
+    { "fieldKey": "details[].itemName", "displayName": "商品名称", "displayOrder": 2 }
+  ]
+}
+
+> {% client.global.set("printTemplateId", response.body.data.id); %}
+
+### Printing - Get Template By Code
+GET {{SkyRoc_HostAddress}}/api/print-templates/by-code/CUSTOMER_ORDER_DELIVERY
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Printing - Preview Sale Order Data
+GET {{SkyRoc_HostAddress}}/api/print-data/1?ids={{orderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Printing - Preview Purchase Order Data
+GET {{SkyRoc_HostAddress}}/api/print-data/2?ids={{purchaseOrderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Printing - Preview Stock In Data
+GET {{SkyRoc_HostAddress}}/api/print-data/3?ids={{stockInOrderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Printing - Preview Stock Out Data
+GET {{SkyRoc_HostAddress}}/api/print-data/4?ids={{stockOutOrderId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Printing - Preview Customer Settlement Data
+GET {{SkyRoc_HostAddress}}/api/print-data/5?ids={{customerSettlementId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Printing - Preview Supplier Settlement Data
+GET {{SkyRoc_HostAddress}}/api/print-data/6?ids={{supplierSettlementId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
+### Printing - Confirm Sale Order Printed
+POST {{SkyRoc_HostAddress}}/api/print-data/1/confirm
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "ids": ["{{orderId}}"]
+}

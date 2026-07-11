@@ -44,6 +44,20 @@ public class SupplierSettlementRepository(ApplicationDbContext context)
             .AnyAsync(x => x.SupplierBillId == supplierBillId);
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SupplierSettlement>> GetByIdsAsync(IReadOnlyCollection<Guid> ids)
+    {
+        var distinctIds = ids.Where(x => x != Guid.Empty).Distinct().ToArray();
+        return distinctIds.Length == 0
+            ? []
+            : await DbSet
+                .AsNoTracking()
+                .Where(x => distinctIds.Contains(x.Id))
+                .Include(x => x.Details)
+                .AsSplitQuery()
+                .ToListAsync();
+    }
+
     private IQueryable<SupplierSettlement> BuildDetailQuery(IQueryable<SupplierSettlement>? source = null)
     {
         return (source ?? DbSet)

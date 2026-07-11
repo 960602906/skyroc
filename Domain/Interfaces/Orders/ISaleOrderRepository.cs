@@ -20,7 +20,16 @@ public interface ISaleOrderRepository : IRepository<SaleOrder>
     Task<bool> ExistsOrderNoAsync(string orderNo, Guid? excludeId = null);
 
     /// <summary>
-    /// 批量读取包含明细和审核轨迹的销售订单。
+    /// 批量只读销售订单主单及商品明细快照，用于订单打印等场景。
     /// </summary>
+    /// <param name="ids">待读取的销售订单主键集合。</param>
+    /// <returns>存在的销售订单聚合集合。</returns>
     Task<List<SaleOrder>> GetByIdsAsync(IEnumerable<Guid> ids);
+
+    /// <summary>原子标记指定销售订单已完成正式打印。</summary>
+    /// <param name="ids">待标记的销售订单主键集合。</param>
+    /// <param name="updatedBy">确认打印的操作人主键。</param>
+    /// <param name="updateName">确认打印的操作人名称快照。</param>
+    /// <returns>实际标记成功的订单数量。</returns>
+    Task<int> MarkPrintedAsync(IReadOnlyCollection<Guid> ids, Guid? updatedBy, string? updateName);
 }

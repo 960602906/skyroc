@@ -32,6 +32,44 @@ public class StockOutOrderRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<StockOutOrder>> GetByIdsAsync(IReadOnlyCollection<Guid> ids)
+    {
+        var distinctIds = ids.Where(x => x != Guid.Empty).Distinct().ToArray();
+        return distinctIds.Length == 0
+            ? []
+            : await DbSet
+                .AsNoTracking()
+                .Where(x => distinctIds.Contains(x.Id))
+                .Include(x => x.Details)
+                .AsSplitQuery()
+                .ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<int> MarkPrintedAsync(IReadOnlyCollection<Guid> ids, Guid? updatedBy, string? updateName)
+    {
+        var distinctIds = ids.Distinct().ToArray();
+        if (Context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            var orders = await DbSet.Where(order => distinctIds.Contains(order.Id)).ToListAsync();
+            foreach (var order in orders)
+            {
+                order.PrintStatus = StockPrintStatus.Printed;
+                order.UpdateBy = updatedBy;
+                order.UpdateName = updateName;
+            }
+
+            return orders.Count;
+        }
+
+        return await DbSet.Where(order => distinctIds.Contains(order.Id)).ExecuteUpdateAsync(setters => setters
+            .SetProperty(order => order.PrintStatus, StockPrintStatus.Printed)
+            .SetProperty(order => order.UpdateBy, updatedBy)
+            .SetProperty(order => order.UpdateName, updateName)
+            .SetProperty(order => order.UpdateTime, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyDictionary<Guid, decimal>> GetOutboundBaseQuantitiesAsync(
         IReadOnlyCollection<Guid> saleOrderDetailIds,
         Guid? excludeOrderId = null)

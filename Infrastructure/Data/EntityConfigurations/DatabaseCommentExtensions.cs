@@ -7,6 +7,7 @@ using Domain.Entities.Files;
 using Domain.Entities.Goods;
 using Domain.Entities.ImportExport;
 using Domain.Entities.Orders;
+using Domain.Entities.Printing;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
@@ -95,7 +96,9 @@ public static class DatabaseCommentExtensions
         [typeof(TraceRecord)] = "商品溯源记录，将销售订单商品行与采购入库来源和检测报告串联供二维码展示",
         [typeof(ExternalPushLog)] = "外部报送日志，只追加记录向外部监管或溯源平台每次报送的请求、响应和结果状态",
         [typeof(ImportExportJob)] = "导入导出任务，记录 CSV 模板、导入或导出的执行状态和结果摘要",
-        [typeof(StoredFile)] = "受保护上传文件元数据，记录经签名校验后的文件存储键、类型、大小和创建人"
+        [typeof(StoredFile)] = "受保护上传文件元数据，记录经签名校验后的文件存储键、类型、大小和创建人",
+        [typeof(PrintTemplate)] = "打印模板，保存业务单据可复用的设计器 JSON 和启用状态",
+        [typeof(PrintTemplateField)] = "打印模板字段定义，记录设计器可绑定的数据路径、名称和展示顺序"
     };
 
     private static readonly IReadOnlyDictionary<string, string> PropertyComments = new Dictionary<string, string>
@@ -304,6 +307,15 @@ public static class DatabaseCommentExtensions
         ["PickupStatus"] = "取货任务状态：待分配、待取货、取货中、已完成或已取消",
         ["PickupTaskId"] = "来源售后取货任务主键，同一任务最多生成一条退货入库明细",
         ["PrintStatus"] = "订单打印状态",
+        ["TemplateCode"] = "打印模板稳定业务编码",
+        ["BusinessType"] = "打印模板或数据所属业务单据类型",
+        ["DesignJson"] = "前端打印设计器保存的 JSON 配置",
+        ["IsEnabled"] = "模板是否允许业务打印选择",
+        ["PrintTemplateId"] = "所属打印模板主键",
+        ["FieldKey"] = "打印数据 JSON 中的稳定字段路径",
+        ["DisplayName"] = "模板设计器中展示的字段业务名称",
+        ["DisplayOrder"] = "字段在模板设计器面板中的升序位置",
+        ["Format"] = "字段渲染格式提示，由前端打印引擎解释",
         ["ProductDate"] = "采购商品生产日期，仅记录自然日",
         ["ProtocolPrice"] = "协议约定的商品单价",
         ["PurchasedQuantity"] = "已生成采购单的数量，按采购单位计量",
@@ -576,7 +588,9 @@ public static class DatabaseCommentExtensions
             [(typeof(StoredFile), nameof(StoredFile.StorageKey))] = "服务端随机生成的相对存储键，不包含用户输入路径",
             [(typeof(StoredFile), nameof(StoredFile.OriginalFileName))] = "上传时保留的原始文件名，仅用于下载展示",
             [(typeof(StoredFile), nameof(StoredFile.ContentType))] = "由文件签名验证后的 MIME 类型",
-            [(typeof(StoredFile), nameof(StoredFile.FileSize))] = "文件实际大小，单位为字节"
+            [(typeof(StoredFile), nameof(StoredFile.FileSize))] = "文件实际大小，单位为字节",
+            [(typeof(PrintTemplate), nameof(PrintTemplate.BusinessType))] = "打印模板适用的业务单据类型：销售订单、采购单、入库单、出库单、客户结款或供应商结算",
+            [(typeof(PrintTemplate), nameof(PrintTemplate.Name))] = "供管理员在打印模板列表和选择器中识别的模板名称"
         };
 
     /// <summary>

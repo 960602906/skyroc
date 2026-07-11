@@ -51,6 +51,18 @@ public static class PermissionCodes
             public const string Update = "system:department:update";
             public const string Delete = "system:department:delete";
         }
+
+        /// <summary>
+        /// 打印模板设计、字段定义及其启停维护权限。
+        /// </summary>
+        public static class PrintTemplates
+        {
+            public const string Resource = "system:print-template";
+            public const string Read = $"{Resource}:read";
+            public const string Create = $"{Resource}:create";
+            public const string Update = $"{Resource}:update";
+            public const string Delete = $"{Resource}:delete";
+        }
     }
 
     public static class Business
@@ -185,6 +197,16 @@ public static class PermissionCodes
             public const string Read = $"{Resource}:read";
             public const string Create = $"{Resource}:create";
         }
+
+        /// <summary>
+        /// 业务单据打印数据读取和正式打印确认权限。
+        /// </summary>
+        public static class Printing
+        {
+            public const string Resource = "business:print";
+            public const string Read = $"{Resource}:read";
+            public const string Update = $"{Resource}:update";
+        }
     }
 
     public static IReadOnlyCollection<string> Defined { get; } =
@@ -211,6 +233,10 @@ public static class PermissionCodes
         System.Departments.Create,
         System.Departments.Update,
         System.Departments.Delete,
+        System.PrintTemplates.Read,
+        System.PrintTemplates.Create,
+        System.PrintTemplates.Update,
+        System.PrintTemplates.Delete,
         Business.Goods.Read,
         Business.Goods.Create,
         Business.Goods.Update,
@@ -258,6 +284,8 @@ public static class PermissionCodes
         Business.ImportExport.Read,
         Business.ImportExport.Create,
         Business.Files.Read,
-        Business.Files.Create
+        Business.Files.Create,
+        Business.Printing.Read,
+        Business.Printing.Update
     ];
 }

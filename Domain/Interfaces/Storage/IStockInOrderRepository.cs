@@ -21,6 +21,18 @@ public interface IStockInOrderRepository : IRepository<StockInOrder>
     /// <returns>存在的入库单聚合，按主键升序排列。</returns>
     Task<IReadOnlyList<StockInOrder>> GetByIdsForUpdateAsync(IReadOnlyCollection<Guid> ids);
 
+    /// <summary>批量只读入库单主单及商品明细快照，用于打印场景。</summary>
+    /// <param name="ids">待读取的入库单主键集合。</param>
+    /// <returns>存在的入库单完整聚合集合。</returns>
+    Task<IReadOnlyList<StockInOrder>> GetByIdsAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>原子标记指定入库单已完成正式打印。</summary>
+    /// <param name="ids">待标记的入库单主键集合。</param>
+    /// <param name="updatedBy">确认打印的操作人主键。</param>
+    /// <param name="updateName">确认打印的操作人名称快照。</param>
+    /// <returns>实际标记成功的入库单数量。</returns>
+    Task<int> MarkPrintedAsync(IReadOnlyCollection<Guid> ids, Guid? updatedBy, string? updateName);
+
     /// <summary>
     /// 汇总指定采购明细已经正式审核入库且尚未反审核的基础单位数量。
     /// </summary>

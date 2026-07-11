@@ -415,4 +415,43 @@ public class SwaggerResponseSchemaTests
         Assert.True(upload.GetProperty("requestBody").GetProperty("content").TryGetProperty("multipart/form-data", out _));
         Assert.True(download.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
     }
+
+    [Fact]
+    public async Task Swagger_DocumentsPrintingTemplateAndDataContracts()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("PrintTemplateDto", out var templateSchema));
+        Assert.Contains("打印", templateSchema.GetProperty("description").GetString());
+        Assert.True(schemas.TryGetProperty("PrintDocumentDto", out _));
+        Assert.True(paths.TryGetProperty("/api/print-templates", out _));
+        Assert.True(paths.TryGetProperty("/api/print-templates/by-code/{templateCode}", out _));
+        Assert.True(paths.TryGetProperty("/api/print-data/{businessType}", out _));
+        Assert.True(paths.TryGetProperty("/api/print-data/{businessType}/confirm", out _));
+
+        var list = paths.GetProperty("/api/print-templates").GetProperty("get");
+        var create = paths.GetProperty("/api/print-templates").GetProperty("post");
+        var data = paths.GetProperty("/api/print-data/{businessType}").GetProperty("get");
+        var confirm = paths.GetProperty("/api/print-data/{businessType}/confirm").GetProperty("post");
+        foreach (var operation in new[] { list, create, data, confirm })
+        {
+            Assert.Contains("打印", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
+            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+            Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+        }
+
+        Assert.Contains(PermissionCodes.System.PrintTemplates.Read, list.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.System.PrintTemplates.Create, create.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Printing.Read, data.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Printing.Update, confirm.GetProperty("description").GetString());
+    }
 }

@@ -129,11 +129,13 @@ flowchart TD
 
 | 动作 | 方法 | URL |
 | --- | --- | --- |
-| 按编码取模板 | GET | `/system/sysPrintTemplate/getByCode` |
-| 模板分页 | GET | `/system/sysPrintTemplate/pageSysPrintTemplate` |
-| 新增模板 | POST | `/system/sysPrintTemplate/addSysPrintTemplate` |
-| 修改模板 | PUT | `/system/sysPrintTemplate/updateSysPrintTemplate` |
-| 删除模板 | DELETE | `/system/sysPrintTemplate/delSysPrintTemplate/{id}` |
+| 按编码取模板 | GET | `/api/print-templates/by-code/{templateCode}` |
+| 模板分页 | GET | `/api/print-templates?pageNumber=1&pageSize=20` |
+| 新增模板 | POST | `/api/print-templates` |
+| 修改模板 | PUT | `/api/print-templates` |
+| 删除模板 | DELETE | `/api/print-templates/{id}` |
+
+模板以全局唯一 `templateCode`、适用 `businessType`、设计器 `designJson` 和字段路径集合组成。字段路径从业务打印数据中绑定，例如 `documentNo`、`businessPartyName` 和 `details[].itemName`；后端不渲染 HTML。模板管理需要 `system:print-template:*` 权限。
 
 ## 运营设置
 

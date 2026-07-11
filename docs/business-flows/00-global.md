@@ -220,37 +220,33 @@ flowchart TD
   E --> F["确认打印"]
 ```
 
+SkyRoc 当前以模板主表保存设计器 JSON，并以模板字段表保存可绑定字段路径；后端只提供稳定业务数据快照，不负责 HTML 或打印机渲染。预览数据接口是只读的；正式打印完成后，订单、入库单和出库单必须显式确认，才会把已有 `printStatus` 从未打印更新为已打印。
+
 模板接口：
 
 | 动作 | 方法 | URL |
 | --- | --- | --- |
-| 按编码取模板 | GET | `/system/sysPrintTemplate/getByCode` |
-| 模板分页 | GET | `/system/sysPrintTemplate/pageSysPrintTemplate` |
-| 新增模板 | POST | `/system/sysPrintTemplate/addSysPrintTemplate` |
-| 修改模板 | PUT | `/system/sysPrintTemplate/updateSysPrintTemplate` |
-| 删除模板 | DELETE | `/system/sysPrintTemplate/delSysPrintTemplate/{id}` |
+| 按编码取模板 | GET | `/api/print-templates/by-code/{templateCode}` |
+| 模板分页 | GET | `/api/print-templates?pageNumber=1&pageSize=20` |
+| 新增模板 | POST | `/api/print-templates` |
+| 修改模板 | PUT | `/api/print-templates` |
+| 删除模板 | DELETE | `/api/print-templates/{id}` |
 
 业务打印接口：
 
 | 对象 | 方法 | URL |
 | --- | --- | --- |
-| 客户配送单 | GET/POST | `/business/print/data/customer/order/delivery/{ids}` |
-| 账户配送单 | GET | `/business/print/data/customer/group/order/delivery/{ids}` |
-| 采购单据 | GET | `/business/print/data/purchase/order/{ids}` |
-| 入库单 | GET | `/business/print/data/stock/in/{orderType}/{orderIds}` |
-| 出库单 | GET | `/business/print/data/stock/out/{orderType}/{orderIds}` |
-| 供应商结款旧接口 | GET | `/business/print/data/supplier/settlement/{settlementIds}` |
-| 供应商结算 | GET | `/business/print/data/supplierSettlement/{settlementIds}` |
-| 采购计划-供应商 | GET | `/business/print/data/purchasePlan/supplier/{planIds}` |
-| 采购计划-商品分类 | GET | `/business/print/data/purchasePlan/goodsType/{planIds}` |
+| 销售订单/客户配送单 | GET | `/api/print-data/1?ids={id}` |
+| 采购单据 | GET | `/api/print-data/2?ids={id}` |
+| 入库单 | GET | `/api/print-data/3?ids={id}` |
+| 出库单 | GET | `/api/print-data/4?ids={id}` |
+| 客户结款凭证 | GET | `/api/print-data/5?ids={id}` |
+| 供应商结算 | GET | `/api/print-data/6?ids={id}` |
+| 确认订单/入库/出库已打印 | POST | `/api/print-data/{businessType}/confirm` |
 
-配送单打印分组：
+`businessType` 固定为 `1 = 销售订单`、`2 = 采购单`、`3 = 入库单`、`4 = 出库单`、`5 = 客户结款`、`6 = 供应商结算`。单次最多请求 100 个不重复 UUID；打印数据按请求 ID 顺序返回。模板维护需要 `system:print-template:*`，业务数据读取需要 `business:print:read`，正式打印确认需要 `business:print:update`。
 
-| 动作 | 方法 | URL |
-| --- | --- | --- |
-| 打印分组列表 | GET | `/business/print/data/filter/group/list` |
-| 保存打印分组 | POST | `/business/print/data/filter/group` |
-| 删除打印分组 | DELETE | `/business/print/data/filter/group/{ids}` |
+配送单打印分组属于旧系统辅助配置，当前未纳入 P4-08 范围；前端可按本次 API 返回的单据集合自行分组。
 
 ## 表头配置
 
@@ -274,7 +270,6 @@ flowchart TD
 
 - 后端 OpenAPI/Swagger 请求体和响应体。
 - 导入导出 `jobType` 全量枚举。
-- 打印模板数据结构。
 - 状态流转的后端校验规则。
 - 金额、数量、单位换算精度。
 - 反审核、作废、删除是否产生冲销记录。

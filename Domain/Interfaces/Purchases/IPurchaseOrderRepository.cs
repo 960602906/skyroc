@@ -21,4 +21,9 @@ public interface IPurchaseOrderRepository : IRepository<PurchaseOrder>
     /// <param name="excludeId">编辑场景需要排除的采购单主键。</param>
     /// <returns>存在同号采购单时返回 <c>true</c>。</returns>
     Task<bool> ExistsPurchaseNoAsync(string purchaseNo, Guid? excludeId = null);
+
+    /// <summary>批量只读采购单主单及商品明细快照，用于打印等多单据场景。</summary>
+    /// <param name="ids">待读取的采购单主键集合。</param>
+    /// <returns>存在的采购单完整聚合集合。</returns>
+    Task<IReadOnlyList<PurchaseOrder>> GetByIdsAsync(IReadOnlyCollection<Guid> ids);
 }

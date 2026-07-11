@@ -231,7 +231,7 @@ flowchart TD
 | `CUSTOMER_ORDER_DELIVERY` | 客户配送单 |
 | `CUSTOMER_GROUP_ORDER_DELIVERY` | 账户配送单 |
 
-打印数据接口见全局文档。
+打印数据使用 `GET /api/print-data/1?ids={orderId}`；预览不会改变订单状态，实际打印完成后调用 `POST /api/print-data/1/confirm` 才会将订单 `printStatus` 标记为已打印。模板和字段接口见全局文档。
 
 ## React 重写提示
 

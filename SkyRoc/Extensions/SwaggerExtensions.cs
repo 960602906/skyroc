@@ -62,7 +62,9 @@ public static class SwaggerExtensions
         ["Reports"] = "报表",
         ["Dashboard"] = "首页驾驶舱",
         ["ImportExportJobs"] = "导入导出",
-        ["Files"] = "文件上传"
+        ["Files"] = "文件上传",
+        ["PrintTemplates"] = "打印",
+        ["PrintData"] = "打印"
     };
 
     /// <summary>

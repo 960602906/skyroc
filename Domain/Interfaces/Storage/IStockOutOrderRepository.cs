@@ -14,6 +14,18 @@ public interface IStockOutOrderRepository : IRepository<StockOutOrder>
     /// <returns>包含商品明细的出库单；不存在时返回 <c>null</c>。</returns>
     Task<StockOutOrder?> GetByIdForUpdateAsync(Guid id);
 
+    /// <summary>批量只读出库单主单及商品明细快照，用于打印场景。</summary>
+    /// <param name="ids">待读取的出库单主键集合。</param>
+    /// <returns>存在的出库单完整聚合集合。</returns>
+    Task<IReadOnlyList<StockOutOrder>> GetByIdsAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>原子标记指定出库单已完成正式打印。</summary>
+    /// <param name="ids">待标记的出库单主键集合。</param>
+    /// <param name="updatedBy">确认打印的操作人主键。</param>
+    /// <param name="updateName">确认打印的操作人名称快照。</param>
+    /// <returns>实际标记成功的出库单数量。</returns>
+    Task<int> MarkPrintedAsync(IReadOnlyCollection<Guid> ids, Guid? updatedBy, string? updateName);
+
     /// <summary>
     /// 汇总指定销售订单明细已经正式审核出库且尚未反审核的基础单位数量。
     /// </summary>

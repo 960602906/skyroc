@@ -79,6 +79,8 @@ flowchart TD
   F --> G["凭证列表"]
 ```
 
+客户结款凭证打印数据使用 `GET /api/print-data/5?ids={customerSettlementId}`；结款凭证不维护 `printStatus`，因此无需确认打印。供应商结算对应 `GET /api/print-data/6?ids={supplierSettlementId}`，同样仅返回快照数据。
+
 接口：
 
 | 动作 | 方法 | URL |
@@ -183,7 +185,7 @@ flowchart TD
 | 批量结款 | PUT | `/business/supplier/settlement/batch/settle` |
 | 作废 | DELETE | `/business/supplier/settlement/wasted/{ids}` |
 | 删除 | DELETE | `/business/supplier/settlement/{ids}` |
-| 打印 | GET | `/business/print/data/supplierSettlement/{settlementIds}` |
+| 打印数据 | GET | `/api/print-data/6?ids={id}` |
 | 合并结算 | PUT | `/business/supplier/settlement/{settlementId}` |
 
 ## React 重写提示

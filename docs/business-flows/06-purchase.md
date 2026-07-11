@@ -240,6 +240,10 @@ flowchart TD
 
 ## React 重写提示
 
+## 打印
+
+采购单使用 `GET /api/print-data/2?ids={purchaseOrderId}` 获取模板数据快照。采购单当前不维护 `printStatus`，因此没有正式打印确认接口；模板选择与字段定义见全局打印能力。
+
 - 采购计划是订单到库存的桥，应优先定义清楚 `PurchasePlan` 类型。
 - 供应商直供和市场自采 UI 很像，建议用同一列表组件加 `purchasePattern` 区分。
 - 计划合并和拆分要独立弹窗组件，并把校验规则集中。

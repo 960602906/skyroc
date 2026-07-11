@@ -69,6 +69,20 @@ public class PurchaseOrderRepository(ApplicationDbContext context)
             && (!excludeId.HasValue || x.Id != excludeId.Value));
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<PurchaseOrder>> GetByIdsAsync(IReadOnlyCollection<Guid> ids)
+    {
+        var distinctIds = ids.Where(x => x != Guid.Empty).Distinct().ToArray();
+        return distinctIds.Length == 0
+            ? []
+            : await DbSet
+                .AsNoTracking()
+                .Where(x => distinctIds.Contains(x.Id))
+                .Include(x => x.Details)
+                .AsSplitQuery()
+                .ToListAsync();
+    }
+
     /// <summary>
     /// 构建包含商品、单位和计划来源聚合的采购单查询。
     /// </summary>

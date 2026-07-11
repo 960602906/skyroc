@@ -96,7 +96,8 @@ flowchart TD
 | 删除 | DELETE | `/business/stock/in/purchase/{ids}` |
 | 审核 | POST | `/business/stock/in/purchase/audit/{ids}` |
 | 反审核 | POST | `/business/stock/in/purchase/{ids}` |
-| 打印 | GET | `/business/print/data/inPurchase/{orderType}/{inPurchaseIds}` |
+| 打印数据预览 | GET | `/api/print-data/3?ids={id}` |
+| 确认正式打印 | POST | `/api/print-data/3/confirm` |
 
 入库单字段：
 
@@ -188,7 +189,8 @@ flowchart TD
 | 审核 | POST | `/business/stock/out/sale/audit/{ids}` |
 | 反审核 | POST | `/business/stock/out/sale/{ids}` |
 | 转其他入库 | POST | `/business/stock/out/sale/genInOther/{ids}` |
-| 打印 | GET | `/business/print/data/outSale/{orderType}/{outSaleIds}` |
+| 打印数据预览 | GET | `/api/print-data/4?ids={id}` |
+| 确认正式打印 | POST | `/api/print-data/4/confirm` |
 
 ## 采购退货出库和其他出库
 

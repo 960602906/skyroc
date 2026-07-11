@@ -8,6 +8,7 @@ using Domain.Entities.Files;
 using Domain.Entities.Goods;
 using Domain.Entities.ImportExport;
 using Domain.Entities.Orders;
+using Domain.Entities.Printing;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
@@ -430,6 +431,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 受保护上传文件元数据表。
     /// </summary>
     public DbSet<StoredFile> StoredFiles { get; set; }
+
+    /// <summary>
+    /// 打印模板主表。
+    /// </summary>
+    public DbSet<PrintTemplate> PrintTemplates { get; set; }
+
+    /// <summary>
+    /// 打印模板字段定义表。
+    /// </summary>
+    public DbSet<PrintTemplateField> PrintTemplateFields { get; set; }
 
     #endregion
 }

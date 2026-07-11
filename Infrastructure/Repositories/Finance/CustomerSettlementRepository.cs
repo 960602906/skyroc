@@ -37,6 +37,20 @@ public class CustomerSettlementRepository(ApplicationDbContext context)
         return DbSet.AnyAsync(x => x.SettlementNo == normalizedSettlementNo);
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<CustomerSettlement>> GetByIdsAsync(IReadOnlyCollection<Guid> ids)
+    {
+        var distinctIds = ids.Where(x => x != Guid.Empty).Distinct().ToArray();
+        return distinctIds.Length == 0
+            ? []
+            : await DbSet
+                .AsNoTracking()
+                .Where(x => distinctIds.Contains(x.Id))
+                .Include(x => x.Details)
+                .AsSplitQuery()
+                .ToListAsync();
+    }
+
     private IQueryable<CustomerSettlement> BuildDetailQuery(IQueryable<CustomerSettlement>? source = null)
     {
         return (source ?? DbSet)
