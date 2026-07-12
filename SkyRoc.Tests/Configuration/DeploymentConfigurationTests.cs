@@ -35,6 +35,20 @@ public class DeploymentConfigurationTests
         Assert.False(document.RootElement.GetProperty("DevSeed").GetProperty("Enabled").GetBoolean());
     }
 
+    /// <summary>
+    ///     EF Core 设计时工厂不得内嵌远端连接、账号或密码，迁移连接必须由环境变量显式提供。
+    /// </summary>
+    [Fact]
+    public void DbContextFactory_RequiresEnvironmentConnectionWithoutEmbeddedCredentials()
+    {
+        var source = File.ReadAllText(
+            GetRepositoryFile("Infrastructure", "Data", "DbContextFactory.cs"));
+
+        Assert.Contains("ConnectionStrings__DefaultConnection", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("Password=", source, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("neon.tech", source, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string GetRepositoryFile(params string[] pathSegments)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

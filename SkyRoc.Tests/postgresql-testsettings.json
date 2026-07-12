@@ -1,0 +1,5 @@
+{
+  "environmentName": "Testing",
+  "expectedDatabaseName": "neondb",
+  "reportDirectory": "artifacts/business-test-reports"
+}

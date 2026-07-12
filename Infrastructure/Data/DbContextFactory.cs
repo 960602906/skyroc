@@ -13,12 +13,15 @@ public class DbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext
     /// </summary>
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        const string connectionString = "Host=ep-still-firefly-aotz0lef-pooler.c-2.ap-southeast-1.aws.neon.tech; Database=neondb; Username=neondb_owner; Password=npg_aYwABE7F4HxP; SSL Mode=Require; Trust Server Certificate=true;";
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("__SET_IN_ENV__"))
+        {
+            throw new InvalidOperationException(
+                "ConnectionStrings__DefaultConnection must be explicitly configured before running EF Core design-time commands.");
+        }
 
-        // 配置 DbContext
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-
-        optionsBuilder.UseNpgsql(connectionString).EnableSensitiveDataLogging();
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new ApplicationDbContext(optionsBuilder.Options);
     }
