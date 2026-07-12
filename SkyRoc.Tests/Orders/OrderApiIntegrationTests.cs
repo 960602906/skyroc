@@ -7,6 +7,7 @@ using Application.DTOs.Orders;
 using Application.interfaces;
 using Application.QueryParameters;
 using Domain.Entities.Orders;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -17,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Testing;
 using Xunit;
 
 namespace SkyRoc.Tests.Orders;
@@ -26,6 +28,16 @@ public class OrderApiIntegrationTests
     private static readonly Guid CustomerId = Guid.Parse("20000000-0000-0000-0000-000000000001");
     private static readonly Guid GoodsId = Guid.Parse("30000000-0000-0000-0000-000000000001");
     private static readonly Guid GoodsUnitId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+
+    [Fact]
+    public void OrderApiFactory_UsesInMemoryDatabaseForAuditScope()
+    {
+        using var factory = new OrderApiFactory();
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        Assert.Equal("Microsoft.EntityFrameworkCore.InMemory", context.Database.ProviderName);
+    }
 
     [Fact]
     public async Task OrderEndpoints_RequireAuthenticationAndExpectedPermission()
@@ -178,6 +190,7 @@ public class OrderApiIntegrationTests
             builder.UseSetting("Redis:Enabled", "false");
             builder.ConfigureTestServices(services =>
             {
+                services.UseIsolatedInMemoryPersistence($"order-api-{Guid.NewGuid():N}");
                 services.RemoveAll<ISaleOrderService>();
                 services.AddSingleton<ISaleOrderService, InMemorySaleOrderService>();
                 services.AddAuthentication(options =>

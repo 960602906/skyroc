@@ -7,6 +7,7 @@ using Application.DTOs.Purchases;
 using Application.interfaces;
 using Application.QueryParameters;
 using Domain.Entities.Purchases;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -17,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Testing;
 using Xunit;
 
 namespace SkyRoc.Tests.Purchases;
@@ -25,6 +27,16 @@ public class PurchasePlanApiIntegrationTests
 {
     private static readonly Guid GoodsId = Guid.Parse("30000000-0000-0000-0000-000000000009");
     private static readonly Guid PurchaseUnitId = Guid.Parse("40000000-0000-0000-0000-000000000009");
+
+    [Fact]
+    public void PurchasePlanApiFactory_UsesInMemoryDatabaseForAuditScope()
+    {
+        using var factory = new PurchasePlanApiFactory();
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        Assert.Equal("Microsoft.EntityFrameworkCore.InMemory", context.Database.ProviderName);
+    }
 
     [Fact]
     public async Task PurchasePlanEndpoints_RequireAuthenticationAndExpectedPermission()
@@ -159,6 +171,7 @@ public class PurchasePlanApiIntegrationTests
             builder.UseSetting("Redis:Enabled", "false");
             builder.ConfigureTestServices(services =>
             {
+                services.UseIsolatedInMemoryPersistence($"purchase-plan-api-{Guid.NewGuid():N}");
                 services.RemoveAll<IPurchasePlanService>();
                 services.AddSingleton<IPurchasePlanService, InMemoryPurchasePlanService>();
                 services.AddAuthentication(options =>

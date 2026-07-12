@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using SkyRoc.Tests.Testing;
 
 namespace SkyRoc.Tests.Documentation;
 
@@ -16,5 +18,7 @@ internal sealed class SwaggerDocumentationWebApplicationFactory : WebApplication
             "Host=localhost;Database=skyroc_tests;Username=test;Password=test");
         builder.UseSetting("JwtSettings:SecretKey", "test-only-secret-key-with-at-least-32-bytes");
         builder.UseSetting("Redis:Enabled", "false");
+        builder.ConfigureTestServices(services =>
+            services.UseIsolatedInMemoryPersistence($"swagger-documentation-{Guid.NewGuid():N}"));
     }
 }

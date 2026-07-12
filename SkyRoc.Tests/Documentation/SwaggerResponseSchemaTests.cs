@@ -1,5 +1,7 @@
 using System.Text.Json;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Shared.Constants;
 using Xunit;
 
@@ -7,6 +9,16 @@ namespace SkyRoc.Tests.Documentation;
 
 public class SwaggerResponseSchemaTests
 {
+    [Fact]
+    public void SwaggerDocumentationFactory_UsesInMemoryDatabaseForAuditScope()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        Assert.Equal("Microsoft.EntityFrameworkCore.InMemory", context.Database.ProviderName);
+    }
+
     [Fact]
     public async Task Swagger_DocumentsApiResponseWrapper_ForOrderDetail()
     {

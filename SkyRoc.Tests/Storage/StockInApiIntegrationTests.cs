@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -422,11 +423,7 @@ public class StockInApiIntegrationTests
             builder.UseSetting("Redis:Enabled", "false");
             builder.ConfigureTestServices(services =>
             {
-                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
-                services.RemoveAll<IDbContextOptionsConfiguration<ApplicationDbContext>>();
-                services.RemoveAll<ApplicationDbContext>();
-                services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseInMemoryDatabase(_databaseName));
+                services.UseIsolatedInMemoryPersistence(_databaseName);
                 services.RemoveAll<IUnitOfWork>();
                 services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
                 services.AddAuthentication(options =>
