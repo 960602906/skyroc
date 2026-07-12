@@ -63,6 +63,7 @@ public class SupplierBillModelTests
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_supplier_bill_stock_in_order_id").IsUnique);
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_supplier_bill_stock_out_order_id").IsUnique);
         Assert.Equal(SupplierBillStatus.Pending, entityType.FindProperty(nameof(SupplierBill.BillStatus))!.GetDefaultValue());
+        Assert.Equal((SupplierBillStatus)0, entityType.FindProperty(nameof(SupplierBill.BillStatus))!.Sentinel);
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(SupplierBill.DocumentAmount))!.GetScale());
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(SupplierBill.PayableAmount))!.GetScale());
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(SupplierBill.SettledAmount))!.GetScale());
@@ -93,6 +94,7 @@ public class SupplierBillModelTests
 
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_supplier_settlement_no").IsUnique);
         Assert.Equal(SupplierSettlementStatus.Pending, entityType.FindProperty(nameof(SupplierSettlement.SettlementStatus))!.GetDefaultValue());
+        Assert.Equal((SupplierSettlementStatus)0, entityType.FindProperty(nameof(SupplierSettlement.SettlementStatus))!.Sentinel);
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_supplier_settlement_amounts");
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_supplier_settlement_status");
     }

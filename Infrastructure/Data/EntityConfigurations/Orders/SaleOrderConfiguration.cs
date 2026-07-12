@@ -20,7 +20,9 @@ public class SaleOrderConfiguration : IEntityTypeConfiguration<SaleOrder>
         builder.Property(x => x.OrderDate).HasColumnName("order_date").HasColumnType("timestamp with time zone");
         builder.Property(x => x.ReceiveDate).HasColumnName("receive_date").HasColumnType("timestamp with time zone");
         builder.Property(x => x.OutDate).HasColumnName("out_date").HasColumnType("timestamp with time zone");
-        builder.Property(x => x.OrderStatus).HasColumnName("order_status").HasColumnType("integer").HasDefaultValue(SaleOrderStatus.PendingAudit);
+        builder.Property(x => x.OrderStatus).HasColumnName("order_status").HasColumnType("integer")
+            .HasDefaultValue(SaleOrderStatus.PendingAudit)
+            .HasSentinel((SaleOrderStatus)0);
         builder.Property(x => x.ReturnStatus).HasColumnName("return_status").HasColumnType("integer").HasDefaultValue(OrderReturnStatus.NotReturned);
         builder.Property(x => x.PrintStatus).HasColumnName("print_status").HasColumnType("integer").HasDefaultValue(OrderPrintStatus.NotPrinted);
         builder.Property(x => x.OutStorageStatus).HasColumnName("out_storage_status").HasColumnType("integer").HasDefaultValue(OrderOutStorageStatus.NotGenerated);

@@ -31,7 +31,9 @@ public class PickupTaskConfiguration : IEntityTypeConfiguration<PickupTask>
         builder.Property(x => x.ContactPhoneSnapshot).HasColumnName("contact_phone_snapshot").HasMaxLength(30);
         builder.Property(x => x.PickupAddressSnapshot).HasColumnName("pickup_address_snapshot").HasMaxLength(500).IsRequired();
         builder.Property(x => x.PickupStatus).HasColumnName("pickup_status").HasColumnType("integer")
-            .HasDefaultValue(PickupTaskStatus.PendingAssign).IsRequired();
+            .HasDefaultValue(PickupTaskStatus.PendingAssign)
+            .HasSentinel((PickupTaskStatus)0)
+            .IsRequired();
         builder.Property(x => x.PlannedPickupTime).HasColumnName("planned_pickup_time").HasColumnType("timestamp with time zone");
         builder.Property(x => x.AssignedTime).HasColumnName("assigned_time").HasColumnType("timestamp with time zone");
         builder.Property(x => x.StartedTime).HasColumnName("started_time").HasColumnType("timestamp with time zone");

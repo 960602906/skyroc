@@ -19,7 +19,12 @@ public class StockInOrderConfiguration : IEntityTypeConfiguration<StockInOrder>
 
         builder.Property(x => x.InNo).HasColumnName("in_no").HasMaxLength(50).IsRequired();
         builder.Property(x => x.OrderType).HasColumnName("order_type").HasColumnType("integer");
-        builder.Property(x => x.BusinessStatus).HasColumnName("business_status").HasColumnType("integer").HasDefaultValue(StockDocumentStatus.Draft);
+        // Draft=1，CLR 默认 0 不是合法状态；显式 sentinel 避免 EF 20601，并在值为 0 时使用库默认 Draft
+        builder.Property(x => x.BusinessStatus)
+            .HasColumnName("business_status")
+            .HasColumnType("integer")
+            .HasDefaultValue(StockDocumentStatus.Draft)
+            .HasSentinel((StockDocumentStatus)0);
         builder.Property(x => x.WareId).HasColumnName("ware_id");
         builder.Property(x => x.WareNameSnapshot).HasColumnName("ware_name_snapshot").HasMaxLength(150).IsRequired();
         builder.Property(x => x.PurchaseOrderId).HasColumnName("purchase_order_id");

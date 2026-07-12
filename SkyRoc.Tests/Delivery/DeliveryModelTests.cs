@@ -53,6 +53,7 @@ public class DeliveryModelTests
         Assert.Equal(
             DeliveryTaskStatus.PendingAssign,
             entityType.FindProperty(nameof(DeliveryTask.DeliveryStatus))!.GetDefaultValue());
+        Assert.Equal((DeliveryTaskStatus)0, entityType.FindProperty(nameof(DeliveryTask.DeliveryStatus))!.Sentinel);
         AssertForeignKey<DeliveryTask, Driver>(nameof(DeliveryTask.DriverId), DeleteBehavior.Restrict);
         AssertForeignKey<DeliveryTask, DeliveryRoute>(nameof(DeliveryTask.RouteId), DeleteBehavior.SetNull);
     }

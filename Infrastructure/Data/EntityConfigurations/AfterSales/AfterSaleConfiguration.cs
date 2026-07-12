@@ -32,7 +32,9 @@ public class AfterSaleConfiguration : IEntityTypeConfiguration<AfterSale>
         builder.Property(x => x.CustomerNameSnapshot).HasColumnName("customer_name_snapshot").HasMaxLength(150).IsRequired();
         builder.Property(x => x.Source).HasColumnName("source").HasMaxLength(50).IsRequired();
         builder.Property(x => x.AfterStatus).HasColumnName("after_status").HasColumnType("integer")
-            .HasDefaultValue(AfterSaleStatus.Draft).IsRequired();
+            .HasDefaultValue(AfterSaleStatus.Draft)
+            .HasSentinel((AfterSaleStatus)0)
+            .IsRequired();
         builder.Property(x => x.OrderPrice).HasColumnName("order_price")
             .HasPrecision(18, NumericPrecision.MoneyScale).IsRequired();
         builder.Property(x => x.SettlementPrice).HasColumnName("settlement_price")

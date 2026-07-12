@@ -22,7 +22,8 @@ public class GoodsUnitConfiguration : IEntityTypeConfiguration<GoodsUnit>
         builder.Property(x => x.ConversionRate)
             .HasColumnName("conversion_rate")
             .HasColumnType("numeric(18,6)")
-            .HasDefaultValue(1m);
+            .HasDefaultValue(1m)
+            .HasSentinel(0m);
         builder.Property(x => x.IsBaseUnit).HasColumnName("is_base_unit");
         builder.Property(x => x.Sort).HasColumnName("sort");
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);

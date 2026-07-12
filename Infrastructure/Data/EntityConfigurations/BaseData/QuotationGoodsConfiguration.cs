@@ -21,7 +21,9 @@ public class QuotationGoodsConfiguration : IEntityTypeConfiguration<QuotationGoo
         builder.Property(x => x.GoodsUnitId).HasColumnName("goods_unit_id");
         builder.Property(x => x.UnitPrice).HasColumnName("unit_price").HasColumnType("numeric(18,4)");
         builder.Property(x => x.MinOrderQuantity).HasColumnName("min_order_quantity").HasColumnType("numeric(18,4)");
-        builder.Property(x => x.IsOnSale).HasColumnName("is_on_sale").HasDefaultValue(true);
+        builder.Property(x => x.IsOnSale).HasColumnName("is_on_sale")
+            .HasDefaultValue(true)
+            .HasSentinel(false);
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => x.QuotationId).HasDatabaseName("idx_quotation_goods_quotation_id");

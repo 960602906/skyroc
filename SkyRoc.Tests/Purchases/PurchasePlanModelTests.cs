@@ -36,7 +36,9 @@ public class PurchasePlanModelTests
         var entityType = GetEntityType<PurchasePlan>();
 
         Assert.Equal(PurchasePattern.SupplierDirect, entityType.FindProperty(nameof(PurchasePlan.PurchasePattern))!.GetDefaultValue());
+        Assert.Equal((PurchasePattern)0, entityType.FindProperty(nameof(PurchasePlan.PurchasePattern))!.Sentinel);
         Assert.Equal(PurchasePlanStatus.Unpublished, entityType.FindProperty(nameof(PurchasePlan.PurchaseStatus))!.GetDefaultValue());
+        Assert.Equal((PurchasePlanStatus)0, entityType.FindProperty(nameof(PurchasePlan.PurchaseStatus))!.Sentinel);
 
         var planNoIndex = entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_purchase_plan_plan_no");
         Assert.True(planNoIndex.IsUnique);

@@ -35,7 +35,9 @@ public class InspectionReportGoodsConfiguration : IEntityTypeConfiguration<Inspe
             .HasPrecision(18, NumericPrecision.QuantityScale).IsRequired();
         builder.Property(x => x.BatchNoSnapshot).HasColumnName("batch_no_snapshot").HasMaxLength(100).IsRequired();
         builder.Property(x => x.Conclusion).HasColumnName("conclusion").HasColumnType("integer")
-            .HasDefaultValue(InspectionConclusion.Pending).IsRequired();
+            .HasDefaultValue(InspectionConclusion.Pending)
+            .HasSentinel((InspectionConclusion)0)
+            .IsRequired();
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => new { x.InspectionReportId, x.StockInDetailId }).IsUnique()

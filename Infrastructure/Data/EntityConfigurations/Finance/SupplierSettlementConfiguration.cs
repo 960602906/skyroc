@@ -41,7 +41,9 @@ public class SupplierSettlementConfiguration : IEntityTypeConfiguration<Supplier
         builder.Property(x => x.RemainingAmount).HasColumnName("remaining_amount")
             .HasPrecision(18, NumericPrecision.MoneyScale).IsRequired();
         builder.Property(x => x.SettlementStatus).HasColumnName("settlement_status").HasColumnType("integer")
-            .HasDefaultValue(SupplierSettlementStatus.Pending).IsRequired();
+            .HasDefaultValue(SupplierSettlementStatus.Pending)
+            .HasSentinel((SupplierSettlementStatus)0)
+            .IsRequired();
         builder.Property(x => x.VoidedTime).HasColumnName("voided_time").HasColumnType("timestamp with time zone");
         builder.Property(x => x.VoidedBy).HasColumnName("voided_by");
         builder.Property(x => x.VoidedByNameSnapshot).HasColumnName("voided_by_name_snapshot").HasMaxLength(100);

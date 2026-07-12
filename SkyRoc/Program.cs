@@ -98,8 +98,11 @@ if (app.Environment.IsDevelopment())
 // ========================================
 // 1. 使用全局异常处理（必须在最前面）
 app.UseExceptionHandling();
-// 2. HTTPS 重定向
-app.UseHttpsRedirection();
+// 2. HTTPS 重定向（开发环境常用 http profile，跳过以免无法解析 https 端口的警告）
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 // 3. ✅ 路由 - 必须有！
 app.UseRouting();
 // 使用认证中间件

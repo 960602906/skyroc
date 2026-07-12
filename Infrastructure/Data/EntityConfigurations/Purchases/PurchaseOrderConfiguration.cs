@@ -16,9 +16,16 @@ public class PurchaseOrderConfiguration : IEntityTypeConfiguration<PurchaseOrder
         builder.Property(x => x.SupplierNameSnapshot).HasColumnName("supplier_name_snapshot").HasMaxLength(150);
         builder.Property(x => x.PurchaserId).HasColumnName("purchaser_id");
         builder.Property(x => x.PurchaserNameSnapshot).HasColumnName("purchaser_name_snapshot").HasMaxLength(150);
-        builder.Property(x => x.PurchasePattern).HasColumnName("purchase_pattern").HasColumnType("integer").HasDefaultValue(PurchasePattern.SupplierDirect);
+        builder.Property(x => x.PurchasePattern).HasColumnName("purchase_pattern").HasColumnType("integer")
+            .HasDefaultValue(PurchasePattern.SupplierDirect)
+            .HasSentinel((PurchasePattern)0);
         builder.Property(x => x.ReceiveTime).HasColumnName("receive_time").HasColumnType("timestamp with time zone");
-        builder.Property(x => x.BusinessStatus).HasColumnName("business_status").HasColumnType("integer").HasDefaultValue(PurchaseOrderStatus.Draft);
+        // Draft=1，CLR 默认 0 不是合法状态；显式 sentinel 避免 EF 20601，并在值为 0 时使用库默认 Draft
+        builder.Property(x => x.BusinessStatus)
+            .HasColumnName("business_status")
+            .HasColumnType("integer")
+            .HasDefaultValue(PurchaseOrderStatus.Draft)
+            .HasSentinel((PurchaseOrderStatus)0);
         builder.Property(x => x.SupplierContactNameSnapshot).HasColumnName("supplier_contact_name_snapshot").HasMaxLength(50);
         builder.Property(x => x.SupplierContactPhoneSnapshot).HasColumnName("supplier_contact_phone_snapshot").HasMaxLength(20);
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
