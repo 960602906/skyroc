@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 ///     部门管理控制器
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/departments")]
 [Authorize]
 public class DepartmentsController(IDepartmentService departmentService) : ControllerBase
 {

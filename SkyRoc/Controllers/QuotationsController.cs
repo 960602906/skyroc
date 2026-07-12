@@ -12,7 +12,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     报价单管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/quotations")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Pricing.Resource)]
 public class QuotationsController(IQuotationService service)

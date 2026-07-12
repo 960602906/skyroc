@@ -233,7 +233,7 @@ public class SystemSupportContractTests
         await using var provider = new ServiceCollection().AddSingleton<IOperationAuditService>(sink).BuildServiceProvider();
         var context = new DefaultHttpContext { RequestServices = provider };
         context.Request.Method = HttpMethods.Post;
-        context.Request.Path = "/api/Auth/login";
+        context.Request.Path = "/api/auth/login";
         var middleware = new OperationAuditMiddleware(_ => Task.CompletedTask, NullLogger<OperationAuditMiddleware>.Instance);
 
         await middleware.InvokeAsync(context);

@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     客户协议价管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/customer-protocols")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Pricing.Resource)]
 public class CustomerProtocolsController(ICustomerProtocolService service)

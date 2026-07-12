@@ -12,7 +12,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     商品档案管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/goods")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Goods.Resource)]
 public class GoodsController(IGoodsService service)

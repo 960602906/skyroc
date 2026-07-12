@@ -31,28 +31,28 @@
 | 模块 | 控制器/路由 | 数量 | 补充动作 |
 | --- | --- | ---: | --- |
 | 健康检查 | `GET /health` | 1 | 匿名 |
-| 认证 | `/api/Auth` | 5 | `login`、`getUserInfo`、`getRoutes`、`refresh-token`、`logout`；登录和刷新匿名 |
+| 认证 | `/api/auth` | 5 | `login`、`getUserInfo`、`getRoutes`、`refresh-token`、`logout`；登录和刷新匿名 |
 | 个人中心 | `/api/system/user/profile` | 3 | 查询、更新、`updatePwd` |
-| 用户 | `/api/Users` | 9 | 分页、全部、详情、新增、修改、删除、批量删除、`assignRoles`、`unassignRoles` |
-| 角色 | `/api/Roles` | 9 | 分页、全部、详情、新增、修改、删除、批量删除、`assignMenus`、`unassignRoles`（当前路由名，实际为解绑菜单） |
-| 菜单 | `/api/Menus` | 8 | 分页、全部、树、详情、新增、修改、删除、批量删除 |
-| 菜单按钮 | `/api/MenuButtons` | 6 | 详情、新增、`batch`、修改、`replace`、删除 |
-| 部门 | `/api/Departments` | 8 | 树、详情、新增、修改、删除、批量删除、状态、部门用户 |
-| 商品分类 | `/api/GoodsTypes` | 9 | 公共 8 项 + `GET tree` |
-| 商品档案 | `/api/Goods` | 9 | 公共 8 项 + `PATCH {id}/sale-status` |
-| 商品单位 | `/api/GoodsUnits` | 9 | 公共 8 项 + `GET by-goods/{goodsId}` |
-| 报价单 | `/api/Quotations` | 9 | 公共 8 项 + `PATCH {id}/audit` |
-| 报价商品 | `/api/QuotationGoods` | 8 | 公共 8 项 |
-| 客户协议价 | `/api/CustomerProtocols` | 8 | 公共 8 项 |
-| 协议价商品 | `/api/CustomerProtocolGoods` | 8 | 公共 8 项 |
-| 公司 | `/api/Companies` | 8 | 公共 8 项 |
-| 客户 | `/api/Customers` | 8 | 公共 8 项 |
-| 客户标签 | `/api/CustomerTags` | 9 | 公共 8 项 + `GET tree` |
-| 客户子账号 | `/api/CustomerSubAccounts` | 8 | 公共 8 项 |
-| 供应商 | `/api/Suppliers` | 8 | 公共 8 项 |
-| 采购员 | `/api/Purchasers` | 8 | 公共 8 项 |
-| 采购规则 | `/api/PurchaseRules` | 8 | 公共 8 项 |
-| 仓库 | `/api/Wares` | 8 | 公共 8 项 |
+| 用户 | `/api/users` | 9 | 分页、全部、详情、新增、修改、删除、批量删除、`assignRoles`、`unassignRoles` |
+| 角色 | `/api/roles` | 9 | 分页、全部、详情、新增、修改、删除、批量删除、`assignMenus`、`unassignRoles`（当前路由名，实际为解绑菜单） |
+| 菜单 | `/api/menus` | 8 | 分页、全部、树、详情、新增、修改、删除、批量删除 |
+| 菜单按钮 | `/api/menu-buttons` | 6 | 详情、新增、`batch`、修改、`replace`、删除 |
+| 部门 | `/api/departments` | 8 | 树、详情、新增、修改、删除、批量删除、状态、部门用户 |
+| 商品分类 | `/api/goods-types` | 9 | 公共 8 项 + `GET tree` |
+| 商品档案 | `/api/goods` | 9 | 公共 8 项 + `PATCH {id}/sale-status` |
+| 商品单位 | `/api/goods-units` | 9 | 公共 8 项 + `GET by-goods/{goodsId}` |
+| 报价单 | `/api/quotations` | 9 | 公共 8 项 + `PATCH {id}/audit` |
+| 报价商品 | `/api/quotation-goods` | 8 | 公共 8 项 |
+| 客户协议价 | `/api/customer-protocols` | 8 | 公共 8 项 |
+| 协议价商品 | `/api/customer-protocol-goods` | 8 | 公共 8 项 |
+| 公司 | `/api/companies` | 8 | 公共 8 项 |
+| 客户 | `/api/customers` | 8 | 公共 8 项 |
+| 客户标签 | `/api/customer-tags` | 9 | 公共 8 项 + `GET tree` |
+| 客户子账号 | `/api/customer-sub-accounts` | 8 | 公共 8 项 |
+| 供应商 | `/api/suppliers` | 8 | 公共 8 项 |
+| 采购员 | `/api/purchasers` | 8 | 公共 8 项 |
+| 采购规则 | `/api/purchase-rules` | 8 | 公共 8 项 |
+| 仓库 | `/api/wares` | 8 | 公共 8 项 |
 
 第一阶段共记录 174 个可调用请求，均已在 `SkyRoc/SkyRoc.http` 提供示例。
 

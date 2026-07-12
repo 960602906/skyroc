@@ -10,7 +10,7 @@ namespace SkyRoc.Controllers;
 ///     认证控制器
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 [Authorize]
 public class AuthController(IAuthService authService) : ControllerBase
 {

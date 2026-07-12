@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     采购规则管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/purchase-rules")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Purchases.Resource)]
 public class PurchaseRulesController(IPurchaseRuleService service)

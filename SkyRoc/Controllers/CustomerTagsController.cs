@@ -12,7 +12,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     客户标签管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/customer-tags")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Customers.Resource)]
 public class CustomerTagsController(ICustomerTagService service)

@@ -12,7 +12,7 @@ namespace SkyRoc.Controllers;
 ///     用户管理控制器
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 [Authorize]
 public class UsersController(IUserService userService) : ControllerBase
 {

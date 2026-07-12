@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     供应商管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/suppliers")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Purchases.Resource)]
 public class SuppliersController(ISupplierService service)

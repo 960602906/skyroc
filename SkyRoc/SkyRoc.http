@@ -58,7 +58,7 @@ GET {{SkyRoc_HostAddress}}/health
 Accept: {{contentType}}
 
 ### Login
-POST {{SkyRoc_HostAddress}}/api/Auth/login
+POST {{SkyRoc_HostAddress}}/api/auth/login
 Content-Type: {{contentType}}
 
 {
@@ -67,7 +67,7 @@ Content-Type: {{contentType}}
 }
 
 ### Refresh Token
-POST {{SkyRoc_HostAddress}}/api/Auth/refresh-token
+POST {{SkyRoc_HostAddress}}/api/auth/refresh-token
 Content-Type: {{contentType}}
 
 {
@@ -75,7 +75,7 @@ Content-Type: {{contentType}}
 }
 
 ### Get User Info
-GET {{SkyRoc_HostAddress}}/api/Auth/getUserInfo
+GET {{SkyRoc_HostAddress}}/api/auth/getUserInfo
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
@@ -107,12 +107,12 @@ Content-Type: {{contentType}}
 }
 
 ### Get Routes
-GET {{SkyRoc_HostAddress}}/api/Auth/getRoutes
+GET {{SkyRoc_HostAddress}}/api/auth/getRoutes
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Logout
-POST {{SkyRoc_HostAddress}}/api/Auth/logout
+POST {{SkyRoc_HostAddress}}/api/auth/logout
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -121,22 +121,22 @@ Content-Type: {{contentType}}
 }
 
 ### Users - List
-GET {{SkyRoc_HostAddress}}/api/Users/list?current=1&size=10
+GET {{SkyRoc_HostAddress}}/api/users/list?current=1&size=10
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Users - Get All
-GET {{SkyRoc_HostAddress}}/api/Users
+GET {{SkyRoc_HostAddress}}/api/users
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Users - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Users/{{userId}}
+GET {{SkyRoc_HostAddress}}/api/users/{{userId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Users - Create
-POST {{SkyRoc_HostAddress}}/api/Users
+POST {{SkyRoc_HostAddress}}/api/users
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -151,7 +151,7 @@ Content-Type: {{contentType}}
 }
 
 ### Users - Update
-PUT {{SkyRoc_HostAddress}}/api/Users
+PUT {{SkyRoc_HostAddress}}/api/users
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -167,7 +167,7 @@ Content-Type: {{contentType}}
 }
 
 ### Users - Assign Roles
-POST {{SkyRoc_HostAddress}}/api/Users/assignRoles
+POST {{SkyRoc_HostAddress}}/api/users/assignRoles
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -179,7 +179,7 @@ Content-Type: {{contentType}}
 }
 
 ### Users - Unassign Roles
-DELETE {{SkyRoc_HostAddress}}/api/Users/unassignRoles
+DELETE {{SkyRoc_HostAddress}}/api/users/unassignRoles
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -191,27 +191,27 @@ Content-Type: {{contentType}}
 }
 
 ### Users - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Users/{{userId}}
+DELETE {{SkyRoc_HostAddress}}/api/users/{{userId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Roles - List
-GET {{SkyRoc_HostAddress}}/api/Roles/list?current=1&size=10
+GET {{SkyRoc_HostAddress}}/api/roles/list?current=1&size=10
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Roles - Get All
-GET {{SkyRoc_HostAddress}}/api/Roles
+GET {{SkyRoc_HostAddress}}/api/roles
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Roles - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Roles/{{roleId}}
+GET {{SkyRoc_HostAddress}}/api/roles/{{roleId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Roles - Create
-POST {{SkyRoc_HostAddress}}/api/Roles
+POST {{SkyRoc_HostAddress}}/api/roles
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -223,7 +223,7 @@ Content-Type: {{contentType}}
 }
 
 ### Roles - Update
-PUT {{SkyRoc_HostAddress}}/api/Roles
+PUT {{SkyRoc_HostAddress}}/api/roles
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -236,7 +236,7 @@ Content-Type: {{contentType}}
 }
 
 ### Roles - Assign Menus
-POST {{SkyRoc_HostAddress}}/api/Roles/assignMenus
+POST {{SkyRoc_HostAddress}}/api/roles/assignMenus
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -248,7 +248,7 @@ Content-Type: {{contentType}}
 }
 
 ### Roles - Unassign Menus
-POST {{SkyRoc_HostAddress}}/api/Roles/unassignRoles
+POST {{SkyRoc_HostAddress}}/api/roles/unassignRoles
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -260,32 +260,32 @@ Content-Type: {{contentType}}
 }
 
 ### Roles - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Roles/{{roleId}}
+DELETE {{SkyRoc_HostAddress}}/api/roles/{{roleId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Menus - List
-GET {{SkyRoc_HostAddress}}/api/Menus/list?current=1&size=10
+GET {{SkyRoc_HostAddress}}/api/menus/list?current=1&size=10
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Menus - Get All
-GET {{SkyRoc_HostAddress}}/api/Menus
+GET {{SkyRoc_HostAddress}}/api/menus
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Menus - Get Tree
-GET {{SkyRoc_HostAddress}}/api/Menus/tree
+GET {{SkyRoc_HostAddress}}/api/menus/tree
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Menus - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Menus/{{menuId}}
+GET {{SkyRoc_HostAddress}}/api/menus/{{menuId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Menus - Create
-POST {{SkyRoc_HostAddress}}/api/Menus
+POST {{SkyRoc_HostAddress}}/api/menus
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -306,7 +306,7 @@ Content-Type: {{contentType}}
 }
 
 ### Menus - Update
-PUT {{SkyRoc_HostAddress}}/api/Menus
+PUT {{SkyRoc_HostAddress}}/api/menus
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -328,22 +328,22 @@ Content-Type: {{contentType}}
 }
 
 ### Menus - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Menus/{{menuId}}
+DELETE {{SkyRoc_HostAddress}}/api/menus/{{menuId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Departments - Get Tree
-GET {{SkyRoc_HostAddress}}/api/Departments/tree
+GET {{SkyRoc_HostAddress}}/api/departments/tree
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Departments - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Departments/{{departmentId}}
+GET {{SkyRoc_HostAddress}}/api/departments/{{departmentId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Departments - Create
-POST {{SkyRoc_HostAddress}}/api/Departments
+POST {{SkyRoc_HostAddress}}/api/departments
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -358,7 +358,7 @@ Content-Type: {{contentType}}
 }
 
 ### Departments - Update
-PUT {{SkyRoc_HostAddress}}/api/Departments
+PUT {{SkyRoc_HostAddress}}/api/departments
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -374,27 +374,27 @@ Content-Type: {{contentType}}
 }
 
 ### Departments - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Departments/{{departmentId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/departments/{{departmentId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Departments - Get Users
-GET {{SkyRoc_HostAddress}}/api/Departments/{{departmentId}}/users
+GET {{SkyRoc_HostAddress}}/api/departments/{{departmentId}}/users
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Departments - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Departments/{{departmentId}}
+DELETE {{SkyRoc_HostAddress}}/api/departments/{{departmentId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Menu Buttons - Get By Id
-GET {{SkyRoc_HostAddress}}/api/MenuButtons/{{menuButtonId}}
+GET {{SkyRoc_HostAddress}}/api/menu-buttons/{{menuButtonId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Menu Buttons - Create
-POST {{SkyRoc_HostAddress}}/api/MenuButtons
+POST {{SkyRoc_HostAddress}}/api/menu-buttons
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -405,7 +405,7 @@ Content-Type: {{contentType}}
 }
 
 ### Menu Buttons - Batch Create
-POST {{SkyRoc_HostAddress}}/api/MenuButtons/batch?menuId={{menuId}}
+POST {{SkyRoc_HostAddress}}/api/menu-buttons/batch?menuId={{menuId}}
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -423,7 +423,7 @@ Content-Type: {{contentType}}
 ]
 
 ### Menu Buttons - Update
-PUT {{SkyRoc_HostAddress}}/api/MenuButtons?menuId={{menuId}}
+PUT {{SkyRoc_HostAddress}}/api/menu-buttons?menuId={{menuId}}
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -435,7 +435,7 @@ Content-Type: {{contentType}}
 }
 
 ### Menu Buttons - Replace
-PUT {{SkyRoc_HostAddress}}/api/MenuButtons/replace?menuId={{menuId}}
+PUT {{SkyRoc_HostAddress}}/api/menu-buttons/replace?menuId={{menuId}}
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -453,27 +453,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Menu Buttons - Delete
-DELETE {{SkyRoc_HostAddress}}/api/MenuButtons/{{menuButtonId}}
+DELETE {{SkyRoc_HostAddress}}/api/menu-buttons/{{menuButtonId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Companies - List
-GET {{SkyRoc_HostAddress}}/api/Companies/list?current=1&size=10&name=学校
+GET {{SkyRoc_HostAddress}}/api/companies/list?current=1&size=10&name=学校
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Companies - Get All
-GET {{SkyRoc_HostAddress}}/api/Companies
+GET {{SkyRoc_HostAddress}}/api/companies
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Companies - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Companies/{{companyId}}
+GET {{SkyRoc_HostAddress}}/api/companies/{{companyId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Companies - Create School Company
-POST {{SkyRoc_HostAddress}}/api/Companies
+POST {{SkyRoc_HostAddress}}/api/companies
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -488,7 +488,7 @@ Content-Type: {{contentType}}
 }
 
 ### Companies - Update School Company
-PUT {{SkyRoc_HostAddress}}/api/Companies
+PUT {{SkyRoc_HostAddress}}/api/companies
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -504,22 +504,22 @@ Content-Type: {{contentType}}
 }
 
 ### Companies - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Companies/{{companyId}}
+DELETE {{SkyRoc_HostAddress}}/api/companies/{{companyId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Tags - List
-GET {{SkyRoc_HostAddress}}/api/CustomerTags/list?current=1&size=10
+GET {{SkyRoc_HostAddress}}/api/customer-tags/list?current=1&size=10
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Tags - Get Tree
-GET {{SkyRoc_HostAddress}}/api/CustomerTags/tree
+GET {{SkyRoc_HostAddress}}/api/customer-tags/tree
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Tags - Create School Tag
-POST {{SkyRoc_HostAddress}}/api/CustomerTags
+POST {{SkyRoc_HostAddress}}/api/customer-tags
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -532,7 +532,7 @@ Content-Type: {{contentType}}
 }
 
 ### Customer Tags - Update School Tag
-PUT {{SkyRoc_HostAddress}}/api/CustomerTags
+PUT {{SkyRoc_HostAddress}}/api/customer-tags
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -546,27 +546,27 @@ Content-Type: {{contentType}}
 }
 
 ### Customer Tags - Delete
-DELETE {{SkyRoc_HostAddress}}/api/CustomerTags/{{customerTagId}}
+DELETE {{SkyRoc_HostAddress}}/api/customer-tags/{{customerTagId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customers - List
-GET {{SkyRoc_HostAddress}}/api/Customers/list?current=1&size=10&name=学校
+GET {{SkyRoc_HostAddress}}/api/customers/list?current=1&size=10&name=学校
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customers - Get All
-GET {{SkyRoc_HostAddress}}/api/Customers
+GET {{SkyRoc_HostAddress}}/api/customers
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customers - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Customers/{{customerId}}
+GET {{SkyRoc_HostAddress}}/api/customers/{{customerId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customers - Create School Customer
-POST {{SkyRoc_HostAddress}}/api/Customers
+POST {{SkyRoc_HostAddress}}/api/customers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -585,7 +585,7 @@ Content-Type: {{contentType}}
 }
 
 ### Customers - Update School Customer
-PUT {{SkyRoc_HostAddress}}/api/Customers
+PUT {{SkyRoc_HostAddress}}/api/customers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -605,27 +605,27 @@ Content-Type: {{contentType}}
 }
 
 ### Customers - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Customers/{{customerId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/customers/{{customerId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customers - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Customers/{{customerId}}
+DELETE {{SkyRoc_HostAddress}}/api/customers/{{customerId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Sub Accounts - List
-GET {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/list?current=1&size=10&username=school_buyer
+GET {{SkyRoc_HostAddress}}/api/customer-sub-accounts/list?current=1&size=10&username=school_buyer
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Sub Accounts - Get By Id
-GET {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/{{customerSubAccountId}}
+GET {{SkyRoc_HostAddress}}/api/customer-sub-accounts/{{customerSubAccountId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Sub Accounts - Create
-POST {{SkyRoc_HostAddress}}/api/CustomerSubAccounts
+POST {{SkyRoc_HostAddress}}/api/customer-sub-accounts
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -642,7 +642,7 @@ Content-Type: {{contentType}}
 }
 
 ### Customer Sub Accounts - Update
-PUT {{SkyRoc_HostAddress}}/api/CustomerSubAccounts
+PUT {{SkyRoc_HostAddress}}/api/customer-sub-accounts
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -660,12 +660,12 @@ Content-Type: {{contentType}}
 }
 
 ### Customer Sub Accounts - Delete
-DELETE {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/{{customerSubAccountId}}
+DELETE {{SkyRoc_HostAddress}}/api/customer-sub-accounts/{{customerSubAccountId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Users - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Users/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/users/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -674,7 +674,7 @@ Content-Type: {{contentType}}
 ]
 
 ### Roles - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Roles/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/roles/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -683,7 +683,7 @@ Content-Type: {{contentType}}
 ]
 
 ### Menus - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Menus/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/menus/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -692,7 +692,7 @@ Content-Type: {{contentType}}
 ]
 
 ### Departments - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Departments/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/departments/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -701,12 +701,12 @@ Content-Type: {{contentType}}
 ]
 
 ### Companies - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Companies/{{companyId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/companies/{{companyId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Companies - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Companies/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/companies/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -715,22 +715,22 @@ Content-Type: {{contentType}}
 ]
 
 ### Customer Tags - Get All
-GET {{SkyRoc_HostAddress}}/api/CustomerTags
+GET {{SkyRoc_HostAddress}}/api/customer-tags
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Tags - Get By Id
-GET {{SkyRoc_HostAddress}}/api/CustomerTags/{{customerTagId}}
+GET {{SkyRoc_HostAddress}}/api/customer-tags/{{customerTagId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Tags - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/CustomerTags/{{customerTagId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/customer-tags/{{customerTagId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Tags - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/CustomerTags/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/customer-tags/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -739,7 +739,7 @@ Content-Type: {{contentType}}
 ]
 
 ### Customers - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Customers/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/customers/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -748,17 +748,17 @@ Content-Type: {{contentType}}
 ]
 
 ### Customer Sub Accounts - Get All
-GET {{SkyRoc_HostAddress}}/api/CustomerSubAccounts
+GET {{SkyRoc_HostAddress}}/api/customer-sub-accounts
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Sub Accounts - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/{{customerSubAccountId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/customer-sub-accounts/{{customerSubAccountId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Sub Accounts - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/CustomerSubAccounts/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/customer-sub-accounts/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -767,27 +767,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Goods Types - List
-GET {{SkyRoc_HostAddress}}/api/GoodsTypes/list?current=1&size=10&name=蔬菜
+GET {{SkyRoc_HostAddress}}/api/goods-types/list?current=1&size=10&name=蔬菜
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Types - Get All
-GET {{SkyRoc_HostAddress}}/api/GoodsTypes
+GET {{SkyRoc_HostAddress}}/api/goods-types
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Types - Get Tree
-GET {{SkyRoc_HostAddress}}/api/GoodsTypes/tree
+GET {{SkyRoc_HostAddress}}/api/goods-types/tree
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Types - Get By Id
-GET {{SkyRoc_HostAddress}}/api/GoodsTypes/{{goodsTypeId}}
+GET {{SkyRoc_HostAddress}}/api/goods-types/{{goodsTypeId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Types - Create
-POST {{SkyRoc_HostAddress}}/api/GoodsTypes
+POST {{SkyRoc_HostAddress}}/api/goods-types
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -802,7 +802,7 @@ Content-Type: {{contentType}}
 }
 
 ### Goods Types - Update
-PUT {{SkyRoc_HostAddress}}/api/GoodsTypes
+PUT {{SkyRoc_HostAddress}}/api/goods-types
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -818,12 +818,12 @@ Content-Type: {{contentType}}
 }
 
 ### Goods Types - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/GoodsTypes/{{goodsTypeId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/goods-types/{{goodsTypeId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Types - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/GoodsTypes/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/goods-types/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -832,27 +832,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Goods Types - Delete
-DELETE {{SkyRoc_HostAddress}}/api/GoodsTypes/{{goodsTypeId}}
+DELETE {{SkyRoc_HostAddress}}/api/goods-types/{{goodsTypeId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods - List
-GET {{SkyRoc_HostAddress}}/api/Goods/list?current=1&size=10&name=生菜&goodsTypeId={{goodsTypeId}}&isOnSale=true
+GET {{SkyRoc_HostAddress}}/api/goods/list?current=1&size=10&name=生菜&goodsTypeId={{goodsTypeId}}&isOnSale=true
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods - Get All
-GET {{SkyRoc_HostAddress}}/api/Goods
+GET {{SkyRoc_HostAddress}}/api/goods
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Goods/{{goodsId}}
+GET {{SkyRoc_HostAddress}}/api/goods/{{goodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods - Create
-POST {{SkyRoc_HostAddress}}/api/Goods
+POST {{SkyRoc_HostAddress}}/api/goods
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -873,7 +873,7 @@ Content-Type: {{contentType}}
 }
 
 ### Goods - Update
-PUT {{SkyRoc_HostAddress}}/api/Goods
+PUT {{SkyRoc_HostAddress}}/api/goods
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -896,17 +896,17 @@ Content-Type: {{contentType}}
 }
 
 ### Goods - Toggle Sale Status
-PATCH {{SkyRoc_HostAddress}}/api/Goods/{{goodsId}}/sale-status?isOnSale=false
+PATCH {{SkyRoc_HostAddress}}/api/goods/{{goodsId}}/sale-status?isOnSale=false
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Goods/{{goodsId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/goods/{{goodsId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Goods/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/goods/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -915,32 +915,32 @@ Content-Type: {{contentType}}
 ]
 
 ### Goods - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Goods/{{goodsId}}
+DELETE {{SkyRoc_HostAddress}}/api/goods/{{goodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Units - List
-GET {{SkyRoc_HostAddress}}/api/GoodsUnits/list?current=1&size=10&goodsId={{goodsId}}
+GET {{SkyRoc_HostAddress}}/api/goods-units/list?current=1&size=10&goodsId={{goodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Units - Get All
-GET {{SkyRoc_HostAddress}}/api/GoodsUnits
+GET {{SkyRoc_HostAddress}}/api/goods-units
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Units - Get By Goods
-GET {{SkyRoc_HostAddress}}/api/GoodsUnits/by-goods/{{goodsId}}
+GET {{SkyRoc_HostAddress}}/api/goods-units/by-goods/{{goodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Units - Get By Id
-GET {{SkyRoc_HostAddress}}/api/GoodsUnits/{{goodsUnitId}}
+GET {{SkyRoc_HostAddress}}/api/goods-units/{{goodsUnitId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Units - Create
-POST {{SkyRoc_HostAddress}}/api/GoodsUnits
+POST {{SkyRoc_HostAddress}}/api/goods-units
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -955,7 +955,7 @@ Content-Type: {{contentType}}
 }
 
 ### Goods Units - Update
-PUT {{SkyRoc_HostAddress}}/api/GoodsUnits
+PUT {{SkyRoc_HostAddress}}/api/goods-units
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -971,12 +971,12 @@ Content-Type: {{contentType}}
 }
 
 ### Goods Units - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/GoodsUnits/{{goodsUnitId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/goods-units/{{goodsUnitId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Goods Units - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/GoodsUnits/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/goods-units/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -985,27 +985,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Goods Units - Delete
-DELETE {{SkyRoc_HostAddress}}/api/GoodsUnits/{{goodsUnitId}}
+DELETE {{SkyRoc_HostAddress}}/api/goods-units/{{goodsUnitId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotations - List
-GET {{SkyRoc_HostAddress}}/api/Quotations/list?current=1&size=10&name=学校&isAudited=false
+GET {{SkyRoc_HostAddress}}/api/quotations/list?current=1&size=10&name=学校&isAudited=false
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotations - Get All
-GET {{SkyRoc_HostAddress}}/api/Quotations
+GET {{SkyRoc_HostAddress}}/api/quotations
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotations - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Quotations/{{quotationId}}
+GET {{SkyRoc_HostAddress}}/api/quotations/{{quotationId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotations - Create
-POST {{SkyRoc_HostAddress}}/api/Quotations
+POST {{SkyRoc_HostAddress}}/api/quotations
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1023,7 +1023,7 @@ Content-Type: {{contentType}}
 }
 
 ### Quotations - Update
-PUT {{SkyRoc_HostAddress}}/api/Quotations
+PUT {{SkyRoc_HostAddress}}/api/quotations
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1042,17 +1042,17 @@ Content-Type: {{contentType}}
 }
 
 ### Quotations - Audit
-PATCH {{SkyRoc_HostAddress}}/api/Quotations/{{quotationId}}/audit?isAudited=true
+PATCH {{SkyRoc_HostAddress}}/api/quotations/{{quotationId}}/audit?isAudited=true
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotations - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Quotations/{{quotationId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/quotations/{{quotationId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotations - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Quotations/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/quotations/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1061,27 +1061,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Quotations - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Quotations/{{quotationId}}
+DELETE {{SkyRoc_HostAddress}}/api/quotations/{{quotationId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotation Goods - List
-GET {{SkyRoc_HostAddress}}/api/QuotationGoods/list?current=1&size=10&quotationId={{quotationId}}&goodsId={{goodsId}}
+GET {{SkyRoc_HostAddress}}/api/quotation-goods/list?current=1&size=10&quotationId={{quotationId}}&goodsId={{goodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotation Goods - Get All
-GET {{SkyRoc_HostAddress}}/api/QuotationGoods
+GET {{SkyRoc_HostAddress}}/api/quotation-goods
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotation Goods - Get By Id
-GET {{SkyRoc_HostAddress}}/api/QuotationGoods/{{quotationGoodsId}}
+GET {{SkyRoc_HostAddress}}/api/quotation-goods/{{quotationGoodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotation Goods - Create
-POST {{SkyRoc_HostAddress}}/api/QuotationGoods
+POST {{SkyRoc_HostAddress}}/api/quotation-goods
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1096,7 +1096,7 @@ Content-Type: {{contentType}}
 }
 
 ### Quotation Goods - Update
-PUT {{SkyRoc_HostAddress}}/api/QuotationGoods
+PUT {{SkyRoc_HostAddress}}/api/quotation-goods
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1112,12 +1112,12 @@ Content-Type: {{contentType}}
 }
 
 ### Quotation Goods - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/QuotationGoods/{{quotationGoodsId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/quotation-goods/{{quotationGoodsId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Quotation Goods - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/QuotationGoods/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/quotation-goods/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1126,27 +1126,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Quotation Goods - Delete
-DELETE {{SkyRoc_HostAddress}}/api/QuotationGoods/{{quotationGoodsId}}
+DELETE {{SkyRoc_HostAddress}}/api/quotation-goods/{{quotationGoodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocols - List
-GET {{SkyRoc_HostAddress}}/api/CustomerProtocols/list?current=1&size=10&quotationId={{quotationId}}
+GET {{SkyRoc_HostAddress}}/api/customer-protocols/list?current=1&size=10&quotationId={{quotationId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocols - Get All
-GET {{SkyRoc_HostAddress}}/api/CustomerProtocols
+GET {{SkyRoc_HostAddress}}/api/customer-protocols
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocols - Get By Id
-GET {{SkyRoc_HostAddress}}/api/CustomerProtocols/{{customerProtocolId}}
+GET {{SkyRoc_HostAddress}}/api/customer-protocols/{{customerProtocolId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocols - Create
-POST {{SkyRoc_HostAddress}}/api/CustomerProtocols
+POST {{SkyRoc_HostAddress}}/api/customer-protocols
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1163,7 +1163,7 @@ Content-Type: {{contentType}}
 }
 
 ### Customer Protocols - Update
-PUT {{SkyRoc_HostAddress}}/api/CustomerProtocols
+PUT {{SkyRoc_HostAddress}}/api/customer-protocols
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1181,12 +1181,12 @@ Content-Type: {{contentType}}
 }
 
 ### Customer Protocols - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/CustomerProtocols/{{customerProtocolId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/customer-protocols/{{customerProtocolId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocols - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/CustomerProtocols/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/customer-protocols/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1195,27 +1195,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Customer Protocols - Delete
-DELETE {{SkyRoc_HostAddress}}/api/CustomerProtocols/{{customerProtocolId}}
+DELETE {{SkyRoc_HostAddress}}/api/customer-protocols/{{customerProtocolId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocol Goods - List
-GET {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/list?current=1&size=10&customerProtocolId={{customerProtocolId}}&goodsId={{goodsId}}
+GET {{SkyRoc_HostAddress}}/api/customer-protocol-goods/list?current=1&size=10&customerProtocolId={{customerProtocolId}}&goodsId={{goodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocol Goods - Get All
-GET {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods
+GET {{SkyRoc_HostAddress}}/api/customer-protocol-goods
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocol Goods - Get By Id
-GET {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/{{customerProtocolGoodsId}}
+GET {{SkyRoc_HostAddress}}/api/customer-protocol-goods/{{customerProtocolGoodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocol Goods - Create
-POST {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods
+POST {{SkyRoc_HostAddress}}/api/customer-protocol-goods
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1229,7 +1229,7 @@ Content-Type: {{contentType}}
 }
 
 ### Customer Protocol Goods - Update
-PUT {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods
+PUT {{SkyRoc_HostAddress}}/api/customer-protocol-goods
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1244,12 +1244,12 @@ Content-Type: {{contentType}}
 }
 
 ### Customer Protocol Goods - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/{{customerProtocolGoodsId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/customer-protocol-goods/{{customerProtocolGoodsId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Customer Protocol Goods - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/customer-protocol-goods/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1258,27 +1258,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Customer Protocol Goods - Delete
-DELETE {{SkyRoc_HostAddress}}/api/CustomerProtocolGoods/{{customerProtocolGoodsId}}
+DELETE {{SkyRoc_HostAddress}}/api/customer-protocol-goods/{{customerProtocolGoodsId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Suppliers - List
-GET {{SkyRoc_HostAddress}}/api/Suppliers/list?current=1&size=10&name=蔬菜
+GET {{SkyRoc_HostAddress}}/api/suppliers/list?current=1&size=10&name=蔬菜
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Suppliers - Get All
-GET {{SkyRoc_HostAddress}}/api/Suppliers
+GET {{SkyRoc_HostAddress}}/api/suppliers
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Suppliers - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Suppliers/{{supplierId}}
+GET {{SkyRoc_HostAddress}}/api/suppliers/{{supplierId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Suppliers - Create
-POST {{SkyRoc_HostAddress}}/api/Suppliers
+POST {{SkyRoc_HostAddress}}/api/suppliers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1295,7 +1295,7 @@ Content-Type: {{contentType}}
 }
 
 ### Suppliers - Update
-PUT {{SkyRoc_HostAddress}}/api/Suppliers
+PUT {{SkyRoc_HostAddress}}/api/suppliers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1313,12 +1313,12 @@ Content-Type: {{contentType}}
 }
 
 ### Suppliers - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Suppliers/{{supplierId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/suppliers/{{supplierId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Suppliers - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Suppliers/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/suppliers/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1327,27 +1327,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Suppliers - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Suppliers/{{supplierId}}
+DELETE {{SkyRoc_HostAddress}}/api/suppliers/{{supplierId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchasers - List
-GET {{SkyRoc_HostAddress}}/api/Purchasers/list?current=1&size=10&departmentId={{departmentId}}
+GET {{SkyRoc_HostAddress}}/api/purchasers/list?current=1&size=10&departmentId={{departmentId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchasers - Get All
-GET {{SkyRoc_HostAddress}}/api/Purchasers
+GET {{SkyRoc_HostAddress}}/api/purchasers
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchasers - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Purchasers/{{purchaserId}}
+GET {{SkyRoc_HostAddress}}/api/purchasers/{{purchaserId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchasers - Create
-POST {{SkyRoc_HostAddress}}/api/Purchasers
+POST {{SkyRoc_HostAddress}}/api/purchasers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1361,7 +1361,7 @@ Content-Type: {{contentType}}
 }
 
 ### Purchasers - Update
-PUT {{SkyRoc_HostAddress}}/api/Purchasers
+PUT {{SkyRoc_HostAddress}}/api/purchasers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1376,12 +1376,12 @@ Content-Type: {{contentType}}
 }
 
 ### Purchasers - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Purchasers/{{purchaserId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/purchasers/{{purchaserId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchasers - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Purchasers/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/purchasers/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1390,27 +1390,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Purchasers - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Purchasers/{{purchaserId}}
+DELETE {{SkyRoc_HostAddress}}/api/purchasers/{{purchaserId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Wares - List
-GET {{SkyRoc_HostAddress}}/api/Wares/list?current=1&size=10&name=中心仓
+GET {{SkyRoc_HostAddress}}/api/wares/list?current=1&size=10&name=中心仓
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Wares - Get All
-GET {{SkyRoc_HostAddress}}/api/Wares
+GET {{SkyRoc_HostAddress}}/api/wares
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Wares - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Wares/{{wareId}}
+GET {{SkyRoc_HostAddress}}/api/wares/{{wareId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Wares - Create
-POST {{SkyRoc_HostAddress}}/api/Wares
+POST {{SkyRoc_HostAddress}}/api/wares
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1425,7 +1425,7 @@ Content-Type: {{contentType}}
 }
 
 ### Wares - Update
-PUT {{SkyRoc_HostAddress}}/api/Wares
+PUT {{SkyRoc_HostAddress}}/api/wares
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1441,12 +1441,12 @@ Content-Type: {{contentType}}
 }
 
 ### Wares - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Wares/{{wareId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/wares/{{wareId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Wares - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Wares/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/wares/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1455,27 +1455,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Wares - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Wares/{{wareId}}
+DELETE {{SkyRoc_HostAddress}}/api/wares/{{wareId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchase Rules - List
-GET {{SkyRoc_HostAddress}}/api/PurchaseRules/list?current=1&size=10&supplierId={{supplierId}}&wareId={{wareId}}&purchasePattern=1
+GET {{SkyRoc_HostAddress}}/api/purchase-rules/list?current=1&size=10&supplierId={{supplierId}}&wareId={{wareId}}&purchasePattern=1
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchase Rules - Get All
-GET {{SkyRoc_HostAddress}}/api/PurchaseRules
+GET {{SkyRoc_HostAddress}}/api/purchase-rules
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchase Rules - Get By Id
-GET {{SkyRoc_HostAddress}}/api/PurchaseRules/{{purchaseRuleId}}
+GET {{SkyRoc_HostAddress}}/api/purchase-rules/{{purchaseRuleId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchase Rules - Create
-POST {{SkyRoc_HostAddress}}/api/PurchaseRules
+POST {{SkyRoc_HostAddress}}/api/purchase-rules
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1497,7 +1497,7 @@ Content-Type: {{contentType}}
 }
 
 ### Purchase Rules - Update
-PUT {{SkyRoc_HostAddress}}/api/PurchaseRules
+PUT {{SkyRoc_HostAddress}}/api/purchase-rules
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1520,12 +1520,12 @@ Content-Type: {{contentType}}
 }
 
 ### Purchase Rules - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/PurchaseRules/{{purchaseRuleId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/purchase-rules/{{purchaseRuleId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Purchase Rules - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/PurchaseRules/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/purchase-rules/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -1534,7 +1534,7 @@ Content-Type: {{contentType}}
 ]
 
 ### Purchase Rules - Delete
-DELETE {{SkyRoc_HostAddress}}/api/PurchaseRules/{{purchaseRuleId}}
+DELETE {{SkyRoc_HostAddress}}/api/purchase-rules/{{purchaseRuleId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
@@ -2592,22 +2592,22 @@ Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Carriers - List
-GET {{SkyRoc_HostAddress}}/api/Carriers/list?current=1&size=10&name=顺丰
+GET {{SkyRoc_HostAddress}}/api/carriers/list?current=1&size=10&name=顺丰
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Carriers - Get All
-GET {{SkyRoc_HostAddress}}/api/Carriers
+GET {{SkyRoc_HostAddress}}/api/carriers
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Carriers - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Carriers/{{carrierId}}
+GET {{SkyRoc_HostAddress}}/api/carriers/{{carrierId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Carriers - Create
-POST {{SkyRoc_HostAddress}}/api/Carriers
+POST {{SkyRoc_HostAddress}}/api/carriers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2622,7 +2622,7 @@ Content-Type: {{contentType}}
 }
 
 ### Carriers - Update
-PUT {{SkyRoc_HostAddress}}/api/Carriers
+PUT {{SkyRoc_HostAddress}}/api/carriers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2638,12 +2638,12 @@ Content-Type: {{contentType}}
 }
 
 ### Carriers - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Carriers/{{carrierId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/carriers/{{carrierId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Carriers - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Carriers/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/carriers/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2652,27 +2652,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Carriers - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Carriers/{{carrierId}}
+DELETE {{SkyRoc_HostAddress}}/api/carriers/{{carrierId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Drivers - List
-GET {{SkyRoc_HostAddress}}/api/Drivers/list?current=1&size=10&name=张&carrierId={{carrierId}}
+GET {{SkyRoc_HostAddress}}/api/drivers/list?current=1&size=10&name=张&carrierId={{carrierId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Drivers - Get All
-GET {{SkyRoc_HostAddress}}/api/Drivers
+GET {{SkyRoc_HostAddress}}/api/drivers
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Drivers - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Drivers/{{driverId}}
+GET {{SkyRoc_HostAddress}}/api/drivers/{{driverId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Drivers - Create
-POST {{SkyRoc_HostAddress}}/api/Drivers
+POST {{SkyRoc_HostAddress}}/api/drivers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2688,7 +2688,7 @@ Content-Type: {{contentType}}
 }
 
 ### Drivers - Update
-PUT {{SkyRoc_HostAddress}}/api/Drivers
+PUT {{SkyRoc_HostAddress}}/api/drivers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2705,12 +2705,12 @@ Content-Type: {{contentType}}
 }
 
 ### Drivers - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Drivers/{{driverId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/drivers/{{driverId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Drivers - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Drivers/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/drivers/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2719,27 +2719,27 @@ Content-Type: {{contentType}}
 ]
 
 ### Drivers - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Drivers/{{driverId}}
+DELETE {{SkyRoc_HostAddress}}/api/drivers/{{driverId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Routes - List
-GET {{SkyRoc_HostAddress}}/api/Routes/list?current=1&size=10&name=浦东
+GET {{SkyRoc_HostAddress}}/api/routes/list?current=1&size=10&name=浦东
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Routes - Get All
-GET {{SkyRoc_HostAddress}}/api/Routes
+GET {{SkyRoc_HostAddress}}/api/routes
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Routes - Get By Id
-GET {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}
+GET {{SkyRoc_HostAddress}}/api/routes/{{routeId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Routes - Create
-POST {{SkyRoc_HostAddress}}/api/Routes
+POST {{SkyRoc_HostAddress}}/api/routes
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2756,7 +2756,7 @@ Content-Type: {{contentType}}
 }
 
 ### Routes - Update
-PUT {{SkyRoc_HostAddress}}/api/Routes
+PUT {{SkyRoc_HostAddress}}/api/routes
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2774,7 +2774,7 @@ Content-Type: {{contentType}}
 }
 
 ### Routes - Dispatch Customers
-PUT {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}/customers
+PUT {{SkyRoc_HostAddress}}/api/routes/{{routeId}}/customers
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2785,12 +2785,12 @@ Content-Type: {{contentType}}
 }
 
 ### Routes - Toggle Status
-PATCH {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}/status?status=Disable
+PATCH {{SkyRoc_HostAddress}}/api/routes/{{routeId}}/status?status=Disable
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
 ### Routes - Batch Delete
-DELETE {{SkyRoc_HostAddress}}/api/Routes/batchDelete
+DELETE {{SkyRoc_HostAddress}}/api/routes/batchDelete
 Authorization: Bearer {{accessToken}}
 Content-Type: {{contentType}}
 
@@ -2799,7 +2799,7 @@ Content-Type: {{contentType}}
 ]
 
 ### Routes - Delete
-DELETE {{SkyRoc_HostAddress}}/api/Routes/{{routeId}}
+DELETE {{SkyRoc_HostAddress}}/api/routes/{{routeId}}
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 

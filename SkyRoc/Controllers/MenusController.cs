@@ -12,7 +12,7 @@ namespace SkyRoc.Controllers;
 ///     菜单管理控制器
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/menus")]
 [Authorize]
 public class MenusController(
     IMenuService menuService

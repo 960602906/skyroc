@@ -33,13 +33,13 @@
 
 - [ ] **Step 1: 写操作审计失败回归测试**
 
-在 `SystemSupportContractTests` 增加测试：未认证 `POST /api/Auth/login` 不调用审计服务；已认证请求仍记录；`apiKey`、`access_key`、`private-key` 被替换为 `***`，`keyword` 保留原值。
+在 `SystemSupportContractTests` 增加测试：未认证 `POST /api/auth/login` 不调用审计服务；已认证请求仍记录；`apiKey`、`access_key`、`private-key` 被替换为 `***`，`keyword` 保留原值。
 
 ```csharp
 [Fact]
 public async Task OperationAuditMiddleware_SkipsAnonymousWrites()
 {
-    var (middleware, context, sink) = CreateAuditMiddleware(HttpMethods.Post, "/api/Auth/login", authenticated: false);
+    var (middleware, context, sink) = CreateAuditMiddleware(HttpMethods.Post, "/api/auth/login", authenticated: false);
     await middleware.InvokeAsync(context);
     Assert.Empty(sink.Entries);
 }

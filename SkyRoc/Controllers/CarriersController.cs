@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     承运商管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/carriers")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Delivery.Resource)]
 public class CarriersController(ICarrierService service)

@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     仓库管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/wares")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Storage.Resource)]
 public class WaresController(IWareService service)

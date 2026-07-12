@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 ///     菜单按钮管理控制器
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/menu-buttons")]
 [Authorize]
 public class MenuButtonsController(IMenuButtonService menuButtonService) : ControllerBase
 {

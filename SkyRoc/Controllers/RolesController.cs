@@ -12,7 +12,7 @@ namespace SkyRoc.Controllers;
 ///     角色管理控制器
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/roles")]
 [Authorize]
 public class RolesController(IRoleService roleService) : ControllerBase
 {

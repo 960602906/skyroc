@@ -12,7 +12,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     配送路线管理控制器，提供路线 CRUD 及客户分配能力。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/routes")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Delivery.Resource)]
 public class RoutesController(IDeliveryRouteService service)

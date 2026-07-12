@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     公司管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/companies")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Customers.Resource)]
 public class CompaniesController(ICompanyService service)

@@ -11,7 +11,7 @@ namespace SkyRoc.Controllers;
 /// <summary>
 ///     客户子账号管理控制器。
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/customer-sub-accounts")]
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Customers.Resource)]
 public class CustomerSubAccountsController(ICustomerSubAccountService service)
