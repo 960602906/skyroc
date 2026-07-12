@@ -108,4 +108,14 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
         var paths = await DataQualityReportWriter.WriteAsync(report, Settings.ReportDirectory);
         return new DataQualityReportResult(report, paths);
     }
+
+    /// <summary>
+    ///     在通过数据库白名单守卫后幂等补齐长期前端联调数据。
+    /// </summary>
+    /// <param name="cancellationToken">取消生成的令牌。</param>
+    /// <returns>本轮各生成层的新增与复用数量。</returns>
+    public Task<DemoDataGenerationResult> GenerateDemoDataAsync(CancellationToken cancellationToken = default)
+    {
+        return new DemoDataGenerator(this).GenerateAsync(cancellationToken);
+    }
 }
