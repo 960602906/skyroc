@@ -59,6 +59,12 @@ T0 报告写入忽略版本控制的 `artifacts/business-test-reports/`，每轮
 
 `qualityRuleExceptions` 是唯一允许的质量规则例外目录。当前仅登记 `sys_login_log.username`：登录审计是追加事件，同一账号多次登录是合法历史，不能误报为重复业务编码；其他 `username`、`code`、`*_code` 和 `*_no` 字段仍必须参与重复检测。
 
+## T2 稳定业务键约定
+
+长期联调生成器只能使用 `DemoDataStableKeyCatalog.Create("领域", 序号)` 创建可管理的业务编码。结果固定为 `SKYROC-DEMO-<领域>-<序号>`，例如商品第 7 条为 `SKYROC-DEMO-GOODS-007`。领域码仅允许英文字母、数字和连字符，序号必须为正数；非法输入会在数据库写入前失败。
+
+生成器必须用该完整业务键做精确查询和幂等更新，禁止以名称、描述或前缀模糊匹配。`IsManaged` 只能用于快速识别自动生成器前缀，不能作为删除条件；任何未来删除或清理操作仍必须同时核验精确主键和归属字段。
+
 报告中的 `metadataFindings` 必须为空，以下一致性门禁必须为 `true`：
 
 - `efModelMatchesPostgreSqlCatalog`
