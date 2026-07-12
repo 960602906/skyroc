@@ -78,6 +78,7 @@ public static class DataQualityReportWriter
         AppendFindingList(builder, "临时数据残留", report.TemporaryResidues);
         AppendMetadataInventory(builder, report.MetadataInventory, report.MetadataFindings);
         AppendFindingList(builder, "质量规则例外", report.QualityRuleExceptions);
+        AppendDemoDataAcceptance(builder, report.DemoDataAcceptance);
 
         builder.AppendLine("## 业务一致性");
         builder.AppendLine();
@@ -115,6 +116,21 @@ public static class DataQualityReportWriter
         }
 
         foreach (var finding in findings)
+            builder.AppendLine($"- {finding}");
+    }
+
+    private static void AppendDemoDataAcceptance(
+        StringBuilder builder,
+        DemoDataQualityAcceptanceResult acceptance)
+    {
+        builder.AppendLine();
+        builder.AppendLine("## 长期联调数据验收");
+        builder.AppendLine();
+        builder.AppendLine($"- 结果：{(acceptance.IsReady ? "通过" : "未通过")}");
+        if (acceptance.Findings.Count == 0)
+            return;
+
+        foreach (var finding in acceptance.Findings)
             builder.AppendLine($"- {finding}");
     }
 

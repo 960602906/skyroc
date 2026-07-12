@@ -55,6 +55,7 @@ public class DataQualityReportWriterTests
             Assert.True(root.TryGetProperty("metadataInventory", out _));
             Assert.True(root.TryGetProperty("metadataFindings", out _));
             Assert.True(root.TryGetProperty("qualityRuleExceptions", out _));
+            Assert.True(root.TryGetProperty("demoDataAcceptance", out _));
 
             var markdown = await File.ReadAllTextAsync(paths.MarkdownPath);
             Assert.Contains("逐表记录数", markdown, StringComparison.Ordinal);
@@ -66,6 +67,7 @@ public class DataQualityReportWriterTests
             Assert.Contains("元数据盘点", markdown, StringComparison.Ordinal);
             Assert.Contains("元数据盘点问题", markdown, StringComparison.Ordinal);
             Assert.Contains("质量规则例外", markdown, StringComparison.Ordinal);
+            Assert.Contains("长期联调数据验收", markdown, StringComparison.Ordinal);
             Assert.Contains("业务一致性", markdown, StringComparison.Ordinal);
         }
         finally

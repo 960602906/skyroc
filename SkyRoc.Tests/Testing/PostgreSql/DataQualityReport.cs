@@ -75,6 +75,11 @@ public sealed class DataQualityReport
     public required IReadOnlyList<string> QualityRuleExceptions { get; init; }
 
     /// <summary>
+    ///     长期联调数据是否满足当前可自动核验的数量、字段与一致性门槛。
+    /// </summary>
+    public DemoDataQualityAcceptanceResult DemoDataAcceptance { get; private set; } = new(false, []);
+
+    /// <summary>
     ///     创建 T0 基础设施验收报告。
     /// </summary>
     public static DataQualityReport CreateInfrastructureReport(
@@ -89,7 +94,7 @@ public sealed class DataQualityReport
         IReadOnlyDictionary<string, bool> businessConsistencyChecks,
         MetadataInventoryResult? metadataInventory = null)
     {
-        return new DataQualityReport
+        var report = new DataQualityReport
         {
             RunId = runId,
             GeneratedAtUtc = DateTime.UtcNow,
@@ -105,5 +110,7 @@ public sealed class DataQualityReport
             MetadataFindings = metadataInventory?.Findings ?? [],
             QualityRuleExceptions = DataQualityRuleCatalog.QualityRuleExceptionDescriptions
         };
+        report.DemoDataAcceptance = DemoDataQualityAcceptanceEvaluator.Evaluate(report);
+        return report;
     }
 }
