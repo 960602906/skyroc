@@ -35,7 +35,9 @@ public class PurchaseOrderModelTests
         var entityType = GetEntityType<PurchaseOrder>();
 
         Assert.Equal(PurchasePattern.SupplierDirect, entityType.FindProperty(nameof(PurchaseOrder.PurchasePattern))!.GetDefaultValue());
+        Assert.Equal((PurchasePattern)0, entityType.FindProperty(nameof(PurchaseOrder.PurchasePattern))!.Sentinel);
         Assert.Equal(PurchaseOrderStatus.Draft, entityType.FindProperty(nameof(PurchaseOrder.BusinessStatus))!.GetDefaultValue());
+        Assert.Equal((PurchaseOrderStatus)0, entityType.FindProperty(nameof(PurchaseOrder.BusinessStatus))!.Sentinel);
 
         var purchaseNoIndex = entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_purchase_order_purchase_no");
         Assert.True(purchaseNoIndex.IsUnique);

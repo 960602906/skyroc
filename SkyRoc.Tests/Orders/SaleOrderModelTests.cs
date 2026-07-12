@@ -36,6 +36,7 @@ public class SaleOrderModelTests
         var entityType = GetEntityType<SaleOrder>();
 
         Assert.Equal(SaleOrderStatus.PendingAudit, entityType.FindProperty(nameof(SaleOrder.OrderStatus))!.GetDefaultValue());
+        Assert.Equal((SaleOrderStatus)0, entityType.FindProperty(nameof(SaleOrder.OrderStatus))!.Sentinel);
         Assert.Equal(OrderReturnStatus.NotReturned, entityType.FindProperty(nameof(SaleOrder.ReturnStatus))!.GetDefaultValue());
         Assert.Equal(OrderPrintStatus.NotPrinted, entityType.FindProperty(nameof(SaleOrder.PrintStatus))!.GetDefaultValue());
         Assert.Equal("numeric(18,4)", entityType.FindProperty(nameof(SaleOrder.OrderPrice))!.GetColumnType());

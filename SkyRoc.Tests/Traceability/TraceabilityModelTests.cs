@@ -67,6 +67,7 @@ public class TraceabilityModelTests
         Assert.Equal(
             InspectionConclusion.Pending,
             entityType.FindProperty(nameof(InspectionReport.Conclusion))!.GetDefaultValue());
+        Assert.Equal((InspectionConclusion)0, entityType.FindProperty(nameof(InspectionReport.Conclusion))!.Sentinel);
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_inspection_report_no").IsUnique);
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_inspection_report_conclusion");
         Assert.Contains(
@@ -88,6 +89,7 @@ public class TraceabilityModelTests
         Assert.Equal(
             InspectionConclusion.Pending,
             entityType.FindProperty(nameof(InspectionReportGoods.Conclusion))!.GetDefaultValue());
+        Assert.Equal((InspectionConclusion)0, entityType.FindProperty(nameof(InspectionReportGoods.Conclusion))!.Sentinel);
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_inspection_report_goods_quantity");
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_inspection_report_goods_conclusion");
 
@@ -129,6 +131,7 @@ public class TraceabilityModelTests
         Assert.Equal(
             ExternalPushStatus.Pending,
             entityType.FindProperty(nameof(ExternalPushLog.PushStatus))!.GetDefaultValue());
+        Assert.Equal((ExternalPushStatus)0, entityType.FindProperty(nameof(ExternalPushLog.PushStatus))!.Sentinel);
         Assert.Equal(0, entityType.FindProperty(nameof(ExternalPushLog.RetryCount))!.GetDefaultValue());
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_external_push_log_business_type");
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_external_push_log_status");

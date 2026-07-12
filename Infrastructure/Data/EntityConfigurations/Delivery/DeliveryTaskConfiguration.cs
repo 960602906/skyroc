@@ -37,7 +37,9 @@ public class DeliveryTaskConfiguration : IEntityTypeConfiguration<DeliveryTask>
         builder.Property(x => x.RouteNameSnapshot).HasColumnName("route_name_snapshot").HasMaxLength(150);
         builder.Property(x => x.RouteSequence).HasColumnName("route_sequence");
         builder.Property(x => x.DeliveryStatus).HasColumnName("delivery_status").HasColumnType("integer")
-            .HasDefaultValue(DeliveryTaskStatus.PendingAssign).IsRequired();
+            .HasDefaultValue(DeliveryTaskStatus.PendingAssign)
+            .HasSentinel((DeliveryTaskStatus)0)
+            .IsRequired();
         builder.Property(x => x.OutTime).HasColumnName("out_time").HasColumnType("timestamp with time zone").IsRequired();
         builder.Property(x => x.AssignedTime).HasColumnName("assigned_time").HasColumnType("timestamp with time zone");
         builder.Property(x => x.PlannedTime).HasColumnName("planned_time").HasColumnType("timestamp with time zone");

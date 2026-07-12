@@ -59,6 +59,7 @@ public class AfterSaleModelTests
         var entityType = GetEntityType<AfterSale>();
 
         Assert.Equal(AfterSaleStatus.Draft, entityType.FindProperty(nameof(AfterSale.AfterStatus))!.GetDefaultValue());
+        Assert.Equal((AfterSaleStatus)0, entityType.FindProperty(nameof(AfterSale.AfterStatus))!.Sentinel);
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(AfterSale.OrderPrice))!.GetScale());
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(AfterSale.SettlementPrice))!.GetScale());
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_after_sale_no").IsUnique);
@@ -102,6 +103,7 @@ public class AfterSaleModelTests
         Assert.Equal(
             PickupTaskStatus.PendingAssign,
             entityType.FindProperty(nameof(PickupTask.PickupStatus))!.GetDefaultValue());
+        Assert.Equal((PickupTaskStatus)0, entityType.FindProperty(nameof(PickupTask.PickupStatus))!.Sentinel);
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_pickup_task_status");
     }
 

@@ -43,7 +43,9 @@ public class SupplierBillConfiguration : IEntityTypeConfiguration<SupplierBill>
         builder.Property(x => x.SettledAmount).HasColumnName("settled_amount")
             .HasPrecision(18, NumericPrecision.MoneyScale).IsRequired();
         builder.Property(x => x.BillStatus).HasColumnName("bill_status").HasColumnType("integer")
-            .HasDefaultValue(SupplierBillStatus.Pending).IsRequired();
+            .HasDefaultValue(SupplierBillStatus.Pending)
+            .HasSentinel((SupplierBillStatus)0)
+            .IsRequired();
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => x.BillNo).IsUnique().HasDatabaseName("idx_supplier_bill_no");

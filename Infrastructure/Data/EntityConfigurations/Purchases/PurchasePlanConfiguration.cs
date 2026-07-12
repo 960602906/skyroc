@@ -13,8 +13,12 @@ public class PurchasePlanConfiguration : IEntityTypeConfiguration<PurchasePlan>
 
         builder.Property(x => x.PlanNo).HasColumnName("plan_no").HasMaxLength(50).IsRequired();
         builder.Property(x => x.PlanDate).HasColumnName("plan_date").HasColumnType("timestamp with time zone");
-        builder.Property(x => x.PurchasePattern).HasColumnName("purchase_pattern").HasColumnType("integer").HasDefaultValue(PurchasePattern.SupplierDirect);
-        builder.Property(x => x.PurchaseStatus).HasColumnName("purchase_status").HasColumnType("integer").HasDefaultValue(PurchasePlanStatus.Unpublished);
+        builder.Property(x => x.PurchasePattern).HasColumnName("purchase_pattern").HasColumnType("integer")
+            .HasDefaultValue(PurchasePattern.SupplierDirect)
+            .HasSentinel((PurchasePattern)0);
+        builder.Property(x => x.PurchaseStatus).HasColumnName("purchase_status").HasColumnType("integer")
+            .HasDefaultValue(PurchasePlanStatus.Unpublished)
+            .HasSentinel((PurchasePlanStatus)0);
         builder.Property(x => x.SupplierId).HasColumnName("supplier_id");
         builder.Property(x => x.SupplierNameSnapshot).HasColumnName("supplier_name_snapshot").HasMaxLength(150);
         builder.Property(x => x.PurchaserId).HasColumnName("purchaser_id");

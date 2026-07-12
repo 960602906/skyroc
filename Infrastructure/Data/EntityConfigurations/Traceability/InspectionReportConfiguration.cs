@@ -32,7 +32,9 @@ public class InspectionReportConfiguration : IEntityTypeConfiguration<Inspection
         builder.Property(x => x.SampleTime).HasColumnName("sample_time").HasColumnType("timestamp with time zone");
         builder.Property(x => x.InspectTime).HasColumnName("inspect_time").HasColumnType("timestamp with time zone").IsRequired();
         builder.Property(x => x.Conclusion).HasColumnName("conclusion").HasColumnType("integer")
-            .HasDefaultValue(InspectionConclusion.Pending).IsRequired();
+            .HasDefaultValue(InspectionConclusion.Pending)
+            .HasSentinel((InspectionConclusion)0)
+            .IsRequired();
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => x.InspectionNo).IsUnique().HasDatabaseName("idx_inspection_report_no");

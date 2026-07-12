@@ -22,7 +22,10 @@ public class PrintTemplateConfiguration : IEntityTypeConfiguration<PrintTemplate
         builder.Property(x => x.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
         builder.Property(x => x.BusinessType).HasColumnName("business_type").HasColumnType("integer").IsRequired();
         builder.Property(x => x.DesignJson).HasColumnName("design_json").HasColumnType("text").IsRequired();
-        builder.Property(x => x.IsEnabled).HasColumnName("is_enabled").HasDefaultValue(true).IsRequired();
+        builder.Property(x => x.IsEnabled).HasColumnName("is_enabled")
+            .HasDefaultValue(true)
+            .HasSentinel(false)
+            .IsRequired();
         builder.HasIndex(x => x.TemplateCode).IsUnique().HasDatabaseName("uk_print_template_code");
         builder.HasIndex(x => new { x.BusinessType, x.IsEnabled }).HasDatabaseName("idx_print_template_type_enabled");
     }

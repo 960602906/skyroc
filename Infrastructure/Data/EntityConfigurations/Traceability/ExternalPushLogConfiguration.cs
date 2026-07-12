@@ -28,7 +28,9 @@ public class ExternalPushLogConfiguration : IEntityTypeConfiguration<ExternalPus
         builder.Property(x => x.BusinessNoSnapshot).HasColumnName("business_no_snapshot").HasMaxLength(50).IsRequired();
         builder.Property(x => x.PlatformCode).HasColumnName("platform_code").HasMaxLength(50).IsRequired();
         builder.Property(x => x.PushStatus).HasColumnName("push_status").HasColumnType("integer")
-            .HasDefaultValue(ExternalPushStatus.Pending).IsRequired();
+            .HasDefaultValue(ExternalPushStatus.Pending)
+            .HasSentinel((ExternalPushStatus)0)
+            .IsRequired();
         builder.Property(x => x.PushTime).HasColumnName("push_time").HasColumnType("timestamp with time zone").IsRequired();
         builder.Property(x => x.ResponseTime).HasColumnName("response_time").HasColumnType("timestamp with time zone");
         builder.Property(x => x.RequestContent).HasColumnName("request_content").HasColumnType("text");

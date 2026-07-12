@@ -22,7 +22,9 @@ public class PurchaseRuleConfiguration : IEntityTypeConfiguration<PurchaseRule>
         builder.Property(x => x.PurchaserId).HasColumnName("purchaser_id");
         builder.Property(x => x.WareId).HasColumnName("ware_id");
         builder.Property(x => x.GoodsTypeId).HasColumnName("goods_type_id");
-        builder.Property(x => x.PurchasePattern).HasColumnName("purchase_pattern").HasDefaultValue(1);
+        builder.Property(x => x.PurchasePattern).HasColumnName("purchase_pattern")
+            .HasDefaultValue(1)
+            .HasSentinel(0);
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => x.Code).IsUnique().HasDatabaseName("idx_purchase_rule_code");

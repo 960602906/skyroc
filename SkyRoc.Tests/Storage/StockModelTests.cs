@@ -84,6 +84,7 @@ public class StockModelTests
         var detailType = GetEntityType<StockInDetail>();
 
         Assert.Equal(StockDocumentStatus.Draft, orderType.FindProperty(nameof(StockInOrder.BusinessStatus))!.GetDefaultValue());
+        Assert.Equal((StockDocumentStatus)0, orderType.FindProperty(nameof(StockInOrder.BusinessStatus))!.Sentinel);
         Assert.Equal(StockPrintStatus.NotPrinted, orderType.FindProperty(nameof(StockInOrder.PrintStatus))!.GetDefaultValue());
         Assert.True(orderType.GetIndexes().Single(index => index.GetDatabaseName() == "idx_stock_in_order_in_no").IsUnique);
         Assert.Equal("numeric(18,6)", detailType.FindProperty(nameof(StockInDetail.Quantity))!.GetColumnType());
@@ -109,6 +110,7 @@ public class StockModelTests
         var detailType = GetEntityType<StockOutDetail>();
 
         Assert.Equal(StockDocumentStatus.Draft, orderType.FindProperty(nameof(StockOutOrder.BusinessStatus))!.GetDefaultValue());
+        Assert.Equal((StockDocumentStatus)0, orderType.FindProperty(nameof(StockOutOrder.BusinessStatus))!.Sentinel);
         Assert.Equal(StockPrintStatus.NotPrinted, orderType.FindProperty(nameof(StockOutOrder.PrintStatus))!.GetDefaultValue());
         Assert.True(orderType.GetIndexes().Single(index => index.GetDatabaseName() == "idx_stock_out_order_out_no").IsUnique);
         Assert.Equal("numeric(18,6)", detailType.FindProperty(nameof(StockOutDetail.Quantity))!.GetColumnType());
@@ -131,6 +133,7 @@ public class StockModelTests
             index => index.GetDatabaseName() == "idx_stocktaking_detail_order_batch");
 
         Assert.Equal(StockDocumentStatus.Draft, orderType.FindProperty(nameof(StocktakingOrder.BusinessStatus))!.GetDefaultValue());
+        Assert.Equal((StockDocumentStatus)0, orderType.FindProperty(nameof(StocktakingOrder.BusinessStatus))!.Sentinel);
         Assert.Equal(false, orderType.FindProperty(nameof(StocktakingOrder.IsAdjustmentApplied))!.GetDefaultValue());
         Assert.True(orderType.GetIndexes().Single(index => index.GetDatabaseName() == "idx_stocktaking_order_no").IsUnique);
         Assert.True(batchIndex.IsUnique);

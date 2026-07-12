@@ -63,6 +63,7 @@ public class CustomerBillModelTests
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_customer_bill_no").IsUnique);
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_customer_bill_sale_order_id").IsUnique);
         Assert.Equal(CustomerBillStatus.Pending, entityType.FindProperty(nameof(CustomerBill.BillStatus))!.GetDefaultValue());
+        Assert.Equal((CustomerBillStatus)0, entityType.FindProperty(nameof(CustomerBill.BillStatus))!.Sentinel);
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerBill.OrderAmount))!.GetScale());
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerBill.AfterSaleAdjustmentAmount))!.GetScale());
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerBill.ReceivableAmount))!.GetScale());
@@ -100,6 +101,7 @@ public class CustomerBillModelTests
 
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_customer_settlement_no").IsUnique);
         Assert.Equal(CustomerSettlementStatus.Pending, entityType.FindProperty(nameof(CustomerSettlement.SettlementStatus))!.GetDefaultValue());
+        Assert.Equal((CustomerSettlementStatus)0, entityType.FindProperty(nameof(CustomerSettlement.SettlementStatus))!.Sentinel);
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlement.ShouldAmount))!.GetScale());
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlement.PaymentAmount))!.GetScale());
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(CustomerSettlement.DiscountAmount))!.GetScale());
