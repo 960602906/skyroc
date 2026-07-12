@@ -76,6 +76,8 @@ public static class DataQualityReportWriter
         AppendFindingList(builder, "孤儿外键", report.OrphanForeignKeys);
         AppendFindingList(builder, "重复业务编码", report.DuplicateBusinessCodes);
         AppendFindingList(builder, "临时数据残留", report.TemporaryResidues);
+        AppendMetadataInventory(builder, report.MetadataInventory, report.MetadataFindings);
+        AppendFindingList(builder, "质量规则例外", report.QualityRuleExceptions);
 
         builder.AppendLine("## 业务一致性");
         builder.AppendLine();
@@ -114,5 +116,24 @@ public static class DataQualityReportWriter
 
         foreach (var finding in findings)
             builder.AppendLine($"- {finding}");
+    }
+
+    private static void AppendMetadataInventory(
+        StringBuilder builder,
+        IReadOnlyList<MetadataTableInventory> tables,
+        IReadOnlyList<string> findings)
+    {
+        builder.AppendLine();
+        builder.AppendLine("## 元数据盘点");
+        builder.AppendLine();
+        builder.AppendLine("| 表 | 分类 | 列数 | 外键 | 唯一约束 | 说明 |");
+        builder.AppendLine("| --- | --- | ---: | ---: | ---: | --- |");
+        foreach (var table in tables.OrderBy(item => item.TableName, StringComparer.Ordinal))
+        {
+            var rule = table.Rule;
+            builder.AppendLine($"| `{table.TableName}` | {rule?.Category} | {table.Columns.Count} | {table.ForeignKeyNames.Count} | {table.UniqueConstraintNames.Count} | {rule?.Rationale ?? "未配置"} |");
+        }
+
+        AppendFindingList(builder, "元数据盘点问题", findings);
     }
 }

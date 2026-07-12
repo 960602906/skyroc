@@ -52,6 +52,9 @@ public class DataQualityReportWriterTests
             Assert.True(root.TryGetProperty("duplicateBusinessCodes", out _));
             Assert.True(root.TryGetProperty("temporaryResidues", out _));
             Assert.True(root.TryGetProperty("businessConsistencyChecks", out _));
+            Assert.True(root.TryGetProperty("metadataInventory", out _));
+            Assert.True(root.TryGetProperty("metadataFindings", out _));
+            Assert.True(root.TryGetProperty("qualityRuleExceptions", out _));
 
             var markdown = await File.ReadAllTextAsync(paths.MarkdownPath);
             Assert.Contains("逐表记录数", markdown, StringComparison.Ordinal);
@@ -60,6 +63,9 @@ public class DataQualityReportWriterTests
             Assert.Contains("孤儿外键", markdown, StringComparison.Ordinal);
             Assert.Contains("重复业务编码", markdown, StringComparison.Ordinal);
             Assert.Contains("临时数据残留", markdown, StringComparison.Ordinal);
+            Assert.Contains("元数据盘点", markdown, StringComparison.Ordinal);
+            Assert.Contains("元数据盘点问题", markdown, StringComparison.Ordinal);
+            Assert.Contains("质量规则例外", markdown, StringComparison.Ordinal);
             Assert.Contains("业务一致性", markdown, StringComparison.Ordinal);
         }
         finally

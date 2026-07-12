@@ -22,6 +22,7 @@ public class PostgreSqlInfrastructureDocumentationTests
         Assert.True(migrationPosition > validationPosition);
         Assert.Contains("Testing", script, StringComparison.Ordinal);
         Assert.Contains("PostgreSqlInfrastructureTests", script, StringComparison.Ordinal);
+        Assert.Contains("DatabaseMetadataInventoryTests", script, StringComparison.Ordinal);
         Assert.DoesNotContain("TRUNCATE", script, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DROP DATABASE", script, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("EnsureDeleted", script, StringComparison.OrdinalIgnoreCase);

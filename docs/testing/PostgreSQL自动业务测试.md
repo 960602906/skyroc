@@ -34,7 +34,7 @@ $env:SKYROC_TEST_CONNECTION_STRING = '<专用测试库连接串>'
 
 ```powershell
 dotnet ef database update --project Infrastructure --startup-project SkyRoc
-dotnet test SkyRoc.Tests\SkyRoc.Tests.csproj --filter "FullyQualifiedName~PostgreSqlInfrastructureTests|FullyQualifiedName~PostgreSqlInfrastructureDocumentationTests|FullyQualifiedName~DatabaseSafety|FullyQualifiedName~BatchCleanup"
+dotnet test SkyRoc.Tests\SkyRoc.Tests.csproj --filter "FullyQualifiedName~PostgreSqlInfrastructureTests|FullyQualifiedName~PostgreSqlInfrastructureDocumentationTests|FullyQualifiedName~DatabaseMetadataInventoryTests|FullyQualifiedName~DataQualityReportWriterTests|FullyQualifiedName~DatabaseSafety|FullyQualifiedName~BatchCleanup"
 ```
 
 测试夹具也会在建立真实测试连接后调用 `MigrateAsync`，保证直接运行测试时不会绕过待执行迁移。
@@ -51,4 +51,19 @@ T0 报告写入忽略版本控制的 `artifacts/business-test-reports/`，每轮
 - 所有文本字段中的 `SKYROC-AUTOTEST-*` 临时数据残留；
 - 迁移历史、外键验证、库存非负和临时残留等基础业务一致性结果。
 
-T1 会在这套扫描底座上补充 EF 模型与 PostgreSQL 目录逐项比对、字段适用条件、固定配置例外和更完整的业务一致性门禁。
+## T1 元数据盘点与质量规则
+
+质量报告的 `metadataInventory` 是机器可读的全表清单，Markdown 同时提供“元数据盘点”表格。它以 EF Core 设计时模型和 `pg_catalog`/`information_schema` 双向核对业务表、持久化列、可空性、数值精度、表列注释、外键和唯一索引；框架表 `__EFMigrationsHistory` 不计入业务表。
+
+每个业务表都会登记数量分类及验收目标，字段则登记为“始终必填”“业务条件适用”或“状态条件适用”。目前 `sys_setting` 被明确登记为单例/唯一键受限配置表；它按全部合法设置键验收，不以凑数方式满足普通表数量。其余表按用户权限与基础资料、主数据、业务主单、明细/关系/日志或普通表分类。新增表或字段会使对应的元数据门禁失败，不能通过扩大忽略范围绕过。
+
+`qualityRuleExceptions` 是唯一允许的质量规则例外目录。当前仅登记 `sys_login_log.username`：登录审计是追加事件，同一账号多次登录是合法历史，不能误报为重复业务编码；其他 `username`、`code`、`*_code` 和 `*_no` 字段仍必须参与重复检测。
+
+报告中的 `metadataFindings` 必须为空，以下一致性门禁必须为 `true`：
+
+- `efModelMatchesPostgreSqlCatalog`
+- `allBusinessTablesHaveQualityRules`
+- `allPersistedColumnsHaveApplicabilityRules`
+- `databaseCommentsMatchModel`
+- `foreignKeysMatchModel`
+- `uniqueConstraintsMatchModel`

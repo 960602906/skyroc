@@ -47,7 +47,7 @@ try {
         throw "EF Core database update failed with exit code $LASTEXITCODE."
     }
 
-    dotnet test SkyRoc.Tests\SkyRoc.Tests.csproj --filter 'FullyQualifiedName~PostgreSqlInfrastructureTests|FullyQualifiedName~PostgreSqlInfrastructureDocumentationTests|FullyQualifiedName~DatabaseSafety|FullyQualifiedName~BatchCleanup'
+    dotnet test SkyRoc.Tests\SkyRoc.Tests.csproj --filter 'FullyQualifiedName~PostgreSqlInfrastructureTests|FullyQualifiedName~PostgreSqlInfrastructureDocumentationTests|FullyQualifiedName~DatabaseMetadataInventoryTests|FullyQualifiedName~DataQualityReportWriterTests|FullyQualifiedName~DatabaseSafety|FullyQualifiedName~BatchCleanup'
     if ($LASTEXITCODE -ne 0) {
         throw "PostgreSQL infrastructure tests failed with exit code $LASTEXITCODE."
     }

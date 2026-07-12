@@ -60,6 +60,21 @@ public sealed class DataQualityReport
     public required IReadOnlyDictionary<string, bool> BusinessConsistencyChecks { get; init; }
 
     /// <summary>
+    ///     EF Core 模型与 PostgreSQL 目录双向盘点后的业务表清单。
+    /// </summary>
+    public required IReadOnlyList<MetadataTableInventory> MetadataInventory { get; init; }
+
+    /// <summary>
+    ///     元数据盘点发现的缺表、缺列、约束、精度或注释问题。
+    /// </summary>
+    public required IReadOnlyList<string> MetadataFindings { get; init; }
+
+    /// <summary>
+    ///     已人工复核并可由业务语义证明的质量规则例外清单。
+    /// </summary>
+    public required IReadOnlyList<string> QualityRuleExceptions { get; init; }
+
+    /// <summary>
     ///     创建 T0 基础设施验收报告。
     /// </summary>
     public static DataQualityReport CreateInfrastructureReport(
@@ -71,7 +86,8 @@ public sealed class DataQualityReport
         IReadOnlyList<string> orphanForeignKeys,
         IReadOnlyList<string> duplicateBusinessCodes,
         IReadOnlyList<string> temporaryResidues,
-        IReadOnlyDictionary<string, bool> businessConsistencyChecks)
+        IReadOnlyDictionary<string, bool> businessConsistencyChecks,
+        MetadataInventoryResult? metadataInventory = null)
     {
         return new DataQualityReport
         {
@@ -84,7 +100,10 @@ public sealed class DataQualityReport
             OrphanForeignKeys = orphanForeignKeys,
             DuplicateBusinessCodes = duplicateBusinessCodes,
             TemporaryResidues = temporaryResidues,
-            BusinessConsistencyChecks = businessConsistencyChecks
+            BusinessConsistencyChecks = businessConsistencyChecks,
+            MetadataInventory = metadataInventory?.Tables ?? [],
+            MetadataFindings = metadataInventory?.Findings ?? [],
+            QualityRuleExceptions = DataQualityRuleCatalog.QualityRuleExceptionDescriptions
         };
     }
 }

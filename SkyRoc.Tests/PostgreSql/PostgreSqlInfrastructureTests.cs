@@ -179,8 +179,13 @@ public class PostgreSqlInfrastructureTests(PostgreSqlTestFixture fixture)
         Assert.NotEmpty(result.Report.TableCounts);
         Assert.NotEmpty(result.Report.FieldFillRates);
         Assert.NotEmpty(result.Report.StatusDistributions);
+        Assert.NotEmpty(result.Report.MetadataInventory);
         Assert.Empty(result.Report.OrphanForeignKeys);
         Assert.Empty(result.Report.TemporaryResidues);
+        Assert.Empty(result.Report.MetadataFindings);
+        Assert.True(result.Report.BusinessConsistencyChecks["efModelMatchesPostgreSqlCatalog"]);
+        Assert.True(result.Report.BusinessConsistencyChecks["allBusinessTablesHaveQualityRules"]);
+        Assert.True(result.Report.BusinessConsistencyChecks["allPersistedColumnsHaveApplicabilityRules"]);
         Assert.True(result.Report.BusinessConsistencyChecks["migrationHistoryMatchesModel"]);
         Assert.True(result.Report.BusinessConsistencyChecks["temporaryBatchResidueIsZero"]);
         Assert.True(File.Exists(result.Paths.JsonPath));

@@ -10,6 +10,8 @@ namespace SkyRoc.Tests.Testing.PostgreSql;
 /// </summary>
 public sealed class DatabaseQualityReportGenerator(PostgreSqlTestSettings settings)
 {
+    private readonly DatabaseMetadataInventory _metadataInventory = new(settings);
+
     /// <summary>
     ///     扫描逐表数量、字段填充、状态、外键、业务编码、临时残留和基础一致性。
     /// </summary>
@@ -19,6 +21,7 @@ public sealed class DatabaseQualityReportGenerator(PostgreSqlTestSettings settin
         CancellationToken cancellationToken = default)
     {
         var databaseName = DatabaseSafetyGuard.Validate(settings);
+        var metadataInventory = await _metadataInventory.GenerateAsync(context, cancellationToken);
         await context.Database.OpenConnectionAsync(cancellationToken);
         try
         {
@@ -47,7 +50,9 @@ public sealed class DatabaseQualityReportGenerator(PostgreSqlTestSettings settin
                         await ReadDistributionAsync(connection, table, statusColumn.ColumnName, cancellationToken);
                 }
 
-                foreach (var codeColumn in tableColumns.Where(column => IsBusinessCodeColumn(column.ColumnName)))
+                foreach (var codeColumn in tableColumns.Where(column =>
+                             IsBusinessCodeColumn(column.ColumnName)
+                             && !DataQualityRuleCatalog.IsDuplicateBusinessCodeExempt(table, column.ColumnName)))
                 {
                     var duplicateCount = await CountDuplicateValuesAsync(
                         connection,
@@ -62,7 +67,7 @@ public sealed class DatabaseQualityReportGenerator(PostgreSqlTestSettings settin
             var orphanForeignKeys = await ReadUnvalidatedForeignKeysAsync(connection, cancellationToken);
             var pendingMigrations = await context.Database.GetPendingMigrationsAsync(cancellationToken);
             var stockQuantitiesNonNegative = await CheckStockQuantitiesAsync(connection, tables, cancellationToken);
-            var consistencyChecks = new Dictionary<string, bool>(StringComparer.Ordinal)
+            var consistencyChecks = new Dictionary<string, bool>(metadataInventory.Checks, StringComparer.Ordinal)
             {
                 ["migrationHistoryMatchesModel"] = !pendingMigrations.Any(),
                 ["temporaryBatchResidueIsZero"] = temporaryResidues.Count == 0,
@@ -79,7 +84,8 @@ public sealed class DatabaseQualityReportGenerator(PostgreSqlTestSettings settin
                 orphanForeignKeys,
                 duplicateBusinessCodes,
                 temporaryResidues,
-                consistencyChecks);
+                consistencyChecks,
+                metadataInventory);
         }
         finally
         {
