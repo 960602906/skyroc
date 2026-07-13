@@ -631,4 +631,66 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(subAccount.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须使用系统用户与角色应用服务补齐受管的权限联调资料；每个用户关联一条受管角色和四项既有菜单权限，重复运行不得新增重复关系或改动非受管记录。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedSystemUsersRolesAndPermissions_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedUsernames = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SYSTEM-USER", sequence))
+            .ToArray();
+        var managedRoleCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SYSTEM-ROLE", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var users = await context.Users
+            .Include(user => user.Department)
+            .Include(user => user.UserRoles)
+            .ThenInclude(relation => relation.Role)
+            .Where(user => managedUsernames.Contains(user.Username))
+            .OrderBy(user => user.Username)
+            .ToListAsync();
+        var roles = await context.Roles
+            .Include(role => role.RoleMenus)
+            .Where(role => managedRoleCodes.Contains(role.Code))
+            .OrderBy(role => role.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, users.Count);
+        Assert.Equal(30, roles.Count);
+        Assert.Equal(30, users.Select(user => user.Username).Distinct().Count());
+        Assert.Equal(30, roles.Select(role => role.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["system-users"] + first.ReusedByLayer["system-users"]);
+        Assert.Equal(30, first.CreatedByLayer["system-roles"] + first.ReusedByLayer["system-roles"]);
+        Assert.Equal(0, second.CreatedByLayer["system-users"]);
+        Assert.Equal(0, second.CreatedByLayer["system-roles"]);
+        Assert.All(users, user =>
+        {
+            Assert.NotNull(user.Department);
+            Assert.False(string.IsNullOrWhiteSpace(user.NickName));
+            Assert.False(string.IsNullOrWhiteSpace(user.Phone));
+            Assert.False(string.IsNullOrWhiteSpace(user.Email));
+            Assert.False(string.IsNullOrWhiteSpace(user.PasswordHash));
+            Assert.Equal(Status.Enable, user.Status);
+            Assert.NotNull(user.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(user.CreateName));
+            var relation = Assert.Single(user.UserRoles);
+            Assert.NotNull(relation.Role);
+            Assert.Contains(relation.Role!.Code, managedRoleCodes);
+        });
+        Assert.All(roles, role =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(role.Name));
+            Assert.False(string.IsNullOrWhiteSpace(role.Desc));
+            Assert.Equal(Status.Enable, role.Status);
+            Assert.NotNull(role.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(role.CreateName));
+            Assert.Equal(4, role.RoleMenus.Count);
+        });
+    }
 }

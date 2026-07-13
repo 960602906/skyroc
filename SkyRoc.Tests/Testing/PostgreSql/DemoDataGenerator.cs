@@ -3,7 +3,9 @@ using Application.DTOs.Delivery;
 using Application.DTOs.Goods;
 using Application.DTOs.Purchases;
 using Application.DTOs.Pricing;
+using Application.DTOs.Role;
 using Application.DTOs.Storage;
+using Application.DTOs.User;
 using Application.interfaces;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
@@ -38,6 +40,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string QuotationGoodsLayer = "quotation-goods";
     private const string QuotationsLayer = "quotations";
     private const string SuppliersLayer = "suppliers";
+    private const string SystemRolesLayer = "system-roles";
+    private const string SystemUsersLayer = "system-users";
     private const string WaresLayer = "wares";
 
     /// <summary>
@@ -69,6 +73,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
         var quotationService = scope.ServiceProvider.GetRequiredService<IQuotationService>();
         var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
+        var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
+        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
         var wareService = scope.ServiceProvider.GetRequiredService<IWareService>();
         var companySeeds = CreateCompanySeeds();
         var carrierSeeds = CreateCarrierSeeds();
@@ -84,6 +90,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var purchaseRuleSeeds = CreatePurchaseRuleSeeds();
         var quotationSeeds = CreateQuotationSeeds();
         var supplierSeeds = CreateSupplierSeeds();
+        var systemRoleSeeds = CreateSystemRoleSeeds();
+        var systemUserSeeds = CreateSystemUserSeeds();
         var wareSeeds = CreateWareSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
         var carrierCodes = carrierSeeds.Select(seed => seed.Code).ToArray();
@@ -100,6 +108,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var purchaseRuleCodes = purchaseRuleSeeds.Select(seed => seed.Code).ToArray();
         var quotationCodes = quotationSeeds.Select(seed => seed.Code).ToArray();
         var supplierCodes = supplierSeeds.Select(seed => seed.Code).ToArray();
+        var systemRoleCodes = systemRoleSeeds.Select(seed => seed.Code).ToArray();
+        var systemUsernames = systemUserSeeds.Select(seed => seed.Username).ToArray();
         var wareCodes = wareSeeds.Select(seed => seed.Code).ToArray();
         var auditUser = await context.Users
             .OrderBy(user => user.Username)
@@ -138,6 +148,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingSuppliers = await context.Suppliers
             .Where(supplier => supplierCodes.Contains(supplier.Code))
             .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
+        var existingSystemRoles = await context.Roles
+            .Where(role => systemRoleCodes.Contains(role.Code))
+            .ToDictionaryAsync(role => role.Code, StringComparer.Ordinal, cancellationToken);
+        var existingSystemUsers = await context.Users
+            .Where(user => systemUsernames.Contains(user.Username))
+            .ToDictionaryAsync(user => user.Username, StringComparer.Ordinal, cancellationToken);
         var existingPurchasers = await context.Purchasers
             .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
             .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
@@ -201,11 +217,103 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedQuotations = 0;
         var createdSuppliers = 0;
         var reusedSuppliers = 0;
+        var createdSystemRoles = 0;
+        var reusedSystemRoles = 0;
+        var createdSystemUsers = 0;
+        var reusedSystemUsers = 0;
         var createdWares = 0;
         var reusedWares = 0;
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
+            foreach (var seed in systemRoleSeeds)
+            {
+                if (!existingSystemRoles.TryGetValue(seed.Code, out var role))
+                {
+                    await roleService.CreateRoleAsync(seed.ToCreateDto());
+                    createdSystemRoles++;
+                    continue;
+                }
+
+                if (!seed.Matches(role))
+                    await roleService.UpdateRoleAsync(role.Id, seed.ToUpdateDto(role.Id));
+
+                if (role.CreateBy != auditUser.Id || role.CreateName != auditUser.Username)
+                {
+                    // 角色创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    role.CreateBy = auditUser.Id;
+                    role.CreateName = auditUser.Username;
+                }
+
+                reusedSystemRoles++;
+            }
+
+            var managedSystemRoles = await context.Roles
+                .Where(role => systemRoleCodes.Contains(role.Code))
+                .ToDictionaryAsync(role => role.Code, StringComparer.Ordinal, cancellationToken);
+            var permissionMenuNames = new[] { "home", "manage", "manage_role", "manage_user" };
+            var permissionMenuIds = await context.Menus
+                .Where(menu => permissionMenuNames.Contains(menu.Name))
+                .OrderBy(menu => menu.Name)
+                .Select(menu => menu.Id)
+                .ToArrayAsync(cancellationToken);
+            if (permissionMenuIds.Length != permissionMenuNames.Length)
+            {
+                throw new InvalidOperationException("长期联调系统角色生成需要已存在的首页、管理、角色和用户菜单。 ");
+            }
+
+            var managedRoleIds = managedSystemRoles.Values.Select(role => role.Id).ToArray();
+            var managedRoleMenus = await context.RoleMenus
+                .Where(relation => managedRoleIds.Contains(relation.RoleId))
+                .ToListAsync(cancellationToken);
+            context.RoleMenus.RemoveRange(managedRoleMenus);
+            foreach (var role in managedSystemRoles.Values)
+            {
+                foreach (var menuId in permissionMenuIds)
+                    context.RoleMenus.Add(new Domain.Entities.RoleMenu { RoleId = role.Id, MenuId = menuId });
+            }
+
+            foreach (var seed in systemUserSeeds)
+            {
+                if (!existingSystemUsers.TryGetValue(seed.Username, out var user))
+                {
+                    await userService.CreateUserAsync(seed.ToCreateDto());
+                    createdSystemUsers++;
+                    continue;
+                }
+
+                if (!seed.Matches(user))
+                    await userService.UpdateUserAsync(user.Id, seed.ToUpdateDto(user.Id));
+
+                if (user.CreateBy != auditUser.Id || user.CreateName != auditUser.Username)
+                {
+                    // 用户创建审计没有公开补写入口，仅修复完整稳定用户名对应的受管记录。
+                    user.CreateBy = auditUser.Id;
+                    user.CreateName = auditUser.Username;
+                }
+
+                reusedSystemUsers++;
+            }
+
+            var managedSystemUsers = await context.Users
+                .Where(user => systemUsernames.Contains(user.Username))
+                .ToDictionaryAsync(user => user.Username, StringComparer.Ordinal, cancellationToken);
+            var managedUserRoleRelations = await context.UserRoles
+                .Where(relation => managedSystemUsers.Values.Select(user => user.Id).Contains(relation.UserId))
+                .ToListAsync(cancellationToken);
+            context.UserRoles.RemoveRange(managedUserRoleRelations);
+            foreach (var seed in systemUserSeeds)
+            {
+                var user = GetManagedReference(managedSystemUsers, seed.Username, "系统用户");
+                var role = GetManagedReference(managedSystemRoles, seed.RoleCode, "系统角色");
+                var department = organizationalDepartments[(seed.Sequence - 1) % organizationalDepartments.Count];
+                // 用户部门未包含在公开创建/更新 DTO 中，故仅对完整稳定用户名命中的受管用户受控补齐。
+                user.DepartmentId = department.Id;
+                user.UpdateBy = auditUser.Id;
+                user.UpdateName = auditUser.Username;
+                context.UserRoles.Add(new Domain.Entities.UserRole { UserId = user.Id, RoleId = role.Id });
+            }
+
             foreach (var seed in companySeeds)
             {
                 if (!existingCompanies.TryGetValue(seed.Code, out var company))
@@ -770,6 +878,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [QuotationGoodsLayer] = createdQuotationGoods,
                 [QuotationsLayer] = createdQuotations,
                 [SuppliersLayer] = createdSuppliers,
+                [SystemRolesLayer] = createdSystemRoles,
+                [SystemUsersLayer] = createdSystemUsers,
                 [WaresLayer] = createdWares
             },
             new Dictionary<string, int>(StringComparer.Ordinal)
@@ -791,6 +901,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [QuotationGoodsLayer] = reusedQuotationGoods,
                 [QuotationsLayer] = reusedQuotations,
                 [SuppliersLayer] = reusedSuppliers,
+                [SystemRolesLayer] = reusedSystemRoles,
+                [SystemUsersLayer] = reusedSystemUsers,
                 [WaresLayer] = reusedWares
             });
     }
@@ -1002,6 +1114,30 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"622581200000{sequence:D6}",
                 $"91310114SUP{sequence:D6}",
                 $"SkyRoc 联调供应商资料：华东第 {sequence:D2} 个生鲜供应伙伴，覆盖采购、入库与供应商结算场景。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<SystemRoleSeed> CreateSystemRoleSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new SystemRoleSeed(
+                DemoDataStableKeyCatalog.Create("SYSTEM-ROLE", sequence),
+                $"华东联调运营角色{sequence:D2}",
+                $"SkyRoc 联调系统角色：华东业务第 {sequence:D2} 个运营岗位，拥有首页与系统管理菜单访问范围。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<SystemUserSeed> CreateSystemUserSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new SystemUserSeed(
+                sequence,
+                DemoDataStableKeyCatalog.Create("SYSTEM-USER", sequence),
+                DemoDataStableKeyCatalog.Create("SYSTEM-ROLE", sequence),
+                $"华东联调运营专员{sequence:D2}",
+                sequence % 2 == 0 ? GenderType.Female : GenderType.Male,
+                $"1397000{sequence:D4}",
+                $"system.operator{sequence:D2}@eastfresh.example"))
             .ToArray();
     }
 
@@ -1717,6 +1853,77 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             return customerProtocolGoods.ProtocolPrice == ProtocolPrice
                    && customerProtocolGoods.MinOrderQuantity == MinOrderQuantity
                    && customerProtocolGoods.Remark == GoodsRemark;
+        }
+    }
+
+    private sealed record SystemRoleSeed(string Code, string Name, string Description)
+    {
+        public CreateRoleDto ToCreateDto() => new()
+        {
+            Code = Code,
+            Name = Name,
+            Desc = Description,
+            Status = Status.Enable
+        };
+
+        public UpdateRoleDto ToUpdateDto(Guid id) => new()
+        {
+            Id = id,
+            Code = Code,
+            Name = Name,
+            Desc = Description,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Role role)
+        {
+            return role.Name == Name
+                   && role.Desc == Description
+                   && role.Status == Status.Enable;
+        }
+    }
+
+    private sealed record SystemUserSeed(
+        int Sequence,
+        string Username,
+        string RoleCode,
+        string NickName,
+        GenderType Gender,
+        string Phone,
+        string Email)
+    {
+        private string Password => $"SkyRocSystem{Sequence:D2}!";
+
+        public CreateUserDto ToCreateDto() => new()
+        {
+            Username = Username,
+            NickName = NickName,
+            Gender = Gender,
+            Phone = Phone,
+            Email = Email,
+            Password = Password,
+            Status = Status.Enable
+        };
+
+        public UpdateUserDto ToUpdateDto(Guid id) => new()
+        {
+            Id = id,
+            Username = Username,
+            NickName = NickName,
+            Gender = Gender,
+            Phone = Phone,
+            Email = Email,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.User user)
+        {
+            return user.NickName == NickName
+                   && user.Gender == Gender
+                   && user.Phone == Phone
+                   && user.Email == Email
+                   && !string.IsNullOrWhiteSpace(user.PasswordHash)
+                   && user.Status == Status.Enable;
         }
     }
 
