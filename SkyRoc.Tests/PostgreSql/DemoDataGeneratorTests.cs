@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Domain.Entities.Printing;
+using Domain.Entities.System;
 using Shared.Constants;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -732,5 +734,138 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         });
         Assert.Contains(departments, department => department.ParentId is null);
         Assert.Contains(departments, department => department.ParentId is not null);
+    }
+
+    /// <summary>
+    ///     生成器必须补齐运营设置、服务时段、通知公告、打印模板和审计样本；没有公开写入口的日志仅构造完整稳定键命中的受管记录。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedSystemSupportData_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedServicePeriodNames = Enumerable.Range(1, 30)
+            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("SERVICE-PERIOD", sequence)} 华东运营服务时段{sequence:D2}")
+            .ToArray();
+        var managedNoticeTitles = Enumerable.Range(1, 30)
+            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("NOTICE", sequence)} 前端联调公告{sequence:D2}")
+            .ToArray();
+        var managedPrintTemplateCodes = Enumerable.Range(1, 30)
+            .Select(sequence => $"SKYROC_DEMO_PRINT_TEMPLATE_{sequence:D3}")
+            .ToArray();
+        var managedOperationDescriptions = Enumerable.Range(1, 120)
+            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("OPERATION-LOG", sequence)} 自动业务联调审计样本{sequence:D3}")
+            .ToArray();
+        var managedLoginUsernames = Enumerable.Range(1, 120)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("LOGIN-LOG", sequence))
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var servicePeriods = await context.ServicePeriods
+            .Where(period => managedServicePeriodNames.Contains(period.Name))
+            .OrderBy(period => period.Name)
+            .ToListAsync();
+        var notices = await context.Notices
+            .Where(notice => managedNoticeTitles.Contains(notice.Title))
+            .OrderBy(notice => notice.Title)
+            .ToListAsync();
+        var templates = await context.PrintTemplates
+            .Include(template => template.Fields)
+            .Where(template => managedPrintTemplateCodes.Contains(template.TemplateCode))
+            .OrderBy(template => template.TemplateCode)
+            .ToListAsync();
+        var operationLogs = await context.OperationLogs
+            .Where(log => managedOperationDescriptions.Contains(log.Desc))
+            .OrderBy(log => log.Desc)
+            .ToListAsync();
+        var loginLogs = await context.LoginLogs
+            .Where(log => managedLoginUsernames.Contains(log.Username))
+            .OrderBy(log => log.Username)
+            .ToListAsync();
+        var settings = await context.SystemSettings.ToListAsync();
+
+        Assert.Equal(30, servicePeriods.Count);
+        Assert.Equal(30, notices.Count);
+        Assert.Equal(30, templates.Count);
+        Assert.Equal(120, operationLogs.Count);
+        Assert.Equal(120, loginLogs.Count);
+        Assert.Contains(settings, setting => setting.SettingKey == SystemSettingKey.MiniProgramOrder);
+        Assert.Contains(settings, setting => setting.SettingKey == SystemSettingKey.SortingWeight);
+        Assert.Equal(30, first.CreatedByLayer["service-periods"] + first.ReusedByLayer["service-periods"]);
+        Assert.Equal(30, first.CreatedByLayer["notices"] + first.ReusedByLayer["notices"]);
+        Assert.Equal(30, first.CreatedByLayer["print-templates"] + first.ReusedByLayer["print-templates"]);
+        Assert.Equal(120, first.CreatedByLayer["operation-logs"] + first.ReusedByLayer["operation-logs"]);
+        Assert.Equal(120, first.CreatedByLayer["login-logs"] + first.ReusedByLayer["login-logs"]);
+        Assert.Equal(0, second.CreatedByLayer["service-periods"]);
+        Assert.Equal(0, second.CreatedByLayer["notices"]);
+        Assert.Equal(0, second.CreatedByLayer["print-templates"]);
+        Assert.Equal(0, second.CreatedByLayer["operation-logs"]);
+        Assert.Equal(0, second.CreatedByLayer["login-logs"]);
+        Assert.Contains(servicePeriods, period => period.Status == Status.Enable);
+        Assert.Contains(servicePeriods, period => period.Status == Status.Disable);
+        Assert.Contains(notices, notice => notice.NoticeStatus == NoticeStatus.Published);
+        Assert.Contains(notices, notice => notice.NoticeStatus == NoticeStatus.Draft);
+        Assert.All(servicePeriods, period =>
+        {
+            Assert.True(period.EndTime > period.StartTime);
+            Assert.True(period.SortOrder > 0);
+            Assert.NotNull(period.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(period.CreateName));
+        });
+        Assert.All(notices, notice =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(notice.Content));
+            Assert.NotNull(notice.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(notice.CreateName));
+            Assert.Equal(notice.NoticeStatus == NoticeStatus.Published, notice.PublishedTime is not null);
+        });
+        Assert.All(templates, template =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(template.Name));
+            Assert.True(Enum.IsDefined(template.BusinessType));
+            Assert.False(string.IsNullOrWhiteSpace(template.DesignJson));
+            Assert.Equal(3, template.Fields.Count);
+            Assert.NotNull(template.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(template.CreateName));
+            Assert.All(template.Fields, field =>
+            {
+                Assert.False(string.IsNullOrWhiteSpace(field.FieldKey));
+                Assert.False(string.IsNullOrWhiteSpace(field.DisplayName));
+                Assert.NotNull(field.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(field.CreateName));
+            });
+        });
+        Assert.All(operationLogs, log =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(log.Module));
+            Assert.False(string.IsNullOrWhiteSpace(log.OperationType));
+            Assert.False(string.IsNullOrWhiteSpace(log.Method));
+            Assert.False(string.IsNullOrWhiteSpace(log.Url));
+            Assert.False(string.IsNullOrWhiteSpace(log.IpAddress));
+            Assert.False(string.IsNullOrWhiteSpace(log.Location));
+            Assert.False(string.IsNullOrWhiteSpace(log.Browser));
+            Assert.False(string.IsNullOrWhiteSpace(log.Os));
+            Assert.True(log.ExecutionDuration > 0);
+            Assert.NotNull(log.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(log.CreateName));
+        });
+        Assert.All(loginLogs, log =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(log.IpAddress));
+            Assert.False(string.IsNullOrWhiteSpace(log.UserAgent));
+            Assert.True(log.LoginTime > DateTime.MinValue);
+            Assert.NotNull(log.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(log.CreateName));
+            if (log.IsSuccess)
+            {
+                Assert.Null(log.FailureReason);
+                Assert.NotNull(log.UserId);
+            }
+            else
+            {
+                Assert.False(string.IsNullOrWhiteSpace(log.FailureReason));
+            }
+        });
     }
 }

@@ -2,12 +2,18 @@ using Application.DTOs.Customers;
 using Application.DTOs.Department;
 using Application.DTOs.Delivery;
 using Application.DTOs.Goods;
+using Application.DTOs.Printing;
 using Application.DTOs.Purchases;
 using Application.DTOs.Pricing;
 using Application.DTOs.Role;
 using Application.DTOs.Storage;
+using Application.DTOs.System;
 using Application.DTOs.User;
 using Application.interfaces;
+using Application.interfaces.System;
+using Domain.Entities;
+using Domain.Entities.Printing;
+using Domain.Entities.System;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +45,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string GoodsTypesLayer = "goods-types";
     private const string PurchasersLayer = "purchasers";
     private const string PurchaseRulesLayer = "purchase-rules";
+    private const string ServicePeriodsLayer = "service-periods";
+    private const string NoticesLayer = "notices";
+    private const string PrintTemplatesLayer = "print-templates";
+    private const string OperationLogsLayer = "operation-logs";
+    private const string LoginLogsLayer = "login-logs";
     private const string QuotationGoodsLayer = "quotation-goods";
     private const string QuotationsLayer = "quotations";
     private const string SuppliersLayer = "suppliers";
@@ -73,6 +84,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
         var purchaserService = scope.ServiceProvider.GetRequiredService<IPurchaserService>();
         var purchaseRuleService = scope.ServiceProvider.GetRequiredService<IPurchaseRuleService>();
+        var systemSupportService = scope.ServiceProvider.GetRequiredService<ISystemSupportService>();
+        var printService = scope.ServiceProvider.GetRequiredService<IPrintService>();
         var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
         var quotationService = scope.ServiceProvider.GetRequiredService<IQuotationService>();
         var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
@@ -92,6 +105,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
         var purchaserSeeds = CreatePurchaserSeeds();
         var purchaseRuleSeeds = CreatePurchaseRuleSeeds();
+        var servicePeriodSeeds = CreateServicePeriodSeeds();
+        var noticeSeeds = CreateNoticeSeeds();
+        var printTemplateSeeds = CreatePrintTemplateSeeds();
+        var operationLogSeeds = CreateOperationLogSeeds();
+        var loginLogSeeds = CreateLoginLogSeeds();
         var quotationSeeds = CreateQuotationSeeds();
         var supplierSeeds = CreateSupplierSeeds();
         var systemRoleSeeds = CreateSystemRoleSeeds();
@@ -111,6 +129,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
         var purchaserCodes = purchaserSeeds.Select(seed => seed.Code).ToArray();
         var purchaseRuleCodes = purchaseRuleSeeds.Select(seed => seed.Code).ToArray();
+        var servicePeriodNames = servicePeriodSeeds.Select(seed => seed.Name).ToArray();
+        var noticeTitles = noticeSeeds.Select(seed => seed.Title).ToArray();
+        var printTemplateCodes = printTemplateSeeds.Select(seed => seed.TemplateCode).ToArray();
+        var operationLogDescriptions = operationLogSeeds.Select(seed => seed.Description).ToArray();
+        var loginLogUsernames = loginLogSeeds.Select(seed => seed.Username).ToArray();
         var quotationCodes = quotationSeeds.Select(seed => seed.Code).ToArray();
         var supplierCodes = supplierSeeds.Select(seed => seed.Code).ToArray();
         var systemRoleCodes = systemRoleSeeds.Select(seed => seed.Code).ToArray();
@@ -170,6 +193,22 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .Include(rule => rule.Customers)
             .Where(rule => purchaseRuleCodes.Contains(rule.Code))
             .ToDictionaryAsync(rule => rule.Code, StringComparer.Ordinal, cancellationToken);
+        var existingServicePeriods = await context.ServicePeriods
+            .Where(period => servicePeriodNames.Contains(period.Name))
+            .ToDictionaryAsync(period => period.Name, StringComparer.Ordinal, cancellationToken);
+        var existingNotices = await context.Notices
+            .Where(notice => noticeTitles.Contains(notice.Title))
+            .ToDictionaryAsync(notice => notice.Title, StringComparer.Ordinal, cancellationToken);
+        var existingPrintTemplates = await context.PrintTemplates
+            .Include(template => template.Fields)
+            .Where(template => printTemplateCodes.Contains(template.TemplateCode))
+            .ToDictionaryAsync(template => template.TemplateCode, StringComparer.Ordinal, cancellationToken);
+        var existingOperationLogs = await context.OperationLogs
+            .Where(log => operationLogDescriptions.Contains(log.Desc))
+            .ToDictionaryAsync(log => log.Desc, StringComparer.Ordinal, cancellationToken);
+        var existingLoginLogs = await context.LoginLogs
+            .Where(log => loginLogUsernames.Contains(log.Username))
+            .ToDictionaryAsync(log => log.Username, StringComparer.Ordinal, cancellationToken);
         var existingQuotations = await context.Quotations
             .Where(quotation => quotationCodes.Contains(quotation.Code))
             .ToDictionaryAsync(quotation => quotation.Code, StringComparer.Ordinal, cancellationToken);
@@ -216,6 +255,16 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedPurchasers = 0;
         var createdPurchaseRules = 0;
         var reusedPurchaseRules = 0;
+        var createdServicePeriods = 0;
+        var reusedServicePeriods = 0;
+        var createdNotices = 0;
+        var reusedNotices = 0;
+        var createdPrintTemplates = 0;
+        var reusedPrintTemplates = 0;
+        var createdOperationLogs = 0;
+        var reusedOperationLogs = 0;
+        var createdLoginLogs = 0;
+        var reusedLoginLogs = 0;
         var createdQuotationGoods = 0;
         var reusedQuotationGoods = 0;
         var createdQuotations = 0;
@@ -888,6 +937,158 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedPurchaseRules++;
             }
 
+            await systemSupportService.SaveMiniProgramOrderSettingsAsync(new MiniProgramOrderSettingsDto
+            {
+                IsEnabled = true,
+                MaxAdvanceOrderDays = 7
+            });
+            await systemSupportService.SaveSortingWeightSettingsAsync(new SortingWeightSettingsDto
+            {
+                OrderTimeWeight = 1.2500m,
+                RouteWeight = 0.7500m,
+                CustomerWeight = 0.5000m
+            });
+
+            foreach (var seed in servicePeriodSeeds)
+            {
+                if (!existingServicePeriods.TryGetValue(seed.Name, out var servicePeriod))
+                {
+                    await systemSupportService.CreateServicePeriodAsync(seed.ToUpsertDto());
+                    createdServicePeriods++;
+                    continue;
+                }
+
+                if (!seed.Matches(servicePeriod))
+                    await systemSupportService.UpdateServicePeriodAsync(servicePeriod.Id, seed.ToUpsertDto());
+
+                if (servicePeriod.CreateBy != auditUser.Id || servicePeriod.CreateName != auditUser.Username)
+                {
+                    servicePeriod.CreateBy = auditUser.Id;
+                    servicePeriod.CreateName = auditUser.Username;
+                }
+
+                reusedServicePeriods++;
+            }
+
+            foreach (var seed in noticeSeeds)
+            {
+                Guid noticeId;
+                if (!existingNotices.TryGetValue(seed.Title, out var notice))
+                {
+                    noticeId = (await systemSupportService.CreateNoticeAsync(seed.ToUpsertDto())).Id;
+                    createdNotices++;
+                }
+                else
+                {
+                    if (!seed.Matches(notice))
+                        await systemSupportService.UpdateNoticeAsync(notice.Id, seed.ToUpsertDto());
+
+                    if (notice.CreateBy != auditUser.Id || notice.CreateName != auditUser.Username)
+                    {
+                        notice.CreateBy = auditUser.Id;
+                        notice.CreateName = auditUser.Username;
+                    }
+
+                    noticeId = notice.Id;
+                    reusedNotices++;
+                }
+
+                var refreshedNotice = await context.Notices.SingleAsync(item => item.Id == noticeId, cancellationToken);
+                if (refreshedNotice.NoticeStatus != seed.NoticeStatus)
+                {
+                    await systemSupportService.UpdateNoticeStatusAsync(
+                        refreshedNotice.Id,
+                        new UpdateNoticeStatusDto { NoticeStatus = seed.NoticeStatus });
+                }
+
+                refreshedNotice.PublishedTime = seed.NoticeStatus == NoticeStatus.Published
+                    ? seed.PublishedTime
+                    : null;
+            }
+
+            foreach (var seed in printTemplateSeeds)
+            {
+                if (!existingPrintTemplates.TryGetValue(seed.TemplateCode, out var printTemplate))
+                {
+                    await printService.CreateTemplateAsync(seed.ToCreateDto());
+                    createdPrintTemplates++;
+                    continue;
+                }
+
+                var replacedPrintTemplateFields = false;
+                if (!seed.Matches(printTemplate))
+                {
+                    printTemplate.TemplateCode = seed.TemplateCode;
+                    printTemplate.Name = seed.Name;
+                    printTemplate.BusinessType = seed.BusinessType;
+                    printTemplate.DesignJson = seed.DesignJson;
+                    printTemplate.IsEnabled = seed.IsEnabled;
+                    printTemplate.UpdateBy = auditUser.Id;
+                    printTemplate.UpdateName = auditUser.Username;
+                    context.PrintTemplateFields.RemoveRange(printTemplate.Fields);
+                    await context.SaveChangesAsync(cancellationToken);
+                    foreach (var field in seed.Fields.OrderBy(field => field.DisplayOrder))
+                    {
+                        context.PrintTemplateFields.Add(field.ToEntity(printTemplate.Id, auditUser));
+                    }
+
+                    replacedPrintTemplateFields = true;
+                }
+
+                if (printTemplate.CreateBy != auditUser.Id || printTemplate.CreateName != auditUser.Username)
+                {
+                    printTemplate.CreateBy = auditUser.Id;
+                    printTemplate.CreateName = auditUser.Username;
+                }
+
+                if (!replacedPrintTemplateFields)
+                {
+                    foreach (var field in printTemplate.Fields)
+                    {
+                        if (field.CreateBy != auditUser.Id || field.CreateName != auditUser.Username)
+                        {
+                            field.CreateBy = auditUser.Id;
+                            field.CreateName = auditUser.Username;
+                        }
+                    }
+                }
+
+                reusedPrintTemplates++;
+            }
+
+            var managedSystemUsersBySequence = await context.Users
+                .Where(user => systemUsernames.Contains(user.Username))
+                .OrderBy(user => user.Username)
+                .Select(user => new DemoOrganizationalUser(user.Id, user.Username))
+                .ToListAsync(cancellationToken);
+            foreach (var seed in operationLogSeeds)
+            {
+                var user = managedSystemUsersBySequence[(seed.Sequence - 1) % managedSystemUsersBySequence.Count];
+                if (!existingOperationLogs.TryGetValue(seed.Description, out var operationLog))
+                {
+                    context.OperationLogs.Add(seed.ToEntity(user, auditUser));
+                    createdOperationLogs++;
+                    continue;
+                }
+
+                seed.Apply(operationLog, user, auditUser);
+                reusedOperationLogs++;
+            }
+
+            foreach (var seed in loginLogSeeds)
+            {
+                var user = managedSystemUsersBySequence[(seed.Sequence - 1) % managedSystemUsersBySequence.Count];
+                if (!existingLoginLogs.TryGetValue(seed.Username, out var loginLog))
+                {
+                    context.LoginLogs.Add(seed.ToEntity(user, auditUser));
+                    createdLoginLogs++;
+                    continue;
+                }
+
+                seed.Apply(loginLog, user, auditUser);
+                reusedLoginLogs++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -915,6 +1116,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsTypesLayer] = createdGoodsTypes,
                 [PurchasersLayer] = createdPurchasers,
                 [PurchaseRulesLayer] = createdPurchaseRules,
+                [ServicePeriodsLayer] = createdServicePeriods,
+                [NoticesLayer] = createdNotices,
+                [PrintTemplatesLayer] = createdPrintTemplates,
+                [OperationLogsLayer] = createdOperationLogs,
+                [LoginLogsLayer] = createdLoginLogs,
                 [QuotationGoodsLayer] = createdQuotationGoods,
                 [QuotationsLayer] = createdQuotations,
                 [SuppliersLayer] = createdSuppliers,
@@ -939,6 +1145,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsTypesLayer] = reusedGoodsTypes,
                 [PurchasersLayer] = reusedPurchasers,
                 [PurchaseRulesLayer] = reusedPurchaseRules,
+                [ServicePeriodsLayer] = reusedServicePeriods,
+                [NoticesLayer] = reusedNotices,
+                [PrintTemplatesLayer] = reusedPrintTemplates,
+                [OperationLogsLayer] = reusedOperationLogs,
+                [LoginLogsLayer] = reusedLoginLogs,
                 [QuotationGoodsLayer] = reusedQuotationGoods,
                 [QuotationsLayer] = reusedQuotations,
                 [SuppliersLayer] = reusedSuppliers,
@@ -1231,6 +1442,89 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 NumericPrecision.RoundQuantity(3m + sequence % 5),
                 $"SkyRoc 联调协议价商品：客户 {sequence:D2} 在有效期内采购商品 {sequence:D2} 的专属价格与起订量。",
                 $"SkyRoc 联调客户协议价：为客户 {sequence:D2} 绑定报价、商品和协议有效期，覆盖订单价格优先级场景。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<ServicePeriodSeed> CreateServicePeriodSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence =>
+            {
+                var hour = 5 + sequence % 12;
+                return new ServicePeriodSeed(
+                    $"{DemoDataStableKeyCatalog.Create("SERVICE-PERIOD", sequence)} 华东运营服务时段{sequence:D2}",
+                    new TimeOnly(hour, sequence % 2 == 0 ? 0 : 30),
+                    new TimeOnly(hour + 2, sequence % 2 == 0 ? 30 : 0),
+                    sequence,
+                    sequence % 6 != 0);
+            })
+            .ToArray();
+    }
+
+    private static IReadOnlyList<NoticeSeed> CreateNoticeSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new NoticeSeed(
+                $"{DemoDataStableKeyCatalog.Create("NOTICE", sequence)} 前端联调公告{sequence:D2}",
+                $"SkyRoc 联调公告第 {sequence:D2} 条：提醒华东运营、采购、配送和财务团队关注当日订单履约、库存批次与结算核对事项。",
+                sequence % 3 == 0 ? NoticeStatus.Draft : NoticeStatus.Published,
+                new DateTime(2026, 7, sequence % 28 + 1, 8, sequence % 60, 0, DateTimeKind.Utc)))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<PrintTemplateSeed> CreatePrintTemplateSeeds()
+    {
+        var businessTypes = Enum.GetValues<PrintBusinessType>();
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new PrintTemplateSeed(
+                $"SKYROC_DEMO_PRINT_TEMPLATE_{sequence:D3}",
+                $"华东联调打印模板{sequence:D2}",
+                businessTypes[(sequence - 1) % businessTypes.Length],
+                $$"""{"version":"1.0","purpose":"SkyRoc 华东联调打印模板 {{sequence:D2}}","layout":"standard-a4"}""",
+                sequence % 5 != 0,
+                [
+                    new PrintTemplateFieldSeed("documentNo", "业务单据号", 0, null),
+                    new PrintTemplateFieldSeed("businessTime", "业务时间", 1, "yyyy-MM-dd HH:mm"),
+                    new PrintTemplateFieldSeed("totalAmount", "合计金额", 2, "0.00")
+                ]))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<OperationLogSeed> CreateOperationLogSeeds()
+    {
+        var modules = new[] { "order", "purchase", "storage", "delivery", "finance", "traceability" };
+        var methods = new[] { "POST", "PUT", "GET", "DELETE" };
+        return Enumerable.Range(1, 120)
+            .Select(sequence => new OperationLogSeed(
+                sequence,
+                modules[(sequence - 1) % modules.Length],
+                sequence % 4 == 0 ? "Update" : sequence % 4 == 1 ? "Create" : sequence % 4 == 2 ? "Query" : "Audit",
+                $"{DemoDataStableKeyCatalog.Create("OPERATION-LOG", sequence)} 自动业务联调审计样本{sequence:D3}",
+                methods[(sequence - 1) % methods.Length],
+                $"/api/demo-business/{modules[(sequence - 1) % modules.Length]}/{sequence:D3}",
+                $$"""{"businessKey":"{{DemoDataStableKeyCatalog.Create("OPERATION-LOG", sequence)}}","source":"demo-data-generator"}""",
+                $$"""{"code":200,"message":"联调审计样本已记录","sequence":{{sequence}}}""",
+                $"10.20.{sequence / 255}.{sequence % 255}",
+                sequence % 2 == 0 ? "上海市浦东新区" : "上海市嘉定区",
+                sequence % 3 == 0 ? "Microsoft Edge" : "Chrome",
+                sequence % 4 == 0 ? "Windows 11" : "Windows Server 2022",
+                80 + sequence,
+                sequence % 7 != 0,
+                sequence % 7 == 0 ? "业务规则拒绝样本：状态不允许重复提交" : null))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<LoginLogSeed> CreateLoginLogSeeds()
+    {
+        return Enumerable.Range(1, 120)
+            .Select(sequence => new LoginLogSeed(
+                sequence,
+                DemoDataStableKeyCatalog.Create("LOGIN-LOG", sequence),
+                sequence % 5 != 0,
+                sequence % 5 == 0 ? "凭据校验失败或账号未启用" : null,
+                $"10.30.{sequence / 255}.{sequence % 255}",
+                sequence % 2 == 0 ? "SkyRoc Frontend QA Browser" : "SkyRoc Mobile Joint Debug Client",
+                new DateTime(2026, 7, sequence % 28 + 1, 9, sequence % 60, 0, DateTimeKind.Utc)))
             .ToArray();
     }
 
@@ -2384,6 +2678,208 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && route.Status == Status.Enable
                    && route.CustomerRoutes.Count == 1
                    && route.CustomerRoutes.Single().CustomerId == customerId;
+        }
+    }
+
+    private sealed record ServicePeriodSeed(
+        string Name,
+        TimeOnly StartTime,
+        TimeOnly EndTime,
+        int SortOrder,
+        bool IsEnabled)
+    {
+        public UpsertServicePeriodDto ToUpsertDto() => new()
+        {
+            Name = Name,
+            StartTime = StartTime,
+            EndTime = EndTime,
+            SortOrder = SortOrder,
+            IsEnabled = IsEnabled
+        };
+
+        public bool Matches(ServicePeriod servicePeriod)
+        {
+            return servicePeriod.StartTime == StartTime
+                   && servicePeriod.EndTime == EndTime
+                   && servicePeriod.SortOrder == SortOrder
+                   && servicePeriod.Status == (IsEnabled ? Status.Enable : Status.Disable);
+        }
+    }
+
+    private sealed record NoticeSeed(
+        string Title,
+        string Content,
+        NoticeStatus NoticeStatus,
+        DateTime PublishedTime)
+    {
+        public UpsertNoticeDto ToUpsertDto() => new()
+        {
+            Title = Title,
+            Content = Content
+        };
+
+        public bool Matches(Notice notice)
+        {
+            return notice.Content == Content;
+        }
+    }
+
+    private sealed record PrintTemplateSeed(
+        string TemplateCode,
+        string Name,
+        PrintBusinessType BusinessType,
+        string DesignJson,
+        bool IsEnabled,
+        IReadOnlyList<PrintTemplateFieldSeed> Fields)
+    {
+        public CreatePrintTemplateDto ToCreateDto() => new()
+        {
+            TemplateCode = TemplateCode,
+            Name = Name,
+            BusinessType = BusinessType,
+            DesignJson = DesignJson,
+            IsEnabled = IsEnabled,
+            Fields = Fields.Select(field => field.ToInputDto()).ToList()
+        };
+
+        public UpdatePrintTemplateDto ToUpdateDto(Guid id) => new()
+        {
+            Id = id,
+            TemplateCode = TemplateCode,
+            Name = Name,
+            BusinessType = BusinessType,
+            DesignJson = DesignJson,
+            IsEnabled = IsEnabled,
+            Fields = Fields.Select(field => field.ToInputDto()).ToList()
+        };
+
+        public bool Matches(PrintTemplate template)
+        {
+            return template.Name == Name
+                   && template.BusinessType == BusinessType
+                   && template.DesignJson == DesignJson
+                   && template.IsEnabled == IsEnabled
+                   && template.Fields.Count == Fields.Count
+                   && template.Fields
+                       .OrderBy(field => field.DisplayOrder)
+                       .Zip(Fields.OrderBy(field => field.DisplayOrder))
+                       .All(pair => pair.First.FieldKey == pair.Second.FieldKey
+                                    && pair.First.DisplayName == pair.Second.DisplayName
+                                    && pair.First.DisplayOrder == pair.Second.DisplayOrder
+                                    && pair.First.Format == pair.Second.Format);
+        }
+    }
+
+    private sealed record PrintTemplateFieldSeed(
+        string FieldKey,
+        string DisplayName,
+        int DisplayOrder,
+        string? Format)
+    {
+        public PrintTemplateFieldInputDto ToInputDto() => new()
+        {
+            FieldKey = FieldKey,
+            DisplayName = DisplayName,
+            DisplayOrder = DisplayOrder,
+            Format = Format
+        };
+
+        public PrintTemplateField ToEntity(Guid printTemplateId, DemoAuditUser auditUser) => new()
+        {
+            Id = Guid.NewGuid(),
+            PrintTemplateId = printTemplateId,
+            FieldKey = FieldKey,
+            DisplayName = DisplayName,
+            DisplayOrder = DisplayOrder,
+            Format = Format,
+            CreateBy = auditUser.Id,
+            CreateName = auditUser.Username,
+            Status = Status.Enable
+        };
+    }
+
+    private sealed record OperationLogSeed(
+        int Sequence,
+        string Module,
+        string OperationType,
+        string Description,
+        string Method,
+        string Url,
+        string RequestParams,
+        string ResponseResult,
+        string IpAddress,
+        string Location,
+        string Browser,
+        string Os,
+        long ExecutionDuration,
+        bool IsSuccess,
+        string? ErrorMessage)
+    {
+        public OperationLog ToEntity(DemoOrganizationalUser user, DemoAuditUser auditUser)
+        {
+            var entity = new OperationLog { Id = Guid.NewGuid() };
+            Apply(entity, user, auditUser);
+            return entity;
+        }
+
+        public void Apply(OperationLog operationLog, DemoOrganizationalUser user, DemoAuditUser auditUser)
+        {
+            operationLog.Module = Module;
+            operationLog.OperationType = OperationType;
+            operationLog.Desc = Description;
+            operationLog.Method = Method;
+            operationLog.Url = Url;
+            operationLog.RequestParams = RequestParams;
+            operationLog.ResponseResult = ResponseResult;
+            operationLog.IpAddress = IpAddress;
+            operationLog.Location = Location;
+            operationLog.Browser = Browser;
+            operationLog.Os = Os;
+            operationLog.ExecutionDuration = ExecutionDuration;
+            operationLog.IsSuccess = IsSuccess;
+            operationLog.ErrorMessage = ErrorMessage;
+            operationLog.Status = Status.Enable;
+            operationLog.CreateTime = new DateTime(2026, 7, Sequence % 28 + 1, 10, Sequence % 60, 0, DateTimeKind.Utc);
+            operationLog.CreateBy = user.Id;
+            operationLog.CreateName = user.Username;
+            operationLog.UpdateTime = new DateTime(2026, 7, Sequence % 28 + 1, 11, Sequence % 60, 0, DateTimeKind.Utc);
+            operationLog.UpdateBy = auditUser.Id;
+            operationLog.UpdateName = auditUser.Username;
+        }
+    }
+
+    private sealed record LoginLogSeed(
+        int Sequence,
+        string Username,
+        bool IsSuccess,
+        string? FailureReason,
+        string IpAddress,
+        string UserAgent,
+        DateTime LoginTime)
+    {
+        public LoginLog ToEntity(DemoOrganizationalUser user, DemoAuditUser auditUser)
+        {
+            var entity = new LoginLog { Id = Guid.NewGuid() };
+            Apply(entity, user, auditUser);
+            return entity;
+        }
+
+        public void Apply(LoginLog loginLog, DemoOrganizationalUser user, DemoAuditUser auditUser)
+        {
+            loginLog.Username = Username;
+            loginLog.UserId = IsSuccess ? user.Id : null;
+            loginLog.IsSuccess = IsSuccess;
+            loginLog.FailureReason = FailureReason;
+            loginLog.IpAddress = IpAddress;
+            loginLog.UserAgent = UserAgent;
+            loginLog.LoginTime = LoginTime;
+            loginLog.Status = Status.Enable;
+            loginLog.CreateTime = LoginTime;
+            loginLog.CreateBy = auditUser.Id;
+            loginLog.CreateName = auditUser.Username;
+            loginLog.UpdateTime = LoginTime.AddMinutes(1);
+            loginLog.UpdateBy = auditUser.Id;
+            loginLog.UpdateName = auditUser.Username;
         }
     }
 
