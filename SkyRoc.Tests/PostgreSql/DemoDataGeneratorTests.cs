@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Constants;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
 
@@ -449,6 +450,52 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(goods.Remark));
             Assert.NotNull(goods.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(goods.CreateName));
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须经采购规则应用服务补齐稳定编码的采购适用规则，关联受管供应商、采购员、仓库、分类、商品和客户，并在重复运行时复用既有记录。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedPurchaseRulesWithCompleteBusinessReferences_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedPurchaseRuleCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("PURCHASE-RULE", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var purchaseRules = await context.PurchaseRules
+            .Include(rule => rule.Supplier)
+            .Include(rule => rule.Purchaser)
+            .Include(rule => rule.Ware)
+            .Include(rule => rule.GoodsType)
+            .Include(rule => rule.Goods)
+            .Include(rule => rule.Customers)
+            .Where(rule => managedPurchaseRuleCodes.Contains(rule.Code))
+            .OrderBy(rule => rule.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, purchaseRules.Count);
+        Assert.Equal(30, purchaseRules.Select(rule => rule.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["purchase-rules"] + first.ReusedByLayer["purchase-rules"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-rules"]);
+        Assert.Contains(purchaseRules, rule => rule.PurchasePattern == 1);
+        Assert.Contains(purchaseRules, rule => rule.PurchasePattern == 2);
+        Assert.All(purchaseRules, rule =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(rule.Name));
+            Assert.False(string.IsNullOrWhiteSpace(rule.Remark));
+            Assert.Equal(Status.Enable, rule.Status);
+            Assert.NotNull(rule.Supplier);
+            Assert.NotNull(rule.Purchaser);
+            Assert.NotNull(rule.Ware);
+            Assert.NotNull(rule.GoodsType);
+            Assert.Single(rule.Goods);
+            Assert.Single(rule.Customers);
+            Assert.NotNull(rule.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(rule.CreateName));
         });
     }
 }

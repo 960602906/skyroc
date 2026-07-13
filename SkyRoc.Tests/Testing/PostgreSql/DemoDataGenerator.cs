@@ -27,6 +27,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
     private const string PurchasersLayer = "purchasers";
+    private const string PurchaseRulesLayer = "purchase-rules";
     private const string QuotationGoodsLayer = "quotation-goods";
     private const string QuotationsLayer = "quotations";
     private const string SuppliersLayer = "suppliers";
@@ -53,6 +54,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsUnitService = scope.ServiceProvider.GetRequiredService<IGoodsUnitService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
         var purchaserService = scope.ServiceProvider.GetRequiredService<IPurchaserService>();
+        var purchaseRuleService = scope.ServiceProvider.GetRequiredService<IPurchaseRuleService>();
         var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
         var quotationService = scope.ServiceProvider.GetRequiredService<IQuotationService>();
         var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
@@ -64,6 +66,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsSeeds = CreateGoodsSeeds();
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
         var purchaserSeeds = CreatePurchaserSeeds();
+        var purchaseRuleSeeds = CreatePurchaseRuleSeeds();
         var quotationSeeds = CreateQuotationSeeds();
         var supplierSeeds = CreateSupplierSeeds();
         var wareSeeds = CreateWareSeeds();
@@ -75,6 +78,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsUnitCodes = goodsSeeds.Select(seed => seed.UnitCode).ToArray();
         var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
         var purchaserCodes = purchaserSeeds.Select(seed => seed.Code).ToArray();
+        var purchaseRuleCodes = purchaseRuleSeeds.Select(seed => seed.Code).ToArray();
         var quotationCodes = quotationSeeds.Select(seed => seed.Code).ToArray();
         var supplierCodes = supplierSeeds.Select(seed => seed.Code).ToArray();
         var wareCodes = wareSeeds.Select(seed => seed.Code).ToArray();
@@ -105,6 +109,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingPurchasers = await context.Purchasers
             .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
             .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
+        var existingPurchaseRules = await context.PurchaseRules
+            .Include(rule => rule.Goods)
+            .Include(rule => rule.Customers)
+            .Where(rule => purchaseRuleCodes.Contains(rule.Code))
+            .ToDictionaryAsync(rule => rule.Code, StringComparer.Ordinal, cancellationToken);
         var existingQuotations = await context.Quotations
             .Where(quotation => quotationCodes.Contains(quotation.Code))
             .ToDictionaryAsync(quotation => quotation.Code, StringComparer.Ordinal, cancellationToken);
@@ -144,6 +153,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedGoodsTypes = 0;
         var createdPurchasers = 0;
         var reusedPurchasers = 0;
+        var createdPurchaseRules = 0;
+        var reusedPurchaseRules = 0;
         var createdQuotationGoods = 0;
         var reusedQuotationGoods = 0;
         var createdQuotations = 0;
@@ -340,6 +351,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedWares++;
             }
 
+            var managedPurchasers = await context.Purchasers
+                .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
+                .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
+
             var managedWares = await context.Wares
                 .Where(ware => wareCodes.Contains(ware.Code))
                 .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
@@ -535,6 +550,39 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedCustomerProtocolGoods++;
             }
 
+            foreach (var seed in purchaseRuleSeeds)
+            {
+                var supplierId = GetManagedReferenceId(managedSuppliers, seed.SupplierCode, "供应商");
+                var purchaserId = GetManagedReferenceId(managedPurchasers, seed.PurchaserCode, "采购员");
+                var wareId = GetManagedReferenceId(managedWares, seed.WareCode, "仓库");
+                var goodsTypeId = GetManagedReferenceId(managedGoodsTypes, seed.GoodsTypeCode, "商品分类");
+                var goodsId = GetManagedReferenceId(managedGoods, seed.GoodsCode, "商品");
+                var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
+                if (!existingPurchaseRules.TryGetValue(seed.Code, out var purchaseRule))
+                {
+                    await purchaseRuleService.CreateAsync(
+                        seed.ToCreateDto(supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId));
+                    createdPurchaseRules++;
+                    continue;
+                }
+
+                if (!seed.Matches(purchaseRule, supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId))
+                {
+                    await purchaseRuleService.UpdateAsync(
+                        purchaseRule.Id,
+                        seed.ToUpdateDto(purchaseRule.Id, supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId));
+                }
+
+                if (purchaseRule.CreateBy != auditUser.Id || purchaseRule.CreateName != auditUser.Username)
+                {
+                    // 采购规则没有补写创建审计的公开入口，仅修复完整稳定编码对应的受管记录。
+                    purchaseRule.CreateBy = auditUser.Id;
+                    purchaseRule.CreateName = auditUser.Username;
+                }
+
+                reusedPurchaseRules++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -556,6 +604,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
                 [PurchasersLayer] = createdPurchasers,
+                [PurchaseRulesLayer] = createdPurchaseRules,
                 [QuotationGoodsLayer] = createdQuotationGoods,
                 [QuotationsLayer] = createdQuotations,
                 [SuppliersLayer] = createdSuppliers,
@@ -572,6 +621,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
                 [PurchasersLayer] = reusedPurchasers,
+                [PurchaseRulesLayer] = reusedPurchaseRules,
                 [QuotationGoodsLayer] = reusedQuotationGoods,
                 [QuotationsLayer] = reusedQuotations,
                 [SuppliersLayer] = reusedSuppliers,
@@ -702,6 +752,23 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .ToArray();
     }
 
+    private static IReadOnlyList<PurchaseRuleSeed> CreatePurchaseRuleSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new PurchaseRuleSeed(
+                DemoDataStableKeyCatalog.Create("PURCHASE-RULE", sequence),
+                DemoDataStableKeyCatalog.Create("SUPPLIER", sequence),
+                DemoDataStableKeyCatalog.Create("PURCHASER", sequence),
+                DemoDataStableKeyCatalog.Create("WARE", sequence),
+                DemoDataStableKeyCatalog.Create("GOODS-TYPE", sequence),
+                DemoDataStableKeyCatalog.Create("GOODS", sequence),
+                DemoDataStableKeyCatalog.Create("CUSTOMER", sequence),
+                $"华东联调采购适用规则{sequence:D2}",
+                sequence % 2 == 0 ? 2 : 1,
+                $"SkyRoc 联调采购规则：客户 {sequence:D2} 的商品 {sequence:D2} 由指定供应商、采购员和仓库按既定采购模式履约。"))
+            .ToArray();
+    }
+
     private static IReadOnlyList<SupplierSeed> CreateSupplierSeeds()
     {
         return Enumerable.Range(1, 30)
@@ -766,9 +833,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             ? entity switch
             {
                 Domain.Entities.Customers.Company company => company.Id,
+                Domain.Entities.Customers.Customer customer => customer.Id,
                 Domain.Entities.Customers.CustomerTag customerTag => customerTag.Id,
                 Domain.Entities.Goods.GoodsType goodsType => goodsType.Id,
                 Domain.Entities.Purchases.Supplier supplier => supplier.Id,
+                Domain.Entities.Purchases.Purchaser purchaser => purchaser.Id,
                 Domain.Entities.Storage.Ware ware => ware.Id,
                 Domain.Entities.Goods.Goods goods => goods.Id,
                 _ => throw new InvalidOperationException($"不支持的{referenceName}受管引用类型。")
@@ -1475,6 +1544,86 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && supplier.TaxNo == TaxNo
                    && supplier.Remark == Remark
                    && supplier.Status == Status.Enable;
+        }
+    }
+
+    private sealed record PurchaseRuleSeed(
+        string Code,
+        string SupplierCode,
+        string PurchaserCode,
+        string WareCode,
+        string GoodsTypeCode,
+        string GoodsCode,
+        string CustomerCode,
+        string Name,
+        int PurchasePattern,
+        string Remark)
+    {
+        public CreatePurchaseRuleDto ToCreateDto(
+            Guid supplierId,
+            Guid purchaserId,
+            Guid wareId,
+            Guid goodsTypeId,
+            Guid goodsId,
+            Guid customerId) => new()
+            {
+                Code = Code,
+                Name = Name,
+                SupplierId = supplierId,
+                PurchaserId = purchaserId,
+                WareId = wareId,
+                GoodsTypeId = goodsTypeId,
+                PurchasePattern = PurchasePattern,
+                GoodsIds = [goodsId],
+                CustomerIds = [customerId],
+                Remark = Remark,
+                Status = Status.Enable
+            };
+
+        public UpdatePurchaseRuleDto ToUpdateDto(
+            Guid id,
+            Guid supplierId,
+            Guid purchaserId,
+            Guid wareId,
+            Guid goodsTypeId,
+            Guid goodsId,
+            Guid customerId) => new()
+            {
+                Id = id,
+                Code = Code,
+                Name = Name,
+                SupplierId = supplierId,
+                PurchaserId = purchaserId,
+                WareId = wareId,
+                GoodsTypeId = goodsTypeId,
+                PurchasePattern = PurchasePattern,
+                GoodsIds = [goodsId],
+                CustomerIds = [customerId],
+                Remark = Remark,
+                Status = Status.Enable
+            };
+
+        public bool Matches(
+            Domain.Entities.Purchases.PurchaseRule purchaseRule,
+            Guid supplierId,
+            Guid purchaserId,
+            Guid wareId,
+            Guid goodsTypeId,
+            Guid goodsId,
+            Guid customerId)
+        {
+            return purchaseRule.Name == Name
+                   && purchaseRule.SupplierId == supplierId
+                   && purchaseRule.PurchaserId == purchaserId
+                   && purchaseRule.WareId == wareId
+                   && purchaseRule.GoodsTypeId == goodsTypeId
+                   && purchaseRule.PurchasePattern == PurchasePattern
+                   && purchaseRule.Remark == Remark
+                   && purchaseRule.Status == Status.Enable
+                   && purchaseRule.Goods.Count == 1
+                   && purchaseRule.Goods.Single().GoodsId == goodsId
+                   && purchaseRule.Customers.Count == 1
+                   && purchaseRule.Customers.Single().CustomerId == customerId;
         }
     }
 
