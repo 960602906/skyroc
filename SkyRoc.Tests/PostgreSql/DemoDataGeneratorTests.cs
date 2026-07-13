@@ -355,4 +355,53 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(unit.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须经报价与报价商品应用服务补齐稳定编码的报价资料，为每个受管客户和商品保留有效期、审核状态、单价及最小起订量，并在重复运行时复用既有记录。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedQuotationsWithGoodsAndCustomerReferences_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedQuotationCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("QUOTATION", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var quotations = await context.Quotations
+            .Include(quotation => quotation.Goods)
+            .Include(quotation => quotation.CustomerQuotations)
+            .Where(quotation => managedQuotationCodes.Contains(quotation.Code))
+            .OrderBy(quotation => quotation.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, quotations.Count);
+        Assert.Equal(30, quotations.Select(quotation => quotation.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["quotations"] + first.ReusedByLayer["quotations"]);
+        Assert.Equal(30, first.CreatedByLayer["quotation-goods"] + first.ReusedByLayer["quotation-goods"]);
+        Assert.Equal(0, second.CreatedByLayer["quotations"]);
+        Assert.Equal(0, second.CreatedByLayer["quotation-goods"]);
+        Assert.Contains(quotations, quotation => quotation.IsAudited);
+        Assert.Contains(quotations, quotation => !quotation.IsAudited);
+        Assert.All(quotations, quotation =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(quotation.Name));
+            Assert.False(string.IsNullOrWhiteSpace(quotation.Description));
+            Assert.NotNull(quotation.EffectiveStart);
+            Assert.NotNull(quotation.EffectiveEnd);
+            Assert.True(quotation.EffectiveEnd >= quotation.EffectiveStart);
+            Assert.NotNull(quotation.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(quotation.CreateName));
+            var goods = Assert.Single(quotation.Goods);
+            Assert.True(goods.UnitPrice > 0m);
+            Assert.NotNull(goods.MinOrderQuantity);
+            Assert.True(goods.MinOrderQuantity > 0m);
+            Assert.True(goods.IsOnSale);
+            Assert.False(string.IsNullOrWhiteSpace(goods.Remark));
+            Assert.NotNull(goods.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(goods.CreateName));
+            Assert.Single(quotation.CustomerQuotations);
+        });
+    }
 }

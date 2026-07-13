@@ -1,6 +1,7 @@
 using Application.DTOs.Customers;
 using Application.DTOs.Goods;
 using Application.DTOs.Purchases;
+using Application.DTOs.Pricing;
 using Application.DTOs.Storage;
 using Application.interfaces;
 using Infrastructure.Data;
@@ -24,6 +25,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
     private const string PurchasersLayer = "purchasers";
+    private const string QuotationGoodsLayer = "quotation-goods";
+    private const string QuotationsLayer = "quotations";
     private const string SuppliersLayer = "suppliers";
     private const string WaresLayer = "wares";
 
@@ -46,6 +49,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsUnitService = scope.ServiceProvider.GetRequiredService<IGoodsUnitService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
         var purchaserService = scope.ServiceProvider.GetRequiredService<IPurchaserService>();
+        var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
+        var quotationService = scope.ServiceProvider.GetRequiredService<IQuotationService>();
         var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
         var wareService = scope.ServiceProvider.GetRequiredService<IWareService>();
         var companySeeds = CreateCompanySeeds();
@@ -54,6 +59,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsSeeds = CreateGoodsSeeds();
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
         var purchaserSeeds = CreatePurchaserSeeds();
+        var quotationSeeds = CreateQuotationSeeds();
         var supplierSeeds = CreateSupplierSeeds();
         var wareSeeds = CreateWareSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
@@ -63,6 +69,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsUnitCodes = goodsSeeds.Select(seed => seed.UnitCode).ToArray();
         var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
         var purchaserCodes = purchaserSeeds.Select(seed => seed.Code).ToArray();
+        var quotationCodes = quotationSeeds.Select(seed => seed.Code).ToArray();
         var supplierCodes = supplierSeeds.Select(seed => seed.Code).ToArray();
         var wareCodes = wareSeeds.Select(seed => seed.Code).ToArray();
         var auditUser = await context.Users
@@ -92,6 +99,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingPurchasers = await context.Purchasers
             .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
             .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
+        var existingQuotations = await context.Quotations
+            .Where(quotation => quotationCodes.Contains(quotation.Code))
+            .ToDictionaryAsync(quotation => quotation.Code, StringComparer.Ordinal, cancellationToken);
         var organizationalUsers = await context.Users
             .OrderBy(user => user.Username)
             .Select(user => new DemoOrganizationalUser(user.Id, user.Username))
@@ -120,6 +130,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedGoodsTypes = 0;
         var createdPurchasers = 0;
         var reusedPurchasers = 0;
+        var createdQuotationGoods = 0;
+        var reusedQuotationGoods = 0;
+        var createdQuotations = 0;
+        var reusedQuotations = 0;
         var createdSuppliers = 0;
         var reusedSuppliers = 0;
         var createdWares = 0;
@@ -205,6 +219,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 
                 reusedCustomers++;
             }
+
+            var managedCustomers = await context.Customers
+                .Include(customer => customer.TagRelations)
+                .Where(customer => customerCodes.Contains(customer.Code))
+                .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
 
             var existingGoodsTypes = await context.GoodsTypes
                 .Where(goodsType => goodsTypeCodes.Contains(goodsType.Code))
@@ -361,6 +380,81 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedGoodsUnits++;
             }
 
+            var managedGoodsUnits = await context.GoodsUnits
+                .Where(unit => goodsUnitCodes.Contains(unit.Code))
+                .ToDictionaryAsync(unit => unit.Code!, StringComparer.Ordinal, cancellationToken);
+            foreach (var seed in quotationSeeds)
+            {
+                var customer = GetManagedReference(managedCustomers, seed.CustomerCode, "客户");
+                var goods = GetManagedReference(managedGoods, seed.GoodsCode, "商品");
+                var goodsUnit = GetManagedReference(managedGoodsUnits, seed.GoodsUnitCode, "商品单位");
+                Guid quotationId;
+                if (!existingQuotations.TryGetValue(seed.Code, out var quotation))
+                {
+                    quotationId = (await quotationService.CreateAsync(seed.ToCreateDto(customer.Id))).Id;
+                    createdQuotations++;
+                }
+                else
+                {
+                    if (!seed.Matches(quotation))
+                    {
+                        await quotationService.UpdateAsync(quotation.Id, seed.ToUpdateDto(quotation.Id, customer.Id));
+                    }
+
+                    if (quotation.CreateBy != auditUser.Id || quotation.CreateName != auditUser.Username)
+                    {
+                        // 报价创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        quotation.CreateBy = auditUser.Id;
+                        quotation.CreateName = auditUser.Username;
+                    }
+
+                    quotationId = quotation.Id;
+                    reusedQuotations++;
+                }
+
+                var customerQuotation = await context.CustomerQuotations.SingleAsync(
+                    relation => relation.CustomerId == customer.Id && relation.QuotationId == quotationId,
+                    cancellationToken);
+                // 当前报价维护接口只维护客户绑定；稳定受管关系的默认标志和有效期由生成器精确补齐。
+                customerQuotation.IsDefault = seed.IsAudited;
+                customerQuotation.EffectiveStart = seed.EffectiveStart;
+                customerQuotation.EffectiveEnd = seed.EffectiveEnd;
+
+                // 客户服务未提供默认报价和仓库的批量写入入口；仅对完整稳定编码命中的已加载受管客户在同一事务中精确补齐。
+                customer.QuotationId = seed.IsAudited ? quotationId : null;
+                customer.DefaultWareId = goods.DefaultWareId;
+                customer.UpdateBy = auditUser.Id;
+                customer.UpdateName = auditUser.Username;
+
+                var quotationGoods = await context.QuotationGoods.SingleOrDefaultAsync(
+                    item => item.QuotationId == quotationId
+                            && item.GoodsId == goods.Id
+                            && item.GoodsUnitId == goodsUnit.Id,
+                    cancellationToken);
+                if (quotationGoods is null)
+                {
+                    await quotationGoodsService.CreateAsync(seed.ToCreateGoodsDto(quotationId, goods.Id, goodsUnit.Id));
+                    createdQuotationGoods++;
+                    continue;
+                }
+
+                if (!seed.Matches(quotationGoods))
+                {
+                    await quotationGoodsService.UpdateAsync(
+                        quotationGoods.Id,
+                        seed.ToUpdateGoodsDto(quotationGoods.Id, quotationId, goods.Id, goodsUnit.Id));
+                }
+
+                if (quotationGoods.CreateBy != auditUser.Id || quotationGoods.CreateName != auditUser.Username)
+                {
+                    // 报价商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    quotationGoods.CreateBy = auditUser.Id;
+                    quotationGoods.CreateName = auditUser.Username;
+                }
+
+                reusedQuotationGoods++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -380,6 +474,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
                 [PurchasersLayer] = createdPurchasers,
+                [QuotationGoodsLayer] = createdQuotationGoods,
+                [QuotationsLayer] = createdQuotations,
                 [SuppliersLayer] = createdSuppliers,
                 [WaresLayer] = createdWares
             },
@@ -392,6 +488,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
                 [PurchasersLayer] = reusedPurchasers,
+                [QuotationGoodsLayer] = reusedQuotationGoods,
+                [QuotationsLayer] = reusedQuotations,
                 [SuppliersLayer] = reusedSuppliers,
                 [WaresLayer] = reusedWares
             });
@@ -536,6 +634,25 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .ToArray();
     }
 
+    private static IReadOnlyList<QuotationSeed> CreateQuotationSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new QuotationSeed(
+                DemoDataStableKeyCatalog.Create("QUOTATION", sequence),
+                DemoDataStableKeyCatalog.Create("CUSTOMER", sequence),
+                DemoDataStableKeyCatalog.Create("GOODS", sequence),
+                DemoDataStableKeyCatalog.Create("GOODS-UNIT", sequence),
+                $"华东联调客户报价方案{sequence:D2}",
+                $"面向华东联调客户 {sequence:D2} 的生鲜商品销售价格，覆盖订单计价、起订量与有效期校验。",
+                new DateTime(2026, sequence % 12 + 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                new DateTime(2028, sequence % 12 + 1, 28, 23, 59, 59, DateTimeKind.Utc),
+                sequence % 5 != 0,
+                8.5m + sequence,
+                5m + sequence % 4,
+                $"SkyRoc 联调报价商品：商品 {sequence:D2} 的有效客户销售价格与最小起订量。"))
+            .ToArray();
+    }
+
     private static Guid GetManagedReferenceId<T>(
         IReadOnlyDictionary<string, T> entities,
         string businessCode,
@@ -553,6 +670,17 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 Domain.Entities.Goods.Goods goods => goods.Id,
                 _ => throw new InvalidOperationException($"不支持的{referenceName}受管引用类型。")
             }
+            : throw new InvalidOperationException($"未找到稳定编码为 {businessCode} 的受管{referenceName}。 ");
+    }
+
+    private static T GetManagedReference<T>(
+        IReadOnlyDictionary<string, T> entities,
+        string businessCode,
+        string referenceName)
+        where T : class
+    {
+        return entities.TryGetValue(businessCode, out var entity)
+            ? entity
             : throw new InvalidOperationException($"未找到稳定编码为 {businessCode} 的受管{referenceName}。 ");
     }
 
@@ -707,15 +835,24 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             Status = Status.Enable
         };
 
-        public UpdateCustomerDto ToUpdateDto(Guid id, Guid companyId, Guid customerTagId)
+        public UpdateCustomerDto ToUpdateDto(
+            Guid id,
+            Guid? companyId,
+            Guid customerTagId,
+            Guid? quotationId = null,
+            Guid? defaultWareId = null)
         {
-            var dto = ToCreateDto(companyId, customerTagId);
+            var dto = ToCreateDto(
+                companyId ?? throw new InvalidOperationException("受管客户必须关联受管公司。"),
+                customerTagId);
             return new UpdateCustomerDto
             {
                 Id = id,
                 Code = dto.Code,
                 Name = dto.Name,
                 CompanyId = dto.CompanyId,
+                QuotationId = quotationId,
+                DefaultWareId = defaultWareId,
                 UnifiedSocialCreditCode = dto.UnifiedSocialCreditCode,
                 LegalRepresentative = dto.LegalRepresentative,
                 RegisteredCapital = dto.RegisteredCapital,
@@ -955,6 +1092,94 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && unit.Sort == 1
                    && unit.Remark == UnitRemark
                    && unit.Status == Status.Enable;
+        }
+    }
+
+    private sealed record QuotationSeed(
+        string Code,
+        string CustomerCode,
+        string GoodsCode,
+        string GoodsUnitCode,
+        string Name,
+        string Description,
+        DateTime EffectiveStart,
+        DateTime EffectiveEnd,
+        bool IsAudited,
+        decimal UnitPrice,
+        decimal MinOrderQuantity,
+        string GoodsRemark)
+    {
+        public CreateQuotationDto ToCreateDto(Guid customerId) => new()
+        {
+            Code = Code,
+            Name = Name,
+            Description = Description,
+            EffectiveStart = EffectiveStart,
+            EffectiveEnd = EffectiveEnd,
+            IsAudited = IsAudited,
+            CustomerIds = [customerId],
+            Status = Status.Enable
+        };
+
+        public UpdateQuotationDto ToUpdateDto(Guid id, Guid customerId)
+        {
+            var dto = ToCreateDto(customerId);
+            return new UpdateQuotationDto
+            {
+                Id = id,
+                Code = dto.Code,
+                Name = dto.Name,
+                Description = dto.Description,
+                EffectiveStart = dto.EffectiveStart,
+                EffectiveEnd = dto.EffectiveEnd,
+                IsAudited = dto.IsAudited,
+                CustomerIds = dto.CustomerIds,
+                Status = dto.Status
+            };
+        }
+
+        public CreateQuotationGoodsDto ToCreateGoodsDto(Guid quotationId, Guid goodsId, Guid goodsUnitId) => new()
+        {
+            QuotationId = quotationId,
+            GoodsId = goodsId,
+            GoodsUnitId = goodsUnitId,
+            UnitPrice = UnitPrice,
+            MinOrderQuantity = MinOrderQuantity,
+            IsOnSale = true,
+            Remark = GoodsRemark
+        };
+
+        public UpdateQuotationGoodsDto ToUpdateGoodsDto(Guid id, Guid quotationId, Guid goodsId, Guid goodsUnitId)
+        {
+            var dto = ToCreateGoodsDto(quotationId, goodsId, goodsUnitId);
+            return new UpdateQuotationGoodsDto
+            {
+                Id = id,
+                QuotationId = dto.QuotationId,
+                GoodsId = dto.GoodsId,
+                GoodsUnitId = dto.GoodsUnitId,
+                UnitPrice = dto.UnitPrice,
+                MinOrderQuantity = dto.MinOrderQuantity,
+                IsOnSale = dto.IsOnSale,
+                Remark = dto.Remark
+            };
+        }
+
+        public bool Matches(Domain.Entities.Pricing.Quotation quotation)
+        {
+            return quotation.Name == Name
+                   && quotation.Description == Description
+                   && quotation.EffectiveStart == EffectiveStart
+                   && quotation.EffectiveEnd == EffectiveEnd
+                   && quotation.IsAudited == IsAudited;
+        }
+
+        public bool Matches(Domain.Entities.Pricing.QuotationGoods quotationGoods)
+        {
+            return quotationGoods.UnitPrice == UnitPrice
+                   && quotationGoods.MinOrderQuantity == MinOrderQuantity
+                   && quotationGoods.IsOnSale
+                   && quotationGoods.Remark == GoodsRemark;
         }
     }
 
