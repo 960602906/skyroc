@@ -15,6 +15,7 @@ using Application.interfaces.System;
 using Domain.Entities;
 using Domain.Entities.Orders;
 using Domain.Entities.Printing;
+using Domain.Entities.Purchases;
 using Domain.Entities.System;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
@@ -46,6 +47,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
     private const string PurchasersLayer = "purchasers";
+    private const string PurchasePlanDetailsLayer = "purchase-plan-details";
+    private const string PurchasePlanOrderRelationsLayer = "purchase-plan-order-relations";
+    private const string PurchasePlansLayer = "purchase-plans";
     private const string PurchaseRulesLayer = "purchase-rules";
     private const string SaleOrderDetailsLayer = "sale-order-details";
     private const string SaleOrdersLayer = "sale-orders";
@@ -87,6 +91,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsUnitService = scope.ServiceProvider.GetRequiredService<IGoodsUnitService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
         var purchaserService = scope.ServiceProvider.GetRequiredService<IPurchaserService>();
+        var purchasePlanService = scope.ServiceProvider.GetRequiredService<IPurchasePlanService>();
         var purchaseRuleService = scope.ServiceProvider.GetRequiredService<IPurchaseRuleService>();
         var saleOrderService = scope.ServiceProvider.GetRequiredService<ISaleOrderService>();
         var systemSupportService = scope.ServiceProvider.GetRequiredService<ISystemSupportService>();
@@ -259,6 +264,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedGoodsTypes = 0;
         var createdPurchasers = 0;
         var reusedPurchasers = 0;
+        var createdPurchasePlanDetails = 0;
+        var reusedPurchasePlanDetails = 0;
+        var createdPurchasePlanOrderRelations = 0;
+        var reusedPurchasePlanOrderRelations = 0;
+        var createdPurchasePlans = 0;
+        var reusedPurchasePlans = 0;
         var createdPurchaseRules = 0;
         var reusedPurchaseRules = 0;
         var createdSaleOrderDetails = 0;
@@ -1119,6 +1130,18 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             auditUser,
             cancellationToken);
 
+        (
+            createdPurchasePlans,
+            reusedPurchasePlans,
+            createdPurchasePlanDetails,
+            reusedPurchasePlanDetails,
+            createdPurchasePlanOrderRelations,
+            reusedPurchasePlanOrderRelations) = await GeneratePurchasePlansAsync(
+            context,
+            purchasePlanService,
+            auditUser,
+            cancellationToken);
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1136,6 +1159,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
                 [PurchasersLayer] = createdPurchasers,
+                [PurchasePlanDetailsLayer] = createdPurchasePlanDetails,
+                [PurchasePlanOrderRelationsLayer] = createdPurchasePlanOrderRelations,
+                [PurchasePlansLayer] = createdPurchasePlans,
                 [PurchaseRulesLayer] = createdPurchaseRules,
                 [SaleOrderDetailsLayer] = createdSaleOrderDetails,
                 [SaleOrdersLayer] = createdSaleOrders,
@@ -1167,6 +1193,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
                 [PurchasersLayer] = reusedPurchasers,
+                [PurchasePlanDetailsLayer] = reusedPurchasePlanDetails,
+                [PurchasePlanOrderRelationsLayer] = reusedPurchasePlanOrderRelations,
+                [PurchasePlansLayer] = reusedPurchasePlans,
                 [PurchaseRulesLayer] = reusedPurchaseRules,
                 [SaleOrderDetailsLayer] = reusedSaleOrderDetails,
                 [SaleOrdersLayer] = reusedSaleOrders,
@@ -1280,6 +1309,202 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 
         await context.SaveChangesAsync(cancellationToken);
         return (createdOrders, reusedOrders, createdDetails, reusedDetails);
+    }
+
+    private static async Task<(
+        int CreatedPlans,
+        int ReusedPlans,
+        int CreatedDetails,
+        int ReusedDetails,
+        int CreatedOrderRelations,
+        int ReusedOrderRelations)> GeneratePurchasePlansAsync(
+            ApplicationDbContext context,
+            IPurchasePlanService purchasePlanService,
+            DemoAuditUser auditUser,
+            CancellationToken cancellationToken)
+    {
+        var saleOrderKeys = Enumerable.Range(1, 60)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
+            .ToArray();
+        var planRemarks = Enumerable.Range(1, 40)
+            .Select(CreatePurchasePlanRemark)
+            .ToArray();
+        var supplierCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SUPPLIER", sequence))
+            .ToArray();
+        var purchaserCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("PURCHASER", sequence))
+            .ToArray();
+
+        var approvedOrders = await context.SaleOrders
+            .Include(order => order.Details)
+            .Where(order => order.InnerRemark != null
+                            && saleOrderKeys.Contains(order.InnerRemark)
+                            && order.OrderStatus == SaleOrderStatus.SortingPending)
+            .OrderBy(order => order.InnerRemark)
+            .ToListAsync(cancellationToken);
+        if (approvedOrders.Count != 40)
+        {
+            throw new InvalidOperationException(
+                $"受管采购计划生成需要 40 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
+        }
+
+        var existingPlans = await context.PurchasePlans
+            .Include(plan => plan.Details)
+            .ThenInclude(detail => detail.OrderRelations)
+            .Where(plan => plan.Remark != null && planRemarks.Contains(plan.Remark))
+            .ToDictionaryAsync(plan => plan.Remark!, StringComparer.Ordinal, cancellationToken);
+        var managedSuppliers = await context.Suppliers
+            .Where(supplier => supplierCodes.Contains(supplier.Code))
+            .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
+        var managedPurchasers = await context.Purchasers
+            .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
+            .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
+
+        var createdPlans = 0;
+        var reusedPlans = 0;
+        var createdDetails = 0;
+        var reusedDetails = 0;
+        var createdOrderRelations = 0;
+        var reusedOrderRelations = 0;
+
+        for (var index = 0; index < approvedOrders.Count; index++)
+        {
+            var sequence = index + 1;
+            var order = approvedOrders[index];
+            var planRemark = CreatePurchasePlanRemark(sequence);
+            var referenceSequence = (sequence - 1) % 30 + 1;
+            var supplier = GetManagedReference(
+                managedSuppliers,
+                DemoDataStableKeyCatalog.Create("SUPPLIER", referenceSequence),
+                "供应商");
+            var purchaser = GetManagedReference(
+                managedPurchasers,
+                DemoDataStableKeyCatalog.Create("PURCHASER", referenceSequence),
+                "采购员");
+
+            PurchasePlan plan;
+            if (!existingPlans.TryGetValue(planRemark, out var existingPlan))
+            {
+                if (order.HasPurchasePlan)
+                {
+                    throw new InvalidOperationException(
+                        $"受管销售订单 {order.InnerRemark} 已标记生成采购计划，但未找到受管采购计划 {planRemark}。");
+                }
+
+                var created = await purchasePlanService.GenerateFromOrdersAsync(new GeneratePurchasePlanFromOrdersDto
+                {
+                    OrderIds = [order.Id],
+                    Remark = planRemark
+                });
+                var createdPlanId = created.Single().Id;
+                await purchasePlanService.AssignSupplierAsync(new AssignPurchasePlanSupplierDto
+                {
+                    PlanIds = [createdPlanId],
+                    SupplierId = supplier.Id
+                });
+                await purchasePlanService.AssignPurchaserAsync(new AssignPurchasePlanPurchaserDto
+                {
+                    PlanIds = [createdPlanId],
+                    PurchaserId = purchaser.Id
+                });
+
+                plan = await GetManagedPurchasePlanAsync(context, createdPlanId, cancellationToken);
+                createdPlans++;
+                createdDetails += plan.Details.Count;
+                createdOrderRelations += plan.Details.Sum(detail => detail.OrderRelations.Count);
+            }
+            else
+            {
+                plan = existingPlan;
+                if (plan.SupplierId != supplier.Id)
+                {
+                    await purchasePlanService.AssignSupplierAsync(new AssignPurchasePlanSupplierDto
+                    {
+                        PlanIds = [plan.Id],
+                        SupplierId = supplier.Id
+                    });
+                }
+
+                if (plan.PurchaserId != purchaser.Id)
+                {
+                    await purchasePlanService.AssignPurchaserAsync(new AssignPurchasePlanPurchaserDto
+                    {
+                        PlanIds = [plan.Id],
+                        PurchaserId = purchaser.Id
+                    });
+                }
+
+                if (!order.HasPurchasePlan)
+                {
+                    // 只校准完整稳定键订单的生成标记，避免服务重复生成已存在的受管采购计划。
+                    order.HasPurchasePlan = true;
+                    order.UpdateBy = auditUser.Id;
+                    order.UpdateName = auditUser.Username;
+                    foreach (var detail in order.Details)
+                    {
+                        detail.HasPurchasePlan = true;
+                    }
+                }
+
+                plan = await GetManagedPurchasePlanAsync(context, plan.Id, cancellationToken);
+                reusedPlans++;
+                reusedDetails += plan.Details.Count;
+                reusedOrderRelations += plan.Details.Sum(detail => detail.OrderRelations.Count);
+            }
+
+            ApplyManagedPurchasePlanFields(plan, sequence, auditUser);
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        return (createdPlans, reusedPlans, createdDetails, reusedDetails, createdOrderRelations, reusedOrderRelations);
+    }
+
+    private static async Task<PurchasePlan> GetManagedPurchasePlanAsync(
+        ApplicationDbContext context,
+        Guid planId,
+        CancellationToken cancellationToken)
+    {
+        return await context.PurchasePlans
+            .Include(plan => plan.Details)
+            .ThenInclude(detail => detail.OrderRelations)
+            .SingleAsync(plan => plan.Id == planId, cancellationToken);
+    }
+
+    private static void ApplyManagedPurchasePlanFields(PurchasePlan plan, int sequence, DemoAuditUser auditUser)
+    {
+        plan.Remark = CreatePurchasePlanRemark(sequence);
+        if (plan.CreateBy != auditUser.Id || plan.CreateName != auditUser.Username)
+        {
+            plan.CreateBy = auditUser.Id;
+            plan.CreateName = auditUser.Username;
+        }
+
+        foreach (var detail in plan.Details.OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal))
+        {
+            detail.Remark =
+                $"SkyRoc 联调采购计划明细：{plan.Remark} 中商品 {detail.GoodsCodeSnapshot} 的订单需求按基础单位汇总。";
+            if (detail.CreateBy != auditUser.Id || detail.CreateName != auditUser.Username)
+            {
+                detail.CreateBy = auditUser.Id;
+                detail.CreateName = auditUser.Username;
+            }
+
+            foreach (var relation in detail.OrderRelations)
+            {
+                if (relation.CreateBy == auditUser.Id && relation.CreateName == auditUser.Username)
+                    continue;
+
+                relation.CreateBy = auditUser.Id;
+                relation.CreateName = auditUser.Username;
+            }
+        }
+    }
+
+    private static string CreatePurchasePlanRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("PURCHASE-PLAN", sequence);
+        return $"{stableKey} 华东联调采购计划{sequence:D2}：由已审核销售订单生成，用于采购单、入库和供应商结算链路。";
     }
 
     private static async Task ApplySaleOrderTargetStatusAsync(

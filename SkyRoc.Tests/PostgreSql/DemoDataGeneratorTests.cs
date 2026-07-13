@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Domain.Entities.Orders;
 using Domain.Entities.Printing;
+using Domain.Entities.Purchases;
 using Domain.Entities.System;
 using Shared.Constants;
 using SkyRoc.Tests.Testing.PostgreSql;
@@ -943,6 +944,81 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
                 Assert.True(detail.TotalPrice > 0m);
                 Assert.NotNull(detail.CreateBy);
                 Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+            });
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须基于已审核的受管销售订单补齐采购计划，保留来源订单关系、供应商和采购员快照，并在重复运行时不重复生成计划。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedPurchasePlansFromApprovedSaleOrders_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedPlanKeys = Enumerable.Range(1, 40)
+            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("PURCHASE-PLAN", sequence)} 华东联调采购计划{sequence:D2}：由已审核销售订单生成，用于采购单、入库和供应商结算链路。")
+            .ToArray();
+        var managedOrderKeys = Enumerable.Range(1, 60)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var plans = await context.PurchasePlans
+            .Include(plan => plan.Supplier)
+            .Include(plan => plan.Purchaser)
+            .Include(plan => plan.Details)
+            .ThenInclude(detail => detail.Goods)
+            .Include(plan => plan.Details)
+            .ThenInclude(detail => detail.PurchaseUnit)
+            .Include(plan => plan.Details)
+            .ThenInclude(detail => detail.OrderRelations)
+            .ThenInclude(relation => relation.SaleOrder)
+            .Where(plan => plan.Remark != null && managedPlanKeys.Contains(plan.Remark))
+            .OrderBy(plan => plan.Remark)
+            .ToListAsync();
+
+        Assert.Equal(40, plans.Count);
+        Assert.Equal(40, plans.Select(plan => plan.Remark).Distinct().Count());
+        Assert.Equal(40, first.CreatedByLayer["purchase-plans"] + first.ReusedByLayer["purchase-plans"]);
+        Assert.Equal(80, first.CreatedByLayer["purchase-plan-details"] + first.ReusedByLayer["purchase-plan-details"]);
+        Assert.Equal(80, first.CreatedByLayer["purchase-plan-order-relations"] + first.ReusedByLayer["purchase-plan-order-relations"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-plans"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-plan-details"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-plan-order-relations"]);
+        Assert.All(plans, plan =>
+        {
+            Assert.Equal(PurchasePlanStatus.Unpublished, plan.PurchaseStatus);
+            Assert.Equal(PurchasePattern.SupplierDirect, plan.PurchasePattern);
+            Assert.NotNull(plan.Supplier);
+            Assert.NotNull(plan.Purchaser);
+            Assert.False(string.IsNullOrWhiteSpace(plan.PlanNo));
+            Assert.False(string.IsNullOrWhiteSpace(plan.SupplierNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(plan.PurchaserNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(plan.Remark));
+            Assert.NotNull(plan.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(plan.CreateName));
+            Assert.Equal(2, plan.Details.Count);
+
+            Assert.All(plan.Details, detail =>
+            {
+                Assert.NotNull(detail.Goods);
+                Assert.NotNull(detail.PurchaseUnit);
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsCodeSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.PurchaseUnitNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
+                Assert.True(detail.RequiredQuantity > 0m);
+                Assert.Equal(detail.RequiredQuantity, detail.PlannedQuantity);
+                Assert.Equal(0m, detail.PurchasedQuantity);
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+                var relation = Assert.Single(detail.OrderRelations);
+                Assert.Contains(relation.SaleOrder.InnerRemark, managedOrderKeys);
+                Assert.Equal(detail.RequiredQuantity, relation.RequiredQuantity);
+                Assert.NotNull(relation.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(relation.CreateName));
             });
         });
     }
