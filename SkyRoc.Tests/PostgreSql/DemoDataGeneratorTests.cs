@@ -211,4 +211,41 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(ware.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须经供应商应用服务补齐稳定编码的供应商资料，填满当前可写的联系、开户与税务字段，并在重复运行时复用既有供应商。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedSuppliersWithCompleteCommercialData_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedSupplierCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SUPPLIER", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var suppliers = await context.Suppliers
+            .Where(supplier => managedSupplierCodes.Contains(supplier.Code))
+            .OrderBy(supplier => supplier.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, suppliers.Count);
+        Assert.Equal(30, suppliers.Select(supplier => supplier.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["suppliers"] + first.ReusedByLayer["suppliers"]);
+        Assert.Equal(0, second.CreatedByLayer["suppliers"]);
+        Assert.All(suppliers, supplier =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(supplier.Name));
+            Assert.False(string.IsNullOrWhiteSpace(supplier.ContactName));
+            Assert.False(string.IsNullOrWhiteSpace(supplier.ContactPhone));
+            Assert.False(string.IsNullOrWhiteSpace(supplier.Address));
+            Assert.False(string.IsNullOrWhiteSpace(supplier.BankName));
+            Assert.False(string.IsNullOrWhiteSpace(supplier.BankAccount));
+            Assert.False(string.IsNullOrWhiteSpace(supplier.TaxNo));
+            Assert.False(string.IsNullOrWhiteSpace(supplier.Remark));
+            Assert.NotNull(supplier.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(supplier.CreateName));
+        });
+    }
 }

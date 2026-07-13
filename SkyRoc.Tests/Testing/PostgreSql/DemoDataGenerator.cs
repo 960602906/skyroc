@@ -1,5 +1,6 @@
 using Application.DTOs.Customers;
 using Application.DTOs.Goods;
+using Application.DTOs.Purchases;
 using Application.DTOs.Storage;
 using Application.interfaces;
 using Infrastructure.Data;
@@ -20,6 +21,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerTagsLayer = "customer-tags";
     private const string CustomersLayer = "customers";
     private const string GoodsTypesLayer = "goods-types";
+    private const string SuppliersLayer = "suppliers";
     private const string WaresLayer = "wares";
 
     /// <summary>
@@ -38,16 +40,19 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
+        var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
         var wareService = scope.ServiceProvider.GetRequiredService<IWareService>();
         var companySeeds = CreateCompanySeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
+        var supplierSeeds = CreateSupplierSeeds();
         var wareSeeds = CreateWareSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
         var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
+        var supplierCodes = supplierSeeds.Select(seed => seed.Code).ToArray();
         var wareCodes = wareSeeds.Select(seed => seed.Code).ToArray();
         var auditUser = await context.Users
             .OrderBy(user => user.Username)
@@ -64,6 +69,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingWares = await context.Wares
             .Where(ware => wareCodes.Contains(ware.Code))
             .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
+        var existingSuppliers = await context.Suppliers
+            .Where(supplier => supplierCodes.Contains(supplier.Code))
+            .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
 
         var createdCompanies = 0;
         var reusedCompanies = 0;
@@ -73,6 +81,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomers = 0;
         var createdGoodsTypes = 0;
         var reusedGoodsTypes = 0;
+        var createdSuppliers = 0;
+        var reusedSuppliers = 0;
         var createdWares = 0;
         var reusedWares = 0;
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
@@ -182,6 +192,28 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedGoodsTypes++;
             }
 
+            foreach (var seed in supplierSeeds)
+            {
+                if (!existingSuppliers.TryGetValue(seed.Code, out var supplier))
+                {
+                    await supplierService.CreateAsync(seed.ToCreateDto());
+                    createdSuppliers++;
+                    continue;
+                }
+
+                if (!seed.Matches(supplier))
+                    await supplierService.UpdateAsync(supplier.Id, seed.ToUpdateDto(supplier.Id));
+
+                if (supplier.CreateBy != auditUser.Id || supplier.CreateName != auditUser.Username)
+                {
+                    // 供应商创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    supplier.CreateBy = auditUser.Id;
+                    supplier.CreateName = auditUser.Username;
+                }
+
+                reusedSuppliers++;
+            }
+
             foreach (var seed in wareSeeds)
             {
                 if (!existingWares.TryGetValue(seed.Code, out var ware))
@@ -220,6 +252,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerTagsLayer] = createdCustomerTags,
                 [CustomersLayer] = createdCustomers,
                 [GoodsTypesLayer] = createdGoodsTypes,
+                [SuppliersLayer] = createdSuppliers,
                 [WaresLayer] = createdWares
             },
             new Dictionary<string, int>(StringComparer.Ordinal)
@@ -228,6 +261,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerTagsLayer] = reusedCustomerTags,
                 [CustomersLayer] = reusedCustomers,
                 [GoodsTypesLayer] = reusedGoodsTypes,
+                [SuppliersLayer] = reusedSuppliers,
                 [WaresLayer] = reusedWares
             });
     }
@@ -319,6 +353,22 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"上海市浦东新区冷链物流园{sequence}号仓储中心",
                 sequence,
                 $"SkyRoc 联调仓库资料：华东第 {sequence:D2} 个冷链仓储节点，支持订单履约与库存批次场景。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<SupplierSeed> CreateSupplierSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new SupplierSeed(
+                DemoDataStableKeyCatalog.Create("SUPPLIER", sequence),
+                $"华东生鲜联调供应商{sequence:D2}",
+                $"孙采购{sequence:D2}",
+                $"021-6700{sequence:D4}",
+                $"上海市嘉定区鲜品采购路{sequence}号供应中心",
+                "上海农商银行嘉定生鲜支行",
+                $"622581200000{sequence:D6}",
+                $"91310114SUP{sequence:D6}",
+                $"SkyRoc 联调供应商资料：华东第 {sequence:D2} 个生鲜供应伙伴，覆盖采购、入库与供应商结算场景。"))
             .ToArray();
     }
 
@@ -669,6 +719,60 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && ware.Sort == Sort
                    && ware.Remark == Remark
                    && ware.Status == Status.Enable;
+        }
+    }
+
+    private sealed record SupplierSeed(
+        string Code,
+        string Name,
+        string ContactName,
+        string ContactPhone,
+        string Address,
+        string BankName,
+        string BankAccount,
+        string TaxNo,
+        string Remark)
+    {
+        public CreateSupplierDto ToCreateDto() => new()
+        {
+            Code = Code,
+            Name = Name,
+            ContactName = ContactName,
+            ContactPhone = ContactPhone,
+            Address = Address,
+            BankName = BankName,
+            BankAccount = BankAccount,
+            TaxNo = TaxNo,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateSupplierDto ToUpdateDto(Guid id) => new()
+        {
+            Id = id,
+            Code = Code,
+            Name = Name,
+            ContactName = ContactName,
+            ContactPhone = ContactPhone,
+            Address = Address,
+            BankName = BankName,
+            BankAccount = BankAccount,
+            TaxNo = TaxNo,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Purchases.Supplier supplier)
+        {
+            return supplier.Name == Name
+                   && supplier.ContactName == ContactName
+                   && supplier.ContactPhone == ContactPhone
+                   && supplier.Address == Address
+                   && supplier.BankName == BankName
+                   && supplier.BankAccount == BankAccount
+                   && supplier.TaxNo == TaxNo
+                   && supplier.Remark == Remark
+                   && supplier.Status == Status.Enable;
         }
     }
 
