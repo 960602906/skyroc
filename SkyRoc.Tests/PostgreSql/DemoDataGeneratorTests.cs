@@ -248,4 +248,42 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(supplier.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须经采购员应用服务补齐稳定编码的采购员资料，关联现有系统用户与部门，并在重复运行时复用既有采购员。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedPurchasersWithCompleteOrganizationalReferences_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedPurchaserCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("PURCHASER", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var purchasers = await context.Purchasers
+            .Include(purchaser => purchaser.User)
+            .Include(purchaser => purchaser.Department)
+            .Where(purchaser => managedPurchaserCodes.Contains(purchaser.Code))
+            .OrderBy(purchaser => purchaser.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, purchasers.Count);
+        Assert.Equal(30, purchasers.Select(purchaser => purchaser.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["purchasers"] + first.ReusedByLayer["purchasers"]);
+        Assert.Equal(0, second.CreatedByLayer["purchasers"]);
+        Assert.All(purchasers, purchaser =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(purchaser.Name));
+            Assert.False(string.IsNullOrWhiteSpace(purchaser.Phone));
+            Assert.False(string.IsNullOrWhiteSpace(purchaser.Remark));
+            Assert.NotNull(purchaser.UserId);
+            Assert.NotNull(purchaser.DepartmentId);
+            Assert.NotNull(purchaser.User);
+            Assert.NotNull(purchaser.Department);
+            Assert.NotNull(purchaser.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(purchaser.CreateName));
+        });
+    }
 }

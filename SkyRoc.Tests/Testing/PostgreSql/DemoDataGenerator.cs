@@ -21,6 +21,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerTagsLayer = "customer-tags";
     private const string CustomersLayer = "customers";
     private const string GoodsTypesLayer = "goods-types";
+    private const string PurchasersLayer = "purchasers";
     private const string SuppliersLayer = "suppliers";
     private const string WaresLayer = "wares";
 
@@ -40,18 +41,21 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
+        var purchaserService = scope.ServiceProvider.GetRequiredService<IPurchaserService>();
         var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
         var wareService = scope.ServiceProvider.GetRequiredService<IWareService>();
         var companySeeds = CreateCompanySeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
+        var purchaserSeeds = CreatePurchaserSeeds();
         var supplierSeeds = CreateSupplierSeeds();
         var wareSeeds = CreateWareSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
         var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
+        var purchaserCodes = purchaserSeeds.Select(seed => seed.Code).ToArray();
         var supplierCodes = supplierSeeds.Select(seed => seed.Code).ToArray();
         var wareCodes = wareSeeds.Select(seed => seed.Code).ToArray();
         var auditUser = await context.Users
@@ -72,6 +76,22 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingSuppliers = await context.Suppliers
             .Where(supplier => supplierCodes.Contains(supplier.Code))
             .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
+        var existingPurchasers = await context.Purchasers
+            .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
+            .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
+        var organizationalUsers = await context.Users
+            .OrderBy(user => user.Username)
+            .Select(user => new DemoOrganizationalUser(user.Id, user.Username))
+            .ToListAsync(cancellationToken);
+        var organizationalDepartments = await context.Departments
+            .OrderBy(department => department.Code)
+            .Select(department => new DemoOrganizationalDepartment(department.Id, department.Code))
+            .ToListAsync(cancellationToken);
+
+        if (organizationalUsers.Count == 0 || organizationalDepartments.Count == 0)
+        {
+            throw new InvalidOperationException("长期联调采购员生成需要至少一条已存在的系统用户和部门资料。");
+        }
 
         var createdCompanies = 0;
         var reusedCompanies = 0;
@@ -81,6 +101,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomers = 0;
         var createdGoodsTypes = 0;
         var reusedGoodsTypes = 0;
+        var createdPurchasers = 0;
+        var reusedPurchasers = 0;
         var createdSuppliers = 0;
         var reusedSuppliers = 0;
         var createdWares = 0;
@@ -214,6 +236,30 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedSuppliers++;
             }
 
+            foreach (var seed in purchaserSeeds)
+            {
+                var user = organizationalUsers[(seed.Sequence - 1) % organizationalUsers.Count];
+                var department = organizationalDepartments[(seed.Sequence - 1) % organizationalDepartments.Count];
+                if (!existingPurchasers.TryGetValue(seed.Code, out var purchaser))
+                {
+                    await purchaserService.CreateAsync(seed.ToCreateDto(user.Id, department.Id));
+                    createdPurchasers++;
+                    continue;
+                }
+
+                if (!seed.Matches(purchaser, user.Id, department.Id))
+                    await purchaserService.UpdateAsync(purchaser.Id, seed.ToUpdateDto(purchaser.Id, user.Id, department.Id));
+
+                if (purchaser.CreateBy != auditUser.Id || purchaser.CreateName != auditUser.Username)
+                {
+                    // 采购员创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    purchaser.CreateBy = auditUser.Id;
+                    purchaser.CreateName = auditUser.Username;
+                }
+
+                reusedPurchasers++;
+            }
+
             foreach (var seed in wareSeeds)
             {
                 if (!existingWares.TryGetValue(seed.Code, out var ware))
@@ -252,6 +298,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerTagsLayer] = createdCustomerTags,
                 [CustomersLayer] = createdCustomers,
                 [GoodsTypesLayer] = createdGoodsTypes,
+                [PurchasersLayer] = createdPurchasers,
                 [SuppliersLayer] = createdSuppliers,
                 [WaresLayer] = createdWares
             },
@@ -261,6 +308,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerTagsLayer] = reusedCustomerTags,
                 [CustomersLayer] = reusedCustomers,
                 [GoodsTypesLayer] = reusedGoodsTypes,
+                [PurchasersLayer] = reusedPurchasers,
                 [SuppliersLayer] = reusedSuppliers,
                 [WaresLayer] = reusedWares
             });
@@ -353,6 +401,18 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"上海市浦东新区冷链物流园{sequence}号仓储中心",
                 sequence,
                 $"SkyRoc 联调仓库资料：华东第 {sequence:D2} 个冷链仓储节点，支持订单履约与库存批次场景。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<PurchaserSeed> CreatePurchaserSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new PurchaserSeed(
+                sequence,
+                DemoDataStableKeyCatalog.Create("PURCHASER", sequence),
+                $"华东联调采购专员{sequence:D2}",
+                $"1389030{sequence:D4}",
+                $"SkyRoc 联调采购员资料：华东第 {sequence:D2} 个采购责任岗位，覆盖采购计划、采购单与入库场景。"))
             .ToArray();
     }
 
@@ -776,5 +836,50 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         }
     }
 
+    private sealed record PurchaserSeed(
+        int Sequence,
+        string Code,
+        string Name,
+        string Phone,
+        string Remark)
+    {
+        public CreatePurchaserDto ToCreateDto(Guid userId, Guid departmentId) => new()
+        {
+            Code = Code,
+            Name = Name,
+            Phone = Phone,
+            UserId = userId,
+            DepartmentId = departmentId,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdatePurchaserDto ToUpdateDto(Guid id, Guid userId, Guid departmentId) => new()
+        {
+            Id = id,
+            Code = Code,
+            Name = Name,
+            Phone = Phone,
+            UserId = userId,
+            DepartmentId = departmentId,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Purchases.Purchaser purchaser, Guid userId, Guid departmentId)
+        {
+            return purchaser.Name == Name
+                   && purchaser.Phone == Phone
+                   && purchaser.UserId == userId
+                   && purchaser.DepartmentId == departmentId
+                   && purchaser.Remark == Remark
+                   && purchaser.Status == Status.Enable;
+        }
+    }
+
     private sealed record DemoAuditUser(Guid Id, string Username);
+
+    private sealed record DemoOrganizationalUser(Guid Id, string Username);
+
+    private sealed record DemoOrganizationalDepartment(Guid Id, string Code);
 }
