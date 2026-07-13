@@ -20,6 +20,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CompaniesLayer = "companies";
     private const string CustomerTagsLayer = "customer-tags";
     private const string CustomersLayer = "customers";
+    private const string GoodsLayer = "goods";
+    private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
     private const string PurchasersLayer = "purchasers";
     private const string SuppliersLayer = "suppliers";
@@ -40,6 +42,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var companyService = scope.ServiceProvider.GetRequiredService<ICompanyService>();
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
+        var goodsService = scope.ServiceProvider.GetRequiredService<IGoodsService>();
+        var goodsUnitService = scope.ServiceProvider.GetRequiredService<IGoodsUnitService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
         var purchaserService = scope.ServiceProvider.GetRequiredService<IPurchaserService>();
         var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
@@ -47,6 +51,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var companySeeds = CreateCompanySeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
+        var goodsSeeds = CreateGoodsSeeds();
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
         var purchaserSeeds = CreatePurchaserSeeds();
         var supplierSeeds = CreateSupplierSeeds();
@@ -54,6 +59,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
+        var goodsCodes = goodsSeeds.Select(seed => seed.Code).ToArray();
+        var goodsUnitCodes = goodsSeeds.Select(seed => seed.UnitCode).ToArray();
         var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
         var purchaserCodes = purchaserSeeds.Select(seed => seed.Code).ToArray();
         var supplierCodes = supplierSeeds.Select(seed => seed.Code).ToArray();
@@ -73,6 +80,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingWares = await context.Wares
             .Where(ware => wareCodes.Contains(ware.Code))
             .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
+        var existingGoods = await context.Goods
+            .Where(goods => goodsCodes.Contains(goods.Code))
+            .ToDictionaryAsync(goods => goods.Code, StringComparer.Ordinal, cancellationToken);
+        var existingGoodsUnits = await context.GoodsUnits
+            .Where(unit => goodsUnitCodes.Contains(unit.Code))
+            .ToDictionaryAsync(unit => unit.Code!, StringComparer.Ordinal, cancellationToken);
         var existingSuppliers = await context.Suppliers
             .Where(supplier => supplierCodes.Contains(supplier.Code))
             .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
@@ -99,6 +112,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomerTags = 0;
         var createdCustomers = 0;
         var reusedCustomers = 0;
+        var createdGoods = 0;
+        var reusedGoods = 0;
+        var createdGoodsUnits = 0;
+        var reusedGoodsUnits = 0;
         var createdGoodsTypes = 0;
         var reusedGoodsTypes = 0;
         var createdPurchasers = 0;
@@ -214,6 +231,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedGoodsTypes++;
             }
 
+            var managedGoodsTypes = await context.GoodsTypes
+                .Where(goodsType => goodsTypeCodes.Contains(goodsType.Code))
+                .ToDictionaryAsync(goodsType => goodsType.Code, StringComparer.Ordinal, cancellationToken);
+
             foreach (var seed in supplierSeeds)
             {
                 if (!existingSuppliers.TryGetValue(seed.Code, out var supplier))
@@ -235,6 +256,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 
                 reusedSuppliers++;
             }
+
+            var managedSuppliers = await context.Suppliers
+                .Where(supplier => supplierCodes.Contains(supplier.Code))
+                .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
 
             foreach (var seed in purchaserSeeds)
             {
@@ -282,6 +307,60 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedWares++;
             }
 
+            var managedWares = await context.Wares
+                .Where(ware => wareCodes.Contains(ware.Code))
+                .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
+            foreach (var seed in goodsSeeds)
+            {
+                var goodsTypeId = GetManagedReferenceId(managedGoodsTypes, seed.GoodsTypeCode, "商品分类");
+                var supplierId = GetManagedReferenceId(managedSuppliers, seed.SupplierCode, "供应商");
+                var wareId = GetManagedReferenceId(managedWares, seed.WareCode, "仓库");
+                if (!existingGoods.TryGetValue(seed.Code, out var goods))
+                {
+                    await goodsService.CreateAsync(seed.ToCreateDto(goodsTypeId, supplierId, wareId));
+                    createdGoods++;
+                    continue;
+                }
+
+                if (!seed.Matches(goods, goodsTypeId, supplierId, wareId))
+                    await goodsService.UpdateAsync(goods.Id, seed.ToUpdateDto(goods.Id, goodsTypeId, supplierId, wareId));
+
+                if (goods.CreateBy != auditUser.Id || goods.CreateName != auditUser.Username)
+                {
+                    // 商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    goods.CreateBy = auditUser.Id;
+                    goods.CreateName = auditUser.Username;
+                }
+
+                reusedGoods++;
+            }
+
+            var managedGoods = await context.Goods
+                .Where(goods => goodsCodes.Contains(goods.Code))
+                .ToDictionaryAsync(goods => goods.Code, StringComparer.Ordinal, cancellationToken);
+            foreach (var seed in goodsSeeds)
+            {
+                var goodsId = GetManagedReferenceId(managedGoods, seed.Code, "商品");
+                if (!existingGoodsUnits.TryGetValue(seed.UnitCode, out var unit))
+                {
+                    await goodsUnitService.CreateAsync(seed.ToCreateGoodsUnitDto(goodsId));
+                    createdGoodsUnits++;
+                    continue;
+                }
+
+                if (!seed.Matches(unit, goodsId))
+                    await goodsUnitService.UpdateAsync(unit.Id, seed.ToUpdateGoodsUnitDto(unit.Id, goodsId));
+
+                if (unit.CreateBy != auditUser.Id || unit.CreateName != auditUser.Username)
+                {
+                    // 商品单位创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    unit.CreateBy = auditUser.Id;
+                    unit.CreateName = auditUser.Username;
+                }
+
+                reusedGoodsUnits++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -297,6 +376,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CompaniesLayer] = createdCompanies,
                 [CustomerTagsLayer] = createdCustomerTags,
                 [CustomersLayer] = createdCustomers,
+                [GoodsLayer] = createdGoods,
+                [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
                 [PurchasersLayer] = createdPurchasers,
                 [SuppliersLayer] = createdSuppliers,
@@ -307,6 +388,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CompaniesLayer] = reusedCompanies,
                 [CustomerTagsLayer] = reusedCustomerTags,
                 [CustomersLayer] = reusedCustomers,
+                [GoodsLayer] = reusedGoods,
+                [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
                 [PurchasersLayer] = reusedPurchasers,
                 [SuppliersLayer] = reusedSuppliers,
@@ -390,6 +473,27 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .ToArray();
     }
 
+    private static IReadOnlyList<GoodsSeed> CreateGoodsSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new GoodsSeed(
+                DemoDataStableKeyCatalog.Create("GOODS", sequence),
+                DemoDataStableKeyCatalog.Create("GOODS-UNIT", sequence),
+                DemoDataStableKeyCatalog.Create("GOODS-TYPE", sequence),
+                DemoDataStableKeyCatalog.Create("SUPPLIER", sequence),
+                DemoDataStableKeyCatalog.Create("WARE", sequence),
+                $"华东联调生鲜商品{sequence:D2}",
+                $"{10 + sequence} 千克/箱",
+                sequence % 2 == 0 ? "东海鲜选" : "浦江农鲜",
+                sequence % 2 == 0 ? "上海崇明生态种植基地" : "江苏盐城冷链集散基地",
+                $"华东联调生鲜商品{sequence:D2}，用于报价、采购、库存和配送完整链路。",
+                sequence % 5 == 0 ? 0m : 0.09m,
+                $"千克{sequence:D2}",
+                $"SkyRoc 联调商品单位：商品 {sequence:D2} 的基础计量单位，用于数量换算与库存台账。",
+                $"SkyRoc 联调商品资料：华东第 {sequence:D2} 个商品，覆盖销售、采购、库存与配送场景。"))
+            .ToArray();
+    }
+
     private static IReadOnlyList<WareSeed> CreateWareSeeds()
     {
         return Enumerable.Range(1, 30)
@@ -443,6 +547,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             {
                 Domain.Entities.Customers.Company company => company.Id,
                 Domain.Entities.Customers.CustomerTag customerTag => customerTag.Id,
+                Domain.Entities.Goods.GoodsType goodsType => goodsType.Id,
+                Domain.Entities.Purchases.Supplier supplier => supplier.Id,
+                Domain.Entities.Storage.Ware ware => ware.Id,
+                Domain.Entities.Goods.Goods goods => goods.Id,
                 _ => throw new InvalidOperationException($"不支持的{referenceName}受管引用类型。")
             }
             : throw new InvalidOperationException($"未找到稳定编码为 {businessCode} 的受管{referenceName}。 ");
@@ -733,6 +841,120 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && goodsType.Remark == Remark
                    && goodsType.Status == Status.Enable
                    && goodsType.ParentId is null;
+        }
+    }
+
+    private sealed record GoodsSeed(
+        string Code,
+        string UnitCode,
+        string GoodsTypeCode,
+        string SupplierCode,
+        string WareCode,
+        string Name,
+        string Spec,
+        string Brand,
+        string Origin,
+        string Description,
+        decimal TaxRate,
+        string UnitName,
+        string UnitRemark,
+        string Remark)
+    {
+        public CreateGoodsDto ToCreateDto(Guid goodsTypeId, Guid supplierId, Guid wareId) => new()
+        {
+            Code = Code,
+            Name = Name,
+            GoodsTypeId = goodsTypeId,
+            DefaultSupplierId = supplierId,
+            DefaultWareId = wareId,
+            Spec = Spec,
+            Brand = Brand,
+            Origin = Origin,
+            Description = Description,
+            TaxRate = TaxRate,
+            IsOnSale = true,
+            SupplierIds = [supplierId],
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateGoodsDto ToUpdateDto(Guid id, Guid goodsTypeId, Guid supplierId, Guid wareId)
+        {
+            var dto = ToCreateDto(goodsTypeId, supplierId, wareId);
+            return new UpdateGoodsDto
+            {
+                Id = id,
+                Code = dto.Code,
+                Name = dto.Name,
+                GoodsTypeId = dto.GoodsTypeId,
+                DefaultSupplierId = dto.DefaultSupplierId,
+                DefaultWareId = dto.DefaultWareId,
+                Spec = dto.Spec,
+                Brand = dto.Brand,
+                Origin = dto.Origin,
+                Description = dto.Description,
+                TaxRate = dto.TaxRate,
+                IsOnSale = dto.IsOnSale,
+                SupplierIds = dto.SupplierIds,
+                Remark = dto.Remark,
+                Status = dto.Status
+            };
+        }
+
+        public CreateGoodsUnitDto ToCreateGoodsUnitDto(Guid goodsId) => new()
+        {
+            GoodsId = goodsId,
+            Code = UnitCode,
+            Name = UnitName,
+            ConversionRate = 1m,
+            IsBaseUnit = true,
+            Sort = 1,
+            Remark = UnitRemark,
+            Status = Status.Enable
+        };
+
+        public UpdateGoodsUnitDto ToUpdateGoodsUnitDto(Guid id, Guid goodsId)
+        {
+            var dto = ToCreateGoodsUnitDto(goodsId);
+            return new UpdateGoodsUnitDto
+            {
+                Id = id,
+                GoodsId = dto.GoodsId,
+                Code = dto.Code,
+                Name = dto.Name,
+                ConversionRate = dto.ConversionRate,
+                IsBaseUnit = dto.IsBaseUnit,
+                Sort = dto.Sort,
+                Remark = dto.Remark,
+                Status = dto.Status
+            };
+        }
+
+        public bool Matches(Domain.Entities.Goods.Goods goods, Guid goodsTypeId, Guid supplierId, Guid wareId)
+        {
+            return goods.Name == Name
+                   && goods.GoodsTypeId == goodsTypeId
+                   && goods.DefaultSupplierId == supplierId
+                   && goods.DefaultWareId == wareId
+                   && goods.Spec == Spec
+                   && goods.Brand == Brand
+                   && goods.Origin == Origin
+                   && goods.Description == Description
+                   && goods.TaxRate == TaxRate
+                   && goods.IsOnSale
+                   && goods.Remark == Remark
+                   && goods.Status == Status.Enable;
+        }
+
+        public bool Matches(Domain.Entities.Goods.GoodsUnit unit, Guid goodsId)
+        {
+            return unit.GoodsId == goodsId
+                   && unit.Name == UnitName
+                   && unit.ConversionRate == 1m
+                   && unit.IsBaseUnit
+                   && unit.Sort == 1
+                   && unit.Remark == UnitRemark
+                   && unit.Status == Status.Enable;
         }
     }
 

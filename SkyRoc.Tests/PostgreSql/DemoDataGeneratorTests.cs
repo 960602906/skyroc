@@ -286,4 +286,73 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(purchaser.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须经商品与商品单位应用服务补齐稳定编码的商品资料；每个商品均应具备完整的分类、供应商、仓库和基础单位关系，并在重复运行时复用既有记录。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedGoodsWithBaseUnitsAndBusinessReferences_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedGoodsCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("GOODS", sequence))
+            .ToArray();
+        var managedGoodsUnitCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("GOODS-UNIT", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var goods = await context.Goods
+            .Include(item => item.GoodsType)
+            .Include(item => item.DefaultSupplier)
+            .Include(item => item.DefaultWare)
+            .Include(item => item.Units)
+            .Include(item => item.SupplierRelations)
+            .Where(item => managedGoodsCodes.Contains(item.Code))
+            .OrderBy(item => item.Code)
+            .ToListAsync();
+        var units = await context.GoodsUnits
+            .Where(item => managedGoodsUnitCodes.Contains(item.Code))
+            .OrderBy(item => item.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, goods.Count);
+        Assert.Equal(30, units.Count);
+        Assert.Equal(30, goods.Select(item => item.Code).Distinct().Count());
+        Assert.Equal(30, units.Select(item => item.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["goods"] + first.ReusedByLayer["goods"]);
+        Assert.Equal(30, first.CreatedByLayer["goods-units"] + first.ReusedByLayer["goods-units"]);
+        Assert.Equal(0, second.CreatedByLayer["goods"]);
+        Assert.Equal(0, second.CreatedByLayer["goods-units"]);
+        Assert.All(goods, item =>
+        {
+            Assert.NotNull(item.GoodsType);
+            Assert.NotNull(item.DefaultSupplier);
+            Assert.NotNull(item.DefaultWare);
+            Assert.NotNull(item.BaseUnitId);
+            Assert.True(item.IsOnSale);
+            Assert.False(string.IsNullOrWhiteSpace(item.Name));
+            Assert.False(string.IsNullOrWhiteSpace(item.Spec));
+            Assert.False(string.IsNullOrWhiteSpace(item.Brand));
+            Assert.False(string.IsNullOrWhiteSpace(item.Origin));
+            Assert.False(string.IsNullOrWhiteSpace(item.Description));
+            Assert.NotNull(item.TaxRate);
+            Assert.False(string.IsNullOrWhiteSpace(item.Remark));
+            Assert.NotNull(item.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(item.CreateName));
+            Assert.Single(item.Units);
+            Assert.Single(item.SupplierRelations);
+            Assert.Equal(item.BaseUnitId, item.Units.Single().Id);
+        });
+        Assert.All(units, unit =>
+        {
+            Assert.True(unit.IsBaseUnit);
+            Assert.Equal(1m, unit.ConversionRate);
+            Assert.False(string.IsNullOrWhiteSpace(unit.Name));
+            Assert.False(string.IsNullOrWhiteSpace(unit.Remark));
+            Assert.NotNull(unit.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(unit.CreateName));
+        });
+    }
 }
