@@ -1,4 +1,5 @@
 using Application.DTOs.Customers;
+using Application.DTOs.Goods;
 using Application.interfaces;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
@@ -17,6 +18,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CompaniesLayer = "companies";
     private const string CustomerTagsLayer = "customer-tags";
     private const string CustomersLayer = "customers";
+    private const string GoodsTypesLayer = "goods-types";
 
     /// <summary>
     ///     在经白名单验证的真实 PostgreSQL 中幂等生成当前已实现的联调资料层。
@@ -33,12 +35,15 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var companyService = scope.ServiceProvider.GetRequiredService<ICompanyService>();
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
+        var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
         var companySeeds = CreateCompanySeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
+        var goodsTypeSeeds = CreateGoodsTypeSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
+        var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
         var auditUser = await context.Users
             .OrderBy(user => user.Username)
             .Select(user => new DemoAuditUser(user.Id, user.Username))
@@ -58,6 +63,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomerTags = 0;
         var createdCustomers = 0;
         var reusedCustomers = 0;
+        var createdGoodsTypes = 0;
+        var reusedGoodsTypes = 0;
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -140,6 +147,31 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedCustomers++;
             }
 
+            var existingGoodsTypes = await context.GoodsTypes
+                .Where(goodsType => goodsTypeCodes.Contains(goodsType.Code))
+                .ToDictionaryAsync(goodsType => goodsType.Code, StringComparer.Ordinal, cancellationToken);
+            foreach (var seed in goodsTypeSeeds)
+            {
+                if (!existingGoodsTypes.TryGetValue(seed.Code, out var goodsType))
+                {
+                    await goodsTypeService.CreateAsync(seed.ToCreateDto());
+                    createdGoodsTypes++;
+                    continue;
+                }
+
+                if (!seed.Matches(goodsType))
+                    await goodsTypeService.UpdateAsync(goodsType.Id, seed.ToUpdateDto(goodsType.Id));
+
+                if (goodsType.CreateBy != auditUser.Id || goodsType.CreateName != auditUser.Username)
+                {
+                    // 商品分类的创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    goodsType.CreateBy = auditUser.Id;
+                    goodsType.CreateName = auditUser.Username;
+                }
+
+                reusedGoodsTypes++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -154,13 +186,15 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             {
                 [CompaniesLayer] = createdCompanies,
                 [CustomerTagsLayer] = createdCustomerTags,
-                [CustomersLayer] = createdCustomers
+                [CustomersLayer] = createdCustomers,
+                [GoodsTypesLayer] = createdGoodsTypes
             },
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
                 [CompaniesLayer] = reusedCompanies,
                 [CustomerTagsLayer] = reusedCustomerTags,
-                [CustomersLayer] = reusedCustomers
+                [CustomersLayer] = reusedCustomers,
+                [GoodsTypesLayer] = reusedGoodsTypes
             });
     }
 
@@ -219,6 +253,24 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"1380010{sequence:D4}",
                 $"上海市浦东新区鲜品大道{sequence}号配送收货区",
                 $"SkyRoc 联调客户资料：华东第 {sequence:D2} 个团餐客户，覆盖采购、配送和结算场景。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<GoodsTypeSeed> CreateGoodsTypeSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new GoodsTypeSeed(
+                DemoDataStableKeyCatalog.Create("GOODS-TYPE", sequence),
+                $"华东联调生鲜分类{sequence:D2}",
+                $"https://assets.skyroc.example/goods-types/east-fresh-{sequence:D2}.png",
+                $"1010{sequence:D6}",
+                $"华东生鲜食材税收分类{sequence:D2}",
+                sequence % 2 == 0 ? "生鲜蔬菜" : "冷链食材",
+                sequence % 5 == 0 ? 0m : 0.09m,
+                sequence % 5 == 0,
+                sequence % 5 == 0 ? "农产品流通环节免征增值税政策。" : null,
+                sequence,
+                $"SkyRoc 联调商品分类：华东第 {sequence:D2} 个生鲜品类，用于商品建档、报价和采购规则。"))
             .ToArray();
     }
 
@@ -456,6 +508,73 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && customer.Status == Status.Enable
                    && customer.TagRelations.Count == 1
                    && customer.TagRelations.Single().CustomerTagId == customerTagId;
+        }
+    }
+
+    private sealed record GoodsTypeSeed(
+        string Code,
+        string Name,
+        string ImageUrl,
+        string TaxCategoryCode,
+        string TaxCategoryName,
+        string InvoiceGoodsShortName,
+        decimal DefaultTaxRate,
+        bool IsTaxExempt,
+        string? TaxPolicyBasis,
+        int Sort,
+        string Remark)
+    {
+        public CreateGoodsTypeDto ToCreateDto() => new()
+        {
+            Code = Code,
+            Name = Name,
+            ImageUrl = ImageUrl,
+            TaxCategoryCode = TaxCategoryCode,
+            TaxCategoryName = TaxCategoryName,
+            InvoiceGoodsShortName = InvoiceGoodsShortName,
+            DefaultTaxRate = DefaultTaxRate,
+            IsTaxExempt = IsTaxExempt,
+            TaxPolicyBasis = TaxPolicyBasis,
+            Sort = Sort,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateGoodsTypeDto ToUpdateDto(Guid id)
+        {
+            var dto = ToCreateDto();
+            return new UpdateGoodsTypeDto
+            {
+                Id = id,
+                Code = dto.Code,
+                Name = dto.Name,
+                ImageUrl = dto.ImageUrl,
+                TaxCategoryCode = dto.TaxCategoryCode,
+                TaxCategoryName = dto.TaxCategoryName,
+                InvoiceGoodsShortName = dto.InvoiceGoodsShortName,
+                DefaultTaxRate = dto.DefaultTaxRate,
+                IsTaxExempt = dto.IsTaxExempt,
+                TaxPolicyBasis = dto.TaxPolicyBasis,
+                Sort = dto.Sort,
+                Remark = dto.Remark,
+                Status = dto.Status
+            };
+        }
+
+        public bool Matches(Domain.Entities.Goods.GoodsType goodsType)
+        {
+            return goodsType.Name == Name
+                   && goodsType.ImageUrl == ImageUrl
+                   && goodsType.TaxCategoryCode == TaxCategoryCode
+                   && goodsType.TaxCategoryName == TaxCategoryName
+                   && goodsType.InvoiceGoodsShortName == InvoiceGoodsShortName
+                   && goodsType.DefaultTaxRate == DefaultTaxRate
+                   && goodsType.IsTaxExempt == IsTaxExempt
+                   && goodsType.TaxPolicyBasis == TaxPolicyBasis
+                   && goodsType.Sort == Sort
+                   && goodsType.Remark == Remark
+                   && goodsType.Status == Status.Enable
+                   && goodsType.ParentId is null;
         }
     }
 

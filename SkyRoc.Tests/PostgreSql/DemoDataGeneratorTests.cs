@@ -130,4 +130,51 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(customer.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须经商品分类应用服务补齐稳定编码的税务分类资料，覆盖免税与应税语义，并在重复运行时复用既有分类。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedGoodsTypesWithTaxSemantics_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedGoodsTypeCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("GOODS-TYPE", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var goodsTypes = await context.GoodsTypes
+            .Where(goodsType => managedGoodsTypeCodes.Contains(goodsType.Code))
+            .OrderBy(goodsType => goodsType.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, goodsTypes.Count);
+        Assert.Equal(30, goodsTypes.Select(goodsType => goodsType.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["goods-types"] + first.ReusedByLayer["goods-types"]);
+        Assert.Equal(0, second.CreatedByLayer["goods-types"]);
+        Assert.Contains(goodsTypes, goodsType => goodsType.IsTaxExempt);
+        Assert.Contains(goodsTypes, goodsType => !goodsType.IsTaxExempt);
+        Assert.All(goodsTypes, goodsType =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(goodsType.Name));
+            Assert.False(string.IsNullOrWhiteSpace(goodsType.ImageUrl));
+            Assert.False(string.IsNullOrWhiteSpace(goodsType.TaxCategoryCode));
+            Assert.False(string.IsNullOrWhiteSpace(goodsType.TaxCategoryName));
+            Assert.False(string.IsNullOrWhiteSpace(goodsType.InvoiceGoodsShortName));
+            Assert.False(string.IsNullOrWhiteSpace(goodsType.Remark));
+            Assert.NotNull(goodsType.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(goodsType.CreateName));
+            if (goodsType.IsTaxExempt)
+            {
+                Assert.Equal(0m, goodsType.DefaultTaxRate);
+                Assert.False(string.IsNullOrWhiteSpace(goodsType.TaxPolicyBasis));
+            }
+            else
+            {
+                Assert.True(goodsType.DefaultTaxRate > 0m);
+                Assert.Null(goodsType.TaxPolicyBasis);
+            }
+        });
+    }
 }
