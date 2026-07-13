@@ -404,4 +404,51 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.Single(quotation.CustomerQuotations);
         });
     }
+
+    /// <summary>
+    ///     生成器必须经客户协议价与协议商品应用服务补齐稳定编码的协议价格资料，关联受管报价、客户、商品和单位，并在重复运行时复用既有记录。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedCustomerProtocolsWithGoodsAndCustomerReferences_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedProtocolCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER-PROTOCOL", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var protocols = await context.CustomerProtocols
+            .Include(protocol => protocol.Quotation)
+            .Include(protocol => protocol.Goods)
+            .Include(protocol => protocol.Customers)
+            .Where(protocol => managedProtocolCodes.Contains(protocol.Code))
+            .OrderBy(protocol => protocol.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, protocols.Count);
+        Assert.Equal(30, protocols.Select(protocol => protocol.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["customer-protocols"] + first.ReusedByLayer["customer-protocols"]);
+        Assert.Equal(30, first.CreatedByLayer["customer-protocol-goods"] + first.ReusedByLayer["customer-protocol-goods"]);
+        Assert.Equal(0, second.CreatedByLayer["customer-protocols"]);
+        Assert.Equal(0, second.CreatedByLayer["customer-protocol-goods"]);
+        Assert.All(protocols, protocol =>
+        {
+            Assert.NotNull(protocol.Quotation);
+            Assert.True(protocol.EffectiveEnd >= protocol.EffectiveStart);
+            Assert.False(string.IsNullOrWhiteSpace(protocol.Name));
+            Assert.False(string.IsNullOrWhiteSpace(protocol.Remark));
+            Assert.NotNull(protocol.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(protocol.CreateName));
+            Assert.Single(protocol.Customers);
+
+            var goods = Assert.Single(protocol.Goods);
+            Assert.True(goods.ProtocolPrice > 0m);
+            Assert.NotNull(goods.MinOrderQuantity);
+            Assert.True(goods.MinOrderQuantity > 0m);
+            Assert.False(string.IsNullOrWhiteSpace(goods.Remark));
+            Assert.NotNull(goods.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(goods.CreateName));
+        });
+    }
 }

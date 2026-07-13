@@ -20,6 +20,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 {
     private const string CompaniesLayer = "companies";
     private const string CustomerTagsLayer = "customer-tags";
+    private const string CustomerProtocolGoodsLayer = "customer-protocol-goods";
+    private const string CustomerProtocolsLayer = "customer-protocols";
     private const string CustomersLayer = "customers";
     private const string GoodsLayer = "goods";
     private const string GoodsUnitsLayer = "goods-units";
@@ -45,6 +47,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var companyService = scope.ServiceProvider.GetRequiredService<ICompanyService>();
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
+        var customerProtocolGoodsService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolGoodsService>();
+        var customerProtocolService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolService>();
         var goodsService = scope.ServiceProvider.GetRequiredService<IGoodsService>();
         var goodsUnitService = scope.ServiceProvider.GetRequiredService<IGoodsUnitService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
@@ -56,6 +60,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var companySeeds = CreateCompanySeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
+        var customerProtocolSeeds = CreateCustomerProtocolSeeds();
         var goodsSeeds = CreateGoodsSeeds();
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
         var purchaserSeeds = CreatePurchaserSeeds();
@@ -65,6 +70,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
+        var customerProtocolCodes = customerProtocolSeeds.Select(seed => seed.Code).ToArray();
         var goodsCodes = goodsSeeds.Select(seed => seed.Code).ToArray();
         var goodsUnitCodes = goodsSeeds.Select(seed => seed.UnitCode).ToArray();
         var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
@@ -102,6 +108,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingQuotations = await context.Quotations
             .Where(quotation => quotationCodes.Contains(quotation.Code))
             .ToDictionaryAsync(quotation => quotation.Code, StringComparer.Ordinal, cancellationToken);
+        var existingCustomerProtocols = await context.CustomerProtocols
+            .Include(protocol => protocol.Customers)
+            .Where(protocol => customerProtocolCodes.Contains(protocol.Code))
+            .ToDictionaryAsync(protocol => protocol.Code, StringComparer.Ordinal, cancellationToken);
         var organizationalUsers = await context.Users
             .OrderBy(user => user.Username)
             .Select(user => new DemoOrganizationalUser(user.Id, user.Username))
@@ -122,6 +132,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomerTags = 0;
         var createdCustomers = 0;
         var reusedCustomers = 0;
+        var createdCustomerProtocolGoods = 0;
+        var reusedCustomerProtocolGoods = 0;
+        var createdCustomerProtocols = 0;
+        var reusedCustomerProtocols = 0;
         var createdGoods = 0;
         var reusedGoods = 0;
         var createdGoodsUnits = 0;
@@ -455,6 +469,72 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedQuotationGoods++;
             }
 
+            var managedQuotations = await context.Quotations
+                .Where(quotation => quotationCodes.Contains(quotation.Code))
+                .ToDictionaryAsync(quotation => quotation.Code, StringComparer.Ordinal, cancellationToken);
+            foreach (var seed in customerProtocolSeeds)
+            {
+                var quotation = GetManagedReference(managedQuotations, seed.QuotationCode, "报价单");
+                var customer = GetManagedReference(managedCustomers, seed.CustomerCode, "客户");
+                var goods = GetManagedReference(managedGoods, seed.GoodsCode, "商品");
+                var goodsUnit = GetManagedReference(managedGoodsUnits, seed.GoodsUnitCode, "商品单位");
+                Guid customerProtocolId;
+                if (!existingCustomerProtocols.TryGetValue(seed.Code, out var customerProtocol))
+                {
+                    customerProtocolId = (await customerProtocolService.CreateAsync(
+                        seed.ToCreateDto(quotation.Id, customer.Id))).Id;
+                    createdCustomerProtocols++;
+                }
+                else
+                {
+                    if (!seed.Matches(customerProtocol, quotation.Id, customer.Id))
+                    {
+                        await customerProtocolService.UpdateAsync(
+                            customerProtocol.Id,
+                            seed.ToUpdateDto(customerProtocol.Id, quotation.Id, customer.Id));
+                    }
+
+                    if (customerProtocol.CreateBy != auditUser.Id || customerProtocol.CreateName != auditUser.Username)
+                    {
+                        // 客户协议价创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        customerProtocol.CreateBy = auditUser.Id;
+                        customerProtocol.CreateName = auditUser.Username;
+                    }
+
+                    customerProtocolId = customerProtocol.Id;
+                    reusedCustomerProtocols++;
+                }
+
+                var customerProtocolGoods = await context.CustomerProtocolGoods.SingleOrDefaultAsync(
+                    item => item.CustomerProtocolId == customerProtocolId
+                            && item.GoodsId == goods.Id
+                            && item.GoodsUnitId == goodsUnit.Id,
+                    cancellationToken);
+                if (customerProtocolGoods is null)
+                {
+                    await customerProtocolGoodsService.CreateAsync(
+                        seed.ToCreateGoodsDto(customerProtocolId, goods.Id, goodsUnit.Id));
+                    createdCustomerProtocolGoods++;
+                    continue;
+                }
+
+                if (!seed.Matches(customerProtocolGoods))
+                {
+                    await customerProtocolGoodsService.UpdateAsync(
+                        customerProtocolGoods.Id,
+                        seed.ToUpdateGoodsDto(customerProtocolGoods.Id, customerProtocolId, goods.Id, goodsUnit.Id));
+                }
+
+                if (customerProtocolGoods.CreateBy != auditUser.Id || customerProtocolGoods.CreateName != auditUser.Username)
+                {
+                    // 客户协议价商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    customerProtocolGoods.CreateBy = auditUser.Id;
+                    customerProtocolGoods.CreateName = auditUser.Username;
+                }
+
+                reusedCustomerProtocolGoods++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -469,6 +549,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             {
                 [CompaniesLayer] = createdCompanies,
                 [CustomerTagsLayer] = createdCustomerTags,
+                [CustomerProtocolGoodsLayer] = createdCustomerProtocolGoods,
+                [CustomerProtocolsLayer] = createdCustomerProtocols,
                 [CustomersLayer] = createdCustomers,
                 [GoodsLayer] = createdGoods,
                 [GoodsUnitsLayer] = createdGoodsUnits,
@@ -483,6 +565,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             {
                 [CompaniesLayer] = reusedCompanies,
                 [CustomerTagsLayer] = reusedCustomerTags,
+                [CustomerProtocolGoodsLayer] = reusedCustomerProtocolGoods,
+                [CustomerProtocolsLayer] = reusedCustomerProtocols,
                 [CustomersLayer] = reusedCustomers,
                 [GoodsLayer] = reusedGoods,
                 [GoodsUnitsLayer] = reusedGoodsUnits,
@@ -650,6 +734,25 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 8.5m + sequence,
                 5m + sequence % 4,
                 $"SkyRoc 联调报价商品：商品 {sequence:D2} 的有效客户销售价格与最小起订量。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<CustomerProtocolSeed> CreateCustomerProtocolSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new CustomerProtocolSeed(
+                DemoDataStableKeyCatalog.Create("CUSTOMER-PROTOCOL", sequence),
+                DemoDataStableKeyCatalog.Create("QUOTATION", sequence),
+                DemoDataStableKeyCatalog.Create("CUSTOMER", sequence),
+                DemoDataStableKeyCatalog.Create("GOODS", sequence),
+                DemoDataStableKeyCatalog.Create("GOODS-UNIT", sequence),
+                $"华东联调客户协议价{sequence:D2}",
+                new DateTime(2026, sequence % 12 + 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                new DateTime(2029, sequence % 12 + 1, 28, 23, 59, 59, DateTimeKind.Utc),
+                NumericPrecision.RoundMoney(7.25m + sequence),
+                NumericPrecision.RoundQuantity(3m + sequence % 5),
+                $"SkyRoc 联调协议价商品：客户 {sequence:D2} 在有效期内采购商品 {sequence:D2} 的专属价格与起订量。",
+                $"SkyRoc 联调客户协议价：为客户 {sequence:D2} 绑定报价、商品和协议有效期，覆盖订单价格优先级场景。"))
             .ToArray();
     }
 
@@ -1180,6 +1283,98 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && quotationGoods.MinOrderQuantity == MinOrderQuantity
                    && quotationGoods.IsOnSale
                    && quotationGoods.Remark == GoodsRemark;
+        }
+    }
+
+    private sealed record CustomerProtocolSeed(
+        string Code,
+        string QuotationCode,
+        string CustomerCode,
+        string GoodsCode,
+        string GoodsUnitCode,
+        string Name,
+        DateTime EffectiveStart,
+        DateTime EffectiveEnd,
+        decimal ProtocolPrice,
+        decimal MinOrderQuantity,
+        string GoodsRemark,
+        string Remark)
+    {
+        public CreateCustomerProtocolDto ToCreateDto(Guid quotationId, Guid customerId) => new()
+        {
+            Code = Code,
+            Name = Name,
+            QuotationId = quotationId,
+            EffectiveStart = EffectiveStart,
+            EffectiveEnd = EffectiveEnd,
+            CustomerIds = [customerId],
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateCustomerProtocolDto ToUpdateDto(Guid id, Guid quotationId, Guid customerId)
+        {
+            var dto = ToCreateDto(quotationId, customerId);
+            return new UpdateCustomerProtocolDto
+            {
+                Id = id,
+                Code = dto.Code,
+                Name = dto.Name,
+                QuotationId = dto.QuotationId,
+                EffectiveStart = dto.EffectiveStart,
+                EffectiveEnd = dto.EffectiveEnd,
+                CustomerIds = dto.CustomerIds,
+                Remark = dto.Remark,
+                Status = dto.Status
+            };
+        }
+
+        public CreateCustomerProtocolGoodsDto ToCreateGoodsDto(Guid customerProtocolId, Guid goodsId, Guid goodsUnitId) => new()
+        {
+            CustomerProtocolId = customerProtocolId,
+            GoodsId = goodsId,
+            GoodsUnitId = goodsUnitId,
+            ProtocolPrice = ProtocolPrice,
+            MinOrderQuantity = MinOrderQuantity,
+            Remark = GoodsRemark
+        };
+
+        public UpdateCustomerProtocolGoodsDto ToUpdateGoodsDto(
+            Guid id,
+            Guid customerProtocolId,
+            Guid goodsId,
+            Guid goodsUnitId)
+        {
+            var dto = ToCreateGoodsDto(customerProtocolId, goodsId, goodsUnitId);
+            return new UpdateCustomerProtocolGoodsDto
+            {
+                Id = id,
+                CustomerProtocolId = dto.CustomerProtocolId,
+                GoodsId = dto.GoodsId,
+                GoodsUnitId = dto.GoodsUnitId,
+                ProtocolPrice = dto.ProtocolPrice,
+                MinOrderQuantity = dto.MinOrderQuantity,
+                Remark = dto.Remark
+            };
+        }
+
+        public bool Matches(Domain.Entities.Pricing.CustomerProtocol customerProtocol, Guid quotationId, Guid customerId)
+        {
+            return customerProtocol.Name == Name
+                   && customerProtocol.QuotationId == quotationId
+                   && customerProtocol.EffectiveStart == EffectiveStart
+                   && customerProtocol.EffectiveEnd == EffectiveEnd
+                   && customerProtocol.Remark == Remark
+                   && customerProtocol.Status == Status.Enable
+                   && customerProtocol.Customers.Count == 1
+                   && customerProtocol.Customers.Single().CustomerId == customerId;
+        }
+
+        public bool Matches(Domain.Entities.Pricing.CustomerProtocolGoods customerProtocolGoods)
+        {
+            return customerProtocolGoods.ProtocolPrice == ProtocolPrice
+                   && customerProtocolGoods.MinOrderQuantity == MinOrderQuantity
+                   && customerProtocolGoods.Remark == GoodsRemark;
         }
     }
 
