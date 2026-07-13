@@ -1,4 +1,5 @@
 using Application.DTOs.Customers;
+using Application.DTOs.Department;
 using Application.DTOs.Delivery;
 using Application.DTOs.Goods;
 using Application.DTOs.Purchases;
@@ -29,6 +30,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerProtocolsLayer = "customer-protocols";
     private const string CustomerSubAccountsLayer = "customer-sub-accounts";
     private const string CustomersLayer = "customers";
+    private const string DepartmentsLayer = "departments";
     private const string CarriersLayer = "carriers";
     private const string DeliveryRoutesLayer = "delivery-routes";
     private const string DriversLayer = "drivers";
@@ -65,6 +67,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerProtocolGoodsService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolGoodsService>();
         var customerProtocolService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolService>();
         var customerSubAccountService = scope.ServiceProvider.GetRequiredService<ICustomerSubAccountService>();
+        var departmentService = scope.ServiceProvider.GetRequiredService<IDepartmentService>();
         var goodsService = scope.ServiceProvider.GetRequiredService<IGoodsService>();
         var goodsUnitService = scope.ServiceProvider.GetRequiredService<IGoodsUnitService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
@@ -81,6 +84,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
         var customerSubAccountSeeds = CreateCustomerSubAccountSeeds();
+        var departmentSeeds = CreateDepartmentSeeds();
         var deliveryRouteSeeds = CreateDeliveryRouteSeeds();
         var driverSeeds = CreateDriverSeeds();
         var customerProtocolSeeds = CreateCustomerProtocolSeeds();
@@ -98,6 +102,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
         var customerSubAccountUsernames = customerSubAccountSeeds.Select(seed => seed.Username).ToArray();
+        var departmentCodes = departmentSeeds.Select(seed => seed.Code).ToArray();
         var deliveryRouteCodes = deliveryRouteSeeds.Select(seed => seed.Code).ToArray();
         var driverCodes = driverSeeds.Select(seed => seed.Code).ToArray();
         var customerProtocolCodes = customerProtocolSeeds.Select(seed => seed.Code).ToArray();
@@ -129,6 +134,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingCustomerSubAccounts = await context.CustomerSubAccounts
             .Where(subAccount => customerSubAccountUsernames.Contains(subAccount.Username))
             .ToDictionaryAsync(subAccount => subAccount.Username, StringComparer.Ordinal, cancellationToken);
+        var existingDepartments = await context.Departments
+            .Where(department => departmentCodes.Contains(department.Code))
+            .ToDictionaryAsync(department => department.Code, StringComparer.Ordinal, cancellationToken);
         var existingDeliveryRoutes = await context.DeliveryRoutes
             .Include(route => route.CustomerRoutes)
             .Where(route => deliveryRouteCodes.Contains(route.Code))
@@ -173,14 +181,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .OrderBy(user => user.Username)
             .Select(user => new DemoOrganizationalUser(user.Id, user.Username))
             .ToListAsync(cancellationToken);
-        var organizationalDepartments = await context.Departments
-            .OrderBy(department => department.Code)
-            .Select(department => new DemoOrganizationalDepartment(department.Id, department.Code))
-            .ToListAsync(cancellationToken);
-
-        if (organizationalUsers.Count == 0 || organizationalDepartments.Count == 0)
+        if (organizationalUsers.Count == 0)
         {
-            throw new InvalidOperationException("长期联调采购员生成需要至少一条已存在的系统用户和部门资料。");
+            throw new InvalidOperationException("长期联调采购员生成需要至少一条已存在的系统用户资料。");
         }
 
         var createdCompanies = 0;
@@ -191,6 +194,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomerTags = 0;
         var createdCustomers = 0;
         var reusedCustomers = 0;
+        var createdDepartments = 0;
+        var reusedDepartments = 0;
         var createdCustomerSubAccounts = 0;
         var reusedCustomerSubAccounts = 0;
         var createdDeliveryRoutes = 0;
@@ -226,6 +231,40 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
+            foreach (var seed in departmentSeeds)
+            {
+                Guid? parentId = seed.ParentCode is null
+                    ? null
+                    : GetManagedReferenceId(existingDepartments, seed.ParentCode, "上级部门");
+                if (!existingDepartments.TryGetValue(seed.Code, out var department))
+                {
+                    await departmentService.CreateAsync(seed.ToCreateDto(parentId, auditUser));
+                    department = await context.Departments.SingleAsync(
+                        item => item.Code == seed.Code,
+                        cancellationToken);
+                    existingDepartments.Add(seed.Code, department);
+                    createdDepartments++;
+                    continue;
+                }
+
+                if (!seed.Matches(department, parentId, auditUser))
+                    await departmentService.UpdateAsync(department.Id, seed.ToUpdateDto(department.Id, parentId, auditUser));
+
+                if (department.CreateBy != auditUser.Id || department.CreateName != auditUser.Username)
+                {
+                    // 部门创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    department.CreateBy = auditUser.Id;
+                    department.CreateName = auditUser.Username;
+                }
+
+                reusedDepartments++;
+            }
+
+            var organizationalDepartments = existingDepartments.Values
+                .OrderBy(department => department.Code)
+                .Select(department => new DemoOrganizationalDepartment(department.Id, department.Code))
+                .ToList();
+
             foreach (var seed in systemRoleSeeds)
             {
                 if (!existingSystemRoles.TryGetValue(seed.Code, out var role))
@@ -868,6 +907,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerProtocolsLayer] = createdCustomerProtocols,
                 [CustomerSubAccountsLayer] = createdCustomerSubAccounts,
                 [CustomersLayer] = createdCustomers,
+                [DepartmentsLayer] = createdDepartments,
                 [DeliveryRoutesLayer] = createdDeliveryRoutes,
                 [DriversLayer] = createdDrivers,
                 [GoodsLayer] = createdGoods,
@@ -891,6 +931,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerProtocolsLayer] = reusedCustomerProtocols,
                 [CustomerSubAccountsLayer] = reusedCustomerSubAccounts,
                 [CustomersLayer] = reusedCustomers,
+                [DepartmentsLayer] = reusedDepartments,
                 [DeliveryRoutesLayer] = reusedDeliveryRoutes,
                 [DriversLayer] = reusedDrivers,
                 [GoodsLayer] = reusedGoods,
@@ -989,6 +1030,20 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"1368000{sequence:D4}",
                 $"customer.buyer{sequence:D2}@eastfresh.example",
                 $"SkyRoc 联调客户子账号：为客户 {sequence:D2} 维护下单与订单查询授权，不承载系统管理员权限。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<DepartmentSeed> CreateDepartmentSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new DepartmentSeed(
+                DemoDataStableKeyCatalog.Create("DEPARTMENT", sequence),
+                sequence <= 6 ? null : DemoDataStableKeyCatalog.Create("DEPARTMENT", (sequence - 1) % 6 + 1),
+                $"华东联调运营部门{sequence:D2}",
+                $"1376000{sequence:D4}",
+                $"department{sequence:D2}@eastfresh.example",
+                sequence,
+                $"SkyRoc 联调部门资料：华东第 {sequence:D2} 个运营组织单元，覆盖员工归属、采购责任与配送协同。"))
             .ToArray();
     }
 
@@ -1191,6 +1246,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 Domain.Entities.Customers.Company company => company.Id,
                 Domain.Entities.Customers.Customer customer => customer.Id,
                 Domain.Entities.Customers.CustomerTag customerTag => customerTag.Id,
+                Domain.Entities.Department department => department.Id,
                 Domain.Entities.Delivery.Carrier carrier => carrier.Id,
                 Domain.Entities.Goods.GoodsType goodsType => goodsType.Id,
                 Domain.Entities.Purchases.Supplier supplier => supplier.Id,
@@ -1853,6 +1909,58 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             return customerProtocolGoods.ProtocolPrice == ProtocolPrice
                    && customerProtocolGoods.MinOrderQuantity == MinOrderQuantity
                    && customerProtocolGoods.Remark == GoodsRemark;
+        }
+    }
+
+    private sealed record DepartmentSeed(
+        string Code,
+        string? ParentCode,
+        string Name,
+        string Phone,
+        string Email,
+        int Sort,
+        string Remark)
+    {
+        public CreateDepartmentDto ToCreateDto(Guid? parentId, DemoAuditUser auditUser) => new()
+        {
+            Code = Code,
+            ParentId = parentId,
+            Name = Name,
+            LeaderId = auditUser.Id,
+            LeaderName = auditUser.Username,
+            Phone = Phone,
+            Email = Email,
+            Sort = Sort,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateDepartmentDto ToUpdateDto(Guid id, Guid? parentId, DemoAuditUser auditUser) => new()
+        {
+            Id = id,
+            Code = Code,
+            ParentId = parentId,
+            Name = Name,
+            LeaderId = auditUser.Id,
+            LeaderName = auditUser.Username,
+            Phone = Phone,
+            Email = Email,
+            Sort = Sort,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Department department, Guid? parentId, DemoAuditUser auditUser)
+        {
+            return department.ParentId == parentId
+                   && department.Name == Name
+                   && department.LeaderId == auditUser.Id
+                   && department.LeaderName == auditUser.Username
+                   && department.Phone == Phone
+                   && department.Email == Email
+                   && department.Sort == Sort
+                   && department.Remark == Remark
+                   && department.Status == Status.Enable;
         }
     }
 

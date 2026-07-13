@@ -15,7 +15,7 @@ public class UpdateDepartmentValidator : AbstractValidator<UpdateDepartmentDto>
         RuleFor(x => x.Code)
             .NotEmpty().WithMessage("部门代码不能为空")
             .MaximumLength(64).WithMessage("部门代码长度不能超过64个字符")
-            .Matches(@"^[A-Za-z0-9_]+$").WithMessage("部门代码只能包含字母、数字和下划线");
+            .Matches(@"^[A-Za-z0-9_-]+$").WithMessage("部门代码只能包含字母、数字、下划线和连字符");
         RuleFor(x => x.Phone)
             .MaximumLength(20).WithMessage("联系电话长度不能超过20个字符")
             .Matches(@"^1[3-9]\d{9}$").WithMessage("手机号格式不正确");

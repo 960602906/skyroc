@@ -693,4 +693,44 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.Equal(4, role.RoleMenus.Count);
         });
     }
+
+    /// <summary>
+    ///     生成器必须通过部门应用服务补齐受管组织资料；部门树覆盖根部门与子部门，负责人、联系人和审计字段完整，重复运行不得产生重复稳定编码。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedDepartmentsWithOrganizationalHierarchy_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedDepartmentCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("DEPARTMENT", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var departments = await context.Departments
+            .Include(department => department.Leader)
+            .Where(department => managedDepartmentCodes.Contains(department.Code))
+            .OrderBy(department => department.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, departments.Count);
+        Assert.Equal(30, departments.Select(department => department.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["departments"] + first.ReusedByLayer["departments"]);
+        Assert.Equal(0, second.CreatedByLayer["departments"]);
+        Assert.All(departments, department =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(department.Name));
+            Assert.NotNull(department.Leader);
+            Assert.False(string.IsNullOrWhiteSpace(department.LeaderName));
+            Assert.False(string.IsNullOrWhiteSpace(department.Phone));
+            Assert.False(string.IsNullOrWhiteSpace(department.Email));
+            Assert.False(string.IsNullOrWhiteSpace(department.Remark));
+            Assert.True(department.Sort > 0);
+            Assert.Equal(Status.Enable, department.Status);
+            Assert.NotNull(department.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(department.CreateName));
+        });
+        Assert.Contains(departments, department => department.ParentId is null);
+        Assert.Contains(departments, department => department.ParentId is not null);
+    }
 }
