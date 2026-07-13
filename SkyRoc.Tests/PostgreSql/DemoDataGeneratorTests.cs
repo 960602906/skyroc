@@ -584,4 +584,51 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(relation.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须经客户子账号应用服务为每个受管公司和客户补齐稳定登录账号；重复运行不得新增重复账号或修改非受管资料。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedCustomerSubAccountsWithBusinessReferences_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedUsernames = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER-SUB-ACCOUNT", sequence))
+            .ToArray();
+        var managedCompanyCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("COMPANY", sequence))
+            .ToArray();
+        var managedCustomerCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var subAccounts = await context.CustomerSubAccounts
+            .Include(subAccount => subAccount.Company)
+            .Include(subAccount => subAccount.Customer)
+            .Where(subAccount => managedUsernames.Contains(subAccount.Username))
+            .OrderBy(subAccount => subAccount.Username)
+            .ToListAsync();
+
+        Assert.Equal(30, subAccounts.Count);
+        Assert.Equal(30, subAccounts.Select(subAccount => subAccount.Username).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["customer-sub-accounts"] + first.ReusedByLayer["customer-sub-accounts"]);
+        Assert.Equal(0, second.CreatedByLayer["customer-sub-accounts"]);
+        Assert.All(subAccounts, subAccount =>
+        {
+            Assert.NotNull(subAccount.Company);
+            Assert.NotNull(subAccount.Customer);
+            Assert.Contains(subAccount.Company.Code, managedCompanyCodes);
+            Assert.Contains(subAccount.Customer!.Code, managedCustomerCodes);
+            Assert.False(string.IsNullOrWhiteSpace(subAccount.NickName));
+            Assert.False(string.IsNullOrWhiteSpace(subAccount.Phone));
+            Assert.False(string.IsNullOrWhiteSpace(subAccount.Email));
+            Assert.False(string.IsNullOrWhiteSpace(subAccount.PasswordHash));
+            Assert.False(string.IsNullOrWhiteSpace(subAccount.Remark));
+            Assert.Equal(Status.Enable, subAccount.Status);
+            Assert.NotNull(subAccount.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(subAccount.CreateName));
+        });
+    }
 }

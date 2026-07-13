@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using Shared.Constants;
 
 namespace SkyRoc.Tests.Testing.PostgreSql;
@@ -23,6 +25,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerTagsLayer = "customer-tags";
     private const string CustomerProtocolGoodsLayer = "customer-protocol-goods";
     private const string CustomerProtocolsLayer = "customer-protocols";
+    private const string CustomerSubAccountsLayer = "customer-sub-accounts";
     private const string CustomersLayer = "customers";
     private const string CarriersLayer = "carriers";
     private const string DeliveryRoutesLayer = "delivery-routes";
@@ -57,6 +60,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var driverService = scope.ServiceProvider.GetRequiredService<IDriverService>();
         var customerProtocolGoodsService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolGoodsService>();
         var customerProtocolService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolService>();
+        var customerSubAccountService = scope.ServiceProvider.GetRequiredService<ICustomerSubAccountService>();
         var goodsService = scope.ServiceProvider.GetRequiredService<IGoodsService>();
         var goodsUnitService = scope.ServiceProvider.GetRequiredService<IGoodsUnitService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
@@ -70,6 +74,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var carrierSeeds = CreateCarrierSeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
+        var customerSubAccountSeeds = CreateCustomerSubAccountSeeds();
         var deliveryRouteSeeds = CreateDeliveryRouteSeeds();
         var driverSeeds = CreateDriverSeeds();
         var customerProtocolSeeds = CreateCustomerProtocolSeeds();
@@ -84,6 +89,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var carrierCodes = carrierSeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
+        var customerSubAccountUsernames = customerSubAccountSeeds.Select(seed => seed.Username).ToArray();
         var deliveryRouteCodes = deliveryRouteSeeds.Select(seed => seed.Code).ToArray();
         var driverCodes = driverSeeds.Select(seed => seed.Code).ToArray();
         var customerProtocolCodes = customerProtocolSeeds.Select(seed => seed.Code).ToArray();
@@ -110,6 +116,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingCustomerTags = await context.CustomerTags
             .Where(tag => customerTagCodes.Contains(tag.Code))
             .ToDictionaryAsync(tag => tag.Code, StringComparer.Ordinal, cancellationToken);
+        var existingCustomerSubAccounts = await context.CustomerSubAccounts
+            .Where(subAccount => customerSubAccountUsernames.Contains(subAccount.Username))
+            .ToDictionaryAsync(subAccount => subAccount.Username, StringComparer.Ordinal, cancellationToken);
         var existingDeliveryRoutes = await context.DeliveryRoutes
             .Include(route => route.CustomerRoutes)
             .Where(route => deliveryRouteCodes.Contains(route.Code))
@@ -166,6 +175,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomerTags = 0;
         var createdCustomers = 0;
         var reusedCustomers = 0;
+        var createdCustomerSubAccounts = 0;
+        var reusedCustomerSubAccounts = 0;
         var createdDeliveryRoutes = 0;
         var reusedDeliveryRoutes = 0;
         var createdDrivers = 0;
@@ -278,6 +289,34 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 .Include(customer => customer.TagRelations)
                 .Where(customer => customerCodes.Contains(customer.Code))
                 .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
+
+            foreach (var seed in customerSubAccountSeeds)
+            {
+                var companyId = GetManagedReferenceId(managedCompanies, seed.CompanyCode, "公司");
+                var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
+                if (!existingCustomerSubAccounts.TryGetValue(seed.Username, out var subAccount))
+                {
+                    await customerSubAccountService.CreateAsync(seed.ToCreateDto(companyId, customerId));
+                    createdCustomerSubAccounts++;
+                    continue;
+                }
+
+                if (!seed.Matches(subAccount, companyId, customerId))
+                {
+                    await customerSubAccountService.UpdateAsync(
+                        subAccount.Id,
+                        seed.ToUpdateDto(subAccount.Id, companyId, customerId));
+                }
+
+                if (subAccount.CreateBy != auditUser.Id || subAccount.CreateName != auditUser.Username)
+                {
+                    // 客户子账号没有补写创建审计的公开入口，仅修复完整稳定账号对应的受管记录。
+                    subAccount.CreateBy = auditUser.Id;
+                    subAccount.CreateName = auditUser.Username;
+                }
+
+                reusedCustomerSubAccounts++;
+            }
 
             foreach (var seed in carrierSeeds)
             {
@@ -719,6 +758,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerTagsLayer] = createdCustomerTags,
                 [CustomerProtocolGoodsLayer] = createdCustomerProtocolGoods,
                 [CustomerProtocolsLayer] = createdCustomerProtocols,
+                [CustomerSubAccountsLayer] = createdCustomerSubAccounts,
                 [CustomersLayer] = createdCustomers,
                 [DeliveryRoutesLayer] = createdDeliveryRoutes,
                 [DriversLayer] = createdDrivers,
@@ -739,6 +779,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerTagsLayer] = reusedCustomerTags,
                 [CustomerProtocolGoodsLayer] = reusedCustomerProtocolGoods,
                 [CustomerProtocolsLayer] = reusedCustomerProtocols,
+                [CustomerSubAccountsLayer] = reusedCustomerSubAccounts,
                 [CustomersLayer] = reusedCustomers,
                 [DeliveryRoutesLayer] = reusedDeliveryRoutes,
                 [DriversLayer] = reusedDrivers,
@@ -822,6 +863,20 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"1380010{sequence:D4}",
                 $"上海市浦东新区鲜品大道{sequence}号配送收货区",
                 $"SkyRoc 联调客户资料：华东第 {sequence:D2} 个团餐客户，覆盖采购、配送和结算场景。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<CustomerSubAccountSeed> CreateCustomerSubAccountSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new CustomerSubAccountSeed(
+                DemoDataStableKeyCatalog.Create("CUSTOMER-SUB-ACCOUNT", sequence),
+                DemoDataStableKeyCatalog.Create("COMPANY", sequence),
+                DemoDataStableKeyCatalog.Create("CUSTOMER", sequence),
+                $"华东联调客户采购账号{sequence:D2}",
+                $"1368000{sequence:D4}",
+                $"customer.buyer{sequence:D2}@eastfresh.example",
+                $"SkyRoc 联调客户子账号：为客户 {sequence:D2} 维护下单与订单查询授权，不承载系统管理员权限。"))
             .ToArray();
     }
 
@@ -1249,6 +1304,58 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && customer.Status == Status.Enable
                    && customer.TagRelations.Count == 1
                    && customer.TagRelations.Single().CustomerTagId == customerTagId;
+        }
+    }
+
+    private sealed record CustomerSubAccountSeed(
+        string Username,
+        string CompanyCode,
+        string CustomerCode,
+        string NickName,
+        string Phone,
+        string Email,
+        string Remark)
+    {
+        private string PasswordHash => Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes($"SkyRoc customer sub-account::{Username}")));
+
+        public CreateCustomerSubAccountDto ToCreateDto(Guid companyId, Guid customerId) => new()
+        {
+            CompanyId = companyId,
+            CustomerId = customerId,
+            Username = Username,
+            NickName = NickName,
+            Phone = Phone,
+            Email = Email,
+            PasswordHash = PasswordHash,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateCustomerSubAccountDto ToUpdateDto(Guid id, Guid companyId, Guid customerId) => new()
+        {
+            Id = id,
+            CompanyId = companyId,
+            CustomerId = customerId,
+            Username = Username,
+            NickName = NickName,
+            Phone = Phone,
+            Email = Email,
+            PasswordHash = PasswordHash,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Customers.CustomerSubAccount subAccount, Guid companyId, Guid customerId)
+        {
+            return subAccount.CompanyId == companyId
+                   && subAccount.CustomerId == customerId
+                   && subAccount.NickName == NickName
+                   && subAccount.Phone == Phone
+                   && subAccount.Email == Email
+                   && subAccount.PasswordHash == PasswordHash
+                   && subAccount.Remark == Remark
+                   && subAccount.Status == Status.Enable;
         }
     }
 
