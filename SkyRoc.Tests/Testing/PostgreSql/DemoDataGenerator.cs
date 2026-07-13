@@ -16,6 +16,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 {
     private const string CompaniesLayer = "companies";
     private const string CustomerTagsLayer = "customer-tags";
+    private const string CustomersLayer = "customers";
 
     /// <summary>
     ///     在经白名单验证的真实 PostgreSQL 中幂等生成当前已实现的联调资料层。
@@ -31,10 +32,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var companyService = scope.ServiceProvider.GetRequiredService<ICompanyService>();
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
+        var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
         var companySeeds = CreateCompanySeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
+        var customerSeeds = CreateCustomerSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
+        var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
         var auditUser = await context.Users
             .OrderBy(user => user.Username)
             .Select(user => new DemoAuditUser(user.Id, user.Username))
@@ -52,6 +56,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCompanies = 0;
         var createdCustomerTags = 0;
         var reusedCustomerTags = 0;
+        var createdCustomers = 0;
+        var reusedCustomers = 0;
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -99,6 +105,41 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedCustomerTags++;
             }
 
+            var managedCompanies = await context.Companies
+                .Where(company => companyCodes.Contains(company.Code))
+                .ToDictionaryAsync(company => company.Code, StringComparer.Ordinal, cancellationToken);
+            var managedCustomerTags = await context.CustomerTags
+                .Where(tag => customerTagCodes.Contains(tag.Code))
+                .ToDictionaryAsync(tag => tag.Code, StringComparer.Ordinal, cancellationToken);
+            var existingCustomers = await context.Customers
+                .Include(customer => customer.TagRelations)
+                .Where(customer => customerCodes.Contains(customer.Code))
+                .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
+
+            foreach (var seed in customerSeeds)
+            {
+                var companyId = GetManagedReferenceId(managedCompanies, seed.CompanyCode, "公司");
+                var customerTagId = GetManagedReferenceId(managedCustomerTags, seed.CustomerTagCode, "客户标签");
+                if (!existingCustomers.TryGetValue(seed.Code, out var customer))
+                {
+                    await customerService.CreateAsync(seed.ToCreateDto(companyId, customerTagId));
+                    createdCustomers++;
+                    continue;
+                }
+
+                if (!seed.Matches(customer, companyId, customerTagId))
+                    await customerService.UpdateAsync(customer.Id, seed.ToUpdateDto(customer.Id, companyId, customerTagId));
+
+                if (customer.CreateBy != auditUser.Id || customer.CreateName != auditUser.Username)
+                {
+                    // 客户创建审计没有补写入口，仅修复完整稳定编码对应的受管记录。
+                    customer.CreateBy = auditUser.Id;
+                    customer.CreateName = auditUser.Username;
+                }
+
+                reusedCustomers++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -112,12 +153,14 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
                 [CompaniesLayer] = createdCompanies,
-                [CustomerTagsLayer] = createdCustomerTags
+                [CustomerTagsLayer] = createdCustomerTags,
+                [CustomersLayer] = createdCustomers
             },
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
                 [CompaniesLayer] = reusedCompanies,
-                [CustomerTagsLayer] = reusedCustomerTags
+                [CustomerTagsLayer] = reusedCustomerTags,
+                [CustomersLayer] = reusedCustomers
             });
     }
 
@@ -143,6 +186,56 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 sequence,
                 $"SkyRoc 联调客户标签：覆盖华东第 {sequence:D2} 个客户服务与价格分群。"))
             .ToArray();
+    }
+
+    private static IReadOnlyList<CustomerSeed> CreateCustomerSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new CustomerSeed(
+                DemoDataStableKeyCatalog.Create("CUSTOMER", sequence),
+                DemoDataStableKeyCatalog.Create("COMPANY", sequence),
+                DemoDataStableKeyCatalog.Create("CUSTOMER-TAG", sequence),
+                $"华东鲜品团餐客户服务中心{sequence:D2}",
+                $"91310115DEMO{sequence:D6}",
+                $"李主任{sequence:D2}",
+                $"{500 + sequence * 10}万元人民币",
+                new DateTime(2020 + sequence % 5, sequence % 12 + 1, sequence % 27 + 1, 0, 0, 0, DateTimeKind.Utc),
+                "2020-01-01 至 2040-12-31",
+                "存续",
+                "上海市浦东新区市场监督管理局",
+                $"上海市浦东新区鲜品大道{sequence}号客户服务楼",
+                "团餐配送、食材采购、食品销售及供应链管理服务。",
+                $"华东鲜品团餐客户服务中心{sequence:D2}",
+                $"91310115DEMO{sequence:D6}",
+                $"上海市浦东新区鲜品大道{sequence}号客户服务楼",
+                $"021-6800{sequence:D4}",
+                "上海农商银行浦东鲜品支行",
+                $"622580100000{sequence:D6}",
+                $"王会计{sequence:D2}",
+                $"1390020{sequence:D4}",
+                $"上海市浦东新区鲜品大道{sequence}号客户收票室",
+                $"billing{sequence:D2}@eastfresh.example",
+                $"周经理{sequence:D2}",
+                $"1380010{sequence:D4}",
+                $"上海市浦东新区鲜品大道{sequence}号配送收货区",
+                $"SkyRoc 联调客户资料：华东第 {sequence:D2} 个团餐客户，覆盖采购、配送和结算场景。"))
+            .ToArray();
+    }
+
+    private static Guid GetManagedReferenceId<T>(
+        IReadOnlyDictionary<string, T> entities,
+        string businessCode,
+        string referenceName)
+        where T : class
+    {
+        return entities.TryGetValue(businessCode, out var entity)
+            ? entity switch
+            {
+                Domain.Entities.Customers.Company company => company.Id,
+                Domain.Entities.Customers.CustomerTag customerTag => customerTag.Id,
+                _ => throw new InvalidOperationException($"不支持的{referenceName}受管引用类型。")
+            }
+            : throw new InvalidOperationException($"未找到稳定编码为 {businessCode} 的受管{referenceName}。 ");
     }
 
     private static void SetAuditUser(IHttpContextAccessor httpContextAccessor, DemoAuditUser auditUser)
@@ -232,6 +325,137 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && tag.Remark == Remark
                    && tag.Status == Status.Enable
                    && tag.ParentId is null;
+        }
+    }
+
+    private sealed record CustomerSeed(
+        string Code,
+        string CompanyCode,
+        string CustomerTagCode,
+        string Name,
+        string UnifiedSocialCreditCode,
+        string LegalRepresentative,
+        string RegisteredCapital,
+        DateTime EstablishDate,
+        string BusinessTerm,
+        string RegistrationStatus,
+        string RegistrationAuthority,
+        string RegisteredAddress,
+        string BusinessScope,
+        string InvoiceTitle,
+        string TaxpayerIdentificationNumber,
+        string InvoiceAddress,
+        string InvoicePhone,
+        string BankName,
+        string BankAccount,
+        string InvoiceReceiverName,
+        string InvoiceReceiverPhone,
+        string InvoiceReceiverAddress,
+        string InvoiceEmail,
+        string ContactName,
+        string ContactPhone,
+        string Address,
+        string Remark)
+    {
+        public CreateCustomerDto ToCreateDto(Guid companyId, Guid customerTagId) => new()
+        {
+            Code = Code,
+            Name = Name,
+            CompanyId = companyId,
+            UnifiedSocialCreditCode = UnifiedSocialCreditCode,
+            LegalRepresentative = LegalRepresentative,
+            RegisteredCapital = RegisteredCapital,
+            EstablishDate = EstablishDate,
+            BusinessTerm = BusinessTerm,
+            RegistrationStatus = RegistrationStatus,
+            RegistrationAuthority = RegistrationAuthority,
+            RegisteredAddress = RegisteredAddress,
+            BusinessScope = BusinessScope,
+            InvoiceTitle = InvoiceTitle,
+            TaxpayerIdentificationNumber = TaxpayerIdentificationNumber,
+            InvoiceAddress = InvoiceAddress,
+            InvoicePhone = InvoicePhone,
+            BankName = BankName,
+            BankAccount = BankAccount,
+            InvoiceReceiverName = InvoiceReceiverName,
+            InvoiceReceiverPhone = InvoiceReceiverPhone,
+            InvoiceReceiverAddress = InvoiceReceiverAddress,
+            InvoiceEmail = InvoiceEmail,
+            ContactName = ContactName,
+            ContactPhone = ContactPhone,
+            Address = Address,
+            Remark = Remark,
+            TagIds = [customerTagId],
+            Status = Status.Enable
+        };
+
+        public UpdateCustomerDto ToUpdateDto(Guid id, Guid companyId, Guid customerTagId)
+        {
+            var dto = ToCreateDto(companyId, customerTagId);
+            return new UpdateCustomerDto
+            {
+                Id = id,
+                Code = dto.Code,
+                Name = dto.Name,
+                CompanyId = dto.CompanyId,
+                UnifiedSocialCreditCode = dto.UnifiedSocialCreditCode,
+                LegalRepresentative = dto.LegalRepresentative,
+                RegisteredCapital = dto.RegisteredCapital,
+                EstablishDate = dto.EstablishDate,
+                BusinessTerm = dto.BusinessTerm,
+                RegistrationStatus = dto.RegistrationStatus,
+                RegistrationAuthority = dto.RegistrationAuthority,
+                RegisteredAddress = dto.RegisteredAddress,
+                BusinessScope = dto.BusinessScope,
+                InvoiceTitle = dto.InvoiceTitle,
+                TaxpayerIdentificationNumber = dto.TaxpayerIdentificationNumber,
+                InvoiceAddress = dto.InvoiceAddress,
+                InvoicePhone = dto.InvoicePhone,
+                BankName = dto.BankName,
+                BankAccount = dto.BankAccount,
+                InvoiceReceiverName = dto.InvoiceReceiverName,
+                InvoiceReceiverPhone = dto.InvoiceReceiverPhone,
+                InvoiceReceiverAddress = dto.InvoiceReceiverAddress,
+                InvoiceEmail = dto.InvoiceEmail,
+                ContactName = dto.ContactName,
+                ContactPhone = dto.ContactPhone,
+                Address = dto.Address,
+                Remark = dto.Remark,
+                TagIds = dto.TagIds,
+                Status = dto.Status
+            };
+        }
+
+        public bool Matches(Domain.Entities.Customers.Customer customer, Guid companyId, Guid customerTagId)
+        {
+            return customer.CompanyId == companyId
+                   && customer.Name == Name
+                   && customer.UnifiedSocialCreditCode == UnifiedSocialCreditCode
+                   && customer.LegalRepresentative == LegalRepresentative
+                   && customer.RegisteredCapital == RegisteredCapital
+                   && customer.EstablishDate == EstablishDate
+                   && customer.BusinessTerm == BusinessTerm
+                   && customer.RegistrationStatus == RegistrationStatus
+                   && customer.RegistrationAuthority == RegistrationAuthority
+                   && customer.RegisteredAddress == RegisteredAddress
+                   && customer.BusinessScope == BusinessScope
+                   && customer.InvoiceTitle == InvoiceTitle
+                   && customer.TaxpayerIdentificationNumber == TaxpayerIdentificationNumber
+                   && customer.InvoiceAddress == InvoiceAddress
+                   && customer.InvoicePhone == InvoicePhone
+                   && customer.BankName == BankName
+                   && customer.BankAccount == BankAccount
+                   && customer.InvoiceReceiverName == InvoiceReceiverName
+                   && customer.InvoiceReceiverPhone == InvoiceReceiverPhone
+                   && customer.InvoiceReceiverAddress == InvoiceReceiverAddress
+                   && customer.InvoiceEmail == InvoiceEmail
+                   && customer.ContactName == ContactName
+                   && customer.ContactPhone == ContactPhone
+                   && customer.Address == Address
+                   && customer.Remark == Remark
+                   && customer.Status == Status.Enable
+                   && customer.TagRelations.Count == 1
+                   && customer.TagRelations.Single().CustomerTagId == customerTagId;
         }
     }
 

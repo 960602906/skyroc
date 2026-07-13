@@ -74,4 +74,60 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(tag.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须基于受管公司和标签补齐客户资料，填满当前阶段适用的工商、开票与联系字段，并在重复运行时不重复创建客户或标签关系。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedCustomersWithBusinessReferences_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedCustomerCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var customers = await context.Customers
+            .Include(customer => customer.Company)
+            .Include(customer => customer.TagRelations)
+            .Where(customer => managedCustomerCodes.Contains(customer.Code))
+            .OrderBy(customer => customer.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, customers.Count);
+        Assert.Equal(30, customers.Select(customer => customer.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["customers"] + first.ReusedByLayer["customers"]);
+        Assert.Equal(0, second.CreatedByLayer["customers"]);
+        Assert.All(customers, customer =>
+        {
+            Assert.NotNull(customer.Company);
+            Assert.Single(customer.TagRelations);
+            Assert.False(string.IsNullOrWhiteSpace(customer.UnifiedSocialCreditCode));
+            Assert.False(string.IsNullOrWhiteSpace(customer.LegalRepresentative));
+            Assert.False(string.IsNullOrWhiteSpace(customer.RegisteredCapital));
+            Assert.NotNull(customer.EstablishDate);
+            Assert.False(string.IsNullOrWhiteSpace(customer.BusinessTerm));
+            Assert.False(string.IsNullOrWhiteSpace(customer.RegistrationStatus));
+            Assert.False(string.IsNullOrWhiteSpace(customer.RegistrationAuthority));
+            Assert.False(string.IsNullOrWhiteSpace(customer.RegisteredAddress));
+            Assert.False(string.IsNullOrWhiteSpace(customer.BusinessScope));
+            Assert.False(string.IsNullOrWhiteSpace(customer.InvoiceTitle));
+            Assert.False(string.IsNullOrWhiteSpace(customer.TaxpayerIdentificationNumber));
+            Assert.False(string.IsNullOrWhiteSpace(customer.InvoiceAddress));
+            Assert.False(string.IsNullOrWhiteSpace(customer.InvoicePhone));
+            Assert.False(string.IsNullOrWhiteSpace(customer.BankName));
+            Assert.False(string.IsNullOrWhiteSpace(customer.BankAccount));
+            Assert.False(string.IsNullOrWhiteSpace(customer.InvoiceReceiverName));
+            Assert.False(string.IsNullOrWhiteSpace(customer.InvoiceReceiverPhone));
+            Assert.False(string.IsNullOrWhiteSpace(customer.InvoiceReceiverAddress));
+            Assert.False(string.IsNullOrWhiteSpace(customer.InvoiceEmail));
+            Assert.False(string.IsNullOrWhiteSpace(customer.ContactName));
+            Assert.False(string.IsNullOrWhiteSpace(customer.ContactPhone));
+            Assert.False(string.IsNullOrWhiteSpace(customer.Address));
+            Assert.False(string.IsNullOrWhiteSpace(customer.Remark));
+            Assert.NotNull(customer.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(customer.CreateName));
+        });
+    }
 }
