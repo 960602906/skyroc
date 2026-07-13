@@ -2,6 +2,7 @@ using Application.DTOs.Customers;
 using Application.DTOs.Department;
 using Application.DTOs.Delivery;
 using Application.DTOs.Goods;
+using Application.DTOs.Orders;
 using Application.DTOs.Printing;
 using Application.DTOs.Purchases;
 using Application.DTOs.Pricing;
@@ -12,6 +13,7 @@ using Application.DTOs.User;
 using Application.interfaces;
 using Application.interfaces.System;
 using Domain.Entities;
+using Domain.Entities.Orders;
 using Domain.Entities.Printing;
 using Domain.Entities.System;
 using Infrastructure.Data;
@@ -45,6 +47,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string GoodsTypesLayer = "goods-types";
     private const string PurchasersLayer = "purchasers";
     private const string PurchaseRulesLayer = "purchase-rules";
+    private const string SaleOrderDetailsLayer = "sale-order-details";
+    private const string SaleOrdersLayer = "sale-orders";
     private const string ServicePeriodsLayer = "service-periods";
     private const string NoticesLayer = "notices";
     private const string PrintTemplatesLayer = "print-templates";
@@ -84,6 +88,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
         var purchaserService = scope.ServiceProvider.GetRequiredService<IPurchaserService>();
         var purchaseRuleService = scope.ServiceProvider.GetRequiredService<IPurchaseRuleService>();
+        var saleOrderService = scope.ServiceProvider.GetRequiredService<ISaleOrderService>();
         var systemSupportService = scope.ServiceProvider.GetRequiredService<ISystemSupportService>();
         var printService = scope.ServiceProvider.GetRequiredService<IPrintService>();
         var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
@@ -105,6 +110,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
         var purchaserSeeds = CreatePurchaserSeeds();
         var purchaseRuleSeeds = CreatePurchaseRuleSeeds();
+        var saleOrderSeeds = CreateSaleOrderSeeds();
         var servicePeriodSeeds = CreateServicePeriodSeeds();
         var noticeSeeds = CreateNoticeSeeds();
         var printTemplateSeeds = CreatePrintTemplateSeeds();
@@ -255,6 +261,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedPurchasers = 0;
         var createdPurchaseRules = 0;
         var reusedPurchaseRules = 0;
+        var createdSaleOrderDetails = 0;
+        var reusedSaleOrderDetails = 0;
+        var createdSaleOrders = 0;
+        var reusedSaleOrders = 0;
         var createdServicePeriods = 0;
         var reusedServicePeriods = 0;
         var createdNotices = 0;
@@ -1098,6 +1108,17 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             throw;
         }
 
+        (
+            createdSaleOrders,
+            reusedSaleOrders,
+            createdSaleOrderDetails,
+            reusedSaleOrderDetails) = await GenerateSaleOrdersAsync(
+            context,
+            saleOrderService,
+            saleOrderSeeds,
+            auditUser,
+            cancellationToken);
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1116,6 +1137,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsTypesLayer] = createdGoodsTypes,
                 [PurchasersLayer] = createdPurchasers,
                 [PurchaseRulesLayer] = createdPurchaseRules,
+                [SaleOrderDetailsLayer] = createdSaleOrderDetails,
+                [SaleOrdersLayer] = createdSaleOrders,
                 [ServicePeriodsLayer] = createdServicePeriods,
                 [NoticesLayer] = createdNotices,
                 [PrintTemplatesLayer] = createdPrintTemplates,
@@ -1145,6 +1168,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsTypesLayer] = reusedGoodsTypes,
                 [PurchasersLayer] = reusedPurchasers,
                 [PurchaseRulesLayer] = reusedPurchaseRules,
+                [SaleOrderDetailsLayer] = reusedSaleOrderDetails,
+                [SaleOrdersLayer] = reusedSaleOrders,
                 [ServicePeriodsLayer] = reusedServicePeriods,
                 [NoticesLayer] = reusedNotices,
                 [PrintTemplatesLayer] = reusedPrintTemplates,
@@ -1157,6 +1182,143 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SystemUsersLayer] = reusedSystemUsers,
                 [WaresLayer] = reusedWares
             });
+    }
+
+    private static async Task<(int CreatedOrders, int ReusedOrders, int CreatedDetails, int ReusedDetails)> GenerateSaleOrdersAsync(
+        ApplicationDbContext context,
+        ISaleOrderService saleOrderService,
+        IReadOnlyList<SaleOrderSeed> seeds,
+        DemoAuditUser auditUser,
+        CancellationToken cancellationToken)
+    {
+        var stableKeys = seeds.Select(seed => seed.StableKey).ToArray();
+        var customerCodes = seeds.Select(seed => seed.CustomerCode).Distinct().ToArray();
+        var quotationCodes = seeds.Select(seed => seed.QuotationCode).Distinct().ToArray();
+        var wareCodes = seeds.Select(seed => seed.WareCode).Distinct().ToArray();
+        var goodsCodes = seeds.SelectMany(seed => seed.Details.Select(detail => detail.GoodsCode)).Distinct().ToArray();
+        var goodsUnitCodes = seeds.SelectMany(seed => seed.Details.Select(detail => detail.GoodsUnitCode)).Distinct().ToArray();
+        var existingOrders = await context.SaleOrders
+            .Include(order => order.Details)
+            .Include(order => order.AuditLogs)
+            .Where(order => order.InnerRemark != null && stableKeys.Contains(order.InnerRemark))
+            .ToDictionaryAsync(order => order.InnerRemark!, StringComparer.Ordinal, cancellationToken);
+        var managedCustomers = await context.Customers
+            .Where(customer => customerCodes.Contains(customer.Code))
+            .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
+        var managedQuotations = await context.Quotations
+            .Where(quotation => quotationCodes.Contains(quotation.Code))
+            .ToDictionaryAsync(quotation => quotation.Code, StringComparer.Ordinal, cancellationToken);
+        var managedWares = await context.Wares
+            .Where(ware => wareCodes.Contains(ware.Code))
+            .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
+        var managedGoods = await context.Goods
+            .Where(goods => goodsCodes.Contains(goods.Code))
+            .ToDictionaryAsync(goods => goods.Code, StringComparer.Ordinal, cancellationToken);
+        var managedGoodsUnits = await context.GoodsUnits
+            .Where(unit => unit.Code != null && goodsUnitCodes.Contains(unit.Code))
+            .ToDictionaryAsync(unit => unit.Code!, StringComparer.Ordinal, cancellationToken);
+
+        var createdOrders = 0;
+        var reusedOrders = 0;
+        var createdDetails = 0;
+        var reusedDetails = 0;
+
+        foreach (var seed in seeds)
+        {
+            var customer = GetManagedReference(managedCustomers, seed.CustomerCode, "客户");
+            var quotation = GetManagedReference(managedQuotations, seed.QuotationCode, "报价单");
+            var ware = GetManagedReference(managedWares, seed.WareCode, "仓库");
+
+            if (!existingOrders.TryGetValue(seed.StableKey, out var order))
+            {
+                var created = await saleOrderService.CreateAsync(seed.ToCreateDto(
+                    customer.Id,
+                    quotation.Id,
+                    ware.Id,
+                    managedGoods,
+                    managedGoodsUnits));
+                await ApplySaleOrderTargetStatusAsync(
+                    context,
+                    saleOrderService,
+                    created.Id,
+                    seed.TargetStatus,
+                    seed.AuditRemark,
+                    auditUser,
+                    cancellationToken);
+                createdOrders++;
+                createdDetails += seed.Details.Count;
+                continue;
+            }
+
+            if (!seed.Matches(order, customer.Id, quotation.Id, ware.Id))
+            {
+                // 销售订单服务不允许编辑已审核或已驳回订单；仅对完整稳定内部备注命中的受管订单校准可维护快照字段。
+                order.CustomerId = customer.Id;
+                order.QuotationId = quotation.Id;
+                order.WareId = ware.Id;
+                order.OrderDate = seed.OrderDate;
+                order.ReceiveDate = seed.ReceiveDate;
+                order.ContactNameSnapshot = seed.ContactName;
+                order.ContactPhoneSnapshot = seed.ContactPhone;
+                order.DeliveryAddressSnapshot = seed.DeliveryAddress;
+                order.Remark = seed.Remark;
+                order.UpdateBy = auditUser.Id;
+                order.UpdateName = auditUser.Username;
+            }
+
+            await ApplySaleOrderTargetStatusAsync(
+                context,
+                saleOrderService,
+                order.Id,
+                seed.TargetStatus,
+                seed.AuditRemark,
+                auditUser,
+                cancellationToken);
+            reusedOrders++;
+            reusedDetails += order.Details.Count;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        return (createdOrders, reusedOrders, createdDetails, reusedDetails);
+    }
+
+    private static async Task ApplySaleOrderTargetStatusAsync(
+        ApplicationDbContext context,
+        ISaleOrderService saleOrderService,
+        Guid orderId,
+        SaleOrderStatus targetStatus,
+        string auditRemark,
+        DemoAuditUser auditUser,
+        CancellationToken cancellationToken)
+    {
+        var order = await context.SaleOrders
+            .Include(item => item.AuditLogs)
+            .SingleAsync(item => item.Id == orderId, cancellationToken);
+        if (order.OrderStatus == targetStatus)
+            return;
+
+        if (order.OrderStatus == SaleOrderStatus.PendingAudit && targetStatus == SaleOrderStatus.SortingPending)
+        {
+            await saleOrderService.ApproveAsync(orderId, auditRemark);
+            return;
+        }
+
+        if (order.OrderStatus == SaleOrderStatus.PendingAudit && targetStatus == SaleOrderStatus.Rejected)
+        {
+            await saleOrderService.RejectAsync(orderId, auditRemark);
+            return;
+        }
+
+        if (order.OrderStatus == SaleOrderStatus.Rejected && targetStatus == SaleOrderStatus.PendingAudit)
+        {
+            await saleOrderService.ResubmitAsync(orderId, auditRemark);
+            return;
+        }
+
+        // 受管联调订单可能因生成规则升级需要状态校准；服务没有任意状态回退入口，故只补写完整稳定键订单。
+        order.OrderStatus = targetStatus;
+        order.UpdateBy = auditUser.Id;
+        order.UpdateName = auditUser.Username;
     }
 
     private static IReadOnlyList<CompanySeed> CreateCompanySeeds()
@@ -1364,6 +1526,51 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"华东联调采购适用规则{sequence:D2}",
                 sequence % 2 == 0 ? 2 : 1,
                 $"SkyRoc 联调采购规则：客户 {sequence:D2} 的商品 {sequence:D2} 由指定供应商、采购员和仓库按既定采购模式履约。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<SaleOrderSeed> CreateSaleOrderSeeds()
+    {
+        return Enumerable.Range(1, 60)
+            .Select(sequence =>
+            {
+                var primary = (sequence - 1) % 30 + 1;
+                var secondary = sequence % 30 + 1;
+                return new SaleOrderSeed(
+                    sequence,
+                    DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence),
+                    DemoDataStableKeyCatalog.Create("CUSTOMER", primary),
+                    DemoDataStableKeyCatalog.Create("QUOTATION", primary),
+                    DemoDataStableKeyCatalog.Create("WARE", primary),
+                    new DateTime(2026, 7, sequence % 28 + 1, 6 + sequence % 8, 15, 0, DateTimeKind.Utc),
+                    new DateTime(2026, 7, sequence % 28 + 1, 14 + sequence % 8, 30, 0, DateTimeKind.Utc),
+                    $"华东联调订单联系人{sequence:D2}",
+                    $"1385000{sequence:D4}",
+                    $"上海市浦东新区鲜品大道{primary}号客户配送月台{sequence:D2}",
+                    $"SkyRoc 联调销售订单：第 {sequence:D2} 张长期订单，覆盖客户下单、审核、采购计划和销售出库来源。",
+                    sequence % 6 == 0
+                        ? SaleOrderStatus.Rejected
+                        : sequence % 3 == 0
+                            ? SaleOrderStatus.PendingAudit
+                            : SaleOrderStatus.SortingPending,
+                    $"SkyRoc 联调订单审核意见：第 {sequence:D2} 张订单按状态样本进入后续链路。",
+                    [
+                        new SaleOrderDetailSeed(
+                            DemoDataStableKeyCatalog.Create("GOODS", primary),
+                            DemoDataStableKeyCatalog.Create("GOODS-UNIT", primary),
+                            NumericPrecision.RoundQuantity(4.5m + sequence % 7),
+                            NumericPrecision.RoundMoney(9.25m + primary),
+                            $"SkyRoc 联调订单明细：主商品 {primary:D2} 用于订单、采购和库存链路。",
+                            $"SkyRoc 联调订单内部备注：主商品 {primary:D2} 需按客户交期优先履约。"),
+                        new SaleOrderDetailSeed(
+                            DemoDataStableKeyCatalog.Create("GOODS", secondary),
+                            DemoDataStableKeyCatalog.Create("GOODS-UNIT", secondary),
+                            NumericPrecision.RoundQuantity(2.25m + sequence % 5),
+                            NumericPrecision.RoundMoney(8.75m + secondary),
+                            $"SkyRoc 联调订单明细：搭配商品 {secondary:D2} 用于多明细金额和快照校验。",
+                            $"SkyRoc 联调订单内部备注：搭配商品 {secondary:D2} 需与主商品同车配送。")
+                    ]);
+            })
             .ToArray();
     }
 
@@ -2506,6 +2713,84 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && purchaseRule.Goods.Single().GoodsId == goodsId
                    && purchaseRule.Customers.Count == 1
                    && purchaseRule.Customers.Single().CustomerId == customerId;
+        }
+    }
+
+    private sealed record SaleOrderSeed(
+        int Sequence,
+        string StableKey,
+        string CustomerCode,
+        string QuotationCode,
+        string WareCode,
+        DateTime OrderDate,
+        DateTime ReceiveDate,
+        string ContactName,
+        string ContactPhone,
+        string DeliveryAddress,
+        string Remark,
+        SaleOrderStatus TargetStatus,
+        string AuditRemark,
+        IReadOnlyList<SaleOrderDetailSeed> Details)
+    {
+        public CreateSaleOrderDto ToCreateDto(
+            Guid customerId,
+            Guid quotationId,
+            Guid wareId,
+            IReadOnlyDictionary<string, Domain.Entities.Goods.Goods> goods,
+            IReadOnlyDictionary<string, Domain.Entities.Goods.GoodsUnit> goodsUnits) => new()
+            {
+                CustomerId = customerId,
+                QuotationId = quotationId,
+                WareId = wareId,
+                OrderDate = OrderDate,
+                ReceiveDate = ReceiveDate,
+                ContactName = ContactName,
+                ContactPhone = ContactPhone,
+                DeliveryAddress = DeliveryAddress,
+                Remark = Remark,
+                InnerRemark = StableKey,
+                Details = Details.Select(detail => detail.ToCreateDto(goods, goodsUnits)).ToList()
+            };
+
+        public bool Matches(SaleOrder order, Guid customerId, Guid quotationId, Guid wareId)
+        {
+            return order.CustomerId == customerId
+                   && order.QuotationId == quotationId
+                   && order.WareId == wareId
+                   && order.OrderDate == OrderDate
+                   && order.ReceiveDate == ReceiveDate
+                   && order.ContactNameSnapshot == ContactName
+                   && order.ContactPhoneSnapshot == ContactPhone
+                   && order.DeliveryAddressSnapshot == DeliveryAddress
+                   && order.Remark == Remark
+                   && order.InnerRemark == StableKey;
+        }
+    }
+
+    private sealed record SaleOrderDetailSeed(
+        string GoodsCode,
+        string GoodsUnitCode,
+        decimal Quantity,
+        decimal FixedPrice,
+        string Remark,
+        string InnerRemark)
+    {
+        public CreateSaleOrderDetailDto ToCreateDto(
+            IReadOnlyDictionary<string, Domain.Entities.Goods.Goods> goods,
+            IReadOnlyDictionary<string, Domain.Entities.Goods.GoodsUnit> goodsUnits)
+        {
+            var goodsEntity = GetManagedReference(goods, GoodsCode, "商品");
+            var unit = GetManagedReference(goodsUnits, GoodsUnitCode, "商品单位");
+            return new CreateSaleOrderDetailDto
+            {
+                GoodsId = goodsEntity.Id,
+                GoodsUnitId = unit.Id,
+                FixedGoodsUnitId = unit.Id,
+                Quantity = Quantity,
+                FixedPrice = FixedPrice,
+                Remark = Remark,
+                InnerRemark = InnerRemark
+            };
         }
     }
 

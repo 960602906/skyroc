@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Domain.Entities.Orders;
 using Domain.Entities.Printing;
 using Domain.Entities.System;
 using Shared.Constants;
@@ -866,6 +867,83 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             {
                 Assert.False(string.IsNullOrWhiteSpace(log.FailureReason));
             }
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须通过销售订单应用服务补齐受管订单层，保留客户、仓库、商品、单位和价格快照，并在重复运行时不新增重复订单。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedSaleOrdersWithDetailsAndAuditLogs_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedOrderKeys = Enumerable.Range(1, 60)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var orders = await context.SaleOrders
+            .Include(order => order.Customer)
+            .Include(order => order.Ware)
+            .Include(order => order.Quotation)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.Goods)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.GoodsUnit)
+            .Include(order => order.AuditLogs)
+            .Where(order => order.InnerRemark != null && managedOrderKeys.Contains(order.InnerRemark))
+            .OrderBy(order => order.InnerRemark)
+            .ToListAsync();
+
+        Assert.Equal(60, orders.Count);
+        Assert.Equal(60, orders.Select(order => order.InnerRemark).Distinct().Count());
+        Assert.Equal(60, first.CreatedByLayer["sale-orders"] + first.ReusedByLayer["sale-orders"]);
+        Assert.Equal(120, first.CreatedByLayer["sale-order-details"] + first.ReusedByLayer["sale-order-details"]);
+        Assert.Equal(0, second.CreatedByLayer["sale-orders"]);
+        Assert.Equal(0, second.CreatedByLayer["sale-order-details"]);
+        Assert.Contains(orders, order => order.OrderStatus == SaleOrderStatus.SortingPending);
+        Assert.Contains(orders, order => order.OrderStatus == SaleOrderStatus.Rejected);
+        Assert.All(orders, order =>
+        {
+            Assert.NotNull(order.Customer);
+            Assert.NotNull(order.Ware);
+            Assert.NotNull(order.Quotation);
+            Assert.False(string.IsNullOrWhiteSpace(order.OrderNo));
+            Assert.False(string.IsNullOrWhiteSpace(order.CustomerNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.CustomerCodeSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.ContactNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.ContactPhoneSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.DeliveryAddressSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.Remark));
+            Assert.False(string.IsNullOrWhiteSpace(order.InnerRemark));
+            Assert.True(order.OrderPrice > 0m);
+            Assert.True(order.SettlementPrice > 0m);
+            Assert.NotNull(order.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(order.CreateName));
+            Assert.Equal(2, order.Details.Count);
+            Assert.NotEmpty(order.AuditLogs);
+            Assert.Contains(order.AuditLogs, log => log.Action == OrderAuditAction.Submit);
+            Assert.All(order.Details, detail =>
+            {
+                Assert.NotNull(detail.Goods);
+                Assert.NotNull(detail.GoodsUnit);
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsCodeSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsTypeNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsDescriptionSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsUnitNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.BaseUnitNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.FixedGoodsUnitNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
+                Assert.False(string.IsNullOrWhiteSpace(detail.InnerRemark));
+                Assert.True(detail.Quantity > 0m);
+                Assert.True(detail.BaseQuantity > 0m);
+                Assert.True(detail.FixedPrice > 0m);
+                Assert.True(detail.TotalPrice > 0m);
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+            });
         });
     }
 }
