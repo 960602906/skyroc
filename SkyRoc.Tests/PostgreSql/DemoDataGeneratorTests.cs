@@ -43,4 +43,35 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(company.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须为客户分群补齐稳定编码的树形标签，并在第二次运行时复用既有记录而不是重复插入。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedCustomerTags_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedTagCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER-TAG", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var tags = await context.CustomerTags
+            .Where(tag => managedTagCodes.Contains(tag.Code))
+            .OrderBy(tag => tag.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, tags.Count);
+        Assert.Equal(30, tags.Select(tag => tag.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["customer-tags"] + first.ReusedByLayer["customer-tags"]);
+        Assert.Equal(0, second.CreatedByLayer["customer-tags"]);
+        Assert.All(tags, tag =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(tag.Name));
+            Assert.False(string.IsNullOrWhiteSpace(tag.Remark));
+            Assert.NotNull(tag.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(tag.CreateName));
+        });
+    }
 }

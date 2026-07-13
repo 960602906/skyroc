@@ -15,6 +15,7 @@ namespace SkyRoc.Tests.Testing.PostgreSql;
 public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 {
     private const string CompaniesLayer = "companies";
+    private const string CustomerTagsLayer = "customer-tags";
 
     /// <summary>
     ///     在经白名单验证的真实 PostgreSQL 中幂等生成当前已实现的联调资料层。
@@ -29,8 +30,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var companyService = scope.ServiceProvider.GetRequiredService<ICompanyService>();
+        var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var companySeeds = CreateCompanySeeds();
+        var customerTagSeeds = CreateCustomerTagSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
+        var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var auditUser = await context.Users
             .OrderBy(user => user.Username)
             .Select(user => new DemoAuditUser(user.Id, user.Username))
@@ -40,9 +44,14 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingCompanies = await context.Companies
             .Where(company => companyCodes.Contains(company.Code))
             .ToDictionaryAsync(company => company.Code, StringComparer.Ordinal, cancellationToken);
+        var existingCustomerTags = await context.CustomerTags
+            .Where(tag => customerTagCodes.Contains(tag.Code))
+            .ToDictionaryAsync(tag => tag.Code, StringComparer.Ordinal, cancellationToken);
 
         var createdCompanies = 0;
         var reusedCompanies = 0;
+        var createdCustomerTags = 0;
+        var reusedCustomerTags = 0;
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -68,6 +77,28 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedCompanies++;
             }
 
+            foreach (var seed in customerTagSeeds)
+            {
+                if (!existingCustomerTags.TryGetValue(seed.Code, out var tag))
+                {
+                    await customerTagService.CreateAsync(seed.ToCreateDto());
+                    createdCustomerTags++;
+                    continue;
+                }
+
+                if (!seed.Matches(tag))
+                    await customerTagService.UpdateAsync(tag.Id, seed.ToUpdateDto(tag.Id));
+
+                if (tag.CreateBy != auditUser.Id || tag.CreateName != auditUser.Username)
+                {
+                    // 标签没有补写创建审计的公开入口，只修复完整稳定键命中的受管记录。
+                    tag.CreateBy = auditUser.Id;
+                    tag.CreateName = auditUser.Username;
+                }
+
+                reusedCustomerTags++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -78,8 +109,16 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         }
 
         return new DemoDataGenerationResult(
-            new Dictionary<string, int>(StringComparer.Ordinal) { [CompaniesLayer] = createdCompanies },
-            new Dictionary<string, int>(StringComparer.Ordinal) { [CompaniesLayer] = reusedCompanies });
+            new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                [CompaniesLayer] = createdCompanies,
+                [CustomerTagsLayer] = createdCustomerTags
+            },
+            new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                [CompaniesLayer] = reusedCompanies,
+                [CustomerTagsLayer] = reusedCustomerTags
+            });
     }
 
     private static IReadOnlyList<CompanySeed> CreateCompanySeeds()
@@ -92,6 +131,17 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"021-6800{sequence:D4}",
                 $"上海市浦东新区鲜品大道{sequence}号冷链供应中心",
                 $"SkyRoc 联调公司资料：华东区域第 {sequence:D2} 个采购与配送业务主体。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<CustomerTagSeed> CreateCustomerTagSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new CustomerTagSeed(
+                DemoDataStableKeyCatalog.Create("CUSTOMER-TAG", sequence),
+                $"华东联调客户分群{sequence:D2}",
+                sequence,
+                $"SkyRoc 联调客户标签：覆盖华东第 {sequence:D2} 个客户服务与价格分群。"))
             .ToArray();
     }
 
@@ -147,6 +197,41 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && company.Address == Address
                    && company.Remark == Remark
                    && company.Status == Status.Enable;
+        }
+    }
+
+    private sealed record CustomerTagSeed(
+        string Code,
+        string Name,
+        int Sort,
+        string Remark)
+    {
+        public CreateCustomerTagDto ToCreateDto() => new()
+        {
+            Code = Code,
+            Name = Name,
+            Sort = Sort,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateCustomerTagDto ToUpdateDto(Guid id) => new()
+        {
+            Id = id,
+            Code = Code,
+            Name = Name,
+            Sort = Sort,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Customers.CustomerTag tag)
+        {
+            return tag.Name == Name
+                   && tag.Sort == Sort
+                   && tag.Remark == Remark
+                   && tag.Status == Status.Enable
+                   && tag.ParentId is null;
         }
     }
 
