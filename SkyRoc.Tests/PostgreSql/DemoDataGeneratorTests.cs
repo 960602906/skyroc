@@ -498,4 +498,90 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(rule.CreateName));
         });
     }
+
+    /// <summary>
+    ///     生成器必须经配送基础资料应用服务补齐稳定编码的承运商、司机和路线，并将每条路线精确关联一名受管客户；重复运行不得新增记录。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedDeliveryFoundationDataWithCustomerRoutes_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedCarrierCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CARRIER", sequence))
+            .ToArray();
+        var managedDriverCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("DRIVER", sequence))
+            .ToArray();
+        var managedRouteCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("DELIVERY-ROUTE", sequence))
+            .ToArray();
+        var managedCustomerCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var carriers = await context.Carriers
+            .Where(carrier => managedCarrierCodes.Contains(carrier.Code))
+            .OrderBy(carrier => carrier.Code)
+            .ToListAsync();
+        var drivers = await context.Drivers
+            .Include(driver => driver.Carrier)
+            .Where(driver => managedDriverCodes.Contains(driver.Code))
+            .OrderBy(driver => driver.Code)
+            .ToListAsync();
+        var routes = await context.DeliveryRoutes
+            .Include(route => route.CustomerRoutes)
+            .ThenInclude(relation => relation.Customer)
+            .Where(route => managedRouteCodes.Contains(route.Code))
+            .OrderBy(route => route.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, carriers.Count);
+        Assert.Equal(30, drivers.Count);
+        Assert.Equal(30, routes.Count);
+        Assert.Equal(30, first.CreatedByLayer["carriers"] + first.ReusedByLayer["carriers"]);
+        Assert.Equal(30, first.CreatedByLayer["drivers"] + first.ReusedByLayer["drivers"]);
+        Assert.Equal(30, first.CreatedByLayer["delivery-routes"] + first.ReusedByLayer["delivery-routes"]);
+        Assert.Equal(0, second.CreatedByLayer["carriers"]);
+        Assert.Equal(0, second.CreatedByLayer["drivers"]);
+        Assert.Equal(0, second.CreatedByLayer["delivery-routes"]);
+        Assert.All(carriers, carrier =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(carrier.Name));
+            Assert.False(string.IsNullOrWhiteSpace(carrier.ContactName));
+            Assert.False(string.IsNullOrWhiteSpace(carrier.ContactPhone));
+            Assert.False(string.IsNullOrWhiteSpace(carrier.Address));
+            Assert.False(string.IsNullOrWhiteSpace(carrier.Remark));
+            Assert.Equal(Status.Enable, carrier.Status);
+            Assert.NotNull(carrier.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(carrier.CreateName));
+        });
+        Assert.All(drivers, driver =>
+        {
+            Assert.NotNull(driver.Carrier);
+            Assert.False(string.IsNullOrWhiteSpace(driver.Phone));
+            Assert.False(string.IsNullOrWhiteSpace(driver.PlateNumber));
+            Assert.False(string.IsNullOrWhiteSpace(driver.LicenseNo));
+            Assert.False(string.IsNullOrWhiteSpace(driver.Remark));
+            Assert.Equal(Status.Enable, driver.Status);
+            Assert.NotNull(driver.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(driver.CreateName));
+        });
+        Assert.All(routes, route =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(route.Name));
+            Assert.False(string.IsNullOrWhiteSpace(route.Description));
+            Assert.False(string.IsNullOrWhiteSpace(route.Remark));
+            Assert.Equal(Status.Enable, route.Status);
+            Assert.NotNull(route.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(route.CreateName));
+            var relation = Assert.Single(route.CustomerRoutes);
+            Assert.NotNull(relation.Customer);
+            Assert.Contains(relation.Customer!.Code, managedCustomerCodes);
+            Assert.True(relation.Sort > 0);
+            Assert.NotNull(relation.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(relation.CreateName));
+        });
+    }
 }

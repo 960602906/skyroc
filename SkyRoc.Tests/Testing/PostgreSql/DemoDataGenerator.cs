@@ -1,4 +1,5 @@
 using Application.DTOs.Customers;
+using Application.DTOs.Delivery;
 using Application.DTOs.Goods;
 using Application.DTOs.Purchases;
 using Application.DTOs.Pricing;
@@ -23,6 +24,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerProtocolGoodsLayer = "customer-protocol-goods";
     private const string CustomerProtocolsLayer = "customer-protocols";
     private const string CustomersLayer = "customers";
+    private const string CarriersLayer = "carriers";
+    private const string DeliveryRoutesLayer = "delivery-routes";
+    private const string DriversLayer = "drivers";
     private const string GoodsLayer = "goods";
     private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
@@ -46,8 +50,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var companyService = scope.ServiceProvider.GetRequiredService<ICompanyService>();
+        var carrierService = scope.ServiceProvider.GetRequiredService<ICarrierService>();
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
+        var deliveryRouteService = scope.ServiceProvider.GetRequiredService<IDeliveryRouteService>();
+        var driverService = scope.ServiceProvider.GetRequiredService<IDriverService>();
         var customerProtocolGoodsService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolGoodsService>();
         var customerProtocolService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolService>();
         var goodsService = scope.ServiceProvider.GetRequiredService<IGoodsService>();
@@ -60,8 +67,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
         var wareService = scope.ServiceProvider.GetRequiredService<IWareService>();
         var companySeeds = CreateCompanySeeds();
+        var carrierSeeds = CreateCarrierSeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
+        var deliveryRouteSeeds = CreateDeliveryRouteSeeds();
+        var driverSeeds = CreateDriverSeeds();
         var customerProtocolSeeds = CreateCustomerProtocolSeeds();
         var goodsSeeds = CreateGoodsSeeds();
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
@@ -71,8 +81,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var supplierSeeds = CreateSupplierSeeds();
         var wareSeeds = CreateWareSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
+        var carrierCodes = carrierSeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
+        var deliveryRouteCodes = deliveryRouteSeeds.Select(seed => seed.Code).ToArray();
+        var driverCodes = driverSeeds.Select(seed => seed.Code).ToArray();
         var customerProtocolCodes = customerProtocolSeeds.Select(seed => seed.Code).ToArray();
         var goodsCodes = goodsSeeds.Select(seed => seed.Code).ToArray();
         var goodsUnitCodes = goodsSeeds.Select(seed => seed.UnitCode).ToArray();
@@ -91,9 +104,19 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingCompanies = await context.Companies
             .Where(company => companyCodes.Contains(company.Code))
             .ToDictionaryAsync(company => company.Code, StringComparer.Ordinal, cancellationToken);
+        var existingCarriers = await context.Carriers
+            .Where(carrier => carrierCodes.Contains(carrier.Code))
+            .ToDictionaryAsync(carrier => carrier.Code, StringComparer.Ordinal, cancellationToken);
         var existingCustomerTags = await context.CustomerTags
             .Where(tag => customerTagCodes.Contains(tag.Code))
             .ToDictionaryAsync(tag => tag.Code, StringComparer.Ordinal, cancellationToken);
+        var existingDeliveryRoutes = await context.DeliveryRoutes
+            .Include(route => route.CustomerRoutes)
+            .Where(route => deliveryRouteCodes.Contains(route.Code))
+            .ToDictionaryAsync(route => route.Code, StringComparer.Ordinal, cancellationToken);
+        var existingDrivers = await context.Drivers
+            .Where(driver => driverCodes.Contains(driver.Code))
+            .ToDictionaryAsync(driver => driver.Code, StringComparer.Ordinal, cancellationToken);
         var existingWares = await context.Wares
             .Where(ware => wareCodes.Contains(ware.Code))
             .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
@@ -137,10 +160,16 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 
         var createdCompanies = 0;
         var reusedCompanies = 0;
+        var createdCarriers = 0;
+        var reusedCarriers = 0;
         var createdCustomerTags = 0;
         var reusedCustomerTags = 0;
         var createdCustomers = 0;
         var reusedCustomers = 0;
+        var createdDeliveryRoutes = 0;
+        var reusedDeliveryRoutes = 0;
+        var createdDrivers = 0;
+        var reusedDrivers = 0;
         var createdCustomerProtocolGoods = 0;
         var reusedCustomerProtocolGoods = 0;
         var createdCustomerProtocols = 0;
@@ -249,6 +278,96 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 .Include(customer => customer.TagRelations)
                 .Where(customer => customerCodes.Contains(customer.Code))
                 .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
+
+            foreach (var seed in carrierSeeds)
+            {
+                if (!existingCarriers.TryGetValue(seed.Code, out var carrier))
+                {
+                    await carrierService.CreateAsync(seed.ToCreateDto());
+                    createdCarriers++;
+                    continue;
+                }
+
+                if (!seed.Matches(carrier))
+                    await carrierService.UpdateAsync(carrier.Id, seed.ToUpdateDto(carrier.Id));
+
+                if (carrier.CreateBy != auditUser.Id || carrier.CreateName != auditUser.Username)
+                {
+                    // 承运商创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
+                    carrier.CreateBy = auditUser.Id;
+                    carrier.CreateName = auditUser.Username;
+                }
+
+                reusedCarriers++;
+            }
+
+            var managedCarriers = await context.Carriers
+                .Where(carrier => carrierCodes.Contains(carrier.Code))
+                .ToDictionaryAsync(carrier => carrier.Code, StringComparer.Ordinal, cancellationToken);
+            foreach (var seed in driverSeeds)
+            {
+                var carrierId = GetManagedReferenceId(managedCarriers, seed.CarrierCode, "承运商");
+                if (!existingDrivers.TryGetValue(seed.Code, out var driver))
+                {
+                    await driverService.CreateAsync(seed.ToCreateDto(carrierId));
+                    createdDrivers++;
+                    continue;
+                }
+
+                if (!seed.Matches(driver, carrierId))
+                    await driverService.UpdateAsync(driver.Id, seed.ToUpdateDto(driver.Id, carrierId));
+
+                if (driver.CreateBy != auditUser.Id || driver.CreateName != auditUser.Username)
+                {
+                    // 司机创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
+                    driver.CreateBy = auditUser.Id;
+                    driver.CreateName = auditUser.Username;
+                }
+
+                reusedDrivers++;
+            }
+
+            foreach (var seed in deliveryRouteSeeds)
+            {
+                var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
+                if (!existingDeliveryRoutes.TryGetValue(seed.Code, out var route))
+                {
+                    await deliveryRouteService.CreateAsync(seed.ToCreateDto(customerId));
+                    createdDeliveryRoutes++;
+                    continue;
+                }
+
+                if (!seed.Matches(route, customerId))
+                    await deliveryRouteService.UpdateAsync(route.Id, seed.ToUpdateDto(route.Id, customerId));
+
+                if (route.CreateBy != auditUser.Id || route.CreateName != auditUser.Username)
+                {
+                    // 路线创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
+                    route.CreateBy = auditUser.Id;
+                    route.CreateName = auditUser.Username;
+                }
+
+                reusedDeliveryRoutes++;
+            }
+
+            var managedDeliveryRoutes = await context.DeliveryRoutes
+                .Where(route => deliveryRouteCodes.Contains(route.Code))
+                .ToDictionaryAsync(route => route.Code, StringComparer.Ordinal, cancellationToken);
+            var managedDeliveryRouteIds = managedDeliveryRoutes.Values.Select(route => route.Id).ToArray();
+            var managedCustomerRoutes = await context.CustomerRoutes
+                .Where(relation => managedDeliveryRouteIds.Contains(relation.RouteId))
+                .ToListAsync(cancellationToken);
+            foreach (var seed in deliveryRouteSeeds)
+            {
+                var route = GetManagedReference(managedDeliveryRoutes, seed.Code, "配送路线");
+                var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
+                var relation = managedCustomerRoutes.Single(item => item.RouteId == route.Id && item.CustomerId == customerId);
+
+                // 路线服务的客户集合接口没有暴露关系排序和创建审计；仅对受管路线的精确关系补齐这两个业务字段。
+                relation.Sort = seed.Sort;
+                relation.CreateBy = auditUser.Id;
+                relation.CreateName = auditUser.Username;
+            }
 
             var existingGoodsTypes = await context.GoodsTypes
                 .Where(goodsType => goodsTypeCodes.Contains(goodsType.Code))
@@ -596,10 +715,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
                 [CompaniesLayer] = createdCompanies,
+                [CarriersLayer] = createdCarriers,
                 [CustomerTagsLayer] = createdCustomerTags,
                 [CustomerProtocolGoodsLayer] = createdCustomerProtocolGoods,
                 [CustomerProtocolsLayer] = createdCustomerProtocols,
                 [CustomersLayer] = createdCustomers,
+                [DeliveryRoutesLayer] = createdDeliveryRoutes,
+                [DriversLayer] = createdDrivers,
                 [GoodsLayer] = createdGoods,
                 [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
@@ -613,10 +735,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
                 [CompaniesLayer] = reusedCompanies,
+                [CarriersLayer] = reusedCarriers,
                 [CustomerTagsLayer] = reusedCustomerTags,
                 [CustomerProtocolGoodsLayer] = reusedCustomerProtocolGoods,
                 [CustomerProtocolsLayer] = reusedCustomerProtocols,
                 [CustomersLayer] = reusedCustomers,
+                [DeliveryRoutesLayer] = reusedDeliveryRoutes,
+                [DriversLayer] = reusedDrivers,
                 [GoodsLayer] = reusedGoods,
                 [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
@@ -639,6 +764,19 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"021-6800{sequence:D4}",
                 $"上海市浦东新区鲜品大道{sequence}号冷链供应中心",
                 $"SkyRoc 联调公司资料：华东区域第 {sequence:D2} 个采购与配送业务主体。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<CarrierSeed> CreateCarrierSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new CarrierSeed(
+                DemoDataStableKeyCatalog.Create("CARRIER", sequence),
+                $"华东冷链联调承运商{sequence:D2}",
+                $"周调度{sequence:D2}",
+                $"021-6500{sequence:D4}",
+                $"上海市浦东新区冷链配送大道{sequence}号承运服务中心",
+                $"SkyRoc 联调承运商资料：华东第 {sequence:D2} 个冷链配送合作伙伴，支持司机分配与配送履约。"))
             .ToArray();
     }
 
@@ -684,6 +822,33 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"1380010{sequence:D4}",
                 $"上海市浦东新区鲜品大道{sequence}号配送收货区",
                 $"SkyRoc 联调客户资料：华东第 {sequence:D2} 个团餐客户，覆盖采购、配送和结算场景。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<DriverSeed> CreateDriverSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new DriverSeed(
+                DemoDataStableKeyCatalog.Create("DRIVER", sequence),
+                DemoDataStableKeyCatalog.Create("CARRIER", sequence),
+                $"华东联调配送司机{sequence:D2}",
+                $"1377000{sequence:D4}",
+                $"沪A{sequence:D5}",
+                $"3101151988{sequence:D8}",
+                $"SkyRoc 联调司机资料：华东第 {sequence:D2} 名配送司机，使用指定承运商和车辆执行客户履约。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<DeliveryRouteSeed> CreateDeliveryRouteSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new DeliveryRouteSeed(
+                DemoDataStableKeyCatalog.Create("DELIVERY-ROUTE", sequence),
+                DemoDataStableKeyCatalog.Create("CUSTOMER", sequence),
+                $"华东联调配送路线{sequence:D2}",
+                $"覆盖浦东新区鲜品大道第 {sequence:D2} 个客户服务片区，按冷链车辆优先顺序履约。",
+                sequence,
+                $"SkyRoc 联调配送路线：为客户 {sequence:D2} 建立稳定路线关系，支持智能规划与配送状态流转。"))
             .ToArray();
     }
 
@@ -835,6 +1000,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 Domain.Entities.Customers.Company company => company.Id,
                 Domain.Entities.Customers.Customer customer => customer.Id,
                 Domain.Entities.Customers.CustomerTag customerTag => customerTag.Id,
+                Domain.Entities.Delivery.Carrier carrier => carrier.Id,
                 Domain.Entities.Goods.GoodsType goodsType => goodsType.Id,
                 Domain.Entities.Purchases.Supplier supplier => supplier.Id,
                 Domain.Entities.Purchases.Purchaser purchaser => purchaser.Id,
@@ -1665,6 +1831,137 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && purchaser.DepartmentId == departmentId
                    && purchaser.Remark == Remark
                    && purchaser.Status == Status.Enable;
+        }
+    }
+
+    private sealed record CarrierSeed(
+        string Code,
+        string Name,
+        string ContactName,
+        string ContactPhone,
+        string Address,
+        string Remark)
+    {
+        public CreateCarrierDto ToCreateDto() => new()
+        {
+            Code = Code,
+            Name = Name,
+            ContactName = ContactName,
+            ContactPhone = ContactPhone,
+            Address = Address,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateCarrierDto ToUpdateDto(Guid id) => new()
+        {
+            Id = id,
+            Code = Code,
+            Name = Name,
+            ContactName = ContactName,
+            ContactPhone = ContactPhone,
+            Address = Address,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Delivery.Carrier carrier)
+        {
+            return carrier.Name == Name
+                   && carrier.ContactName == ContactName
+                   && carrier.ContactPhone == ContactPhone
+                   && carrier.Address == Address
+                   && carrier.Remark == Remark
+                   && carrier.Status == Status.Enable;
+        }
+    }
+
+    private sealed record DriverSeed(
+        string Code,
+        string CarrierCode,
+        string Name,
+        string Phone,
+        string PlateNumber,
+        string LicenseNo,
+        string Remark)
+    {
+        public CreateDriverDto ToCreateDto(Guid carrierId) => new()
+        {
+            Code = Code,
+            Name = Name,
+            Phone = Phone,
+            CarrierId = carrierId,
+            PlateNumber = PlateNumber,
+            LicenseNo = LicenseNo,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateDriverDto ToUpdateDto(Guid id, Guid carrierId) => new()
+        {
+            Id = id,
+            Code = Code,
+            Name = Name,
+            Phone = Phone,
+            CarrierId = carrierId,
+            PlateNumber = PlateNumber,
+            LicenseNo = LicenseNo,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Delivery.Driver driver, Guid carrierId)
+        {
+            return driver.Name == Name
+                   && driver.CarrierId == carrierId
+                   && driver.Phone == Phone
+                   && driver.PlateNumber == PlateNumber
+                   && driver.LicenseNo == LicenseNo
+                   && driver.Remark == Remark
+                   && driver.Status == Status.Enable;
+        }
+    }
+
+    private sealed record DeliveryRouteSeed(
+        string Code,
+        string CustomerCode,
+        string Name,
+        string Description,
+        int Sort,
+        string Remark)
+    {
+        public CreateDeliveryRouteDto ToCreateDto(Guid customerId) => new()
+        {
+            Code = Code,
+            Name = Name,
+            Description = Description,
+            Sort = Sort,
+            CustomerIds = [customerId],
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateDeliveryRouteDto ToUpdateDto(Guid id, Guid customerId) => new()
+        {
+            Id = id,
+            Code = Code,
+            Name = Name,
+            Description = Description,
+            Sort = Sort,
+            CustomerIds = [customerId],
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Delivery.DeliveryRoute route, Guid customerId)
+        {
+            return route.Name == Name
+                   && route.Description == Description
+                   && route.Sort == Sort
+                   && route.Remark == Remark
+                   && route.Status == Status.Enable
+                   && route.CustomerRoutes.Count == 1
+                   && route.CustomerRoutes.Single().CustomerId == customerId;
         }
     }
 
