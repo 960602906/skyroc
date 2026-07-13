@@ -1,5 +1,6 @@
 using Application.DTOs.Customers;
 using Application.DTOs.Goods;
+using Application.DTOs.Storage;
 using Application.interfaces;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +20,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerTagsLayer = "customer-tags";
     private const string CustomersLayer = "customers";
     private const string GoodsTypesLayer = "goods-types";
+    private const string WaresLayer = "wares";
 
     /// <summary>
     ///     在经白名单验证的真实 PostgreSQL 中幂等生成当前已实现的联调资料层。
@@ -36,14 +38,17 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
+        var wareService = scope.ServiceProvider.GetRequiredService<IWareService>();
         var companySeeds = CreateCompanySeeds();
         var customerTagSeeds = CreateCustomerTagSeeds();
         var customerSeeds = CreateCustomerSeeds();
         var goodsTypeSeeds = CreateGoodsTypeSeeds();
+        var wareSeeds = CreateWareSeeds();
         var companyCodes = companySeeds.Select(seed => seed.Code).ToArray();
         var customerTagCodes = customerTagSeeds.Select(seed => seed.Code).ToArray();
         var customerCodes = customerSeeds.Select(seed => seed.Code).ToArray();
         var goodsTypeCodes = goodsTypeSeeds.Select(seed => seed.Code).ToArray();
+        var wareCodes = wareSeeds.Select(seed => seed.Code).ToArray();
         var auditUser = await context.Users
             .OrderBy(user => user.Username)
             .Select(user => new DemoAuditUser(user.Id, user.Username))
@@ -56,6 +61,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var existingCustomerTags = await context.CustomerTags
             .Where(tag => customerTagCodes.Contains(tag.Code))
             .ToDictionaryAsync(tag => tag.Code, StringComparer.Ordinal, cancellationToken);
+        var existingWares = await context.Wares
+            .Where(ware => wareCodes.Contains(ware.Code))
+            .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
 
         var createdCompanies = 0;
         var reusedCompanies = 0;
@@ -65,6 +73,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomers = 0;
         var createdGoodsTypes = 0;
         var reusedGoodsTypes = 0;
+        var createdWares = 0;
+        var reusedWares = 0;
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -172,6 +182,28 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 reusedGoodsTypes++;
             }
 
+            foreach (var seed in wareSeeds)
+            {
+                if (!existingWares.TryGetValue(seed.Code, out var ware))
+                {
+                    await wareService.CreateAsync(seed.ToCreateDto());
+                    createdWares++;
+                    continue;
+                }
+
+                if (!seed.Matches(ware))
+                    await wareService.UpdateAsync(ware.Id, seed.ToUpdateDto(ware.Id));
+
+                if (ware.CreateBy != auditUser.Id || ware.CreateName != auditUser.Username)
+                {
+                    // 仓库创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                    ware.CreateBy = auditUser.Id;
+                    ware.CreateName = auditUser.Username;
+                }
+
+                reusedWares++;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -187,14 +219,16 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CompaniesLayer] = createdCompanies,
                 [CustomerTagsLayer] = createdCustomerTags,
                 [CustomersLayer] = createdCustomers,
-                [GoodsTypesLayer] = createdGoodsTypes
+                [GoodsTypesLayer] = createdGoodsTypes,
+                [WaresLayer] = createdWares
             },
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
                 [CompaniesLayer] = reusedCompanies,
                 [CustomerTagsLayer] = reusedCustomerTags,
                 [CustomersLayer] = reusedCustomers,
-                [GoodsTypesLayer] = reusedGoodsTypes
+                [GoodsTypesLayer] = reusedGoodsTypes,
+                [WaresLayer] = reusedWares
             });
     }
 
@@ -271,6 +305,20 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 sequence % 5 == 0 ? "农产品流通环节免征增值税政策。" : null,
                 sequence,
                 $"SkyRoc 联调商品分类：华东第 {sequence:D2} 个生鲜品类，用于商品建档、报价和采购规则。"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<WareSeed> CreateWareSeeds()
+    {
+        return Enumerable.Range(1, 30)
+            .Select(sequence => new WareSeed(
+                DemoDataStableKeyCatalog.Create("WARE", sequence),
+                $"华东冷链联调仓库{sequence:D2}",
+                $"赵库管{sequence:D2}",
+                $"021-6900{sequence:D4}",
+                $"上海市浦东新区冷链物流园{sequence}号仓储中心",
+                sequence,
+                $"SkyRoc 联调仓库资料：华东第 {sequence:D2} 个冷链仓储节点，支持订单履约与库存批次场景。"))
             .ToArray();
     }
 
@@ -575,6 +623,52 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && goodsType.Remark == Remark
                    && goodsType.Status == Status.Enable
                    && goodsType.ParentId is null;
+        }
+    }
+
+    private sealed record WareSeed(
+        string Code,
+        string Name,
+        string ContactName,
+        string ContactPhone,
+        string Address,
+        int Sort,
+        string Remark)
+    {
+        public CreateWareDto ToCreateDto() => new()
+        {
+            Code = Code,
+            Name = Name,
+            ContactName = ContactName,
+            ContactPhone = ContactPhone,
+            Address = Address,
+            Sort = Sort,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public UpdateWareDto ToUpdateDto(Guid id) => new()
+        {
+            Id = id,
+            Code = Code,
+            Name = Name,
+            ContactName = ContactName,
+            ContactPhone = ContactPhone,
+            Address = Address,
+            Sort = Sort,
+            Remark = Remark,
+            Status = Status.Enable
+        };
+
+        public bool Matches(Domain.Entities.Storage.Ware ware)
+        {
+            return ware.Name == Name
+                   && ware.ContactName == ContactName
+                   && ware.ContactPhone == ContactPhone
+                   && ware.Address == Address
+                   && ware.Sort == Sort
+                   && ware.Remark == Remark
+                   && ware.Status == Status.Enable;
         }
     }
 

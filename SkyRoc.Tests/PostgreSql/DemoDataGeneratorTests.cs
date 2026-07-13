@@ -177,4 +177,38 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             }
         });
     }
+
+    /// <summary>
+    ///     生成器必须经仓库应用服务补齐稳定编码的仓库资料，填满当前可写联系人与地址字段，并在重复运行时复用既有仓库。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedWaresWithCompleteContactData_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedWareCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("WARE", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var wares = await context.Wares
+            .Where(ware => managedWareCodes.Contains(ware.Code))
+            .OrderBy(ware => ware.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, wares.Count);
+        Assert.Equal(30, wares.Select(ware => ware.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["wares"] + first.ReusedByLayer["wares"]);
+        Assert.Equal(0, second.CreatedByLayer["wares"]);
+        Assert.All(wares, ware =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(ware.Name));
+            Assert.False(string.IsNullOrWhiteSpace(ware.ContactName));
+            Assert.False(string.IsNullOrWhiteSpace(ware.ContactPhone));
+            Assert.False(string.IsNullOrWhiteSpace(ware.Address));
+            Assert.False(string.IsNullOrWhiteSpace(ware.Remark));
+            Assert.NotNull(ware.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(ware.CreateName));
+        });
+    }
 }
