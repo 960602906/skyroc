@@ -50,6 +50,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string AfterSalesLayer = "after-sales";
     private const string CustomerBillDetailsLayer = "customer-bill-details";
     private const string CustomerBillsLayer = "customer-bills";
+    private const string CustomerSettlementDetailsLayer = "customer-settlement-details";
+    private const string CustomerSettlementsLayer = "customer-settlements";
     private const string DepartmentsLayer = "departments";
     private const string CarriersLayer = "carriers";
     private const string DeliveryTasksLayer = "delivery-tasks";
@@ -116,6 +118,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var carrierService = scope.ServiceProvider.GetRequiredService<ICarrierService>();
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
+        var customerSettlementService = scope.ServiceProvider.GetRequiredService<ICustomerSettlementService>();
         var deliveryRouteService = scope.ServiceProvider.GetRequiredService<IDeliveryRouteService>();
         var deliveryTaskService = scope.ServiceProvider.GetRequiredService<IDeliveryTaskService>();
         var driverService = scope.ServiceProvider.GetRequiredService<IDriverService>();
@@ -297,6 +300,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomerBillDetails = 0;
         var createdCustomerBills = 0;
         var reusedCustomerBills = 0;
+        var createdCustomerSettlementDetails = 0;
+        var reusedCustomerSettlementDetails = 0;
+        var createdCustomerSettlements = 0;
+        var reusedCustomerSettlements = 0;
         var createdDeliveryRoutes = 0;
         var reusedDeliveryRoutes = 0;
         var createdDeliveryTasks = 0;
@@ -1330,6 +1337,15 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         createdStockLedgers += afterSaleResult.SalesReturnLedgers.Created;
         reusedStockLedgers += afterSaleResult.SalesReturnLedgers.Reused;
 
+        var customerSettlementResult = await new DemoDataCustomerSettlementBuilder(
+                context,
+                customerSettlementService)
+            .GenerateAsync(cancellationToken);
+        createdCustomerSettlements = customerSettlementResult.CreatedSettlements;
+        reusedCustomerSettlements = customerSettlementResult.ReusedSettlements;
+        createdCustomerSettlementDetails = customerSettlementResult.CreatedDetails;
+        reusedCustomerSettlementDetails = customerSettlementResult.ReusedDetails;
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1344,6 +1360,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerSubAccountsLayer] = createdCustomerSubAccounts,
                 [CustomerBillDetailsLayer] = createdCustomerBillDetails,
                 [CustomerBillsLayer] = createdCustomerBills,
+                [CustomerSettlementDetailsLayer] = createdCustomerSettlementDetails,
+                [CustomerSettlementsLayer] = createdCustomerSettlements,
                 [CustomersLayer] = createdCustomers,
                 [DepartmentsLayer] = createdDepartments,
                 [DeliveryTasksLayer] = createdDeliveryTasks,
@@ -1405,6 +1423,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerSubAccountsLayer] = reusedCustomerSubAccounts,
                 [CustomerBillDetailsLayer] = reusedCustomerBillDetails,
                 [CustomerBillsLayer] = reusedCustomerBills,
+                [CustomerSettlementDetailsLayer] = reusedCustomerSettlementDetails,
+                [CustomerSettlementsLayer] = reusedCustomerSettlements,
                 [CustomersLayer] = reusedCustomers,
                 [DepartmentsLayer] = reusedDepartments,
                 [DeliveryTasksLayer] = reusedDeliveryTasks,

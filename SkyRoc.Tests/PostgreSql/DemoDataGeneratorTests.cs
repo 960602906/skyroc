@@ -1660,4 +1660,237 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
                           && detail.AfterSaleGoodsId.HasValue);
         });
     }
+
+    /// <summary>
+    ///     生成器必须通过客户结款服务形成部分结款、全额结款和作废凭证，并在第二次运行时不重复核销账单余额。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedCustomerSettlementsWithPartialSettledAndVoidedStates_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var firstDatabaseSnapshot = await CaptureManagedCustomerSettlementDatabaseSnapshotAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+        var secondDatabaseSnapshot = await CaptureManagedCustomerSettlementDatabaseSnapshotAsync();
+
+        var managedSerialNumbers = Enumerable.Range(1, 100)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER-SETTLEMENT", sequence))
+            .ToArray();
+        var expectedSaleOrderKeys = Enumerable.Range(1, 60)
+            .Where(sequence => sequence % 3 != 0)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var settlements = await context.CustomerSettlements
+            .Include(settlement => settlement.Details)
+            .Where(settlement => settlement.SerialNo != null
+                                 && managedSerialNumbers.Contains(settlement.SerialNo))
+            .OrderBy(settlement => settlement.SerialNo)
+            .ToListAsync();
+        var customerBillIds = settlements
+            .SelectMany(settlement => settlement.Details)
+            .Select(detail => detail.CustomerBillId)
+            .Distinct()
+            .ToArray();
+        var customerBills = await context.CustomerBills
+            .Include(bill => bill.SaleOrder)
+            .Where(bill => customerBillIds.Contains(bill.Id))
+            .OrderBy(bill => bill.SaleOrderNoSnapshot)
+            .ToListAsync();
+        var actualSaleOrderKeys = customerBills
+            .Select(bill => bill.SaleOrder.InnerRemark!)
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToArray();
+        var activeAppliedAmountsByBill = settlements
+            .Where(settlement => settlement.SettlementStatus != CustomerSettlementStatus.Voided)
+            .SelectMany(settlement => settlement.Details)
+            .GroupBy(detail => detail.CustomerBillId)
+            .ToDictionary(
+                group => group.Key,
+                group => NumericPrecision.RoundMoney(group.Sum(detail => detail.AppliedAmount)));
+
+        first.CreatedByLayer.TryGetValue("customer-settlements", out var createdSettlements);
+        first.ReusedByLayer.TryGetValue("customer-settlements", out var reusedSettlements);
+        first.CreatedByLayer.TryGetValue("customer-settlement-details", out var createdSettlementDetails);
+        first.ReusedByLayer.TryGetValue("customer-settlement-details", out var reusedSettlementDetails);
+
+        Assert.Equal(100, settlements.Count);
+        Assert.Equal(100, settlements.Select(settlement => settlement.SerialNo).Distinct().Count());
+        Assert.Equal(100, createdSettlements + reusedSettlements);
+        Assert.Equal(100, createdSettlementDetails + reusedSettlementDetails);
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("customer-settlements"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("customer-settlement-details"));
+        Assert.Equal(firstDatabaseSnapshot, secondDatabaseSnapshot);
+        Assert.Equal(expectedSaleOrderKeys, actualSaleOrderKeys);
+        Assert.Equal(20, settlements.Count(settlement => settlement.SettlementStatus == CustomerSettlementStatus.Voided));
+        Assert.Equal(
+            60,
+            settlements.Count(settlement => settlement.SettlementStatus == CustomerSettlementStatus.PartiallySettled));
+        Assert.Equal(20, settlements.Count(settlement => settlement.SettlementStatus == CustomerSettlementStatus.Settled));
+        Assert.Equal(40, customerBills.Count);
+        Assert.Equal(20, customerBills.Count(bill => bill.BillStatus == CustomerBillStatus.PartiallySettled));
+        Assert.Equal(20, customerBills.Count(bill => bill.BillStatus == CustomerBillStatus.Settled));
+        Assert.All(settlements, settlement =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(settlement.SettlementNo));
+            Assert.False(string.IsNullOrWhiteSpace(settlement.CustomerNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(settlement.SerialNo));
+            Assert.True(settlement.ShouldAmount > 0m);
+            Assert.True(settlement.PaymentAmount > 0m);
+            Assert.True(settlement.DiscountAmount > 0m);
+            Assert.Equal(
+                settlement.AppliedAmount,
+                NumericPrecision.RoundMoney(settlement.PaymentAmount + settlement.DiscountAmount));
+            Assert.True(settlement.AppliedAmount > 0m);
+            Assert.True(settlement.RemainingAmount >= 0m);
+            Assert.False(string.IsNullOrWhiteSpace(settlement.Remark));
+            Assert.NotNull(settlement.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(settlement.CreateName));
+            Assert.Single(settlement.Details);
+
+            if (settlement.SettlementStatus == CustomerSettlementStatus.Voided)
+            {
+                Assert.NotNull(settlement.VoidedTime);
+                Assert.NotNull(settlement.VoidedBy);
+                Assert.False(string.IsNullOrWhiteSpace(settlement.VoidedByNameSnapshot));
+                Assert.NotNull(settlement.UpdateBy);
+                Assert.False(string.IsNullOrWhiteSpace(settlement.UpdateName));
+            }
+            else
+            {
+                Assert.Null(settlement.VoidedTime);
+                Assert.Null(settlement.VoidedBy);
+                Assert.Null(settlement.VoidedByNameSnapshot);
+            }
+
+            Assert.All(settlement.Details, detail =>
+            {
+                Assert.Equal(settlement.Id, detail.CustomerSettlementId);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CustomerBillNoSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.SaleOrderNoSnapshot));
+                Assert.True(detail.ReceivableAmountSnapshot > 0m);
+                Assert.True(detail.PreviousSettledAmount >= 0m);
+                Assert.True(detail.PaymentAmount > 0m);
+                Assert.True(detail.DiscountAmount > 0m);
+                Assert.Equal(
+                    detail.AppliedAmount,
+                    NumericPrecision.RoundMoney(detail.PaymentAmount + detail.DiscountAmount));
+                Assert.Equal(
+                    detail.CurrentSettledAmount,
+                    NumericPrecision.RoundMoney(detail.PreviousSettledAmount + detail.AppliedAmount));
+                Assert.True(detail.RemainingAmount >= 0m);
+                Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+            });
+        });
+        Assert.All(customerBills, bill =>
+        {
+            Assert.True(bill.SettledAmount > 0m);
+            Assert.True(bill.SettledAmount <= bill.ReceivableAmount);
+            Assert.Equal(
+                activeAppliedAmountsByBill.GetValueOrDefault(bill.Id),
+                NumericPrecision.RoundMoney(bill.SettledAmount));
+            Assert.NotNull(bill.UpdateBy);
+            Assert.False(string.IsNullOrWhiteSpace(bill.UpdateName));
+        });
+    }
+
+    private async Task<CustomerSettlementDatabaseSnapshot> CaptureManagedCustomerSettlementDatabaseSnapshotAsync()
+    {
+        var managedSerialNumbers = Enumerable.Range(1, 100)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER-SETTLEMENT", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var settlements = await context.CustomerSettlements
+            .AsNoTracking()
+            .Include(settlement => settlement.Details)
+            .Where(settlement => settlement.SerialNo != null
+                                 && managedSerialNumbers.Contains(settlement.SerialNo))
+            .OrderBy(settlement => settlement.SerialNo)
+            .ToListAsync();
+        var customerBillIds = settlements
+            .SelectMany(settlement => settlement.Details)
+            .Select(detail => detail.CustomerBillId)
+            .Distinct()
+            .ToArray();
+        var customerBills = await context.CustomerBills
+            .AsNoTracking()
+            .Where(bill => customerBillIds.Contains(bill.Id))
+            .OrderBy(bill => bill.SaleOrderNoSnapshot)
+            .ToListAsync();
+
+        var settlementState = string.Join(
+            Environment.NewLine,
+            settlements.Select(settlement =>
+            {
+                var detail = Assert.Single(settlement.Details);
+                return string.Join(
+                    '|',
+                    settlement.Id,
+                    settlement.SettlementNo,
+                    settlement.CustomerId,
+                    settlement.CustomerNameSnapshot,
+                    settlement.SettlementDate.ToString("O"),
+                    settlement.SerialNo,
+                    settlement.ShouldAmount,
+                    settlement.PaymentAmount,
+                    settlement.DiscountAmount,
+                    settlement.AppliedAmount,
+                    settlement.RemainingAmount,
+                    settlement.SettlementStatus,
+                    settlement.VoidedTime?.ToString("O"),
+                    settlement.VoidedBy,
+                    settlement.VoidedByNameSnapshot,
+                    settlement.Remark,
+                    settlement.CreateTime?.ToString("O"),
+                    settlement.CreateBy,
+                    settlement.CreateName,
+                    settlement.UpdateTime?.ToString("O"),
+                    settlement.UpdateBy,
+                    settlement.UpdateName,
+                    settlement.Status,
+                    detail.Id,
+                    detail.CustomerBillId,
+                    detail.CustomerBillNoSnapshot,
+                    detail.SaleOrderId,
+                    detail.SaleOrderNoSnapshot,
+                    detail.ReceivableAmountSnapshot,
+                    detail.PreviousSettledAmount,
+                    detail.PaymentAmount,
+                    detail.DiscountAmount,
+                    detail.AppliedAmount,
+                    detail.CurrentSettledAmount,
+                    detail.RemainingAmount,
+                    detail.Remark,
+                    detail.CreateTime?.ToString("O"),
+                    detail.CreateBy,
+                    detail.CreateName,
+                    detail.UpdateTime?.ToString("O"),
+                    detail.UpdateBy,
+                    detail.UpdateName,
+                    detail.Status);
+            }));
+        var billState = string.Join(
+            Environment.NewLine,
+            customerBills.Select(bill => string.Join(
+                '|',
+                bill.Id,
+                bill.BillNo,
+                bill.CustomerId,
+                bill.SaleOrderId,
+                bill.SaleOrderNoSnapshot,
+                bill.ReceivableAmount,
+                bill.SettledAmount,
+                bill.BillStatus,
+                bill.UpdateTime?.ToString("O"),
+                bill.UpdateBy,
+                bill.UpdateName,
+                bill.Status)));
+
+        return new CustomerSettlementDatabaseSnapshot(settlementState, billState);
+    }
+
+    private sealed record CustomerSettlementDatabaseSnapshot(string Settlements, string Bills);
 }
