@@ -58,6 +58,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string PurchaseStockInDetailsLayer = "purchase-stock-in-details";
     private const string PurchaseStockInsLayer = "purchase-stock-ins";
     private const string PurchaseRulesLayer = "purchase-rules";
+    private const string SaleStockOutDetailsLayer = "sale-stock-out-details";
+    private const string SaleStockOutLedgersLayer = "sale-stock-out-ledgers";
+    private const string SaleStockOutsLayer = "sale-stock-outs";
+    private const string SaleStockSupportBatchesLayer = "sale-stock-support-batches";
+    private const string SaleStockSupportInDetailsLayer = "sale-stock-support-in-details";
+    private const string SaleStockSupportInsLayer = "sale-stock-support-ins";
+    private const string SaleStockSupportLedgersLayer = "sale-stock-support-ledgers";
     private const string SaleOrderDetailsLayer = "sale-order-details";
     private const string SaleOrdersLayer = "sale-orders";
     private const string ServicePeriodsLayer = "service-periods";
@@ -107,6 +114,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var purchaseRuleService = scope.ServiceProvider.GetRequiredService<IPurchaseRuleService>();
         var saleOrderService = scope.ServiceProvider.GetRequiredService<ISaleOrderService>();
         var stockInService = scope.ServiceProvider.GetRequiredService<IStockInService>();
+        var stockOutService = scope.ServiceProvider.GetRequiredService<IStockOutService>();
         var systemSupportService = scope.ServiceProvider.GetRequiredService<ISystemSupportService>();
         var printService = scope.ServiceProvider.GetRequiredService<IPrintService>();
         var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
@@ -295,6 +303,20 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedPurchaseStockIns = 0;
         var createdPurchaseRules = 0;
         var reusedPurchaseRules = 0;
+        var createdSaleStockOutDetails = 0;
+        var reusedSaleStockOutDetails = 0;
+        var createdSaleStockOutLedgers = 0;
+        var reusedSaleStockOutLedgers = 0;
+        var createdSaleStockOuts = 0;
+        var reusedSaleStockOuts = 0;
+        var createdSaleStockSupportBatches = 0;
+        var reusedSaleStockSupportBatches = 0;
+        var createdSaleStockSupportInDetails = 0;
+        var reusedSaleStockSupportInDetails = 0;
+        var createdSaleStockSupportIns = 0;
+        var reusedSaleStockSupportIns = 0;
+        var createdSaleStockSupportLedgers = 0;
+        var reusedSaleStockSupportLedgers = 0;
         var createdSaleOrderDetails = 0;
         var reusedSaleOrderDetails = 0;
         var createdSaleOrders = 0;
@@ -1203,6 +1225,27 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             auditUser,
             cancellationToken);
 
+        (
+            createdSaleStockSupportIns,
+            reusedSaleStockSupportIns,
+            createdSaleStockSupportInDetails,
+            reusedSaleStockSupportInDetails,
+            createdSaleStockSupportBatches,
+            reusedSaleStockSupportBatches,
+            createdSaleStockSupportLedgers,
+            reusedSaleStockSupportLedgers,
+            createdSaleStockOuts,
+            reusedSaleStockOuts,
+            createdSaleStockOutDetails,
+            reusedSaleStockOutDetails,
+            createdSaleStockOutLedgers,
+            reusedSaleStockOutLedgers) = await GenerateSaleStockOutsAsync(
+            context,
+            stockInService,
+            stockOutService,
+            auditUser,
+            cancellationToken);
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1229,6 +1272,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [PurchaseStockInDetailsLayer] = createdPurchaseStockInDetails,
                 [PurchaseStockInsLayer] = createdPurchaseStockIns,
                 [PurchaseRulesLayer] = createdPurchaseRules,
+                [SaleStockOutDetailsLayer] = createdSaleStockOutDetails,
+                [SaleStockOutLedgersLayer] = createdSaleStockOutLedgers,
+                [SaleStockOutsLayer] = createdSaleStockOuts,
+                [SaleStockSupportBatchesLayer] = createdSaleStockSupportBatches,
+                [SaleStockSupportInDetailsLayer] = createdSaleStockSupportInDetails,
+                [SaleStockSupportInsLayer] = createdSaleStockSupportIns,
+                [SaleStockSupportLedgersLayer] = createdSaleStockSupportLedgers,
                 [SaleOrderDetailsLayer] = createdSaleOrderDetails,
                 [SaleOrdersLayer] = createdSaleOrders,
                 [ServicePeriodsLayer] = createdServicePeriods,
@@ -1272,6 +1322,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [PurchaseStockInDetailsLayer] = reusedPurchaseStockInDetails,
                 [PurchaseStockInsLayer] = reusedPurchaseStockIns,
                 [PurchaseRulesLayer] = reusedPurchaseRules,
+                [SaleStockOutDetailsLayer] = reusedSaleStockOutDetails,
+                [SaleStockOutLedgersLayer] = reusedSaleStockOutLedgers,
+                [SaleStockOutsLayer] = reusedSaleStockOuts,
+                [SaleStockSupportBatchesLayer] = reusedSaleStockSupportBatches,
+                [SaleStockSupportInDetailsLayer] = reusedSaleStockSupportInDetails,
+                [SaleStockSupportInsLayer] = reusedSaleStockSupportIns,
+                [SaleStockSupportLedgersLayer] = reusedSaleStockSupportLedgers,
                 [SaleOrderDetailsLayer] = reusedSaleOrderDetails,
                 [SaleOrdersLayer] = reusedSaleOrders,
                 [ServicePeriodsLayer] = reusedServicePeriods,
@@ -2272,6 +2329,549 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         return new DateTime(2026, 8, (sequence - 1) % 28 + 1, 10, 30, 0, DateTimeKind.Utc);
     }
 
+    private static async Task<(
+        int CreatedSupportIns,
+        int ReusedSupportIns,
+        int CreatedSupportDetails,
+        int ReusedSupportDetails,
+        int CreatedSupportBatches,
+        int ReusedSupportBatches,
+        int CreatedSupportLedgers,
+        int ReusedSupportLedgers,
+        int CreatedStockOuts,
+        int ReusedStockOuts,
+        int CreatedStockOutDetails,
+        int ReusedStockOutDetails,
+        int CreatedStockOutLedgers,
+        int ReusedStockOutLedgers)> GenerateSaleStockOutsAsync(
+            ApplicationDbContext context,
+            IStockInService stockInService,
+            IStockOutService stockOutService,
+            DemoAuditUser auditUser,
+            CancellationToken cancellationToken)
+    {
+        var saleOrderKeys = Enumerable.Range(1, 60)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
+            .ToArray();
+        var supportInRemarks = Enumerable.Range(1, 40)
+            .Select(CreateSaleStockSupportInRemark)
+            .ToArray();
+        var stockOutRemarks = Enumerable.Range(1, 40)
+            .Select(CreateSaleStockOutRemark)
+            .ToArray();
+        var departmentCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("DEPARTMENT", sequence))
+            .ToArray();
+
+        var approvedOrders = await context.SaleOrders
+            .Include(order => order.Details)
+            .Where(order => order.InnerRemark != null
+                            && saleOrderKeys.Contains(order.InnerRemark)
+                            && order.OrderStatus == SaleOrderStatus.SortingPending)
+            .OrderBy(order => order.InnerRemark)
+            .ToListAsync(cancellationToken);
+        if (approvedOrders.Count != 40)
+        {
+            throw new InvalidOperationException(
+                $"受管销售出库生成需要 40 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
+        }
+
+        var existingSupportIns = await context.StockInOrders
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.StockBatch)
+            .Where(order => order.Remark != null && supportInRemarks.Contains(order.Remark))
+            .ToDictionaryAsync(order => order.Remark!, StringComparer.Ordinal, cancellationToken);
+        var existingStockOuts = await context.StockOutOrders
+            .Include(order => order.Details)
+            .Where(order => order.Remark != null && stockOutRemarks.Contains(order.Remark))
+            .ToDictionaryAsync(order => order.Remark!, StringComparer.Ordinal, cancellationToken);
+        var managedDepartments = await context.Departments
+            .Where(department => departmentCodes.Contains(department.Code))
+            .ToDictionaryAsync(department => department.Code, StringComparer.Ordinal, cancellationToken);
+
+        var createdSupportIns = 0;
+        var reusedSupportIns = 0;
+        var createdSupportDetails = 0;
+        var reusedSupportDetails = 0;
+        var createdSupportBatches = 0;
+        var reusedSupportBatches = 0;
+        var createdSupportLedgers = 0;
+        var reusedSupportLedgers = 0;
+        var createdStockOuts = 0;
+        var reusedStockOuts = 0;
+        var createdStockOutDetails = 0;
+        var reusedStockOutDetails = 0;
+        var createdStockOutLedgers = 0;
+        var reusedStockOutLedgers = 0;
+
+        for (var index = 0; index < approvedOrders.Count; index++)
+        {
+            var sequence = index + 1;
+            var saleOrder = approvedOrders[index];
+            if (!saleOrder.WareId.HasValue)
+            {
+                throw new InvalidOperationException($"受管销售订单 {saleOrder.InnerRemark} 未配置出库仓库。");
+            }
+
+            var referenceSequence = (sequence - 1) % 30 + 1;
+            var department = GetManagedReference(
+                managedDepartments,
+                DemoDataStableKeyCatalog.Create("DEPARTMENT", referenceSequence),
+                "部门");
+            var supportInRemark = CreateSaleStockSupportInRemark(sequence);
+
+            StockInOrder supportIn;
+            var supportWasCreated = false;
+            if (!existingSupportIns.TryGetValue(supportInRemark, out var existingSupportIn))
+            {
+                var created = await stockInService.CreateOtherAsync(CreateSaleStockSupportInDto(
+                    saleOrder,
+                    department.Id,
+                    sequence));
+                await stockInService.AuditAsync(
+                    StockInOrderType.Other,
+                    created.Id,
+                    CreateSaleStockSupportInAuditRemark(sequence));
+                supportIn = await GetManagedSaleStockSupportInAsync(context, created.Id, cancellationToken);
+                supportWasCreated = true;
+            }
+            else
+            {
+                supportIn = existingSupportIn;
+                if (supportIn.BusinessStatus is StockDocumentStatus.Draft or StockDocumentStatus.PendingAudit)
+                {
+                    if (supportIn.BusinessStatus == StockDocumentStatus.Draft)
+                    {
+                        await stockInService.UpdateOtherAsync(CreateSaleStockSupportInUpdateDto(
+                            supportIn,
+                            saleOrder,
+                            department.Id,
+                            sequence));
+                    }
+
+                    await stockInService.AuditAsync(
+                        StockInOrderType.Other,
+                        supportIn.Id,
+                        CreateSaleStockSupportInAuditRemark(sequence));
+                }
+                else if (supportIn.BusinessStatus != StockDocumentStatus.Audited)
+                {
+                    throw new InvalidOperationException(
+                        $"受管销售出库支撑入库 {supportInRemark} 当前状态为 {supportIn.BusinessStatus}，不能安全复用。");
+                }
+
+                supportIn = await GetManagedSaleStockSupportInAsync(context, supportIn.Id, cancellationToken);
+            }
+
+            ApplyManagedSaleStockSupportInFields(supportIn, saleOrder, sequence, auditUser);
+            await context.SaveChangesAsync(cancellationToken);
+
+            var supportLedgerCount = await context.StockLedgers
+                .CountAsync(ledger => ledger.SourceOrderId == supportIn.Id, cancellationToken);
+            var supportBatchCount = supportIn.Details.Count(detail => detail.StockBatchId.HasValue);
+            if (supportLedgerCount != supportIn.Details.Count)
+            {
+                throw new InvalidOperationException(
+                    $"受管销售出库支撑入库 {supportInRemark} 库存流水数量 {supportLedgerCount} 与明细数量 {supportIn.Details.Count} 不一致。");
+            }
+
+            if (supportWasCreated)
+            {
+                createdSupportIns++;
+                createdSupportDetails += supportIn.Details.Count;
+                createdSupportBatches += supportBatchCount;
+                createdSupportLedgers += supportLedgerCount;
+            }
+            else
+            {
+                reusedSupportIns++;
+                reusedSupportDetails += supportIn.Details.Count;
+                reusedSupportBatches += supportBatchCount;
+                reusedSupportLedgers += supportLedgerCount;
+            }
+
+            var stockOutRemark = CreateSaleStockOutRemark(sequence);
+            StockOutOrder stockOut;
+            var stockOutWasCreated = false;
+            if (!existingStockOuts.TryGetValue(stockOutRemark, out var existingStockOut))
+            {
+                var created = await stockOutService.CreateSaleAsync(CreateSaleStockOutDto(
+                    saleOrder,
+                    supportIn,
+                    department.Id,
+                    sequence));
+                await stockOutService.AuditAsync(
+                    StockOutOrderType.Sale,
+                    created.Id,
+                    CreateSaleStockOutAuditRemark(sequence));
+                stockOut = await GetManagedSaleStockOutAsync(context, created.Id, cancellationToken);
+                stockOutWasCreated = true;
+            }
+            else
+            {
+                stockOut = existingStockOut;
+                if (stockOut.BusinessStatus is StockDocumentStatus.Draft or StockDocumentStatus.PendingAudit)
+                {
+                    if (stockOut.BusinessStatus == StockDocumentStatus.Draft)
+                    {
+                        await stockOutService.UpdateSaleAsync(CreateSaleStockOutUpdateDto(
+                            stockOut,
+                            saleOrder,
+                            supportIn,
+                            department.Id,
+                            sequence));
+                    }
+
+                    await stockOutService.AuditAsync(
+                        StockOutOrderType.Sale,
+                        stockOut.Id,
+                        CreateSaleStockOutAuditRemark(sequence));
+                }
+                else if (stockOut.BusinessStatus != StockDocumentStatus.Audited)
+                {
+                    throw new InvalidOperationException(
+                        $"受管销售出库 {stockOutRemark} 当前状态为 {stockOut.BusinessStatus}，不能安全复用。");
+                }
+
+                stockOut = await GetManagedSaleStockOutAsync(context, stockOut.Id, cancellationToken);
+            }
+
+            ApplyManagedSaleStockOutFields(stockOut, sequence, auditUser);
+            await context.SaveChangesAsync(cancellationToken);
+
+            var stockOutLedgerCount = await context.StockLedgers
+                .CountAsync(ledger => ledger.SourceOrderId == stockOut.Id, cancellationToken);
+            if (stockOutLedgerCount != stockOut.Details.Count)
+            {
+                throw new InvalidOperationException(
+                    $"受管销售出库 {stockOutRemark} 库存流水数量 {stockOutLedgerCount} 与明细数量 {stockOut.Details.Count} 不一致。");
+            }
+
+            if (stockOutWasCreated)
+            {
+                createdStockOuts++;
+                createdStockOutDetails += stockOut.Details.Count;
+                createdStockOutLedgers += stockOutLedgerCount;
+            }
+            else
+            {
+                reusedStockOuts++;
+                reusedStockOutDetails += stockOut.Details.Count;
+                reusedStockOutLedgers += stockOutLedgerCount;
+            }
+        }
+
+        return (
+            createdSupportIns,
+            reusedSupportIns,
+            createdSupportDetails,
+            reusedSupportDetails,
+            createdSupportBatches,
+            reusedSupportBatches,
+            createdSupportLedgers,
+            reusedSupportLedgers,
+            createdStockOuts,
+            reusedStockOuts,
+            createdStockOutDetails,
+            reusedStockOutDetails,
+            createdStockOutLedgers,
+            reusedStockOutLedgers);
+    }
+
+    private static async Task<StockInOrder> GetManagedSaleStockSupportInAsync(
+        ApplicationDbContext context,
+        Guid stockInOrderId,
+        CancellationToken cancellationToken)
+    {
+        return await context.StockInOrders
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.StockBatch)
+            .SingleAsync(order => order.Id == stockInOrderId, cancellationToken);
+    }
+
+    private static async Task<StockOutOrder> GetManagedSaleStockOutAsync(
+        ApplicationDbContext context,
+        Guid stockOutOrderId,
+        CancellationToken cancellationToken)
+    {
+        return await context.StockOutOrders
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.StockBatch)
+            .SingleAsync(order => order.Id == stockOutOrderId, cancellationToken);
+    }
+
+    private static CreateOtherStockInDto CreateSaleStockSupportInDto(
+        SaleOrder saleOrder,
+        Guid departmentId,
+        int sequence)
+    {
+        return new CreateOtherStockInDto
+        {
+            WareId = saleOrder.WareId!.Value,
+            DepartmentId = departmentId,
+            InTime = CreateSaleStockSupportInTime(sequence),
+            Remark = CreateSaleStockSupportInRemark(sequence),
+            Details = saleOrder.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .Select((detail, detailIndex) => CreateSaleStockSupportInDetailDto(sequence, detailIndex, detail))
+                .ToList()
+        };
+    }
+
+    private static UpdateOtherStockInDto CreateSaleStockSupportInUpdateDto(
+        StockInOrder supportIn,
+        SaleOrder saleOrder,
+        Guid departmentId,
+        int sequence)
+    {
+        var supportDetailsByGoodsId = supportIn.Details.ToDictionary(detail => detail.GoodsId);
+        return new UpdateOtherStockInDto
+        {
+            Id = supportIn.Id,
+            WareId = saleOrder.WareId!.Value,
+            DepartmentId = departmentId,
+            InTime = CreateSaleStockSupportInTime(sequence),
+            Remark = CreateSaleStockSupportInRemark(sequence),
+            Details = saleOrder.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .Select((detail, detailIndex) =>
+                {
+                    var dto = CreateSaleStockSupportInDetailDto(sequence, detailIndex, detail);
+                    return new UpdateStockInDetailDto
+                    {
+                        Id = supportDetailsByGoodsId.GetValueOrDefault(detail.GoodsId)?.Id,
+                        GoodsId = dto.GoodsId,
+                        GoodsUnitId = dto.GoodsUnitId,
+                        Quantity = dto.Quantity,
+                        UnitPrice = dto.UnitPrice,
+                        BatchNo = dto.BatchNo,
+                        ProductDate = dto.ProductDate,
+                        ExpireDate = dto.ExpireDate,
+                        Remark = dto.Remark
+                    };
+                })
+                .ToList()
+        };
+    }
+
+    private static CreateStockInDetailDto CreateSaleStockSupportInDetailDto(
+        int sequence,
+        int detailIndex,
+        SaleOrderDetail detail)
+    {
+        var productDate = new DateOnly(2026, 8, (sequence + detailIndex - 1) % 28 + 1);
+        return new CreateStockInDetailDto
+        {
+            GoodsId = detail.GoodsId,
+            GoodsUnitId = detail.GoodsUnitId,
+            Quantity = detail.Quantity,
+            UnitPrice = NumericPrecision.RoundMoney(detail.FixedPrice * 0.72m),
+            BatchNo = CreateSaleStockSupportBatchNo(sequence, detailIndex),
+            ProductDate = productDate,
+            ExpireDate = productDate.AddDays(7 + detailIndex),
+            Remark = CreateSaleStockSupportInDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex)
+        };
+    }
+
+    private static CreateSaleStockOutDto CreateSaleStockOutDto(
+        SaleOrder saleOrder,
+        StockInOrder supportIn,
+        Guid departmentId,
+        int sequence)
+    {
+        var supportDetailsByGoodsId = supportIn.Details.ToDictionary(detail => detail.GoodsId);
+        return new CreateSaleStockOutDto
+        {
+            WareId = saleOrder.WareId!.Value,
+            SaleOrderId = saleOrder.Id,
+            CustomerId = saleOrder.CustomerId,
+            DepartmentId = departmentId,
+            OutTime = CreateSaleStockOutTime(sequence),
+            Remark = CreateSaleStockOutRemark(sequence),
+            Details = saleOrder.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .Select((detail, detailIndex) => CreateSaleStockOutDetailDto(
+                    sequence,
+                    detailIndex,
+                    detail,
+                    GetManagedReference(supportDetailsByGoodsId, detail.GoodsId, "销售出库支撑入库明细")))
+                .ToList()
+        };
+    }
+
+    private static UpdateSaleStockOutDto CreateSaleStockOutUpdateDto(
+        StockOutOrder stockOut,
+        SaleOrder saleOrder,
+        StockInOrder supportIn,
+        Guid departmentId,
+        int sequence)
+    {
+        var stockOutDetailsBySourceId = stockOut.Details
+            .Where(detail => detail.SaleOrderDetailId.HasValue)
+            .ToDictionary(detail => detail.SaleOrderDetailId!.Value);
+        var supportDetailsByGoodsId = supportIn.Details.ToDictionary(detail => detail.GoodsId);
+        return new UpdateSaleStockOutDto
+        {
+            Id = stockOut.Id,
+            WareId = saleOrder.WareId!.Value,
+            SaleOrderId = saleOrder.Id,
+            CustomerId = saleOrder.CustomerId,
+            DepartmentId = departmentId,
+            OutTime = CreateSaleStockOutTime(sequence),
+            Remark = CreateSaleStockOutRemark(sequence),
+            Details = saleOrder.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .Select((detail, detailIndex) =>
+                {
+                    var supportDetail = GetManagedReference(
+                        supportDetailsByGoodsId,
+                        detail.GoodsId,
+                        "销售出库支撑入库明细");
+                    var dto = CreateSaleStockOutDetailDto(sequence, detailIndex, detail, supportDetail);
+                    return new UpdateStockOutDetailDto
+                    {
+                        Id = stockOutDetailsBySourceId.GetValueOrDefault(detail.Id)?.Id,
+                        SaleOrderDetailId = dto.SaleOrderDetailId,
+                        StockBatchId = dto.StockBatchId,
+                        GoodsUnitId = dto.GoodsUnitId,
+                        Quantity = dto.Quantity,
+                        UnitPrice = dto.UnitPrice,
+                        Remark = dto.Remark
+                    };
+                })
+                .ToList()
+        };
+    }
+
+    private static CreateStockOutDetailDto CreateSaleStockOutDetailDto(
+        int sequence,
+        int detailIndex,
+        SaleOrderDetail saleDetail,
+        StockInDetail supportDetail)
+    {
+        if (!supportDetail.StockBatchId.HasValue)
+        {
+            throw new InvalidOperationException(
+                $"受管销售出库 {sequence:D2} 的支撑入库明细 {supportDetail.GoodsCodeSnapshot} 未生成库存批次。");
+        }
+
+        return new CreateStockOutDetailDto
+        {
+            SaleOrderDetailId = saleDetail.Id,
+            StockBatchId = supportDetail.StockBatchId.Value,
+            GoodsUnitId = saleDetail.GoodsUnitId,
+            Quantity = saleDetail.Quantity,
+            UnitPrice = saleDetail.FixedPrice,
+            Remark = CreateSaleStockOutDetailRemark(sequence, saleDetail.GoodsCodeSnapshot, detailIndex)
+        };
+    }
+
+    private static void ApplyManagedSaleStockSupportInFields(
+        StockInOrder supportIn,
+        SaleOrder saleOrder,
+        int sequence,
+        DemoAuditUser auditUser)
+    {
+        supportIn.WareId = saleOrder.WareId!.Value;
+        supportIn.Remark = CreateSaleStockSupportInRemark(sequence);
+        supportIn.InTime = CreateSaleStockSupportInTime(sequence);
+        if (supportIn.CreateBy != auditUser.Id || supportIn.CreateName != auditUser.Username)
+        {
+            supportIn.CreateBy = auditUser.Id;
+            supportIn.CreateName = auditUser.Username;
+        }
+
+        var orderedDetails = supportIn.Details
+            .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+            .ToArray();
+        for (var detailIndex = 0; detailIndex < orderedDetails.Length; detailIndex++)
+        {
+            var detail = orderedDetails[detailIndex];
+            detail.BatchNo = CreateSaleStockSupportBatchNo(sequence, detailIndex);
+            detail.Remark = CreateSaleStockSupportInDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex);
+            if (detail.CreateBy != auditUser.Id || detail.CreateName != auditUser.Username)
+            {
+                detail.CreateBy = auditUser.Id;
+                detail.CreateName = auditUser.Username;
+            }
+        }
+    }
+
+    private static void ApplyManagedSaleStockOutFields(
+        StockOutOrder stockOut,
+        int sequence,
+        DemoAuditUser auditUser)
+    {
+        stockOut.Remark = CreateSaleStockOutRemark(sequence);
+        stockOut.OutTime = CreateSaleStockOutTime(sequence);
+        if (stockOut.CreateBy != auditUser.Id || stockOut.CreateName != auditUser.Username)
+        {
+            stockOut.CreateBy = auditUser.Id;
+            stockOut.CreateName = auditUser.Username;
+        }
+
+        var orderedDetails = stockOut.Details
+            .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+            .ToArray();
+        for (var detailIndex = 0; detailIndex < orderedDetails.Length; detailIndex++)
+        {
+            var detail = orderedDetails[detailIndex];
+            detail.Remark = CreateSaleStockOutDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex);
+            if (detail.CreateBy != auditUser.Id || detail.CreateName != auditUser.Username)
+            {
+                detail.CreateBy = auditUser.Id;
+                detail.CreateName = auditUser.Username;
+            }
+        }
+    }
+
+    private static string CreateSaleStockSupportInRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("SALE-STOCK-SUPPORT-IN", sequence);
+        return $"{stableKey} 华东联调销售出库支撑入库{sequence:D2}：按销售订单仓库补充可出库库存，用于销售出库扣减。";
+    }
+
+    private static string CreateSaleStockSupportInDetailRemark(int sequence, string goodsCode, int detailIndex)
+    {
+        return $"SkyRoc 联调销售出库支撑入库明细：第 {sequence:D2} 张支撑入库第 {detailIndex + 1} 行商品 {goodsCode}，用于同仓销售出库。";
+    }
+
+    private static string CreateSaleStockSupportInAuditRemark(int sequence)
+    {
+        return $"SkyRoc 联调销售出库支撑入库审核：确认第 {sequence:D2} 张销售订单同仓可出库库存。";
+    }
+
+    private static string CreateSaleStockOutRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("SALE-STOCK-OUT", sequence);
+        return $"{stableKey} 华东联调销售出库{sequence:D2}：来源受管销售订单，用于配送、签收和客户账单链路。";
+    }
+
+    private static string CreateSaleStockOutDetailRemark(int sequence, string goodsCode, int detailIndex)
+    {
+        return $"SkyRoc 联调销售出库明细：销售出库 {sequence:D2} 第 {detailIndex + 1} 行商品 {goodsCode}，扣减同仓稳定批次库存。";
+    }
+
+    private static string CreateSaleStockOutAuditRemark(int sequence)
+    {
+        return $"SkyRoc 联调销售出库审核：确认第 {sequence:D2} 张销售订单完成出库并追加库存流水。";
+    }
+
+    private static string CreateSaleStockSupportBatchNo(int sequence, int detailIndex)
+    {
+        return $"{DemoDataStableKeyCatalog.Create("SALE-STOCK-BATCH", sequence)}-{detailIndex + 1:D2}";
+    }
+
+    private static DateTime CreateSaleStockSupportInTime(int sequence)
+    {
+        return new DateTime(2026, 8, (sequence - 1) % 28 + 1, 12, 0, 0, DateTimeKind.Utc);
+    }
+
+    private static DateTime CreateSaleStockOutTime(int sequence)
+    {
+        return CreateSaleStockSupportInTime(sequence).AddHours(4);
+    }
+
     private static string SerializeGoodsInfo(Domain.Entities.Goods.Goods goods)
     {
         return JsonSerializer.Serialize(new
@@ -2768,6 +3368,18 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         return entities.TryGetValue(businessCode, out var entity)
             ? entity
             : throw new InvalidOperationException($"未找到稳定编码为 {businessCode} 的受管{referenceName}。 ");
+    }
+
+    private static T GetManagedReference<TKey, T>(
+        IReadOnlyDictionary<TKey, T> entities,
+        TKey key,
+        string referenceName)
+        where TKey : notnull
+        where T : class
+    {
+        return entities.TryGetValue(key, out var entity)
+            ? entity
+            : throw new InvalidOperationException($"未找到键为 {key} 的受管{referenceName}。 ");
     }
 
     private static void SetAuditUser(IHttpContextAccessor httpContextAccessor, DemoAuditUser auditUser)
