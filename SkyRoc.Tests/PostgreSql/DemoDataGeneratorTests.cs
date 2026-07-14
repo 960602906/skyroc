@@ -1883,6 +1883,195 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
     }
 
     /// <summary>
+    ///     生成器必须基于受管溯源销售出库补齐配送异常任务，均衡覆盖待处理和已处理异常，并在重复运行时保持任务与异常事实不变。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedDeliveryExceptionsWithPendingAndHandledStates_AndSecondRunIsIdempotent()
+    {
+        const string managedExceptionPrefix = "SKYROC-DEMO-DELIVERY-EXCEPTION-";
+        const string managedTaskPrefix = "SKYROC-DEMO-DELIVERY-EXCEPTION-TASK-";
+
+        var first = await fixture.GenerateDemoDataAsync();
+        await using var firstContext = fixture.CreateDbContext();
+        var firstExceptions = await firstContext.DeliveryExceptions
+            .AsNoTracking()
+            .Where(exception => exception.Description.StartsWith(managedExceptionPrefix))
+            .OrderBy(exception => exception.Description)
+            .Select(exception => new
+            {
+                exception.Id,
+                exception.ExceptionNo,
+                exception.DeliveryTaskId,
+                exception.DriverId,
+                exception.CustomerId,
+                exception.Description,
+                exception.HandleStatus,
+                exception.HandleRemark,
+                exception.HandleTime,
+                exception.CreateTime,
+                exception.CreateBy,
+                exception.CreateName,
+                exception.UpdateTime,
+                exception.UpdateBy,
+                exception.UpdateName,
+                exception.Status
+            })
+            .ToArrayAsync();
+        var firstTasks = await firstContext.DeliveryTasks
+            .AsNoTracking()
+            .Where(task => task.Remark != null && task.Remark.StartsWith(managedTaskPrefix))
+            .OrderBy(task => task.Remark)
+            .Select(task => new
+            {
+                task.Id,
+                task.TaskNo,
+                task.StockOutOrderId,
+                task.SaleOrderId,
+                task.CustomerId,
+                task.DriverId,
+                task.CarrierId,
+                task.RouteId,
+                task.DeliveryStatus,
+                task.AssignedTime,
+                task.PlannedTime,
+                task.StartedTime,
+                task.SignedTime,
+                task.Remark,
+                task.CreateTime,
+                task.CreateBy,
+                task.CreateName,
+                task.UpdateTime,
+                task.UpdateBy,
+                task.UpdateName,
+                task.Status
+            })
+            .ToArrayAsync();
+
+        var second = await fixture.GenerateDemoDataAsync();
+        await using var secondContext = fixture.CreateDbContext();
+        var exceptions = await secondContext.DeliveryExceptions
+            .AsNoTracking()
+            .Where(exception => exception.Description.StartsWith(managedExceptionPrefix))
+            .OrderBy(exception => exception.Description)
+            .ToArrayAsync();
+        var tasks = await secondContext.DeliveryTasks
+            .AsNoTracking()
+            .Where(task => task.Remark != null && task.Remark.StartsWith(managedTaskPrefix))
+            .OrderBy(task => task.Remark)
+            .ToArrayAsync();
+
+        Assert.Equal(40, exceptions.Length);
+        Assert.Equal(20, exceptions.Count(exception => exception.HandleStatus == DeliveryExceptionStatus.Pending));
+        Assert.Equal(20, exceptions.Count(exception => exception.HandleStatus == DeliveryExceptionStatus.Handled));
+        Assert.Equal(20, exceptions.Select(exception => exception.DeliveryTaskId).Distinct().Count());
+        Assert.Equal(20, tasks.Length);
+        Assert.Equal(10, tasks.Count(task => task.DeliveryStatus == DeliveryTaskStatus.Delivering));
+        Assert.Equal(10, tasks.Count(task => task.DeliveryStatus == DeliveryTaskStatus.Exception));
+        Assert.Equal(
+            40,
+            first.CreatedByLayer.GetValueOrDefault("delivery-exceptions")
+            + first.ReusedByLayer.GetValueOrDefault("delivery-exceptions"));
+        Assert.Equal(
+            20,
+            first.CreatedByLayer.GetValueOrDefault("delivery-exception-tasks")
+            + first.ReusedByLayer.GetValueOrDefault("delivery-exception-tasks"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("delivery-exceptions"));
+        Assert.Equal(40, second.ReusedByLayer.GetValueOrDefault("delivery-exceptions"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("delivery-exception-tasks"));
+        Assert.Equal(20, second.ReusedByLayer.GetValueOrDefault("delivery-exception-tasks"));
+        Assert.Equal(
+            firstExceptions,
+            exceptions.Select(exception => new
+            {
+                exception.Id,
+                exception.ExceptionNo,
+                exception.DeliveryTaskId,
+                exception.DriverId,
+                exception.CustomerId,
+                exception.Description,
+                exception.HandleStatus,
+                exception.HandleRemark,
+                exception.HandleTime,
+                exception.CreateTime,
+                exception.CreateBy,
+                exception.CreateName,
+                exception.UpdateTime,
+                exception.UpdateBy,
+                exception.UpdateName,
+                exception.Status
+            }).ToArray());
+        Assert.Equal(
+            firstTasks,
+            tasks.Select(task => new
+            {
+                task.Id,
+                task.TaskNo,
+                task.StockOutOrderId,
+                task.SaleOrderId,
+                task.CustomerId,
+                task.DriverId,
+                task.CarrierId,
+                task.RouteId,
+                task.DeliveryStatus,
+                task.AssignedTime,
+                task.PlannedTime,
+                task.StartedTime,
+                task.SignedTime,
+                task.Remark,
+                task.CreateTime,
+                task.CreateBy,
+                task.CreateName,
+                task.UpdateTime,
+                task.UpdateBy,
+                task.UpdateName,
+                task.Status
+            }).ToArray());
+
+        Assert.All(tasks, task =>
+        {
+            Assert.NotEqual(Guid.Empty, task.StockOutOrderId);
+            Assert.NotEqual(Guid.Empty, task.SaleOrderId);
+            Assert.NotEqual(Guid.Empty, task.CustomerId);
+            Assert.NotNull(task.DriverId);
+            Assert.NotNull(task.CarrierId);
+            Assert.NotNull(task.RouteId);
+            Assert.NotNull(task.AssignedTime);
+            Assert.NotNull(task.PlannedTime);
+            Assert.NotNull(task.StartedTime);
+            Assert.Null(task.SignedTime);
+            Assert.NotNull(task.CreateTime);
+            Assert.NotNull(task.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(task.CreateName));
+            Assert.Equal(Status.Enable, task.Status);
+            Assert.Equal(2, exceptions.Count(exception => exception.DeliveryTaskId == task.Id));
+        });
+        Assert.All(exceptions, exception =>
+        {
+            var task = tasks.Single(task => task.Id == exception.DeliveryTaskId);
+            Assert.Equal(task.DriverId, exception.DriverId);
+            Assert.Equal(task.CustomerId, exception.CustomerId);
+            Assert.False(string.IsNullOrWhiteSpace(exception.ExceptionNo));
+            Assert.NotNull(exception.CreateTime);
+            Assert.NotNull(exception.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(exception.CreateName));
+            Assert.Equal(Status.Enable, exception.Status);
+            if (exception.HandleStatus == DeliveryExceptionStatus.Handled)
+            {
+                Assert.False(string.IsNullOrWhiteSpace(exception.HandleRemark));
+                Assert.NotNull(exception.HandleTime);
+                Assert.NotNull(exception.UpdateTime);
+                Assert.Equal(exception.CreateBy, exception.UpdateBy);
+                Assert.Equal(exception.CreateName, exception.UpdateName);
+            }
+            else
+            {
+                Assert.Null(exception.HandleRemark);
+                Assert.Null(exception.HandleTime);
+            }
+        });
+    }
+
+    /// <summary>
     ///     生成器必须基于已签收订单形成售后草稿、审核、取货、销售退货入库和账单冲减链路，并在第二次运行时保持幂等。
     /// </summary>
     [Fact]

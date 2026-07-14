@@ -54,6 +54,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerSettlementsLayer = "customer-settlements";
     private const string DepartmentsLayer = "departments";
     private const string CarriersLayer = "carriers";
+    private const string DeliveryExceptionsLayer = "delivery-exceptions";
+    private const string DeliveryExceptionTasksLayer = "delivery-exception-tasks";
     private const string DeliveryTasksLayer = "delivery-tasks";
     private const string DeliveryRoutesLayer = "delivery-routes";
     private const string DriversLayer = "drivers";
@@ -139,6 +141,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var traceabilityService = scope.ServiceProvider.GetRequiredService<ITraceabilityService>();
         var fileStorageService = scope.ServiceProvider.GetRequiredService<IFileStorageService>();
         var deliveryRouteService = scope.ServiceProvider.GetRequiredService<IDeliveryRouteService>();
+        var deliveryExceptionService = scope.ServiceProvider.GetRequiredService<IDeliveryExceptionService>();
         var deliveryTaskService = scope.ServiceProvider.GetRequiredService<IDeliveryTaskService>();
         var driverService = scope.ServiceProvider.GetRequiredService<IDriverService>();
         var customerProtocolGoodsService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolGoodsService>();
@@ -325,6 +328,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomerSettlements = 0;
         var createdDeliveryRoutes = 0;
         var reusedDeliveryRoutes = 0;
+        var createdDeliveryExceptions = 0;
+        var reusedDeliveryExceptions = 0;
+        var createdDeliveryExceptionTasks = 0;
+        var reusedDeliveryExceptionTasks = 0;
         var createdDeliveryTasks = 0;
         var reusedDeliveryTasks = 0;
         var createdDrivers = 0;
@@ -1435,6 +1442,18 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         createdTraceRecords = traceabilityResult.CreatedTraceRecords;
         reusedTraceRecords = traceabilityResult.ReusedTraceRecords;
 
+        var deliveryExceptionResult = await new DemoDataDeliveryExceptionBuilder(
+                context,
+                deliveryTaskService,
+                deliveryExceptionService,
+                auditUser.Id,
+                auditUser.Username)
+            .GenerateAsync(cancellationToken);
+        createdDeliveryExceptionTasks = deliveryExceptionResult.CreatedTasks;
+        reusedDeliveryExceptionTasks = deliveryExceptionResult.ReusedTasks;
+        createdDeliveryExceptions = deliveryExceptionResult.CreatedExceptions;
+        reusedDeliveryExceptions = deliveryExceptionResult.ReusedExceptions;
+
         var externalPushLogResult = await new DemoDataExternalPushLogBuilder(
                 context,
                 auditUser.Id,
@@ -1480,6 +1499,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerSettlementsLayer] = createdCustomerSettlements,
                 [CustomersLayer] = createdCustomers,
                 [DepartmentsLayer] = createdDepartments,
+                [DeliveryExceptionsLayer] = createdDeliveryExceptions,
+                [DeliveryExceptionTasksLayer] = createdDeliveryExceptionTasks,
                 [DeliveryTasksLayer] = createdDeliveryTasks,
                 [DeliveryRoutesLayer] = createdDeliveryRoutes,
                 [DriversLayer] = createdDrivers,
@@ -1559,6 +1580,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerSettlementsLayer] = reusedCustomerSettlements,
                 [CustomersLayer] = reusedCustomers,
                 [DepartmentsLayer] = reusedDepartments,
+                [DeliveryExceptionsLayer] = reusedDeliveryExceptions,
+                [DeliveryExceptionTasksLayer] = reusedDeliveryExceptionTasks,
                 [DeliveryTasksLayer] = reusedDeliveryTasks,
                 [DeliveryRoutesLayer] = reusedDeliveryRoutes,
                 [DriversLayer] = reusedDrivers,
