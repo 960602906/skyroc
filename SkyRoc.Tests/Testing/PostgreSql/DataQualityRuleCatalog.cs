@@ -5,7 +5,11 @@ namespace SkyRoc.Tests.Testing.PostgreSql;
 /// </summary>
 public static class DataQualityRuleCatalog
 {
-    private static readonly HashSet<string> DuplicateBusinessCodeExemptions = ["sys_login_log.username"];
+    private static readonly HashSet<string> DuplicateBusinessCodeExemptions =
+    [
+        "external_push_log.platform_code",
+        "sys_login_log.username"
+    ];
 
     private static readonly HashSet<string> MasterDataTables = [
         "goods", "goods_type", "goods_unit", "customer", "company", "supplier", "purchaser", "ware", "quotation", "customer_protocol", "purchase_rule"
@@ -65,7 +69,10 @@ public static class DataQualityRuleCatalog
     ///     返回因业务语义允许重复、且已人工复核的业务编码检测例外。
     /// </summary>
     public static IReadOnlyList<string> QualityRuleExceptionDescriptions =>
-        ["sys_login_log.username：登录审计按事件追加，同一账号多次登录是合法历史，不作为重复业务编码。"];
+    [
+        "external_push_log.platform_code：外部平台编码用于标识报送目标，同一平台存在多次只追加报送是合法历史，不作为日志唯一业务编码。",
+        "sys_login_log.username：登录审计按事件追加，同一账号多次登录是合法历史，不作为重复业务编码。"
+    ];
 
     /// <summary>
     ///     判断字段是否属于集中登记的重复业务编码例外，未登记字段一律参加检测。

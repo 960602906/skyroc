@@ -64,6 +64,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string InspectionAttachmentsLayer = "inspection-attachments";
     private const string InspectionReportGoodsLayer = "inspection-report-goods";
     private const string InspectionReportsLayer = "inspection-reports";
+    private const string ExternalPushLogsLayer = "external-push-logs";
     private const string ImportExportJobsLayer = "import-export-jobs";
     private const string PickupTasksLayer = "pickup-tasks";
     private const string PurchasersLayer = "purchasers";
@@ -346,6 +347,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedInspectionReportGoods = 0;
         var createdInspectionReports = 0;
         var reusedInspectionReports = 0;
+        var createdExternalPushLogs = 0;
+        var reusedExternalPushLogs = 0;
         var createdImportExportJobs = 0;
         var reusedImportExportJobs = 0;
         var createdPickupTasks = 0;
@@ -1432,6 +1435,14 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         createdTraceRecords = traceabilityResult.CreatedTraceRecords;
         reusedTraceRecords = traceabilityResult.ReusedTraceRecords;
 
+        var externalPushLogResult = await new DemoDataExternalPushLogBuilder(
+                context,
+                auditUser.Id,
+                auditUser.Username)
+            .GenerateAsync(cancellationToken);
+        createdExternalPushLogs = externalPushLogResult.CreatedLogs;
+        reusedExternalPushLogs = externalPushLogResult.ReusedLogs;
+
         var fileResult = await new DemoDataFileBuilder(
                 context,
                 fileStorageService,
@@ -1479,6 +1490,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [InspectionAttachmentsLayer] = createdInspectionAttachments,
                 [InspectionReportGoodsLayer] = createdInspectionReportGoods,
                 [InspectionReportsLayer] = createdInspectionReports,
+                [ExternalPushLogsLayer] = createdExternalPushLogs,
                 [ImportExportJobsLayer] = createdImportExportJobs,
                 [PickupTasksLayer] = createdPickupTasks,
                 [PurchasersLayer] = createdPurchasers,
@@ -1557,6 +1569,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [InspectionAttachmentsLayer] = reusedInspectionAttachments,
                 [InspectionReportGoodsLayer] = reusedInspectionReportGoods,
                 [InspectionReportsLayer] = reusedInspectionReports,
+                [ExternalPushLogsLayer] = reusedExternalPushLogs,
                 [ImportExportJobsLayer] = reusedImportExportJobs,
                 [PickupTasksLayer] = reusedPickupTasks,
                 [PurchasersLayer] = reusedPurchasers,

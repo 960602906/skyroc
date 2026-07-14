@@ -614,6 +614,149 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
     }
 
     /// <summary>
+    ///     生成器必须补齐关联真实订单、检测报告和溯源记录的脱敏外部报送日志，覆盖全部状态且重复运行不改写只追加事实。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedExternalPushLogsWithSourceAndStatusCoverage_AndSecondRunIsIdempotent()
+    {
+        const string managedRequestPrefix = "{\"demoKey\":\"SKYROC-DEMO-EXTERNAL-PUSH-LOG-";
+
+        var first = await fixture.GenerateDemoDataAsync();
+        await using var firstContext = fixture.CreateDbContext();
+        var firstLogs = await firstContext.ExternalPushLogs
+            .AsNoTracking()
+            .Where(log => log.RequestContent != null && log.RequestContent.StartsWith(managedRequestPrefix))
+            .OrderBy(log => log.RequestContent)
+            .Select(log => new
+            {
+                log.Id,
+                log.BusinessType,
+                log.BusinessId,
+                log.BusinessNoSnapshot,
+                log.PlatformCode,
+                log.PushStatus,
+                log.PushTime,
+                log.ResponseTime,
+                log.RequestContent,
+                log.ResponseContent,
+                log.ErrorMessage,
+                log.RetryCount,
+                log.CreateTime,
+                log.CreateBy,
+                log.CreateName,
+                log.UpdateTime,
+                log.UpdateBy,
+                log.UpdateName,
+                log.Status
+            })
+            .ToArrayAsync();
+
+        var second = await fixture.GenerateDemoDataAsync();
+        await using var secondContext = fixture.CreateDbContext();
+        var logs = await secondContext.ExternalPushLogs
+            .AsNoTracking()
+            .Where(log => log.RequestContent != null && log.RequestContent.StartsWith(managedRequestPrefix))
+            .OrderBy(log => log.RequestContent)
+            .ToArrayAsync();
+
+        Assert.Equal(120, logs.Length);
+        Assert.Equal(40, logs.Count(log => log.BusinessType == ExternalPushBusinessType.SaleOrder));
+        Assert.Equal(40, logs.Count(log => log.BusinessType == ExternalPushBusinessType.InspectionReport));
+        Assert.Equal(40, logs.Count(log => log.BusinessType == ExternalPushBusinessType.TraceRecord));
+        Assert.Equal(40, logs.Count(log => log.PushStatus == ExternalPushStatus.Pending));
+        Assert.Equal(40, logs.Count(log => log.PushStatus == ExternalPushStatus.Success));
+        Assert.Equal(40, logs.Count(log => log.PushStatus == ExternalPushStatus.Failed));
+        Assert.Equal(3, logs.Select(log => log.PlatformCode).Distinct().Count());
+        Assert.Equal(
+            120,
+            first.CreatedByLayer.GetValueOrDefault("external-push-logs")
+            + first.ReusedByLayer.GetValueOrDefault("external-push-logs"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("external-push-logs"));
+        Assert.Equal(120, second.ReusedByLayer.GetValueOrDefault("external-push-logs"));
+        Assert.Equal(
+            firstLogs,
+            logs.Select(log => new
+            {
+                log.Id,
+                log.BusinessType,
+                log.BusinessId,
+                log.BusinessNoSnapshot,
+                log.PlatformCode,
+                log.PushStatus,
+                log.PushTime,
+                log.ResponseTime,
+                log.RequestContent,
+                log.ResponseContent,
+                log.ErrorMessage,
+                log.RetryCount,
+                log.CreateTime,
+                log.CreateBy,
+                log.CreateName,
+                log.UpdateTime,
+                log.UpdateBy,
+                log.UpdateName,
+                log.Status
+            }).ToArray());
+
+        var saleOrderNos = await secondContext.SaleOrders
+            .AsNoTracking()
+            .ToDictionaryAsync(order => order.Id, order => order.OrderNo);
+        var inspectionNos = await secondContext.InspectionReports
+            .AsNoTracking()
+            .ToDictionaryAsync(report => report.Id, report => report.InspectionNo);
+        var traceNos = await secondContext.TraceRecords
+            .AsNoTracking()
+            .ToDictionaryAsync(trace => trace.Id, trace => trace.TraceNo);
+
+        Assert.All(logs, log =>
+        {
+            var expectedBusinessNo = log.BusinessType switch
+            {
+                ExternalPushBusinessType.SaleOrder => saleOrderNos.GetValueOrDefault(log.BusinessId),
+                ExternalPushBusinessType.InspectionReport => inspectionNos.GetValueOrDefault(log.BusinessId),
+                ExternalPushBusinessType.TraceRecord => traceNos.GetValueOrDefault(log.BusinessId),
+                _ => null
+            };
+            Assert.Equal(expectedBusinessNo, log.BusinessNoSnapshot);
+            Assert.False(string.IsNullOrWhiteSpace(log.RequestContent));
+            Assert.DoesNotContain("password", log.RequestContent, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("authorization", log.RequestContent, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("accessToken", log.RequestContent, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("signingKey", log.RequestContent, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("connectionString", log.RequestContent, StringComparison.OrdinalIgnoreCase);
+            Assert.InRange(log.RetryCount, 0, 3);
+            Assert.NotNull(log.CreateTime);
+            Assert.NotNull(log.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(log.CreateName));
+            Assert.NotNull(log.UpdateTime);
+            Assert.Equal(log.CreateBy, log.UpdateBy);
+            Assert.Equal(log.CreateName, log.UpdateName);
+            Assert.Equal(Status.Enable, log.Status);
+
+            switch (log.PushStatus)
+            {
+                case ExternalPushStatus.Pending:
+                    Assert.Null(log.ResponseTime);
+                    Assert.Null(log.ResponseContent);
+                    Assert.Null(log.ErrorMessage);
+                    break;
+                case ExternalPushStatus.Success:
+                    Assert.True(log.ResponseTime > log.PushTime);
+                    Assert.False(string.IsNullOrWhiteSpace(log.ResponseContent));
+                    Assert.Null(log.ErrorMessage);
+                    break;
+                case ExternalPushStatus.Failed:
+                    Assert.True(log.ResponseTime > log.PushTime);
+                    Assert.False(string.IsNullOrWhiteSpace(log.ResponseContent));
+                    Assert.False(string.IsNullOrWhiteSpace(log.ErrorMessage));
+                    break;
+                default:
+                    throw new InvalidOperationException($"未覆盖的外部报送状态：{log.PushStatus}。");
+            }
+        });
+    }
+
+    /// <summary>
     ///     生成器必须经报价与报价商品应用服务补齐稳定编码的报价资料，为每个受管客户和商品保留有效期、审核状态、单价及最小起订量，并在重复运行时复用既有记录。
     /// </summary>
     [Fact]
