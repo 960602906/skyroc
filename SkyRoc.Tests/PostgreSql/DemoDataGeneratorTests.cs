@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Domain.Entities.Delivery;
 using Domain.Entities.Orders;
 using Domain.Entities.Printing;
 using Domain.Entities.Purchases;
@@ -905,7 +906,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         Assert.Equal(120, first.CreatedByLayer["sale-order-details"] + first.ReusedByLayer["sale-order-details"]);
         Assert.Equal(0, second.CreatedByLayer["sale-orders"]);
         Assert.Equal(0, second.CreatedByLayer["sale-order-details"]);
-        Assert.Contains(orders, order => order.OrderStatus == SaleOrderStatus.SortingPending);
+        Assert.Contains(orders, order => order.OrderStatus == SaleOrderStatus.Signed);
         Assert.Contains(orders, order => order.OrderStatus == SaleOrderStatus.Rejected);
         Assert.All(orders, order =>
         {
@@ -1336,6 +1337,156 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(ledger.Remark));
             Assert.NotNull(ledger.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(ledger.CreateName));
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须基于已审核销售出库生成配送任务，并完成司机分配、路线规划、配送签收、回单归档和客户账单同步。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedDeliveryTasksReceiptsAndCustomerBills_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedDeliveryRemarks = Enumerable.Range(1, 40)
+            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("DELIVERY-TASK", sequence)} 华东联调配送任务{sequence:D2}：来源受管销售出库，已完成分配、路线规划、签收和回单。")
+            .ToArray();
+        var managedReceiptRemarks = Enumerable.Range(1, 40)
+            .Select(sequence => $"SkyRoc 联调配送签收：第 {sequence:D2} 张任务客户已按出库明细完成验收。")
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var tasks = await context.DeliveryTasks
+            .Include(task => task.StockOutOrder)
+            .ThenInclude(order => order.Details)
+            .Include(task => task.SaleOrder)
+            .ThenInclude(order => order.Details)
+            .Include(task => task.Driver)
+            .Include(task => task.Carrier)
+            .Include(task => task.Route)
+            .Include(task => task.Receipt)
+            .ThenInclude(receipt => receipt!.CheckDetails)
+            .Where(task => task.Remark != null && managedDeliveryRemarks.Contains(task.Remark))
+            .OrderBy(task => task.Remark)
+            .ToListAsync();
+        var saleOrderIds = tasks.Select(task => task.SaleOrderId).ToArray();
+        var stockOutIds = tasks.Select(task => task.StockOutOrderId).ToArray();
+        var receiptIds = tasks
+            .Select(task => task.Receipt?.Id)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToArray();
+        var customerBills = await context.CustomerBills
+            .Include(bill => bill.Details)
+            .Where(bill => saleOrderIds.Contains(bill.SaleOrderId))
+            .OrderBy(bill => bill.SaleOrderNoSnapshot)
+            .ToListAsync();
+
+        first.CreatedByLayer.TryGetValue("delivery-tasks", out var createdDeliveryTasks);
+        first.ReusedByLayer.TryGetValue("delivery-tasks", out var reusedDeliveryTasks);
+        first.CreatedByLayer.TryGetValue("order-receipts", out var createdOrderReceipts);
+        first.ReusedByLayer.TryGetValue("order-receipts", out var reusedOrderReceipts);
+        first.CreatedByLayer.TryGetValue("order-check-details", out var createdCheckDetails);
+        first.ReusedByLayer.TryGetValue("order-check-details", out var reusedCheckDetails);
+        first.CreatedByLayer.TryGetValue("customer-bills", out var createdCustomerBills);
+        first.ReusedByLayer.TryGetValue("customer-bills", out var reusedCustomerBills);
+        first.CreatedByLayer.TryGetValue("customer-bill-details", out var createdCustomerBillDetails);
+        first.ReusedByLayer.TryGetValue("customer-bill-details", out var reusedCustomerBillDetails);
+
+        Assert.Equal(40, tasks.Count);
+        Assert.Equal(40, tasks.Select(task => task.Remark).Distinct().Count());
+        Assert.Equal(40, createdDeliveryTasks + reusedDeliveryTasks);
+        Assert.Equal(40, createdOrderReceipts + reusedOrderReceipts);
+        Assert.Equal(80, createdCheckDetails + reusedCheckDetails);
+        Assert.Equal(40, createdCustomerBills + reusedCustomerBills);
+        Assert.Equal(80, createdCustomerBillDetails + reusedCustomerBillDetails);
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("delivery-tasks"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("order-receipts"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("order-check-details"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("customer-bills"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("customer-bill-details"));
+        Assert.Equal(40, receiptIds.Length);
+        Assert.Equal(40, customerBills.Count);
+        Assert.All(tasks, task =>
+        {
+            Assert.Equal(DeliveryTaskStatus.Signed, task.DeliveryStatus);
+            Assert.Contains(task.StockOutOrderId, stockOutIds);
+            Assert.NotNull(task.StockOutOrder);
+            Assert.NotNull(task.SaleOrder);
+            Assert.NotNull(task.Driver);
+            Assert.NotNull(task.Carrier);
+            Assert.NotNull(task.Route);
+            Assert.NotNull(task.Receipt);
+            Assert.False(string.IsNullOrWhiteSpace(task.TaskNo));
+            Assert.False(string.IsNullOrWhiteSpace(task.CustomerNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(task.ContactNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(task.ContactPhoneSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(task.DeliveryAddressSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(task.WareNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(task.DriverNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(task.DriverPhoneSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(task.CarrierNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(task.RouteNameSnapshot));
+            Assert.NotNull(task.RouteSequence);
+            Assert.NotNull(task.AssignedTime);
+            Assert.NotNull(task.PlannedTime);
+            Assert.NotNull(task.StartedTime);
+            Assert.NotNull(task.SignedTime);
+            Assert.NotNull(task.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(task.CreateName));
+            Assert.Equal(SaleOrderStatus.Signed, task.SaleOrder.OrderStatus);
+            Assert.Equal(OrderReturnStatus.Returned, task.SaleOrder.ReturnStatus);
+
+            var receipt = task.Receipt!;
+            Assert.Contains(receipt.SignRemark, managedReceiptRemarks);
+            Assert.Equal(task.SaleOrderId, receipt.SaleOrderId);
+            Assert.Equal(task.StockOutOrderId, receipt.StockOutOrderId);
+            Assert.False(string.IsNullOrWhiteSpace(receipt.ReceiptNo));
+            Assert.False(string.IsNullOrWhiteSpace(receipt.SignerName));
+            Assert.False(string.IsNullOrWhiteSpace(receipt.ReceiptImageUrl));
+            Assert.NotNull(receipt.ReturnedTime);
+            Assert.False(string.IsNullOrWhiteSpace(receipt.ReturnRemark));
+            Assert.NotNull(receipt.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(receipt.CreateName));
+            Assert.Equal(task.StockOutOrder.Details.Count, receipt.CheckDetails.Count);
+            Assert.All(receipt.CheckDetails, detail =>
+            {
+                Assert.Equal(receipt.Id, detail.OrderReceiptId);
+                Assert.Equal(OrderCustomerCheckStatus.Accepted, detail.CheckStatus);
+                Assert.True(detail.DeliveredBaseQuantity > 0m);
+                Assert.Equal(detail.DeliveredBaseQuantity, detail.AcceptedBaseQuantity);
+                Assert.True(detail.AcceptedAmount > 0m);
+                Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+            });
+        });
+        Assert.All(customerBills, bill =>
+        {
+            Assert.Contains(bill.SaleOrderId, saleOrderIds);
+            Assert.Equal(CustomerBillStatus.Pending, bill.BillStatus);
+            Assert.True(bill.OrderAmount > 0m);
+            Assert.Equal(0m, bill.AfterSaleAdjustmentAmount);
+            Assert.Equal(bill.OrderAmount, bill.ReceivableAmount);
+            Assert.Equal(0m, bill.SettledAmount);
+            Assert.Equal(2, bill.Details.Count);
+            Assert.NotNull(bill.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(bill.CreateName));
+            Assert.All(bill.Details, detail =>
+            {
+                Assert.Equal(CustomerBillDetailSourceType.OrderAcceptance, detail.SourceType);
+                Assert.NotNull(detail.SaleOrderDetailId);
+                Assert.True(detail.Quantity > 0m);
+                Assert.True(detail.BaseQuantity > 0m);
+                Assert.True(detail.UnitPrice > 0m);
+                Assert.True(detail.Amount > 0m);
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsCodeSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsUnitNameSnapshot));
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+            });
         });
     }
 }

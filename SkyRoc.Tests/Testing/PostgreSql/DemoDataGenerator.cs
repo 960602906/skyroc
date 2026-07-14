@@ -13,6 +13,8 @@ using Application.DTOs.User;
 using Application.interfaces;
 using Application.interfaces.System;
 using Domain.Entities;
+using Domain.Entities.Delivery;
+using Domain.Entities.Finance;
 using Domain.Entities.Orders;
 using Domain.Entities.Printing;
 using Domain.Entities.Purchases;
@@ -41,8 +43,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerProtocolsLayer = "customer-protocols";
     private const string CustomerSubAccountsLayer = "customer-sub-accounts";
     private const string CustomersLayer = "customers";
+    private const string CustomerBillDetailsLayer = "customer-bill-details";
+    private const string CustomerBillsLayer = "customer-bills";
     private const string DepartmentsLayer = "departments";
     private const string CarriersLayer = "carriers";
+    private const string DeliveryTasksLayer = "delivery-tasks";
     private const string DeliveryRoutesLayer = "delivery-routes";
     private const string DriversLayer = "drivers";
     private const string GoodsLayer = "goods";
@@ -67,6 +72,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string SaleStockSupportLedgersLayer = "sale-stock-support-ledgers";
     private const string SaleOrderDetailsLayer = "sale-order-details";
     private const string SaleOrdersLayer = "sale-orders";
+    private const string OrderCheckDetailsLayer = "order-check-details";
+    private const string OrderReceiptsLayer = "order-receipts";
     private const string ServicePeriodsLayer = "service-periods";
     private const string NoticesLayer = "notices";
     private const string PrintTemplatesLayer = "print-templates";
@@ -100,6 +107,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
         var deliveryRouteService = scope.ServiceProvider.GetRequiredService<IDeliveryRouteService>();
+        var deliveryTaskService = scope.ServiceProvider.GetRequiredService<IDeliveryTaskService>();
         var driverService = scope.ServiceProvider.GetRequiredService<IDriverService>();
         var customerProtocolGoodsService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolGoodsService>();
         var customerProtocolService = scope.ServiceProvider.GetRequiredService<ICustomerProtocolService>();
@@ -269,8 +277,14 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedDepartments = 0;
         var createdCustomerSubAccounts = 0;
         var reusedCustomerSubAccounts = 0;
+        var createdCustomerBillDetails = 0;
+        var reusedCustomerBillDetails = 0;
+        var createdCustomerBills = 0;
+        var reusedCustomerBills = 0;
         var createdDeliveryRoutes = 0;
         var reusedDeliveryRoutes = 0;
+        var createdDeliveryTasks = 0;
+        var reusedDeliveryTasks = 0;
         var createdDrivers = 0;
         var reusedDrivers = 0;
         var createdCustomerProtocolGoods = 0;
@@ -321,6 +335,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedSaleOrderDetails = 0;
         var createdSaleOrders = 0;
         var reusedSaleOrders = 0;
+        var createdOrderCheckDetails = 0;
+        var reusedOrderCheckDetails = 0;
+        var createdOrderReceipts = 0;
+        var reusedOrderReceipts = 0;
         var createdServicePeriods = 0;
         var reusedServicePeriods = 0;
         var createdNotices = 0;
@@ -1246,6 +1264,22 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             auditUser,
             cancellationToken);
 
+        (
+            createdDeliveryTasks,
+            reusedDeliveryTasks,
+            createdOrderReceipts,
+            reusedOrderReceipts,
+            createdOrderCheckDetails,
+            reusedOrderCheckDetails,
+            createdCustomerBills,
+            reusedCustomerBills,
+            createdCustomerBillDetails,
+            reusedCustomerBillDetails) = await GenerateDeliveryTasksAsync(
+            context,
+            deliveryTaskService,
+            auditUser,
+            cancellationToken);
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1255,8 +1289,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerProtocolGoodsLayer] = createdCustomerProtocolGoods,
                 [CustomerProtocolsLayer] = createdCustomerProtocols,
                 [CustomerSubAccountsLayer] = createdCustomerSubAccounts,
+                [CustomerBillDetailsLayer] = createdCustomerBillDetails,
+                [CustomerBillsLayer] = createdCustomerBills,
                 [CustomersLayer] = createdCustomers,
                 [DepartmentsLayer] = createdDepartments,
+                [DeliveryTasksLayer] = createdDeliveryTasks,
                 [DeliveryRoutesLayer] = createdDeliveryRoutes,
                 [DriversLayer] = createdDrivers,
                 [GoodsLayer] = createdGoods,
@@ -1281,6 +1318,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SaleStockSupportLedgersLayer] = createdSaleStockSupportLedgers,
                 [SaleOrderDetailsLayer] = createdSaleOrderDetails,
                 [SaleOrdersLayer] = createdSaleOrders,
+                [OrderCheckDetailsLayer] = createdOrderCheckDetails,
+                [OrderReceiptsLayer] = createdOrderReceipts,
                 [ServicePeriodsLayer] = createdServicePeriods,
                 [NoticesLayer] = createdNotices,
                 [PrintTemplatesLayer] = createdPrintTemplates,
@@ -1305,8 +1344,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [CustomerProtocolGoodsLayer] = reusedCustomerProtocolGoods,
                 [CustomerProtocolsLayer] = reusedCustomerProtocols,
                 [CustomerSubAccountsLayer] = reusedCustomerSubAccounts,
+                [CustomerBillDetailsLayer] = reusedCustomerBillDetails,
+                [CustomerBillsLayer] = reusedCustomerBills,
                 [CustomersLayer] = reusedCustomers,
                 [DepartmentsLayer] = reusedDepartments,
+                [DeliveryTasksLayer] = reusedDeliveryTasks,
                 [DeliveryRoutesLayer] = reusedDeliveryRoutes,
                 [DriversLayer] = reusedDrivers,
                 [GoodsLayer] = reusedGoods,
@@ -1331,6 +1373,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SaleStockSupportLedgersLayer] = reusedSaleStockSupportLedgers,
                 [SaleOrderDetailsLayer] = reusedSaleOrderDetails,
                 [SaleOrdersLayer] = reusedSaleOrders,
+                [OrderCheckDetailsLayer] = reusedOrderCheckDetails,
+                [OrderReceiptsLayer] = reusedOrderReceipts,
                 [ServicePeriodsLayer] = reusedServicePeriods,
                 [NoticesLayer] = reusedNotices,
                 [PrintTemplatesLayer] = reusedPrintTemplates,
@@ -1476,7 +1520,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .Include(order => order.Details)
             .Where(order => order.InnerRemark != null
                             && saleOrderKeys.Contains(order.InnerRemark)
-                            && order.OrderStatus == SaleOrderStatus.SortingPending)
+                            && order.OrderStatus != SaleOrderStatus.PendingAudit
+                            && order.OrderStatus != SaleOrderStatus.Rejected)
             .OrderBy(order => order.InnerRemark)
             .ToListAsync(cancellationToken);
         if (approvedOrders.Count != 40)
@@ -2367,7 +2412,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .Include(order => order.Details)
             .Where(order => order.InnerRemark != null
                             && saleOrderKeys.Contains(order.InnerRemark)
-                            && order.OrderStatus == SaleOrderStatus.SortingPending)
+                            && order.OrderStatus != SaleOrderStatus.PendingAudit
+                            && order.OrderStatus != SaleOrderStatus.Rejected)
             .OrderBy(order => order.InnerRemark)
             .ToListAsync(cancellationToken);
         if (approvedOrders.Count != 40)
@@ -2872,6 +2918,354 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         return CreateSaleStockSupportInTime(sequence).AddHours(4);
     }
 
+    private static async Task<(
+        int CreatedDeliveryTasks,
+        int ReusedDeliveryTasks,
+        int CreatedOrderReceipts,
+        int ReusedOrderReceipts,
+        int CreatedOrderCheckDetails,
+        int ReusedOrderCheckDetails,
+        int CreatedCustomerBills,
+        int ReusedCustomerBills,
+        int CreatedCustomerBillDetails,
+        int ReusedCustomerBillDetails)> GenerateDeliveryTasksAsync(
+            ApplicationDbContext context,
+            IDeliveryTaskService deliveryTaskService,
+            DemoAuditUser auditUser,
+            CancellationToken cancellationToken)
+    {
+        var stockOutRemarks = Enumerable.Range(1, 40)
+            .Select(CreateSaleStockOutRemark)
+            .ToArray();
+        var driverCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("DRIVER", sequence))
+            .ToArray();
+
+        var managedStockOuts = await context.StockOutOrders
+            .Include(order => order.Details)
+            .Where(order => order.Remark != null
+                            && stockOutRemarks.Contains(order.Remark)
+                            && order.OrderType == StockOutOrderType.Sale
+                            && order.BusinessStatus == StockDocumentStatus.Audited)
+            .OrderBy(order => order.Remark)
+            .ToListAsync(cancellationToken);
+        if (managedStockOuts.Count != 40)
+        {
+            throw new InvalidOperationException(
+                $"受管配送任务生成需要 40 张已审核销售出库，当前为 {managedStockOuts.Count} 张。");
+        }
+
+        var managedDrivers = await context.Drivers
+            .Include(driver => driver.Carrier)
+            .Where(driver => driverCodes.Contains(driver.Code))
+            .ToDictionaryAsync(driver => driver.Code, StringComparer.Ordinal, cancellationToken);
+        var stockOutIds = managedStockOuts.Select(order => order.Id).ToArray();
+        var existingTasks = await context.DeliveryTasks
+            .Include(task => task.StockOutOrder)
+            .ThenInclude(order => order.Details)
+            .Include(task => task.SaleOrder)
+            .ThenInclude(order => order.Details)
+            .Include(task => task.Receipt)
+            .ThenInclude(receipt => receipt!.CheckDetails)
+            .Where(task => stockOutIds.Contains(task.StockOutOrderId))
+            .ToDictionaryAsync(task => task.StockOutOrderId, cancellationToken);
+
+        var createdDeliveryTasks = 0;
+        var reusedDeliveryTasks = 0;
+        var createdOrderReceipts = 0;
+        var reusedOrderReceipts = 0;
+        var createdOrderCheckDetails = 0;
+        var reusedOrderCheckDetails = 0;
+        var createdCustomerBills = 0;
+        var reusedCustomerBills = 0;
+        var createdCustomerBillDetails = 0;
+        var reusedCustomerBillDetails = 0;
+
+        for (var index = 0; index < managedStockOuts.Count; index++)
+        {
+            var sequence = index + 1;
+            var stockOut = managedStockOuts[index];
+            var driverSequence = (sequence - 1) % 30 + 1;
+            var driver = GetManagedReference(
+                managedDrivers,
+                DemoDataStableKeyCatalog.Create("DRIVER", driverSequence),
+                "配送司机");
+
+            var taskWasCreated = !existingTasks.TryGetValue(stockOut.Id, out var task);
+            if (taskWasCreated)
+            {
+                var created = await deliveryTaskService.GenerateFromStockOutAsync(stockOut.Id);
+                task = await GetManagedDeliveryTaskAsync(context, created.Id, cancellationToken);
+            }
+            else
+            {
+                task = await GetManagedDeliveryTaskAsync(context, task!.Id, cancellationToken);
+            }
+
+            if (task.DeliveryStatus == DeliveryTaskStatus.PendingAssign)
+            {
+                await deliveryTaskService.AssignDriverAsync(new AssignDeliveryDriverDto
+                {
+                    TaskIds = [task.Id],
+                    DriverId = driver.Id
+                });
+                task = await GetManagedDeliveryTaskAsync(context, task.Id, cancellationToken);
+            }
+
+            if (task.DeliveryStatus == DeliveryTaskStatus.Assigned && !task.RouteId.HasValue)
+            {
+                await deliveryTaskService.IntelligentPlanAsync(new IntelligentPlanDeliveryTasksDto
+                {
+                    TaskIds = [task.Id]
+                });
+                task = await GetManagedDeliveryTaskAsync(context, task.Id, cancellationToken);
+            }
+
+            if (task.DeliveryStatus == DeliveryTaskStatus.Assigned)
+            {
+                await deliveryTaskService.StartDeliveryAsync(task.Id);
+                task = await GetManagedDeliveryTaskAsync(context, task.Id, cancellationToken);
+            }
+
+            var receiptWasCreated = task.Receipt is null;
+            var billBeforeSign = await GetManagedCustomerBillAsync(context, task.SaleOrderId, cancellationToken);
+            if (task.DeliveryStatus == DeliveryTaskStatus.Delivering)
+            {
+                await deliveryTaskService.SignAsync(task.Id, CreateDeliverySignDto(task, sequence));
+                task = await GetManagedDeliveryTaskAsync(context, task.Id, cancellationToken);
+            }
+            else if (task.DeliveryStatus != DeliveryTaskStatus.Signed)
+            {
+                throw new InvalidOperationException(
+                    $"受管配送任务 {CreateDeliveryTaskRemark(sequence)} 当前状态为 {task.DeliveryStatus}，不能安全复用。");
+            }
+
+            if (task.Receipt is null)
+            {
+                throw new InvalidOperationException($"受管配送任务 {CreateDeliveryTaskRemark(sequence)} 缺少签收回单。");
+            }
+
+            if (!task.Receipt.ReturnedTime.HasValue)
+            {
+                await deliveryTaskService.ReturnReceiptAsync(task.Id, CreateDeliveryReturnReceiptDto(sequence));
+                task = await GetManagedDeliveryTaskAsync(context, task.Id, cancellationToken);
+            }
+
+            var customerBill = await GetManagedCustomerBillAsync(context, task.SaleOrderId, cancellationToken)
+                               ?? throw new InvalidOperationException(
+                                   $"受管配送任务 {CreateDeliveryTaskRemark(sequence)} 签收后未生成客户账单。");
+
+            ApplyManagedDeliveryTaskFields(task, sequence, auditUser);
+            ApplyManagedCustomerBillFields(customerBill, sequence, auditUser);
+            await context.SaveChangesAsync(cancellationToken);
+
+            var receipt = task.Receipt
+                          ?? throw new InvalidOperationException($"受管配送任务 {CreateDeliveryTaskRemark(sequence)} 缺少签收回单。");
+            if (taskWasCreated)
+            {
+                createdDeliveryTasks++;
+            }
+            else
+            {
+                reusedDeliveryTasks++;
+            }
+
+            if (receiptWasCreated)
+            {
+                createdOrderReceipts++;
+                createdOrderCheckDetails += receipt.CheckDetails.Count;
+            }
+            else
+            {
+                reusedOrderReceipts++;
+                reusedOrderCheckDetails += receipt.CheckDetails.Count;
+            }
+
+            if (billBeforeSign is null)
+            {
+                createdCustomerBills++;
+                createdCustomerBillDetails += customerBill.Details.Count;
+            }
+            else
+            {
+                reusedCustomerBills++;
+                reusedCustomerBillDetails += customerBill.Details.Count;
+            }
+        }
+
+        return (
+            createdDeliveryTasks,
+            reusedDeliveryTasks,
+            createdOrderReceipts,
+            reusedOrderReceipts,
+            createdOrderCheckDetails,
+            reusedOrderCheckDetails,
+            createdCustomerBills,
+            reusedCustomerBills,
+            createdCustomerBillDetails,
+            reusedCustomerBillDetails);
+    }
+
+    private static async Task<DeliveryTask> GetManagedDeliveryTaskAsync(
+        ApplicationDbContext context,
+        Guid deliveryTaskId,
+        CancellationToken cancellationToken)
+    {
+        return await context.DeliveryTasks
+            .Include(task => task.StockOutOrder)
+            .ThenInclude(order => order.Details)
+            .Include(task => task.SaleOrder)
+            .ThenInclude(order => order.Details)
+            .Include(task => task.Receipt)
+            .ThenInclude(receipt => receipt!.CheckDetails)
+            .SingleAsync(task => task.Id == deliveryTaskId, cancellationToken);
+    }
+
+    private static async Task<CustomerBill?> GetManagedCustomerBillAsync(
+        ApplicationDbContext context,
+        Guid saleOrderId,
+        CancellationToken cancellationToken)
+    {
+        return await context.CustomerBills
+            .Include(bill => bill.Details)
+            .SingleOrDefaultAsync(bill => bill.SaleOrderId == saleOrderId, cancellationToken);
+    }
+
+    private static SignDeliveryTaskDto CreateDeliverySignDto(DeliveryTask task, int sequence)
+    {
+        return new SignDeliveryTaskDto
+        {
+            SignerName = $"华东客户签收员{sequence:D2}",
+            Remark = CreateDeliverySignRemark(sequence),
+            Details = task.StockOutOrder.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .Select((detail, detailIndex) => new SignDeliveryCheckDetailDto
+                {
+                    StockOutDetailId = detail.Id,
+                    AcceptedBaseQuantity = detail.BaseQuantity,
+                    CheckStatus = OrderCustomerCheckStatus.Accepted,
+                    Remark = CreateDeliveryCheckDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex)
+                })
+                .ToList()
+        };
+    }
+
+    private static ReturnOrderReceiptDto CreateDeliveryReturnReceiptDto(int sequence)
+    {
+        return new ReturnOrderReceiptDto
+        {
+            ReceiptImageUrl = $"https://assets.skyroc.example/receipts/{DemoDataStableKeyCatalog.Create("DELIVERY-RECEIPT", sequence).ToLowerInvariant()}.pdf",
+            Remark = CreateDeliveryReturnRemark(sequence)
+        };
+    }
+
+    private static void ApplyManagedDeliveryTaskFields(
+        DeliveryTask task,
+        int sequence,
+        DemoAuditUser auditUser)
+    {
+        task.Remark = CreateDeliveryTaskRemark(sequence);
+        if (task.CreateBy != auditUser.Id || task.CreateName != auditUser.Username)
+        {
+            task.CreateBy = auditUser.Id;
+            task.CreateName = auditUser.Username;
+        }
+
+        if (task.Receipt is not null)
+        {
+            task.Receipt.SignRemark = CreateDeliverySignRemark(sequence);
+            task.Receipt.ReceiptImageUrl = CreateDeliveryReturnReceiptDto(sequence).ReceiptImageUrl;
+            task.Receipt.ReturnRemark = CreateDeliveryReturnRemark(sequence);
+            if (task.Receipt.CreateBy != auditUser.Id || task.Receipt.CreateName != auditUser.Username)
+            {
+                task.Receipt.CreateBy = auditUser.Id;
+                task.Receipt.CreateName = auditUser.Username;
+            }
+            if (task.Receipt.UpdateBy != auditUser.Id || task.Receipt.UpdateName != auditUser.Username)
+            {
+                task.Receipt.UpdateBy = auditUser.Id;
+                task.Receipt.UpdateName = auditUser.Username;
+            }
+
+            var orderedCheckDetails = task.Receipt.CheckDetails
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .ToArray();
+            for (var detailIndex = 0; detailIndex < orderedCheckDetails.Length; detailIndex++)
+            {
+                var detail = orderedCheckDetails[detailIndex];
+                detail.Remark = CreateDeliveryCheckDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex);
+                if (detail.CreateBy != auditUser.Id || detail.CreateName != auditUser.Username)
+                {
+                    detail.CreateBy = auditUser.Id;
+                    detail.CreateName = auditUser.Username;
+                }
+                if (detail.UpdateBy != auditUser.Id || detail.UpdateName != auditUser.Username)
+                {
+                    detail.UpdateBy = auditUser.Id;
+                    detail.UpdateName = auditUser.Username;
+                }
+            }
+        }
+    }
+
+    private static void ApplyManagedCustomerBillFields(
+        CustomerBill bill,
+        int sequence,
+        DemoAuditUser auditUser)
+    {
+        bill.Remark = $"SkyRoc 联调客户账单：第 {sequence:D2} 张配送签收后生成的客户应收账单，等待后续客户结款。";
+        if (bill.CreateBy != auditUser.Id || bill.CreateName != auditUser.Username)
+        {
+            bill.CreateBy = auditUser.Id;
+            bill.CreateName = auditUser.Username;
+        }
+        if (bill.UpdateBy != auditUser.Id || bill.UpdateName != auditUser.Username)
+        {
+            bill.UpdateBy = auditUser.Id;
+            bill.UpdateName = auditUser.Username;
+        }
+
+        foreach (var detail in bill.Details)
+        {
+            if (string.IsNullOrWhiteSpace(detail.Remark))
+            {
+                detail.Remark = $"SkyRoc 联调客户账单明细：签收商品 {detail.GoodsCodeSnapshot} 形成客户应收。";
+            }
+
+            if (detail.CreateBy != auditUser.Id || detail.CreateName != auditUser.Username)
+            {
+                detail.CreateBy = auditUser.Id;
+                detail.CreateName = auditUser.Username;
+            }
+            if (detail.UpdateBy != auditUser.Id || detail.UpdateName != auditUser.Username)
+            {
+                detail.UpdateBy = auditUser.Id;
+                detail.UpdateName = auditUser.Username;
+            }
+        }
+    }
+
+    private static string CreateDeliveryTaskRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("DELIVERY-TASK", sequence);
+        return $"{stableKey} 华东联调配送任务{sequence:D2}：来源受管销售出库，已完成分配、路线规划、签收和回单。";
+    }
+
+    private static string CreateDeliverySignRemark(int sequence)
+    {
+        return $"SkyRoc 联调配送签收：第 {sequence:D2} 张任务客户已按出库明细完成验收。";
+    }
+
+    private static string CreateDeliveryCheckDetailRemark(int sequence, string goodsCode, int detailIndex)
+    {
+        return $"SkyRoc 联调配送验收明细：第 {sequence:D2} 张任务第 {detailIndex + 1} 行商品 {goodsCode} 全量验收通过。";
+    }
+
+    private static string CreateDeliveryReturnRemark(int sequence)
+    {
+        return $"SkyRoc 联调配送回单：第 {sequence:D2} 张任务电子回单已归档，用于订单回单状态聚合。";
+    }
+
     private static string SerializeGoodsInfo(Domain.Entities.Goods.Goods goods)
     {
         return JsonSerializer.Serialize(new
@@ -2896,6 +3290,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .SingleAsync(item => item.Id == orderId, cancellationToken);
         if (order.OrderStatus == targetStatus)
             return;
+
+        if (targetStatus == SaleOrderStatus.SortingPending
+            && order.OrderStatus is SaleOrderStatus.Delivering or SaleOrderStatus.Signed)
+        {
+            return;
+        }
 
         if (order.OrderStatus == SaleOrderStatus.PendingAudit && targetStatus == SaleOrderStatus.SortingPending)
         {
