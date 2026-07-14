@@ -35,7 +35,7 @@ using Shared.Constants;
 namespace SkyRoc.Tests.Testing.PostgreSql;
 
 /// <summary>
-///     按完整稳定业务键补齐长期前端联调数据，并通过真实应用服务形成订单、库存、配送和售后业务链路。
+///     按完整稳定业务键补齐长期前端联调数据，并通过真实应用服务形成订单、库存、配送、售后和财务业务链路。
 /// </summary>
 public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 {
@@ -94,6 +94,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string SuppliersLayer = "suppliers";
     private const string SupplierBillDetailsLayer = "supplier-bill-details";
     private const string SupplierBillsLayer = "supplier-bills";
+    private const string SupplierSettlementDetailsLayer = "supplier-settlement-details";
+    private const string SupplierSettlementsLayer = "supplier-settlements";
     private const string StockBatchesLayer = "stock-batches";
     private const string StockLedgersLayer = "stock-ledgers";
     private const string SystemRolesLayer = "system-roles";
@@ -119,6 +121,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
         var customerSettlementService = scope.ServiceProvider.GetRequiredService<ICustomerSettlementService>();
+        var supplierSettlementService = scope.ServiceProvider.GetRequiredService<ISupplierSettlementService>();
         var deliveryRouteService = scope.ServiceProvider.GetRequiredService<IDeliveryRouteService>();
         var deliveryTaskService = scope.ServiceProvider.GetRequiredService<IDeliveryTaskService>();
         var driverService = scope.ServiceProvider.GetRequiredService<IDriverService>();
@@ -388,6 +391,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedSupplierBillDetails = 0;
         var createdSupplierBills = 0;
         var reusedSupplierBills = 0;
+        var createdSupplierSettlementDetails = 0;
+        var reusedSupplierSettlementDetails = 0;
+        var createdSupplierSettlements = 0;
+        var reusedSupplierSettlements = 0;
         var createdStockBatches = 0;
         var reusedStockBatches = 0;
         var createdStockLedgers = 0;
@@ -1346,6 +1353,15 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         createdCustomerSettlementDetails = customerSettlementResult.CreatedDetails;
         reusedCustomerSettlementDetails = customerSettlementResult.ReusedDetails;
 
+        var supplierSettlementResult = await new DemoDataSupplierSettlementBuilder(
+                context,
+                supplierSettlementService)
+            .GenerateAsync(cancellationToken);
+        createdSupplierSettlements = supplierSettlementResult.CreatedSettlements;
+        reusedSupplierSettlements = supplierSettlementResult.ReusedSettlements;
+        createdSupplierSettlementDetails = supplierSettlementResult.CreatedDetails;
+        reusedSupplierSettlementDetails = supplierSettlementResult.ReusedDetails;
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1404,6 +1420,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SuppliersLayer] = createdSuppliers,
                 [SupplierBillDetailsLayer] = createdSupplierBillDetails,
                 [SupplierBillsLayer] = createdSupplierBills,
+                [SupplierSettlementDetailsLayer] = createdSupplierSettlementDetails,
+                [SupplierSettlementsLayer] = createdSupplierSettlements,
                 [StockBatchesLayer] = createdStockBatches,
                 [StockLedgersLayer] = createdStockLedgers,
                 [SystemRolesLayer] = createdSystemRoles,
@@ -1467,6 +1485,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SuppliersLayer] = reusedSuppliers,
                 [SupplierBillDetailsLayer] = reusedSupplierBillDetails,
                 [SupplierBillsLayer] = reusedSupplierBills,
+                [SupplierSettlementDetailsLayer] = reusedSupplierSettlementDetails,
+                [SupplierSettlementsLayer] = reusedSupplierSettlements,
                 [StockBatchesLayer] = reusedStockBatches,
                 [StockLedgersLayer] = reusedStockLedgers,
                 [SystemRolesLayer] = reusedSystemRoles,
