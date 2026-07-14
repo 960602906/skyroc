@@ -60,6 +60,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string GoodsLayer = "goods";
     private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
+    private const string InspectionAttachmentsLayer = "inspection-attachments";
+    private const string InspectionReportGoodsLayer = "inspection-report-goods";
+    private const string InspectionReportsLayer = "inspection-reports";
     private const string PickupTasksLayer = "pickup-tasks";
     private const string PurchasersLayer = "purchasers";
     private const string PurchasePlanDetailsLayer = "purchase-plan-details";
@@ -100,6 +103,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string StockLedgersLayer = "stock-ledgers";
     private const string SystemRolesLayer = "system-roles";
     private const string SystemUsersLayer = "system-users";
+    private const string TraceRecordsLayer = "trace-records";
+    private const string TraceSaleOrderAuditLogsLayer = "trace-sale-order-audit-logs";
+    private const string TraceSaleOrderDetailsLayer = "trace-sale-order-details";
+    private const string TraceSaleOrdersLayer = "trace-sale-orders";
+    private const string TraceStockOutDetailsLayer = "trace-stock-out-details";
+    private const string TraceStockOutLedgersLayer = "trace-stock-out-ledgers";
+    private const string TraceStockOutsLayer = "trace-stock-outs";
     private const string WaresLayer = "wares";
 
     /// <summary>
@@ -122,6 +132,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
         var customerSettlementService = scope.ServiceProvider.GetRequiredService<ICustomerSettlementService>();
         var supplierSettlementService = scope.ServiceProvider.GetRequiredService<ISupplierSettlementService>();
+        var traceabilityService = scope.ServiceProvider.GetRequiredService<ITraceabilityService>();
         var deliveryRouteService = scope.ServiceProvider.GetRequiredService<IDeliveryRouteService>();
         var deliveryTaskService = scope.ServiceProvider.GetRequiredService<IDeliveryTaskService>();
         var driverService = scope.ServiceProvider.GetRequiredService<IDriverService>();
@@ -323,6 +334,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedGoodsUnits = 0;
         var createdGoodsTypes = 0;
         var reusedGoodsTypes = 0;
+        var createdInspectionAttachments = 0;
+        var reusedInspectionAttachments = 0;
+        var createdInspectionReportGoods = 0;
+        var reusedInspectionReportGoods = 0;
+        var createdInspectionReports = 0;
+        var reusedInspectionReports = 0;
         var createdPickupTasks = 0;
         var reusedPickupTasks = 0;
         var createdPurchasers = 0;
@@ -403,6 +420,20 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedSystemRoles = 0;
         var createdSystemUsers = 0;
         var reusedSystemUsers = 0;
+        var createdTraceRecords = 0;
+        var reusedTraceRecords = 0;
+        var createdTraceSaleOrderAuditLogs = 0;
+        var reusedTraceSaleOrderAuditLogs = 0;
+        var createdTraceSaleOrderDetails = 0;
+        var reusedTraceSaleOrderDetails = 0;
+        var createdTraceSaleOrders = 0;
+        var reusedTraceSaleOrders = 0;
+        var createdTraceStockOutDetails = 0;
+        var reusedTraceStockOutDetails = 0;
+        var createdTraceStockOutLedgers = 0;
+        var reusedTraceStockOutLedgers = 0;
+        var createdTraceStockOuts = 0;
+        var reusedTraceStockOuts = 0;
         var createdWares = 0;
         var reusedWares = 0;
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
@@ -1362,6 +1393,35 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         createdSupplierSettlementDetails = supplierSettlementResult.CreatedDetails;
         reusedSupplierSettlementDetails = supplierSettlementResult.ReusedDetails;
 
+        var traceabilityResult = await new DemoDataTraceabilityBuilder(
+                context,
+                traceabilityService,
+                saleOrderService,
+                stockOutService,
+                auditUser.Id,
+                auditUser.Username)
+            .GenerateAsync(cancellationToken);
+        createdInspectionReports = traceabilityResult.CreatedInspectionReports;
+        reusedInspectionReports = traceabilityResult.ReusedInspectionReports;
+        createdInspectionReportGoods = traceabilityResult.CreatedInspectionReportGoods;
+        reusedInspectionReportGoods = traceabilityResult.ReusedInspectionReportGoods;
+        createdInspectionAttachments = traceabilityResult.CreatedInspectionAttachments;
+        reusedInspectionAttachments = traceabilityResult.ReusedInspectionAttachments;
+        createdTraceSaleOrders = traceabilityResult.CreatedTraceSaleOrders;
+        reusedTraceSaleOrders = traceabilityResult.ReusedTraceSaleOrders;
+        createdTraceSaleOrderDetails = traceabilityResult.CreatedTraceSaleOrderDetails;
+        reusedTraceSaleOrderDetails = traceabilityResult.ReusedTraceSaleOrderDetails;
+        createdTraceSaleOrderAuditLogs = traceabilityResult.CreatedTraceSaleOrderAuditLogs;
+        reusedTraceSaleOrderAuditLogs = traceabilityResult.ReusedTraceSaleOrderAuditLogs;
+        createdTraceStockOuts = traceabilityResult.CreatedTraceStockOuts;
+        reusedTraceStockOuts = traceabilityResult.ReusedTraceStockOuts;
+        createdTraceStockOutDetails = traceabilityResult.CreatedTraceStockOutDetails;
+        reusedTraceStockOutDetails = traceabilityResult.ReusedTraceStockOutDetails;
+        createdTraceStockOutLedgers = traceabilityResult.CreatedTraceStockOutLedgers;
+        reusedTraceStockOutLedgers = traceabilityResult.ReusedTraceStockOutLedgers;
+        createdTraceRecords = traceabilityResult.CreatedTraceRecords;
+        reusedTraceRecords = traceabilityResult.ReusedTraceRecords;
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1386,6 +1446,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsLayer] = createdGoods,
                 [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
+                [InspectionAttachmentsLayer] = createdInspectionAttachments,
+                [InspectionReportGoodsLayer] = createdInspectionReportGoods,
+                [InspectionReportsLayer] = createdInspectionReports,
                 [PickupTasksLayer] = createdPickupTasks,
                 [PurchasersLayer] = createdPurchasers,
                 [PurchasePlanDetailsLayer] = createdPurchasePlanDetails,
@@ -1426,6 +1489,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [StockLedgersLayer] = createdStockLedgers,
                 [SystemRolesLayer] = createdSystemRoles,
                 [SystemUsersLayer] = createdSystemUsers,
+                [TraceRecordsLayer] = createdTraceRecords,
+                [TraceSaleOrderAuditLogsLayer] = createdTraceSaleOrderAuditLogs,
+                [TraceSaleOrderDetailsLayer] = createdTraceSaleOrderDetails,
+                [TraceSaleOrdersLayer] = createdTraceSaleOrders,
+                [TraceStockOutDetailsLayer] = createdTraceStockOutDetails,
+                [TraceStockOutLedgersLayer] = createdTraceStockOutLedgers,
+                [TraceStockOutsLayer] = createdTraceStockOuts,
                 [WaresLayer] = createdWares
             },
             new Dictionary<string, int>(StringComparer.Ordinal)
@@ -1451,6 +1521,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsLayer] = reusedGoods,
                 [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
+                [InspectionAttachmentsLayer] = reusedInspectionAttachments,
+                [InspectionReportGoodsLayer] = reusedInspectionReportGoods,
+                [InspectionReportsLayer] = reusedInspectionReports,
                 [PickupTasksLayer] = reusedPickupTasks,
                 [PurchasersLayer] = reusedPurchasers,
                 [PurchasePlanDetailsLayer] = reusedPurchasePlanDetails,
@@ -1491,6 +1564,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [StockLedgersLayer] = reusedStockLedgers,
                 [SystemRolesLayer] = reusedSystemRoles,
                 [SystemUsersLayer] = reusedSystemUsers,
+                [TraceRecordsLayer] = reusedTraceRecords,
+                [TraceSaleOrderAuditLogsLayer] = reusedTraceSaleOrderAuditLogs,
+                [TraceSaleOrderDetailsLayer] = reusedTraceSaleOrderDetails,
+                [TraceSaleOrdersLayer] = reusedTraceSaleOrders,
+                [TraceStockOutDetailsLayer] = reusedTraceStockOutDetails,
+                [TraceStockOutLedgersLayer] = reusedTraceStockOutLedgers,
+                [TraceStockOutsLayer] = reusedTraceStockOuts,
                 [WaresLayer] = reusedWares
             });
     }

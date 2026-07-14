@@ -7,6 +7,7 @@ using Domain.Entities.Purchases;
 using Domain.Entities.Finance;
 using Domain.Entities.Storage;
 using Domain.Entities.System;
+using Domain.Entities.Traceability;
 using Shared.Constants;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -2132,4 +2133,230 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
     }
 
     private sealed record SupplierSettlementDatabaseSnapshot(string Settlements, string Bills);
+
+    /// <summary>
+    ///     生成器必须从受管采购入库形成检测报告及附件，并通过真实采购批次销售出库生成可重复复用的溯源记录。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedInspectionReportsAttachmentsAndTraceRecords_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var firstDatabaseSnapshot = await CaptureManagedTraceabilityDatabaseSnapshotAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+        var secondDatabaseSnapshot = await CaptureManagedTraceabilityDatabaseSnapshotAsync();
+
+        var expectedReportRemarks = Enumerable.Range(1, 50)
+            .Select(CreateInspectionReportRemark)
+            .ToArray();
+        var expectedTraceOrderKeys = Enumerable.Range(1, 20)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("TRACE-SALE-ORDER", sequence))
+            .ToArray();
+        var expectedTraceStockOutRemarks = Enumerable.Range(1, 20)
+            .Select(CreateTraceStockOutRemark)
+            .ToArray();
+        var expectedTraceRemarks = Enumerable.Range(1, 20)
+            .Select(CreateTraceRecordRemark)
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var reports = await context.InspectionReports
+            .AsNoTracking()
+            .Include(report => report.StockInOrder)
+            .Include(report => report.Goods)
+            .Include(report => report.Attachments)
+            .Where(report => report.Remark != null && expectedReportRemarks.Contains(report.Remark))
+            .OrderBy(report => report.Remark)
+            .ToListAsync();
+        var traceOrders = await context.SaleOrders
+            .AsNoTracking()
+            .Include(order => order.Details)
+            .Where(order => order.InnerRemark != null && expectedTraceOrderKeys.Contains(order.InnerRemark))
+            .OrderBy(order => order.InnerRemark)
+            .ToListAsync();
+        var traceOrderIds = traceOrders.Select(order => order.Id).ToArray();
+        var stockOuts = await context.StockOutOrders
+            .AsNoTracking()
+            .Include(order => order.Details)
+            .Where(order => order.Remark != null && expectedTraceStockOutRemarks.Contains(order.Remark))
+            .OrderBy(order => order.Remark)
+            .ToListAsync();
+        var traces = await context.TraceRecords
+            .AsNoTracking()
+            .Include(trace => trace.StockInDetail)
+            .ThenInclude(detail => detail!.StockBatch)
+            .Include(trace => trace.InspectionReport)
+            .ThenInclude(report => report!.Goods)
+            .Where(trace => traceOrderIds.Contains(trace.SaleOrderId))
+            .OrderBy(trace => trace.Remark)
+            .ToListAsync();
+
+        Assert.Equal(50, reports.Count);
+        Assert.Equal(100, reports.Sum(report => report.Goods.Count));
+        Assert.Equal(100, reports.Sum(report => report.Attachments.Count));
+        Assert.Equal(40, reports.Count(report => report.Conclusion == InspectionConclusion.Qualified));
+        Assert.Equal(5, reports.Count(report => report.Conclusion == InspectionConclusion.Pending));
+        Assert.Equal(5, reports.Count(report => report.Conclusion == InspectionConclusion.Unqualified));
+        Assert.Equal(20, traceOrders.Count);
+        Assert.Equal(20, traceOrders.Sum(order => order.Details.Count));
+        Assert.Equal(20, stockOuts.Count);
+        Assert.Equal(20, stockOuts.Sum(order => order.Details.Count));
+        Assert.Equal(20, traces.Count);
+        Assert.Equal(expectedTraceRemarks, traces.Select(trace => trace.Remark).ToArray());
+        Assert.Equal(50, first.CreatedByLayer.GetValueOrDefault("inspection-reports")
+                         + first.ReusedByLayer.GetValueOrDefault("inspection-reports"));
+        Assert.Equal(100, first.CreatedByLayer.GetValueOrDefault("inspection-report-goods")
+                         + first.ReusedByLayer.GetValueOrDefault("inspection-report-goods"));
+        Assert.Equal(100, first.CreatedByLayer.GetValueOrDefault("inspection-attachments")
+                         + first.ReusedByLayer.GetValueOrDefault("inspection-attachments"));
+        Assert.Equal(20, first.CreatedByLayer.GetValueOrDefault("trace-records")
+                         + first.ReusedByLayer.GetValueOrDefault("trace-records"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("inspection-reports"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("inspection-report-goods"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("inspection-attachments"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("trace-sale-orders"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("trace-stock-outs"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("trace-records"));
+        Assert.Equal(firstDatabaseSnapshot, secondDatabaseSnapshot);
+
+        Assert.All(reports, report =>
+        {
+            Assert.Equal(StockInOrderType.Purchase, report.StockInOrder.OrderType);
+            Assert.Equal(StockDocumentStatus.Audited, report.StockInOrder.BusinessStatus);
+            Assert.False(string.IsNullOrWhiteSpace(report.InspectionNo));
+            Assert.False(string.IsNullOrWhiteSpace(report.InspectionOrg));
+            Assert.NotNull(report.SampleTime);
+            Assert.True(report.SampleTime < report.InspectTime);
+            Assert.NotNull(report.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(report.CreateName));
+            Assert.Equal(2, report.Goods.Count);
+            Assert.Equal(2, report.Attachments.Count);
+            Assert.All(report.Goods, goods =>
+            {
+                Assert.True(goods.SampleQuantity > 0m);
+                Assert.False(string.IsNullOrWhiteSpace(goods.GoodsNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(goods.GoodsCodeSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(goods.GoodsTypeNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(goods.GoodsUnitNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(goods.BatchNoSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(goods.Remark));
+                Assert.NotNull(goods.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(goods.CreateName));
+            });
+            Assert.Contains(report.Attachments, attachment => attachment.AttachmentType == InspectionAttachmentType.Report);
+            Assert.Contains(report.Attachments, attachment => attachment.AttachmentType == InspectionAttachmentType.Image);
+            Assert.All(report.Attachments, attachment =>
+            {
+                Assert.False(string.IsNullOrWhiteSpace(attachment.FileName));
+                Assert.False(string.IsNullOrWhiteSpace(attachment.FileUrl));
+                Assert.True(attachment.FileSize > 0);
+                Assert.NotNull(attachment.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(attachment.CreateName));
+            });
+        });
+
+        var stockOutBySaleOrderId = stockOuts.ToDictionary(order => order.SaleOrderId!.Value);
+        Assert.All(traces, trace =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(trace.TraceNo));
+            Assert.NotNull(trace.StockInDetailId);
+            Assert.NotNull(trace.StockInDetail);
+            Assert.NotNull(trace.InspectionReportId);
+            Assert.NotNull(trace.InspectionReport);
+            Assert.False(string.IsNullOrWhiteSpace(trace.SupplierNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(trace.WareNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(trace.BatchNoSnapshot));
+            Assert.NotNull(trace.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(trace.CreateName));
+            Assert.Contains(
+                trace.InspectionReport!.Goods,
+                goods => goods.StockInDetailId == trace.StockInDetailId);
+            var stockOut = stockOutBySaleOrderId[trace.SaleOrderId];
+            var stockOutDetail = Assert.Single(stockOut.Details);
+            Assert.Equal(stockOutDetail.StockBatchId, trace.StockInDetail!.StockBatchId);
+        });
+    }
+
+    private async Task<TraceabilityDatabaseSnapshot> CaptureManagedTraceabilityDatabaseSnapshotAsync()
+    {
+        var reportRemarks = Enumerable.Range(1, 50)
+            .Select(CreateInspectionReportRemark)
+            .ToArray();
+        var traceOrderKeys = Enumerable.Range(1, 20)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("TRACE-SALE-ORDER", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var reports = await context.InspectionReports
+            .AsNoTracking()
+            .Include(report => report.Goods)
+            .Include(report => report.Attachments)
+            .Where(report => report.Remark != null && reportRemarks.Contains(report.Remark))
+            .OrderBy(report => report.Remark)
+            .ToListAsync();
+        var traceOrderIds = await context.SaleOrders
+            .AsNoTracking()
+            .Where(order => order.InnerRemark != null && traceOrderKeys.Contains(order.InnerRemark))
+            .OrderBy(order => order.InnerRemark)
+            .Select(order => order.Id)
+            .ToArrayAsync();
+        var traces = await context.TraceRecords
+            .AsNoTracking()
+            .Where(trace => traceOrderIds.Contains(trace.SaleOrderId))
+            .OrderBy(trace => trace.Remark)
+            .ToListAsync();
+
+        var reportState = string.Join(
+            Environment.NewLine,
+            reports.Select(report => string.Join(
+                '|',
+                report.Id,
+                report.InspectionNo,
+                report.StockInOrderId,
+                report.InspectionOrg,
+                report.SampleTime?.ToString("O"),
+                report.InspectTime.ToString("O"),
+                report.Conclusion,
+                report.Remark,
+                report.CreateTime?.ToString("O"),
+                report.CreateBy,
+                report.CreateName,
+                string.Join(',', report.Goods.OrderBy(goods => goods.StockInDetailId).Select(goods => goods.Id)),
+                string.Join(',', report.Attachments.OrderBy(attachment => attachment.Sort).Select(attachment => attachment.Id)))));
+        var traceState = string.Join(
+            Environment.NewLine,
+            traces.Select(trace => string.Join(
+                '|',
+                trace.Id,
+                trace.TraceNo,
+                trace.SaleOrderId,
+                trace.SaleOrderDetailId,
+                trace.StockInDetailId,
+                trace.InspectionReportId,
+                trace.BatchNoSnapshot,
+                trace.Remark,
+                trace.CreateTime?.ToString("O"),
+                trace.CreateBy,
+                trace.CreateName)));
+
+        return new TraceabilityDatabaseSnapshot(reportState, traceState);
+    }
+
+    private static string CreateInspectionReportRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("INSPECTION-REPORT", sequence);
+        return $"{stableKey} 华东联调检测报告{sequence:D2}：记录受管采购入库商品抽检结论与附件快照。";
+    }
+
+    private static string CreateTraceStockOutRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("TRACE-STOCK-OUT", sequence);
+        return $"{stableKey} 华东联调溯源销售出库{sequence:D2}：从已检测采购批次出库以形成真实溯源来源。";
+    }
+
+    private static string CreateTraceRecordRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("TRACE-RECORD", sequence);
+        return $"{stableKey} 华东联调溯源记录{sequence:D2}：串联销售商品、采购批次与检测报告。";
+    }
+
+    private sealed record TraceabilityDatabaseSnapshot(string Reports, string Traces);
 }
