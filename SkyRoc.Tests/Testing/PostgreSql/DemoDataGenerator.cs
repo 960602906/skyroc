@@ -1,3 +1,4 @@
+using Application.DTOs.AfterSales;
 using Application.DTOs.Customers;
 using Application.DTOs.Department;
 using Application.DTOs.Delivery;
@@ -13,6 +14,7 @@ using Application.DTOs.User;
 using Application.interfaces;
 using Application.interfaces.System;
 using Domain.Entities;
+using Domain.Entities.AfterSales;
 using Domain.Entities.Delivery;
 using Domain.Entities.Finance;
 using Domain.Entities.Orders;
@@ -33,7 +35,7 @@ using Shared.Constants;
 namespace SkyRoc.Tests.Testing.PostgreSql;
 
 /// <summary>
-///     按完整稳定业务键补齐长期前端联调数据；当前先提供公司基础资料层，后续层在同一安全边界内追加。
+///     按完整稳定业务键补齐长期前端联调数据，并通过真实应用服务形成订单、库存、配送和售后业务链路。
 /// </summary>
 public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 {
@@ -43,6 +45,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string CustomerProtocolsLayer = "customer-protocols";
     private const string CustomerSubAccountsLayer = "customer-sub-accounts";
     private const string CustomersLayer = "customers";
+    private const string AfterSaleAuditLogsLayer = "after-sale-audit-logs";
+    private const string AfterSaleGoodsLayer = "after-sale-goods";
+    private const string AfterSalesLayer = "after-sales";
     private const string CustomerBillDetailsLayer = "customer-bill-details";
     private const string CustomerBillsLayer = "customer-bills";
     private const string DepartmentsLayer = "departments";
@@ -53,6 +58,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string GoodsLayer = "goods";
     private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
+    private const string PickupTasksLayer = "pickup-tasks";
     private const string PurchasersLayer = "purchasers";
     private const string PurchasePlanDetailsLayer = "purchase-plan-details";
     private const string PurchasePlanOrderRelationsLayer = "purchase-plan-order-relations";
@@ -70,6 +76,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string SaleStockSupportInDetailsLayer = "sale-stock-support-in-details";
     private const string SaleStockSupportInsLayer = "sale-stock-support-ins";
     private const string SaleStockSupportLedgersLayer = "sale-stock-support-ledgers";
+    private const string SalesReturnStockInDetailsLayer = "sales-return-stock-in-details";
+    private const string SalesReturnStockInsLayer = "sales-return-stock-ins";
     private const string SaleOrderDetailsLayer = "sale-order-details";
     private const string SaleOrdersLayer = "sale-orders";
     private const string OrderCheckDetailsLayer = "order-check-details";
@@ -91,7 +99,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string WaresLayer = "wares";
 
     /// <summary>
-    ///     在经白名单验证的真实 PostgreSQL 中幂等生成当前已实现的联调资料层。
+    ///     在经白名单验证的真实 PostgreSQL 中幂等生成已实现的基础资料与业务场景层。
     /// </summary>
     /// <param name="cancellationToken">取消生成的令牌。</param>
     /// <returns>按资料层汇总的新增与复用数量。</returns>
@@ -102,6 +110,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         using var factory = fixture.CreateWebApplicationFactory();
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var afterSaleService = scope.ServiceProvider.GetRequiredService<IAfterSaleService>();
+        var pickupTaskService = scope.ServiceProvider.GetRequiredService<IPickupTaskService>();
         var companyService = scope.ServiceProvider.GetRequiredService<ICompanyService>();
         var carrierService = scope.ServiceProvider.GetRequiredService<ICarrierService>();
         var customerTagService = scope.ServiceProvider.GetRequiredService<ICustomerTagService>();
@@ -267,6 +277,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 
         var createdCompanies = 0;
         var reusedCompanies = 0;
+        var createdAfterSaleAuditLogs = 0;
+        var reusedAfterSaleAuditLogs = 0;
+        var createdAfterSaleGoods = 0;
+        var reusedAfterSaleGoods = 0;
+        var createdAfterSales = 0;
+        var reusedAfterSales = 0;
         var createdCarriers = 0;
         var reusedCarriers = 0;
         var createdCustomerTags = 0;
@@ -297,6 +313,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedGoodsUnits = 0;
         var createdGoodsTypes = 0;
         var reusedGoodsTypes = 0;
+        var createdPickupTasks = 0;
+        var reusedPickupTasks = 0;
         var createdPurchasers = 0;
         var reusedPurchasers = 0;
         var createdPurchasePlanDetails = 0;
@@ -331,6 +349,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedSaleStockSupportIns = 0;
         var createdSaleStockSupportLedgers = 0;
         var reusedSaleStockSupportLedgers = 0;
+        var createdSalesReturnStockInDetails = 0;
+        var reusedSalesReturnStockInDetails = 0;
+        var createdSalesReturnStockIns = 0;
+        var reusedSalesReturnStockIns = 0;
         var createdSaleOrderDetails = 0;
         var reusedSaleOrderDetails = 0;
         var createdSaleOrders = 0;
@@ -1280,10 +1302,41 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             auditUser,
             cancellationToken);
 
+        var afterSaleResult = await GenerateAfterSalesAsync(
+            context,
+            afterSaleService,
+            pickupTaskService,
+            stockInService,
+            auditUser,
+            createdCustomerBillDetails,
+            reusedCustomerBillDetails,
+            cancellationToken);
+        createdAfterSales = afterSaleResult.AfterSales.Created;
+        reusedAfterSales = afterSaleResult.AfterSales.Reused;
+        createdAfterSaleGoods = afterSaleResult.AfterSaleGoods.Created;
+        reusedAfterSaleGoods = afterSaleResult.AfterSaleGoods.Reused;
+        createdAfterSaleAuditLogs = afterSaleResult.AfterSaleAuditLogs.Created;
+        reusedAfterSaleAuditLogs = afterSaleResult.AfterSaleAuditLogs.Reused;
+        createdPickupTasks = afterSaleResult.PickupTasks.Created;
+        reusedPickupTasks = afterSaleResult.PickupTasks.Reused;
+        createdSalesReturnStockIns = afterSaleResult.SalesReturnStockIns.Created;
+        reusedSalesReturnStockIns = afterSaleResult.SalesReturnStockIns.Reused;
+        createdSalesReturnStockInDetails = afterSaleResult.SalesReturnStockInDetails.Created;
+        reusedSalesReturnStockInDetails = afterSaleResult.SalesReturnStockInDetails.Reused;
+        createdCustomerBillDetails = afterSaleResult.CustomerBillDetails.Created;
+        reusedCustomerBillDetails = afterSaleResult.CustomerBillDetails.Reused;
+        createdStockBatches += afterSaleResult.SalesReturnBatches.Created;
+        reusedStockBatches += afterSaleResult.SalesReturnBatches.Reused;
+        createdStockLedgers += afterSaleResult.SalesReturnLedgers.Created;
+        reusedStockLedgers += afterSaleResult.SalesReturnLedgers.Reused;
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
                 [CompaniesLayer] = createdCompanies,
+                [AfterSaleAuditLogsLayer] = createdAfterSaleAuditLogs,
+                [AfterSaleGoodsLayer] = createdAfterSaleGoods,
+                [AfterSalesLayer] = createdAfterSales,
                 [CarriersLayer] = createdCarriers,
                 [CustomerTagsLayer] = createdCustomerTags,
                 [CustomerProtocolGoodsLayer] = createdCustomerProtocolGoods,
@@ -1299,6 +1352,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsLayer] = createdGoods,
                 [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
+                [PickupTasksLayer] = createdPickupTasks,
                 [PurchasersLayer] = createdPurchasers,
                 [PurchasePlanDetailsLayer] = createdPurchasePlanDetails,
                 [PurchasePlanOrderRelationsLayer] = createdPurchasePlanOrderRelations,
@@ -1316,6 +1370,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SaleStockSupportInDetailsLayer] = createdSaleStockSupportInDetails,
                 [SaleStockSupportInsLayer] = createdSaleStockSupportIns,
                 [SaleStockSupportLedgersLayer] = createdSaleStockSupportLedgers,
+                [SalesReturnStockInDetailsLayer] = createdSalesReturnStockInDetails,
+                [SalesReturnStockInsLayer] = createdSalesReturnStockIns,
                 [SaleOrderDetailsLayer] = createdSaleOrderDetails,
                 [SaleOrdersLayer] = createdSaleOrders,
                 [OrderCheckDetailsLayer] = createdOrderCheckDetails,
@@ -1339,6 +1395,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
                 [CompaniesLayer] = reusedCompanies,
+                [AfterSaleAuditLogsLayer] = reusedAfterSaleAuditLogs,
+                [AfterSaleGoodsLayer] = reusedAfterSaleGoods,
+                [AfterSalesLayer] = reusedAfterSales,
                 [CarriersLayer] = reusedCarriers,
                 [CustomerTagsLayer] = reusedCustomerTags,
                 [CustomerProtocolGoodsLayer] = reusedCustomerProtocolGoods,
@@ -1354,6 +1413,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [GoodsLayer] = reusedGoods,
                 [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
+                [PickupTasksLayer] = reusedPickupTasks,
                 [PurchasersLayer] = reusedPurchasers,
                 [PurchasePlanDetailsLayer] = reusedPurchasePlanDetails,
                 [PurchasePlanOrderRelationsLayer] = reusedPurchasePlanOrderRelations,
@@ -1371,6 +1431,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SaleStockSupportInDetailsLayer] = reusedSaleStockSupportInDetails,
                 [SaleStockSupportInsLayer] = reusedSaleStockSupportIns,
                 [SaleStockSupportLedgersLayer] = reusedSaleStockSupportLedgers,
+                [SalesReturnStockInDetailsLayer] = reusedSalesReturnStockInDetails,
+                [SalesReturnStockInsLayer] = reusedSalesReturnStockIns,
                 [SaleOrderDetailsLayer] = reusedSaleOrderDetails,
                 [SaleOrdersLayer] = reusedSaleOrders,
                 [OrderCheckDetailsLayer] = reusedOrderCheckDetails,
@@ -3264,6 +3326,732 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private static string CreateDeliveryReturnRemark(int sequence)
     {
         return $"SkyRoc 联调配送回单：第 {sequence:D2} 张任务电子回单已归档，用于订单回单状态聚合。";
+    }
+
+    private static async Task<AfterSaleGenerationResult> GenerateAfterSalesAsync(
+            ApplicationDbContext context,
+            IAfterSaleService afterSaleService,
+            IPickupTaskService pickupTaskService,
+            IStockInService stockInService,
+            DemoAuditUser auditUser,
+            int existingCreatedCustomerBillDetails,
+            int existingReusedCustomerBillDetails,
+            CancellationToken cancellationToken)
+    {
+        var saleOrderKeys = Enumerable.Range(1, 60)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
+            .ToArray();
+        var afterSaleRemarks = Enumerable.Range(1, 40)
+            .Select(CreateAfterSaleRemark)
+            .ToArray();
+        var salesReturnRemarks = Enumerable.Range(1, 40)
+            .Select(CreateSalesReturnStockInRemark)
+            .ToArray();
+        var driverCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("DRIVER", sequence))
+            .ToArray();
+        var departmentCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("DEPARTMENT", sequence))
+            .ToArray();
+        var supplierCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SUPPLIER", sequence))
+            .ToArray();
+
+        var signedOrders = await context.SaleOrders
+            .Include(order => order.Details)
+            .Include(order => order.Customer)
+            .Where(order => order.InnerRemark != null
+                            && order.OrderStatus == SaleOrderStatus.Signed
+                            && saleOrderKeys.Contains(order.InnerRemark))
+            .OrderBy(order => order.InnerRemark)
+            .Take(40)
+            .ToListAsync(cancellationToken);
+        if (signedOrders.Count != 40)
+        {
+            throw new InvalidOperationException(
+                $"受管售后生成需要 40 张已签收销售订单，当前为 {signedOrders.Count} 张。");
+        }
+
+        var managedDrivers = await context.Drivers
+            .Where(driver => driverCodes.Contains(driver.Code))
+            .ToDictionaryAsync(driver => driver.Code, StringComparer.Ordinal, cancellationToken);
+        var managedDepartments = await context.Departments
+            .Where(department => departmentCodes.Contains(department.Code))
+            .ToDictionaryAsync(department => department.Code, StringComparer.Ordinal, cancellationToken);
+        var managedSuppliers = await context.Suppliers
+            .Where(supplier => supplierCodes.Contains(supplier.Code))
+            .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
+        var existingAfterSales = await context.AfterSales
+            .Include(afterSale => afterSale.Goods)
+            .Include(afterSale => afterSale.AuditLogs)
+            .Include(afterSale => afterSale.PickupTasks)
+            .ThenInclude(task => task.StockInDetail)
+            .ThenInclude(detail => detail!.StockInOrder)
+            .ThenInclude(order => order.Details)
+            .Where(afterSale => afterSale.Remark != null && afterSaleRemarks.Contains(afterSale.Remark))
+            .ToDictionaryAsync(afterSale => afterSale.Remark!, StringComparer.Ordinal, cancellationToken);
+        var existingSalesReturns = await context.StockInOrders
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.StockBatch)
+            .Where(order => order.Remark != null
+                            && salesReturnRemarks.Contains(order.Remark)
+                            && order.OrderType == StockInOrderType.SalesReturn)
+            .ToDictionaryAsync(order => order.Remark!, StringComparer.Ordinal, cancellationToken);
+
+        var createdAfterSales = 0;
+        var reusedAfterSales = 0;
+        var createdAfterSaleGoods = 0;
+        var reusedAfterSaleGoods = 0;
+        var createdAfterSaleAuditLogs = 0;
+        var reusedAfterSaleAuditLogs = 0;
+        var createdPickupTasks = 0;
+        var reusedPickupTasks = 0;
+        var createdSalesReturnStockIns = 0;
+        var reusedSalesReturnStockIns = 0;
+        var createdSalesReturnStockInDetails = 0;
+        var reusedSalesReturnStockInDetails = 0;
+        var createdSalesReturnBatches = 0;
+        var reusedSalesReturnBatches = 0;
+        var createdSalesReturnLedgers = 0;
+        var reusedSalesReturnLedgers = 0;
+        var createdCustomerBillDetails = existingCreatedCustomerBillDetails;
+        var reusedCustomerBillDetails = existingReusedCustomerBillDetails;
+
+        for (var index = 0; index < signedOrders.Count; index++)
+        {
+            var sequence = index + 1;
+            var saleOrder = signedOrders[index];
+            var afterSaleRemark = CreateAfterSaleRemark(sequence);
+            var referenceSequence = (sequence - 1) % 30 + 1;
+            var driver = GetManagedReference(
+                managedDrivers,
+                DemoDataStableKeyCatalog.Create("DRIVER", referenceSequence),
+                "取货司机");
+            var department = GetManagedReference(
+                managedDepartments,
+                DemoDataStableKeyCatalog.Create("DEPARTMENT", referenceSequence),
+                "责任部门");
+            var supplier = GetManagedReference(
+                managedSuppliers,
+                DemoDataStableKeyCatalog.Create("SUPPLIER", referenceSequence),
+                "供应商");
+            var scenario = ResolveAfterSaleScenario(sequence);
+            var orderedDetails = saleOrder.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .ToArray();
+            if (orderedDetails.Length == 0)
+            {
+                throw new InvalidOperationException($"受管销售订单 {saleOrder.InnerRemark} 缺少可售后明细。");
+            }
+
+            var primaryDetail = orderedDetails[0];
+            var afterSaleWasCreated = !existingAfterSales.TryGetValue(afterSaleRemark, out var afterSale);
+            if (afterSaleWasCreated)
+            {
+                var created = await afterSaleService.CreateAsync(new CreateAfterSaleDto
+                {
+                    SaleOrderId = saleOrder.Id,
+                    CustomerId = saleOrder.CustomerId,
+                    Source = "后台联调建单",
+                    ContactName = saleOrder.ContactNameSnapshot ?? $"华东售后联系人{sequence:D2}",
+                    ContactPhone = saleOrder.ContactPhoneSnapshot ?? $"1398000{sequence:D4}",
+                    PickupAddress = saleOrder.DeliveryAddressSnapshot
+                                    ?? $"上海市浦东新区鲜品大道{referenceSequence}号客户退货月台{sequence:D2}",
+                    Remark = afterSaleRemark,
+                    Goods =
+                    [
+                        new CreateAfterSaleGoodsDto
+                        {
+                            SaleOrderDetailId = primaryDetail.Id,
+                            ActualRefundQuantity = CreateAfterSaleRefundQuantity(primaryDetail, scenario),
+                            AfterSaleType = scenario.AfterSaleType,
+                            SupplierId = supplier.Id,
+                            DepartmentId = department.Id,
+                            ReasonType = scenario.ReasonType,
+                            HandleType = scenario.HandleType,
+                            Remark = CreateAfterSaleGoodsRemark(sequence, primaryDetail.GoodsCodeSnapshot)
+                        }
+                    ]
+                });
+                afterSale = await GetManagedAfterSaleAsync(context, created.Id, cancellationToken);
+            }
+            else
+            {
+                afterSale = await GetManagedAfterSaleAsync(context, afterSale!.Id, cancellationToken);
+            }
+
+            if (afterSale.AfterStatus == AfterSaleStatus.Draft
+                && afterSale.AuditLogs.All(log => log.Action != AfterSaleAuditAction.Reject))
+            {
+                await afterSaleService.SubmitAsync(afterSale.Id, CreateAfterSaleSubmitRemark(sequence));
+                afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+            }
+
+            if (scenario.TargetStatus == AfterSaleStatus.Draft
+                && afterSale.AfterStatus == AfterSaleStatus.PendingAudit
+                && afterSale.AuditLogs.All(log => log.Action != AfterSaleAuditAction.Reject))
+            {
+                await afterSaleService.RejectAsync(afterSale.Id, CreateAfterSaleRejectRemark(sequence));
+                afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+            }
+
+            if (scenario.TargetStatus is AfterSaleStatus.ReturnPending
+                    or AfterSaleStatus.RefundPending
+                    or AfterSaleStatus.Completed
+                && afterSale.AfterStatus == AfterSaleStatus.PendingAudit)
+            {
+                await afterSaleService.ApproveAsync(afterSale.Id, CreateAfterSaleApproveRemark(sequence));
+                afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+            }
+
+            if (scenario.TargetStatus == AfterSaleStatus.Completed)
+            {
+                if (scenario.AfterSaleType == AfterSaleType.ReturnAndRefund)
+                {
+                    var pickupTask = afterSale.PickupTasks.SingleOrDefault()
+                                     ?? throw new InvalidOperationException(
+                                         $"受管售后 {afterSaleRemark} 审核后未生成取货任务。");
+                    if (pickupTask.PickupStatus == PickupTaskStatus.PendingAssign)
+                    {
+                        await pickupTaskService.AssignAsync(pickupTask.Id, new AssignPickupTaskDto
+                        {
+                            DriverId = driver.Id,
+                            PlannedPickupTime = CreatePickupPlannedTime(sequence),
+                            Remark = CreatePickupAssignRemark(sequence)
+                        });
+                        afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+                        pickupTask = afterSale.PickupTasks.Single();
+                    }
+
+                    if (pickupTask.PickupStatus == PickupTaskStatus.PendingPickup)
+                    {
+                        await pickupTaskService.StartAsync(pickupTask.Id);
+                        afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+                        pickupTask = afterSale.PickupTasks.Single();
+                    }
+
+                    if (pickupTask.PickupStatus == PickupTaskStatus.PickingUp)
+                    {
+                        await pickupTaskService.CompleteAsync(pickupTask.Id);
+                        afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+                        pickupTask = afterSale.PickupTasks.Single();
+                    }
+
+                    var salesReturnResult = await EnsureManagedSalesReturnAsync(
+                        context,
+                        stockInService,
+                        existingSalesReturns,
+                        saleOrder,
+                        afterSale,
+                        pickupTask,
+                        department.Id,
+                        sequence,
+                        auditUser,
+                        cancellationToken);
+                    if (salesReturnResult.WasCreated)
+                    {
+                        createdSalesReturnStockIns++;
+                        createdSalesReturnStockInDetails += salesReturnResult.DetailCount;
+                        createdSalesReturnBatches += salesReturnResult.BatchCount;
+                        createdSalesReturnLedgers += salesReturnResult.LedgerCount;
+                    }
+                    else
+                    {
+                        reusedSalesReturnStockIns++;
+                        reusedSalesReturnStockInDetails += salesReturnResult.DetailCount;
+                        reusedSalesReturnBatches += salesReturnResult.BatchCount;
+                        reusedSalesReturnLedgers += salesReturnResult.LedgerCount;
+                    }
+
+                    afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+                }
+
+                var billBeforeComplete = await GetManagedCustomerBillAsync(
+                    context,
+                    afterSale.SaleOrderId!.Value,
+                    cancellationToken);
+                var adjustmentCountBefore = billBeforeComplete?.Details
+                    .Count(detail => detail.SourceType == CustomerBillDetailSourceType.AfterSaleAdjustment) ?? 0;
+                if (afterSale.AfterStatus != AfterSaleStatus.Completed)
+                {
+                    await afterSaleService.CompleteAsync(afterSale.Id);
+                    afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+                }
+
+                var billAfterComplete = await GetManagedCustomerBillAsync(
+                    context,
+                    afterSale.SaleOrderId!.Value,
+                    cancellationToken)
+                    ?? throw new InvalidOperationException(
+                        $"受管售后 {afterSaleRemark} 完成后未找到客户账单。");
+                var adjustmentCountAfter = billAfterComplete.Details
+                    .Count(detail => detail.SourceType == CustomerBillDetailSourceType.AfterSaleAdjustment);
+                if (adjustmentCountAfter > adjustmentCountBefore)
+                {
+                    createdCustomerBillDetails += adjustmentCountAfter - adjustmentCountBefore;
+                }
+                else
+                {
+                    reusedCustomerBillDetails += adjustmentCountAfter;
+                }
+            }
+
+            afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+            if (afterSale.AfterStatus != scenario.TargetStatus)
+            {
+                throw new InvalidOperationException(
+                    $"受管售后 {afterSaleRemark} 目标状态为 {scenario.TargetStatus}，当前为 {afterSale.AfterStatus}。");
+            }
+
+            ApplyManagedAfterSaleFields(afterSale, sequence, auditUser);
+            await context.SaveChangesAsync(cancellationToken);
+
+            if (afterSaleWasCreated)
+            {
+                createdAfterSales++;
+                createdAfterSaleGoods += afterSale.Goods.Count;
+                createdAfterSaleAuditLogs += afterSale.AuditLogs.Count;
+                createdPickupTasks += afterSale.PickupTasks.Count;
+            }
+            else
+            {
+                reusedAfterSales++;
+                reusedAfterSaleGoods += afterSale.Goods.Count;
+                reusedAfterSaleAuditLogs += afterSale.AuditLogs.Count;
+                reusedPickupTasks += afterSale.PickupTasks.Count;
+            }
+        }
+
+        return new AfterSaleGenerationResult
+        {
+            AfterSales = new GenerationLayerCount
+            {
+                Created = createdAfterSales,
+                Reused = reusedAfterSales
+            },
+            AfterSaleGoods = new GenerationLayerCount
+            {
+                Created = createdAfterSaleGoods,
+                Reused = reusedAfterSaleGoods
+            },
+            AfterSaleAuditLogs = new GenerationLayerCount
+            {
+                Created = createdAfterSaleAuditLogs,
+                Reused = reusedAfterSaleAuditLogs
+            },
+            PickupTasks = new GenerationLayerCount
+            {
+                Created = createdPickupTasks,
+                Reused = reusedPickupTasks
+            },
+            SalesReturnStockIns = new GenerationLayerCount
+            {
+                Created = createdSalesReturnStockIns,
+                Reused = reusedSalesReturnStockIns
+            },
+            SalesReturnStockInDetails = new GenerationLayerCount
+            {
+                Created = createdSalesReturnStockInDetails,
+                Reused = reusedSalesReturnStockInDetails
+            },
+            SalesReturnBatches = new GenerationLayerCount
+            {
+                Created = createdSalesReturnBatches,
+                Reused = reusedSalesReturnBatches
+            },
+            SalesReturnLedgers = new GenerationLayerCount
+            {
+                Created = createdSalesReturnLedgers,
+                Reused = reusedSalesReturnLedgers
+            },
+            CustomerBillDetails = new GenerationLayerCount
+            {
+                Created = createdCustomerBillDetails,
+                Reused = reusedCustomerBillDetails
+            }
+        };
+    }
+
+    private static async Task<ManagedSalesReturnResult> EnsureManagedSalesReturnAsync(
+        ApplicationDbContext context,
+        IStockInService stockInService,
+        Dictionary<string, StockInOrder> existingSalesReturns,
+        SaleOrder saleOrder,
+        AfterSale afterSale,
+        PickupTask pickupTask,
+        Guid departmentId,
+        int sequence,
+        DemoAuditUser auditUser,
+        CancellationToken cancellationToken)
+    {
+        var salesReturnRemark = CreateSalesReturnStockInRemark(sequence);
+        StockInOrder salesReturn;
+        var salesReturnWasCreated = false;
+        if (!existingSalesReturns.TryGetValue(salesReturnRemark, out var existingSalesReturn)
+            && pickupTask.StockInDetail is null)
+        {
+            if (!saleOrder.WareId.HasValue)
+            {
+                throw new InvalidOperationException(
+                    $"受管销售订单 {saleOrder.InnerRemark} 未配置退货入库仓库。");
+            }
+
+            var goods = afterSale.Goods.Single();
+            var createdSalesReturn = await stockInService.CreateSalesReturnAsync(
+                new CreateSalesReturnStockInDto
+                {
+                    AfterSaleId = afterSale.Id,
+                    WareId = saleOrder.WareId.Value,
+                    CustomerId = saleOrder.CustomerId,
+                    DepartmentId = departmentId,
+                    InTime = CreateSalesReturnInTime(sequence),
+                    Remark = salesReturnRemark,
+                    Details =
+                    [
+                        new CreateStockInDetailDto
+                        {
+                            PickupTaskId = pickupTask.Id,
+                            GoodsId = goods.GoodsId,
+                            GoodsUnitId = goods.GoodsUnitId,
+                            Quantity = goods.ActualRefundQuantity,
+                            UnitPrice = goods.UnitPrice,
+                            BatchNo = CreateSalesReturnBatchNo(sequence),
+                            ProductDate = CreateSalesReturnProductDate(sequence),
+                            ExpireDate = CreateSalesReturnExpireDate(sequence),
+                            Remark = CreateSalesReturnDetailRemark(
+                                sequence,
+                                goods.GoodsCodeSnapshot)
+                        }
+                    ]
+                });
+            await stockInService.AuditAsync(
+                StockInOrderType.SalesReturn,
+                createdSalesReturn.Id,
+                CreateSalesReturnAuditRemark(sequence));
+            salesReturn = await GetManagedSalesReturnStockInAsync(
+                context,
+                createdSalesReturn.Id,
+                cancellationToken);
+            salesReturnWasCreated = true;
+            existingSalesReturns[salesReturnRemark] = salesReturn;
+        }
+        else if (existingSalesReturns.TryGetValue(salesReturnRemark, out existingSalesReturn))
+        {
+            salesReturn = existingSalesReturn;
+            if (salesReturn.BusinessStatus is StockDocumentStatus.Draft or StockDocumentStatus.PendingAudit)
+            {
+                await stockInService.AuditAsync(
+                    StockInOrderType.SalesReturn,
+                    salesReturn.Id,
+                    CreateSalesReturnAuditRemark(sequence));
+                salesReturn = await GetManagedSalesReturnStockInAsync(
+                    context,
+                    salesReturn.Id,
+                    cancellationToken);
+                existingSalesReturns[salesReturnRemark] = salesReturn;
+            }
+        }
+        else
+        {
+            salesReturn = await GetManagedSalesReturnStockInAsync(
+                context,
+                pickupTask.StockInDetail!.StockInOrderId,
+                cancellationToken);
+            existingSalesReturns[salesReturnRemark] = salesReturn;
+        }
+
+        ApplyManagedSalesReturnStockInFields(salesReturn, sequence, auditUser);
+        await context.SaveChangesAsync(cancellationToken);
+
+        var salesReturnDetailIds = salesReturn.Details.Select(detail => detail.Id).ToArray();
+        var salesReturnLedgers = await context.StockLedgers
+            .Where(ledger => ledger.SourceType == StockLedgerSourceType.SalesReturnInbound
+                             && salesReturnDetailIds.Contains(ledger.SourceDetailId))
+            .ToListAsync(cancellationToken);
+        return new ManagedSalesReturnResult(
+            salesReturnWasCreated,
+            salesReturn.Details.Count,
+            salesReturn.Details.Select(detail => detail.StockBatchId).Distinct().Count(),
+            salesReturnLedgers.Count);
+    }
+
+    private static async Task<AfterSale> GetManagedAfterSaleAsync(
+        ApplicationDbContext context,
+        Guid afterSaleId,
+        CancellationToken cancellationToken)
+    {
+        return await context.AfterSales
+            .Include(afterSale => afterSale.Goods)
+            .Include(afterSale => afterSale.AuditLogs)
+            .Include(afterSale => afterSale.PickupTasks)
+            .ThenInclude(task => task.StockInDetail)
+            .ThenInclude(detail => detail!.StockInOrder)
+            .ThenInclude(order => order.Details)
+            .SingleAsync(afterSale => afterSale.Id == afterSaleId, cancellationToken);
+    }
+
+    private static async Task<StockInOrder> GetManagedSalesReturnStockInAsync(
+        ApplicationDbContext context,
+        Guid stockInOrderId,
+        CancellationToken cancellationToken)
+    {
+        return await context.StockInOrders
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.StockBatch)
+            .SingleAsync(order => order.Id == stockInOrderId, cancellationToken);
+    }
+
+    private sealed record AfterSaleScenario(
+        AfterSaleStatus TargetStatus,
+        AfterSaleType AfterSaleType,
+        AfterSaleReasonType ReasonType,
+        AfterSaleHandleType HandleType);
+
+    private sealed record AfterSaleGenerationResult
+    {
+        public required GenerationLayerCount AfterSales { get; init; }
+
+        public required GenerationLayerCount AfterSaleGoods { get; init; }
+
+        public required GenerationLayerCount AfterSaleAuditLogs { get; init; }
+
+        public required GenerationLayerCount PickupTasks { get; init; }
+
+        public required GenerationLayerCount SalesReturnStockIns { get; init; }
+
+        public required GenerationLayerCount SalesReturnStockInDetails { get; init; }
+
+        public required GenerationLayerCount SalesReturnBatches { get; init; }
+
+        public required GenerationLayerCount SalesReturnLedgers { get; init; }
+
+        public required GenerationLayerCount CustomerBillDetails { get; init; }
+    }
+
+    private sealed record GenerationLayerCount
+    {
+        public required int Created { get; init; }
+
+        public required int Reused { get; init; }
+    }
+
+    private sealed record ManagedSalesReturnResult(
+        bool WasCreated,
+        int DetailCount,
+        int BatchCount,
+        int LedgerCount);
+
+    private static AfterSaleScenario ResolveAfterSaleScenario(int sequence)
+    {
+        return sequence switch
+        {
+            <= 5 => new AfterSaleScenario(
+                AfterSaleStatus.Draft,
+                AfterSaleType.RefundOnly,
+                AfterSaleReasonType.OrderingError,
+                AfterSaleHandleType.CustomerCommunication),
+            <= 10 => new AfterSaleScenario(
+                AfterSaleStatus.PendingAudit,
+                AfterSaleType.RefundOnly,
+                AfterSaleReasonType.LateDelivery,
+                AfterSaleHandleType.BillAdjustment),
+            <= 15 => new AfterSaleScenario(
+                AfterSaleStatus.RefundPending,
+                AfterSaleType.RefundOnly,
+                AfterSaleReasonType.QuantityMismatch,
+                AfterSaleHandleType.GoodsDiscount),
+            <= 20 => new AfterSaleScenario(
+                AfterSaleStatus.ReturnPending,
+                AfterSaleType.ReturnAndRefund,
+                AfterSaleReasonType.SpecificationMismatch,
+                AfterSaleHandleType.Exchange),
+            _ => new AfterSaleScenario(
+                AfterSaleStatus.Completed,
+                AfterSaleType.ReturnAndRefund,
+                AfterSaleReasonType.QualityIssue,
+                AfterSaleHandleType.GoodsDiscount)
+        };
+    }
+
+    private static decimal CreateAfterSaleRefundQuantity(SaleOrderDetail detail, AfterSaleScenario scenario)
+    {
+        var availableBaseQuantity = detail.CustomerCheckBaseQuantity ?? detail.BaseQuantity;
+        if (detail.UnitConversion <= 0m || availableBaseQuantity <= 0m || detail.Quantity <= 0m)
+        {
+            throw new InvalidOperationException(
+                $"订单明细 {detail.GoodsCodeSnapshot} 的可售后数量不足以生成联调售后样本。");
+        }
+
+        var availableQuantity = NumericPrecision.RoundQuantity(
+            availableBaseQuantity * detail.Quantity / detail.BaseQuantity);
+        var ratio = scenario.TargetStatus == AfterSaleStatus.Completed ? 0.35m : 0.2m;
+        var quantity = NumericPrecision.RoundQuantity(availableQuantity * ratio);
+        if (quantity <= 0m)
+        {
+            quantity = NumericPrecision.RoundQuantity(Math.Min(availableQuantity, 0.5m));
+        }
+
+        if (quantity <= 0m || quantity > availableQuantity)
+        {
+            throw new InvalidOperationException(
+                $"订单明细 {detail.GoodsCodeSnapshot} 的可售后数量不足以生成联调售后样本。");
+        }
+
+        return quantity;
+    }
+
+    private static void ApplyManagedAfterSaleFields(
+        AfterSale afterSale,
+        int sequence,
+        DemoAuditUser auditUser)
+    {
+        afterSale.Remark = CreateAfterSaleRemark(sequence);
+        afterSale.ContactNameSnapshot ??= $"华东售后联系人{sequence:D2}";
+        afterSale.ContactPhoneSnapshot ??= $"1398000{sequence:D4}";
+        afterSale.PickupAddressSnapshot ??= $"上海市浦东新区鲜品大道{sequence % 30 + 1}号客户退货月台{sequence:D2}";
+        if (afterSale.CreateBy != auditUser.Id || afterSale.CreateName != auditUser.Username)
+        {
+            afterSale.CreateBy = auditUser.Id;
+            afterSale.CreateName = auditUser.Username;
+        }
+
+        foreach (var goods in afterSale.Goods.OrderBy(item => item.GoodsCodeSnapshot, StringComparer.Ordinal))
+        {
+            goods.Remark = CreateAfterSaleGoodsRemark(sequence, goods.GoodsCodeSnapshot);
+            if (goods.CreateBy != auditUser.Id || goods.CreateName != auditUser.Username)
+            {
+                goods.CreateBy = auditUser.Id;
+                goods.CreateName = auditUser.Username;
+            }
+        }
+
+        foreach (var log in afterSale.AuditLogs.OrderBy(item => item.AuditTime).ThenBy(item => item.Id))
+        {
+            log.Remark = log.Action switch
+            {
+                AfterSaleAuditAction.Submit => CreateAfterSaleSubmitRemark(sequence),
+                AfterSaleAuditAction.Approve => CreateAfterSaleApproveRemark(sequence),
+                AfterSaleAuditAction.Reject => CreateAfterSaleRejectRemark(sequence),
+                _ => log.Remark
+            };
+            if (log.CreateBy != auditUser.Id || log.CreateName != auditUser.Username)
+            {
+                log.CreateBy = auditUser.Id;
+                log.CreateName = auditUser.Username;
+            }
+        }
+
+        foreach (var task in afterSale.PickupTasks)
+        {
+            task.Remark = CreatePickupAssignRemark(sequence);
+            if (task.CreateBy != auditUser.Id || task.CreateName != auditUser.Username)
+            {
+                task.CreateBy = auditUser.Id;
+                task.CreateName = auditUser.Username;
+            }
+        }
+    }
+
+    private static void ApplyManagedSalesReturnStockInFields(
+        StockInOrder stockIn,
+        int sequence,
+        DemoAuditUser auditUser)
+    {
+        stockIn.Remark = CreateSalesReturnStockInRemark(sequence);
+        if (stockIn.CreateBy != auditUser.Id || stockIn.CreateName != auditUser.Username)
+        {
+            stockIn.CreateBy = auditUser.Id;
+            stockIn.CreateName = auditUser.Username;
+        }
+
+        var orderedDetails = stockIn.Details
+            .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+            .ToArray();
+        for (var detailIndex = 0; detailIndex < orderedDetails.Length; detailIndex++)
+        {
+            var detail = orderedDetails[detailIndex];
+            detail.Remark = CreateSalesReturnDetailRemark(sequence, detail.GoodsCodeSnapshot);
+            detail.BatchNo = CreateSalesReturnBatchNo(sequence);
+            detail.ProductDate ??= CreateSalesReturnProductDate(sequence);
+            detail.ExpireDate ??= CreateSalesReturnExpireDate(sequence);
+            if (detail.CreateBy != auditUser.Id || detail.CreateName != auditUser.Username)
+            {
+                detail.CreateBy = auditUser.Id;
+                detail.CreateName = auditUser.Username;
+            }
+        }
+    }
+
+    private static string CreateAfterSaleRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("AFTER-SALE", sequence);
+        return $"{stableKey} 华东联调售后单{sequence:D2}：基于已签收销售订单形成退款、退货、取货和账单冲减样本。";
+    }
+
+    private static string CreateAfterSaleGoodsRemark(int sequence, string goodsCode)
+    {
+        return $"SkyRoc 联调售后商品：第 {sequence:D2} 张售后单商品 {goodsCode} 的原因说明与处理依据。";
+    }
+
+    private static string CreateAfterSaleSubmitRemark(int sequence)
+    {
+        return $"SkyRoc 联调售后提交：第 {sequence:D2} 张售后单已提交运营审核。";
+    }
+
+    private static string CreateAfterSaleApproveRemark(int sequence)
+    {
+        return $"SkyRoc 联调售后审核通过：第 {sequence:D2} 张售后单同意按申请类型处理。";
+    }
+
+    private static string CreateAfterSaleRejectRemark(int sequence)
+    {
+        return $"SkyRoc 联调售后驳回：第 {sequence:D2} 张售后单需补充现场照片后重提。";
+    }
+
+    private static string CreatePickupAssignRemark(int sequence)
+    {
+        return $"SkyRoc 联调取货任务：第 {sequence:D2} 张售后退货任务已分配司机并完成上门回收。";
+    }
+
+    private static DateTime CreatePickupPlannedTime(int sequence)
+    {
+        return new DateTime(2026, 7, (sequence - 1) % 28 + 1, 9, 30, 0, DateTimeKind.Utc);
+    }
+
+    private static string CreateSalesReturnStockInRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("SALES-RETURN-STOCK-IN", sequence);
+        return $"{stableKey} 华东联调销售退货入库{sequence:D2}：来源受管售后取货任务，审核后回补库存并支撑售后完成。";
+    }
+
+    private static string CreateSalesReturnDetailRemark(int sequence, string goodsCode)
+    {
+        return $"SkyRoc 联调销售退货入库明细：第 {sequence:D2} 张退货入库商品 {goodsCode}，按批准数量回补库存。";
+    }
+
+    private static string CreateSalesReturnAuditRemark(int sequence)
+    {
+        return $"SkyRoc 联调销售退货入库审核：确认第 {sequence:D2} 张售后取货商品质检合格并回补库存。";
+    }
+
+    private static string CreateSalesReturnBatchNo(int sequence)
+    {
+        return $"SR-{DemoDataStableKeyCatalog.Create("AFTER-SALE", sequence)}";
+    }
+
+    private static DateTime CreateSalesReturnInTime(int sequence)
+    {
+        return new DateTime(2026, 7, (sequence - 1) % 28 + 1, 11, 0, 0, DateTimeKind.Utc);
+    }
+
+    private static DateOnly CreateSalesReturnProductDate(int sequence)
+    {
+        return new DateOnly(2026, 6, (sequence - 1) % 28 + 1);
+    }
+
+    private static DateOnly CreateSalesReturnExpireDate(int sequence)
+    {
+        return new DateOnly(2026, 8, (sequence - 1) % 28 + 1);
     }
 
     private static string SerializeGoodsInfo(Domain.Entities.Goods.Goods goods)

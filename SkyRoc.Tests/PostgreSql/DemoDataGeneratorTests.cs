@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Domain.Entities.AfterSales;
 using Domain.Entities.Delivery;
 using Domain.Entities.Orders;
 using Domain.Entities.Printing;
@@ -1487,6 +1488,176 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
                 Assert.NotNull(detail.CreateBy);
                 Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
             });
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须基于已签收订单形成售后草稿、审核、取货、销售退货入库和账单冲减链路，并在第二次运行时保持幂等。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedAfterSalesPickupAndSalesReturns_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedAfterSaleRemarks = Enumerable.Range(1, 40)
+            .Select(sequence =>
+                $"{DemoDataStableKeyCatalog.Create("AFTER-SALE", sequence)} 华东联调售后单{sequence:D2}：基于已签收销售订单形成退款、退货、取货和账单冲减样本。")
+            .ToArray();
+        var managedSalesReturnRemarks = Enumerable.Range(21, 20)
+            .Select(sequence =>
+                $"{DemoDataStableKeyCatalog.Create("SALES-RETURN-STOCK-IN", sequence)} 华东联调销售退货入库{sequence:D2}：来源受管售后取货任务，审核后回补库存并支撑售后完成。")
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var afterSales = await context.AfterSales
+            .Include(afterSale => afterSale.Goods)
+            .Include(afterSale => afterSale.AuditLogs)
+            .Include(afterSale => afterSale.PickupTasks)
+            .ThenInclude(task => task.StockInDetail)
+            .ThenInclude(detail => detail!.StockInOrder)
+            .Where(afterSale => afterSale.Remark != null && managedAfterSaleRemarks.Contains(afterSale.Remark))
+            .OrderBy(afterSale => afterSale.Remark)
+            .ToListAsync();
+        var salesReturns = await context.StockInOrders
+            .Include(order => order.Details)
+            .Where(order => order.Remark != null
+                            && managedSalesReturnRemarks.Contains(order.Remark)
+                            && order.OrderType == StockInOrderType.SalesReturn)
+            .OrderBy(order => order.Remark)
+            .ToListAsync();
+        var completedSaleOrderIds = afterSales
+            .Where(afterSale => afterSale.AfterStatus == AfterSaleStatus.Completed)
+            .Select(afterSale => afterSale.SaleOrderId!.Value)
+            .ToArray();
+        var customerBills = await context.CustomerBills
+            .Include(bill => bill.Details)
+            .Where(bill => completedSaleOrderIds.Contains(bill.SaleOrderId))
+            .ToListAsync();
+
+        first.CreatedByLayer.TryGetValue("after-sales", out var createdAfterSales);
+        first.ReusedByLayer.TryGetValue("after-sales", out var reusedAfterSales);
+        first.CreatedByLayer.TryGetValue("after-sale-goods", out var createdAfterSaleGoods);
+        first.ReusedByLayer.TryGetValue("after-sale-goods", out var reusedAfterSaleGoods);
+        first.CreatedByLayer.TryGetValue("after-sale-audit-logs", out var createdAfterSaleAuditLogs);
+        first.ReusedByLayer.TryGetValue("after-sale-audit-logs", out var reusedAfterSaleAuditLogs);
+        first.CreatedByLayer.TryGetValue("pickup-tasks", out var createdPickupTasks);
+        first.ReusedByLayer.TryGetValue("pickup-tasks", out var reusedPickupTasks);
+        first.CreatedByLayer.TryGetValue("sales-return-stock-ins", out var createdSalesReturnStockIns);
+        first.ReusedByLayer.TryGetValue("sales-return-stock-ins", out var reusedSalesReturnStockIns);
+        first.CreatedByLayer.TryGetValue("sales-return-stock-in-details", out var createdSalesReturnStockInDetails);
+        first.ReusedByLayer.TryGetValue("sales-return-stock-in-details", out var reusedSalesReturnStockInDetails);
+
+        Assert.Equal(40, afterSales.Count);
+        Assert.Equal(40, afterSales.Select(afterSale => afterSale.Remark).Distinct().Count());
+        Assert.Equal(40, createdAfterSales + reusedAfterSales);
+        Assert.Equal(40, createdAfterSaleGoods + reusedAfterSaleGoods);
+        Assert.True(createdAfterSaleAuditLogs + reusedAfterSaleAuditLogs >= 55);
+        Assert.Equal(25, createdPickupTasks + reusedPickupTasks);
+        Assert.Equal(20, createdSalesReturnStockIns + reusedSalesReturnStockIns);
+        Assert.Equal(20, createdSalesReturnStockInDetails + reusedSalesReturnStockInDetails);
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("after-sales"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("after-sale-goods"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("after-sale-audit-logs"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("pickup-tasks"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("sales-return-stock-ins"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("sales-return-stock-in-details"));
+        Assert.Equal(5, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.Draft));
+        Assert.Equal(5, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.PendingAudit));
+        Assert.Equal(5, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.RefundPending));
+        Assert.Equal(5, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.ReturnPending));
+        Assert.Equal(20, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.Completed));
+        Assert.Equal(20, salesReturns.Count);
+        Assert.All(afterSales, afterSale =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(afterSale.AfterSaleNo));
+            Assert.NotNull(afterSale.SaleOrderId);
+            Assert.False(string.IsNullOrWhiteSpace(afterSale.CustomerNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(afterSale.Source));
+            Assert.False(string.IsNullOrWhiteSpace(afterSale.ContactNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(afterSale.ContactPhoneSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(afterSale.PickupAddressSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(afterSale.Remark));
+            Assert.NotNull(afterSale.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(afterSale.CreateName));
+            Assert.Single(afterSale.Goods);
+            Assert.All(afterSale.Goods, goods =>
+            {
+                Assert.True(goods.ActualRefundQuantity > 0m);
+                Assert.True(goods.BaseRefundQuantity > 0m);
+                Assert.True(goods.UnitPrice > 0m);
+                Assert.False(string.IsNullOrWhiteSpace(goods.GoodsNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(goods.GoodsCodeSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(goods.GoodsUnitNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(goods.Remark));
+                Assert.NotNull(goods.SupplierId);
+                Assert.NotNull(goods.DepartmentId);
+                Assert.NotNull(goods.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(goods.CreateName));
+            });
+            Assert.All(afterSale.AuditLogs, log =>
+            {
+                Assert.False(string.IsNullOrWhiteSpace(log.AuditUserNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(log.Remark));
+                Assert.NotNull(log.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(log.CreateName));
+            });
+        });
+        Assert.All(
+            afterSales.Where(afterSale => afterSale.AfterStatus is AfterSaleStatus.ReturnPending or AfterSaleStatus.Completed),
+            afterSale =>
+            {
+                var task = Assert.Single(afterSale.PickupTasks);
+                Assert.False(string.IsNullOrWhiteSpace(task.TaskNo));
+                Assert.False(string.IsNullOrWhiteSpace(task.PickupAddressSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(task.Remark));
+                Assert.NotNull(task.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(task.CreateName));
+            });
+        Assert.All(
+            afterSales.Where(afterSale => afterSale.AfterStatus == AfterSaleStatus.Completed),
+            afterSale =>
+            {
+                var task = Assert.Single(afterSale.PickupTasks);
+                Assert.Equal(PickupTaskStatus.Completed, task.PickupStatus);
+                Assert.NotNull(task.DriverId);
+                Assert.NotNull(task.AssignedTime);
+                Assert.NotNull(task.StartedTime);
+                Assert.NotNull(task.CompletedTime);
+                Assert.NotNull(task.StockInDetail);
+                Assert.Equal(StockDocumentStatus.Audited, task.StockInDetail!.StockInOrder.BusinessStatus);
+            });
+        Assert.All(salesReturns, order =>
+        {
+            Assert.Equal(StockInOrderType.SalesReturn, order.OrderType);
+            Assert.Equal(StockDocumentStatus.Audited, order.BusinessStatus);
+            Assert.NotNull(order.AfterSaleId);
+            Assert.NotNull(order.CustomerId);
+            Assert.NotNull(order.DepartmentId);
+            Assert.False(string.IsNullOrWhiteSpace(order.Remark));
+            Assert.NotNull(order.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(order.CreateName));
+            Assert.Single(order.Details);
+            Assert.All(order.Details, detail =>
+            {
+                Assert.NotNull(detail.PickupTaskId);
+                Assert.True(detail.Quantity > 0m);
+                Assert.True(detail.UnitPrice > 0m);
+                Assert.False(string.IsNullOrWhiteSpace(detail.BatchNo));
+                Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+            });
+        });
+        Assert.All(customerBills, bill =>
+        {
+            Assert.True(bill.AfterSaleAdjustmentAmount < 0m);
+            Assert.Contains(
+                bill.Details,
+                detail => detail.SourceType == CustomerBillDetailSourceType.AfterSaleAdjustment
+                          && detail.Amount < 0m
+                          && detail.AfterSaleId.HasValue
+                          && detail.AfterSaleGoodsId.HasValue);
         });
     }
 }
