@@ -5,6 +5,7 @@ using Domain.Entities.Orders;
 using Domain.Entities.Printing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Finance;
+using Domain.Entities.ImportExport;
 using Domain.Entities.Storage;
 using Domain.Entities.System;
 using Domain.Entities.Traceability;
@@ -481,6 +482,134 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.True(image.IsPrimary);
             Assert.NotNull(image.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(image.CreateName));
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须补齐稳定编号的导入导出任务，覆盖导入、导出和全部执行状态；重复运行不得改写任务主键、状态或审计快照。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedImportExportJobsWithStatusCoverage_AndSecondRunIsIdempotent()
+    {
+        var managedJobNos = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("IMPORT-EXPORT-JOB", sequence))
+            .ToArray();
+
+        var first = await fixture.GenerateDemoDataAsync();
+        await using var firstContext = fixture.CreateDbContext();
+        var firstJobs = await firstContext.ImportExportJobs
+            .AsNoTracking()
+            .Where(job => managedJobNos.Contains(job.JobNo))
+            .OrderBy(job => job.JobNo)
+            .Select(job => new
+            {
+                job.Id,
+                job.JobNo,
+                job.JobType,
+                job.JobDirection,
+                job.JobStatus,
+                job.SourceFileName,
+                job.TotalRows,
+                job.SuccessRows,
+                job.FailureRows,
+                job.ErrorSummary,
+                job.JobStartedAt,
+                job.JobFinishedAt,
+                job.CreateTime,
+                job.CreateBy,
+                job.CreateName,
+                job.UpdateTime,
+                job.UpdateBy,
+                job.UpdateName,
+                job.Status
+            })
+            .ToArrayAsync();
+
+        var second = await fixture.GenerateDemoDataAsync();
+        await using var secondContext = fixture.CreateDbContext();
+        var jobs = await secondContext.ImportExportJobs
+            .AsNoTracking()
+            .Where(job => managedJobNos.Contains(job.JobNo))
+            .OrderBy(job => job.JobNo)
+            .ToArrayAsync();
+
+        Assert.Equal(30, jobs.Length);
+        Assert.Equal(managedJobNos, jobs.Select(job => job.JobNo).ToArray());
+        Assert.Equal(15, jobs.Count(job => job.JobDirection == ImportExportDirection.Import));
+        Assert.Equal(15, jobs.Count(job => job.JobDirection == ImportExportDirection.Export));
+        Assert.Equal(10, jobs.Count(job => job.JobStatus == ImportExportJobStatus.Processing));
+        Assert.Equal(10, jobs.Count(job => job.JobStatus == ImportExportJobStatus.Succeeded));
+        Assert.Equal(10, jobs.Count(job => job.JobStatus == ImportExportJobStatus.Failed));
+        Assert.Equal(30, jobs.Select(job => job.JobStartedAt).Distinct().Count());
+        Assert.Equal(
+            30,
+            first.CreatedByLayer.GetValueOrDefault("import-export-jobs")
+            + first.ReusedByLayer.GetValueOrDefault("import-export-jobs"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("import-export-jobs"));
+        Assert.Equal(30, second.ReusedByLayer.GetValueOrDefault("import-export-jobs"));
+        Assert.Equal(
+            firstJobs,
+            jobs.Select(job => new
+            {
+                job.Id,
+                job.JobNo,
+                job.JobType,
+                job.JobDirection,
+                job.JobStatus,
+                job.SourceFileName,
+                job.TotalRows,
+                job.SuccessRows,
+                job.FailureRows,
+                job.ErrorSummary,
+                job.JobStartedAt,
+                job.JobFinishedAt,
+                job.CreateTime,
+                job.CreateBy,
+                job.CreateName,
+                job.UpdateTime,
+                job.UpdateBy,
+                job.UpdateName,
+                job.Status
+            }).ToArray());
+
+        Assert.All(jobs, job =>
+        {
+            Assert.Equal(ImportExportJobType.Goods, job.JobType);
+            Assert.EndsWith(".csv", job.SourceFileName, StringComparison.Ordinal);
+            Assert.NotNull(job.CreateTime);
+            Assert.NotNull(job.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(job.CreateName));
+            Assert.NotNull(job.UpdateTime);
+            Assert.Equal(job.CreateBy, job.UpdateBy);
+            Assert.Equal(job.CreateName, job.UpdateName);
+            Assert.Equal(Status.Enable, job.Status);
+
+            switch (job.JobStatus)
+            {
+                case ImportExportJobStatus.Processing:
+                    Assert.Equal(0, job.TotalRows);
+                    Assert.Equal(0, job.SuccessRows);
+                    Assert.Equal(0, job.FailureRows);
+                    Assert.Null(job.ErrorSummary);
+                    Assert.Null(job.JobFinishedAt);
+                    break;
+                case ImportExportJobStatus.Succeeded:
+                    Assert.True(job.TotalRows > 0);
+                    Assert.Equal(job.TotalRows, job.SuccessRows);
+                    Assert.Equal(0, job.FailureRows);
+                    Assert.Null(job.ErrorSummary);
+                    Assert.NotNull(job.JobFinishedAt);
+                    break;
+                case ImportExportJobStatus.Failed:
+                    Assert.True(job.TotalRows > 0);
+                    Assert.Equal(0, job.SuccessRows);
+                    Assert.Equal(job.TotalRows, job.FailureRows);
+                    Assert.False(string.IsNullOrWhiteSpace(job.ErrorSummary));
+                    Assert.NotNull(job.JobFinishedAt);
+                    break;
+                default:
+                    throw new InvalidOperationException($"未覆盖的导入导出任务状态：{job.JobStatus}。");
+            }
         });
     }
 

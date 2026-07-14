@@ -64,6 +64,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string InspectionAttachmentsLayer = "inspection-attachments";
     private const string InspectionReportGoodsLayer = "inspection-report-goods";
     private const string InspectionReportsLayer = "inspection-reports";
+    private const string ImportExportJobsLayer = "import-export-jobs";
     private const string PickupTasksLayer = "pickup-tasks";
     private const string PurchasersLayer = "purchasers";
     private const string PurchasePlanDetailsLayer = "purchase-plan-details";
@@ -345,6 +346,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedInspectionReportGoods = 0;
         var createdInspectionReports = 0;
         var reusedInspectionReports = 0;
+        var createdImportExportJobs = 0;
+        var reusedImportExportJobs = 0;
         var createdPickupTasks = 0;
         var reusedPickupTasks = 0;
         var createdPurchasers = 0;
@@ -1440,6 +1443,14 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         createdGoodsImages = fileResult.CreatedGoodsImages;
         reusedGoodsImages = fileResult.ReusedGoodsImages;
 
+        var importExportJobResult = await new DemoDataImportExportJobBuilder(
+                context,
+                auditUser.Id,
+                auditUser.Username)
+            .GenerateAsync(cancellationToken);
+        createdImportExportJobs = importExportJobResult.CreatedJobs;
+        reusedImportExportJobs = importExportJobResult.ReusedJobs;
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1468,6 +1479,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [InspectionAttachmentsLayer] = createdInspectionAttachments,
                 [InspectionReportGoodsLayer] = createdInspectionReportGoods,
                 [InspectionReportsLayer] = createdInspectionReports,
+                [ImportExportJobsLayer] = createdImportExportJobs,
                 [PickupTasksLayer] = createdPickupTasks,
                 [PurchasersLayer] = createdPurchasers,
                 [PurchasePlanDetailsLayer] = createdPurchasePlanDetails,
@@ -1545,6 +1557,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [InspectionAttachmentsLayer] = reusedInspectionAttachments,
                 [InspectionReportGoodsLayer] = reusedInspectionReportGoods,
                 [InspectionReportsLayer] = reusedInspectionReports,
+                [ImportExportJobsLayer] = reusedImportExportJobs,
                 [PickupTasksLayer] = reusedPickupTasks,
                 [PurchasersLayer] = reusedPurchasers,
                 [PurchasePlanDetailsLayer] = reusedPurchasePlanDetails,
