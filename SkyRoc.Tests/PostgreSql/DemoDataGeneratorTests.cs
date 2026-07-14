@@ -989,7 +989,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         Assert.Equal(0, second.CreatedByLayer["purchase-plan-order-relations"]);
         Assert.All(plans, plan =>
         {
-            Assert.Equal(PurchasePlanStatus.Unpublished, plan.PurchaseStatus);
+            Assert.Equal(PurchasePlanStatus.Generated, plan.PurchaseStatus);
             Assert.Equal(PurchasePattern.SupplierDirect, plan.PurchasePattern);
             Assert.NotNull(plan.Supplier);
             Assert.NotNull(plan.Purchaser);
@@ -1011,7 +1011,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
                 Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
                 Assert.True(detail.RequiredQuantity > 0m);
                 Assert.Equal(detail.RequiredQuantity, detail.PlannedQuantity);
-                Assert.Equal(0m, detail.PurchasedQuantity);
+                Assert.Equal(detail.PlannedQuantity, detail.PurchasedQuantity);
                 Assert.NotNull(detail.CreateBy);
                 Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
                 var relation = Assert.Single(detail.OrderRelations);
@@ -1019,6 +1019,97 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
                 Assert.Equal(detail.RequiredQuantity, relation.RequiredQuantity);
                 Assert.NotNull(relation.CreateBy);
                 Assert.False(string.IsNullOrWhiteSpace(relation.CreateName));
+            });
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须基于受管采购计划生成长期采购单，补齐采购价格、生产日期和来源计划占用，并在重复运行时不重复创建单据。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedPurchaseOrdersFromPlans_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedOrderRemarks = Enumerable.Range(1, 50)
+            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("PURCHASE-ORDER", sequence)} 华东联调采购单{sequence:D2}：{(sequence <= 40 ? "由受管采购计划生成" : "由手工补货场景创建")}，用于采购入库、库存和供应商结算链路。")
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var orders = await context.PurchaseOrders
+            .Include(order => order.Supplier)
+            .Include(order => order.Purchaser)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.Goods)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.PurchaseUnit)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.PlanRelations)
+            .ThenInclude(relation => relation.PurchasePlanDetail)
+            .ThenInclude(detail => detail.PurchasePlan)
+            .Where(order => order.Remark != null && managedOrderRemarks.Contains(order.Remark))
+            .OrderBy(order => order.Remark)
+            .ToListAsync();
+
+        Assert.Equal(50, orders.Count);
+        Assert.Equal(50, orders.Select(order => order.Remark).Distinct().Count());
+        Assert.Equal(50, first.CreatedByLayer["purchase-orders"] + first.ReusedByLayer["purchase-orders"]);
+        Assert.Equal(100, first.CreatedByLayer["purchase-order-details"] + first.ReusedByLayer["purchase-order-details"]);
+        Assert.Equal(80, first.CreatedByLayer["purchase-order-plan-relations"] + first.ReusedByLayer["purchase-order-plan-relations"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-orders"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-order-details"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-order-plan-relations"]);
+        Assert.Equal(40, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Completed));
+        Assert.Equal(5, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Draft));
+        Assert.Equal(5, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Cancelled));
+        Assert.All(orders, order =>
+        {
+            Assert.NotNull(order.Supplier);
+            Assert.NotNull(order.Purchaser);
+            Assert.False(string.IsNullOrWhiteSpace(order.PurchaseNo));
+            Assert.False(string.IsNullOrWhiteSpace(order.SupplierNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.SupplierContactNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.SupplierContactPhoneSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.PurchaserNameSnapshot));
+            Assert.NotNull(order.ReceiveTime);
+            Assert.False(string.IsNullOrWhiteSpace(order.Remark));
+            Assert.NotNull(order.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(order.CreateName));
+            Assert.Equal(2, order.Details.Count);
+
+            var isPlanGenerated = order.Remark!.Contains("由受管采购计划生成", StringComparison.Ordinal);
+            Assert.All(order.Details, detail =>
+            {
+                Assert.NotNull(detail.Goods);
+                Assert.NotNull(detail.PurchaseUnit);
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsCodeSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsInfoSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.PurchaseUnitNameSnapshot));
+                Assert.True(detail.RequiredQuantity > 0m);
+                Assert.True(detail.PurchaseQuantity > 0m);
+                Assert.True(detail.PurchasePrice > 0m);
+                Assert.Equal(
+                    NumericPrecision.RoundMoney(detail.PurchaseQuantity * detail.PurchasePrice),
+                    detail.PurchaseTotalPrice);
+                Assert.NotNull(detail.ProductDate);
+                Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+
+                if (isPlanGenerated)
+                {
+                    var relation = Assert.Single(detail.PlanRelations);
+                    Assert.Equal(detail.PurchaseQuantity, relation.AllocatedQuantity);
+                    Assert.NotNull(relation.PurchasePlanDetail.PurchasePlan);
+                    Assert.NotNull(relation.CreateBy);
+                    Assert.False(string.IsNullOrWhiteSpace(relation.CreateName));
+                }
+                else
+                {
+                    Assert.Empty(detail.PlanRelations);
+                }
             });
         });
     }

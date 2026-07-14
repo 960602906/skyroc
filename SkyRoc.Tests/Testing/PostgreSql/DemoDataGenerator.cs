@@ -24,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Shared.Constants;
 
 namespace SkyRoc.Tests.Testing.PostgreSql;
@@ -50,6 +51,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string PurchasePlanDetailsLayer = "purchase-plan-details";
     private const string PurchasePlanOrderRelationsLayer = "purchase-plan-order-relations";
     private const string PurchasePlansLayer = "purchase-plans";
+    private const string PurchaseOrderDetailsLayer = "purchase-order-details";
+    private const string PurchaseOrderPlanRelationsLayer = "purchase-order-plan-relations";
+    private const string PurchaseOrdersLayer = "purchase-orders";
     private const string PurchaseRulesLayer = "purchase-rules";
     private const string SaleOrderDetailsLayer = "sale-order-details";
     private const string SaleOrdersLayer = "sale-orders";
@@ -92,6 +96,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var goodsTypeService = scope.ServiceProvider.GetRequiredService<IGoodsTypeService>();
         var purchaserService = scope.ServiceProvider.GetRequiredService<IPurchaserService>();
         var purchasePlanService = scope.ServiceProvider.GetRequiredService<IPurchasePlanService>();
+        var purchaseOrderService = scope.ServiceProvider.GetRequiredService<IPurchaseOrderService>();
         var purchaseRuleService = scope.ServiceProvider.GetRequiredService<IPurchaseRuleService>();
         var saleOrderService = scope.ServiceProvider.GetRequiredService<ISaleOrderService>();
         var systemSupportService = scope.ServiceProvider.GetRequiredService<ISystemSupportService>();
@@ -270,6 +275,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedPurchasePlanOrderRelations = 0;
         var createdPurchasePlans = 0;
         var reusedPurchasePlans = 0;
+        var createdPurchaseOrderDetails = 0;
+        var reusedPurchaseOrderDetails = 0;
+        var createdPurchaseOrderPlanRelations = 0;
+        var reusedPurchaseOrderPlanRelations = 0;
+        var createdPurchaseOrders = 0;
+        var reusedPurchaseOrders = 0;
         var createdPurchaseRules = 0;
         var reusedPurchaseRules = 0;
         var createdSaleOrderDetails = 0;
@@ -1142,6 +1153,18 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             auditUser,
             cancellationToken);
 
+        (
+            createdPurchaseOrders,
+            reusedPurchaseOrders,
+            createdPurchaseOrderDetails,
+            reusedPurchaseOrderDetails,
+            createdPurchaseOrderPlanRelations,
+            reusedPurchaseOrderPlanRelations) = await GeneratePurchaseOrdersAsync(
+            context,
+            purchaseOrderService,
+            auditUser,
+            cancellationToken);
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1162,6 +1185,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [PurchasePlanDetailsLayer] = createdPurchasePlanDetails,
                 [PurchasePlanOrderRelationsLayer] = createdPurchasePlanOrderRelations,
                 [PurchasePlansLayer] = createdPurchasePlans,
+                [PurchaseOrderDetailsLayer] = createdPurchaseOrderDetails,
+                [PurchaseOrderPlanRelationsLayer] = createdPurchaseOrderPlanRelations,
+                [PurchaseOrdersLayer] = createdPurchaseOrders,
                 [PurchaseRulesLayer] = createdPurchaseRules,
                 [SaleOrderDetailsLayer] = createdSaleOrderDetails,
                 [SaleOrdersLayer] = createdSaleOrders,
@@ -1196,6 +1222,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [PurchasePlanDetailsLayer] = reusedPurchasePlanDetails,
                 [PurchasePlanOrderRelationsLayer] = reusedPurchasePlanOrderRelations,
                 [PurchasePlansLayer] = reusedPurchasePlans,
+                [PurchaseOrderDetailsLayer] = reusedPurchaseOrderDetails,
+                [PurchaseOrderPlanRelationsLayer] = reusedPurchaseOrderPlanRelations,
+                [PurchaseOrdersLayer] = reusedPurchaseOrders,
                 [PurchaseRulesLayer] = reusedPurchaseRules,
                 [SaleOrderDetailsLayer] = reusedSaleOrderDetails,
                 [SaleOrdersLayer] = reusedSaleOrders,
@@ -1505,6 +1534,359 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     {
         var stableKey = DemoDataStableKeyCatalog.Create("PURCHASE-PLAN", sequence);
         return $"{stableKey} 华东联调采购计划{sequence:D2}：由已审核销售订单生成，用于采购单、入库和供应商结算链路。";
+    }
+
+    private static async Task<(
+        int CreatedOrders,
+        int ReusedOrders,
+        int CreatedDetails,
+        int ReusedDetails,
+        int CreatedPlanRelations,
+        int ReusedPlanRelations)> GeneratePurchaseOrdersAsync(
+            ApplicationDbContext context,
+            IPurchaseOrderService purchaseOrderService,
+            DemoAuditUser auditUser,
+            CancellationToken cancellationToken)
+    {
+        var orderRemarks = Enumerable.Range(1, 50)
+            .Select(CreatePurchaseOrderRemark)
+            .ToArray();
+        var planRemarks = Enumerable.Range(1, 40)
+            .Select(CreatePurchasePlanRemark)
+            .ToArray();
+        var supplierCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SUPPLIER", sequence))
+            .ToArray();
+        var purchaserCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("PURCHASER", sequence))
+            .ToArray();
+        var goodsCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("GOODS", sequence))
+            .ToArray();
+        var goodsUnitCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("GOODS-UNIT", sequence))
+            .ToArray();
+
+        var existingOrders = await context.PurchaseOrders
+            .Include(order => order.Supplier)
+            .Include(order => order.Purchaser)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.Goods)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.PurchaseUnit)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.PlanRelations)
+            .ThenInclude(relation => relation.PurchasePlanDetail)
+            .ThenInclude(detail => detail.PurchasePlan)
+            .Where(order => order.Remark != null && orderRemarks.Contains(order.Remark))
+            .ToDictionaryAsync(order => order.Remark!, StringComparer.Ordinal, cancellationToken);
+        var managedPlans = await context.PurchasePlans
+            .Include(plan => plan.Details)
+            .Where(plan => plan.Remark != null && planRemarks.Contains(plan.Remark))
+            .ToDictionaryAsync(plan => plan.Remark!, StringComparer.Ordinal, cancellationToken);
+        var managedSuppliers = await context.Suppliers
+            .Where(supplier => supplierCodes.Contains(supplier.Code))
+            .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
+        var managedPurchasers = await context.Purchasers
+            .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
+            .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
+        var managedGoods = await context.Goods
+            .Where(goods => goodsCodes.Contains(goods.Code))
+            .ToDictionaryAsync(goods => goods.Code, StringComparer.Ordinal, cancellationToken);
+        var managedGoodsUnits = await context.GoodsUnits
+            .Where(unit => unit.Code != null && goodsUnitCodes.Contains(unit.Code))
+            .ToDictionaryAsync(unit => unit.Code!, StringComparer.Ordinal, cancellationToken);
+
+        var createdOrders = 0;
+        var reusedOrders = 0;
+        var createdDetails = 0;
+        var reusedDetails = 0;
+        var createdPlanRelations = 0;
+        var reusedPlanRelations = 0;
+
+        for (var sequence = 1; sequence <= 40; sequence++)
+        {
+            var orderRemark = CreatePurchaseOrderRemark(sequence);
+            PurchaseOrder order;
+            if (!existingOrders.TryGetValue(orderRemark, out var existingOrder))
+            {
+                var plan = GetManagedReference(managedPlans, CreatePurchasePlanRemark(sequence), "采购计划");
+                if (plan.PurchaseStatus != PurchasePlanStatus.Unpublished)
+                {
+                    throw new InvalidOperationException(
+                        $"受管采购计划 {plan.Remark} 已生成采购单，但未找到受管采购单 {orderRemark}。");
+                }
+
+                var created = await purchaseOrderService.GenerateFromPlansAsync(new GeneratePurchaseOrdersFromPlansDto
+                {
+                    PlanIds = [plan.Id],
+                    ReceiveTime = CreatePurchaseOrderReceiveTime(sequence),
+                    Remark = orderRemark
+                });
+                order = await GetManagedPurchaseOrderAsync(context, created.Single().Id, cancellationToken);
+                await purchaseOrderService.UpdateAsync(CreateManagedPurchaseOrderUpdateDto(order, sequence));
+                await purchaseOrderService.CompleteAsync(order.Id);
+                order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
+                ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
+                createdOrders++;
+                createdDetails += order.Details.Count;
+                createdPlanRelations += order.Details.Sum(detail => detail.PlanRelations.Count);
+                continue;
+            }
+
+            order = existingOrder;
+            if (order.BusinessStatus == PurchaseOrderStatus.Draft)
+            {
+                await purchaseOrderService.UpdateAsync(CreateManagedPurchaseOrderUpdateDto(order, sequence));
+                await purchaseOrderService.CompleteAsync(order.Id);
+                order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
+            }
+
+            ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
+            reusedOrders++;
+            reusedDetails += order.Details.Count;
+            reusedPlanRelations += order.Details.Sum(detail => detail.PlanRelations.Count);
+        }
+
+        for (var sequence = 41; sequence <= 50; sequence++)
+        {
+            var orderRemark = CreatePurchaseOrderRemark(sequence);
+            PurchaseOrder order;
+            if (!existingOrders.TryGetValue(orderRemark, out var existingOrder))
+            {
+                var referenceSequence = (sequence - 1) % 30 + 1;
+                var supplier = GetManagedReference(
+                    managedSuppliers,
+                    DemoDataStableKeyCatalog.Create("SUPPLIER", referenceSequence),
+                    "供应商");
+                var purchaser = GetManagedReference(
+                    managedPurchasers,
+                    DemoDataStableKeyCatalog.Create("PURCHASER", referenceSequence),
+                    "采购员");
+                var created = await purchaseOrderService.CreateAsync(CreateManualPurchaseOrderDto(
+                    sequence,
+                    supplier.Id,
+                    purchaser.Id,
+                    managedGoods,
+                    managedGoodsUnits));
+                order = await GetManagedPurchaseOrderAsync(context, created.Id, cancellationToken);
+                if (sequence > 45)
+                {
+                    await purchaseOrderService.CancelAsync(order.Id);
+                    order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
+                }
+
+                ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
+                createdOrders++;
+                createdDetails += order.Details.Count;
+                createdPlanRelations += order.Details.Sum(detail => detail.PlanRelations.Count);
+                continue;
+            }
+
+            order = existingOrder;
+            if (order.BusinessStatus == PurchaseOrderStatus.Draft && sequence > 45)
+            {
+                await purchaseOrderService.CancelAsync(order.Id);
+                order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
+            }
+            else if (order.BusinessStatus == PurchaseOrderStatus.Draft)
+            {
+                await purchaseOrderService.UpdateAsync(CreateManagedPurchaseOrderUpdateDto(order, sequence));
+                order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
+            }
+
+            ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
+            reusedOrders++;
+            reusedDetails += order.Details.Count;
+            reusedPlanRelations += order.Details.Sum(detail => detail.PlanRelations.Count);
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        return (createdOrders, reusedOrders, createdDetails, reusedDetails, createdPlanRelations, reusedPlanRelations);
+    }
+
+    private static async Task<PurchaseOrder> GetManagedPurchaseOrderAsync(
+        ApplicationDbContext context,
+        Guid orderId,
+        CancellationToken cancellationToken)
+    {
+        return await context.PurchaseOrders
+            .Include(order => order.Supplier)
+            .Include(order => order.Purchaser)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.Goods)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.PurchaseUnit)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.PlanRelations)
+            .ThenInclude(relation => relation.PurchasePlanDetail)
+            .ThenInclude(detail => detail.PurchasePlan)
+            .SingleAsync(order => order.Id == orderId, cancellationToken);
+    }
+
+    private static UpdatePurchaseOrderDto CreateManagedPurchaseOrderUpdateDto(PurchaseOrder order, int sequence)
+    {
+        return new UpdatePurchaseOrderDto
+        {
+            Id = order.Id,
+            SupplierId = order.SupplierId,
+            PurchaserId = order.PurchaserId,
+            PurchasePattern = order.PurchasePattern,
+            ReceiveTime = CreatePurchaseOrderReceiveTime(sequence),
+            SupplierContactName = order.SupplierContactNameSnapshot,
+            SupplierContactPhone = order.SupplierContactPhoneSnapshot,
+            Remark = CreatePurchaseOrderRemark(sequence),
+            Details = order.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .Select((detail, detailIndex) => new UpdatePurchaseOrderDetailDto
+                {
+                    Id = detail.Id,
+                    GoodsId = detail.GoodsId,
+                    PurchaseUnitId = detail.PurchaseUnitId,
+                    RequiredQuantity = detail.RequiredQuantity,
+                    PurchaseQuantity = detail.PurchaseQuantity,
+                    PurchasePrice = CreatePurchasePrice(sequence, detailIndex),
+                    ProductDate = CreatePurchaseProductDate(sequence, detailIndex),
+                    Remark = CreatePurchaseOrderDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex),
+                    PlanAllocations = detail.PlanRelations
+                        .Select(relation => new PurchaseOrderPlanAllocationDto
+                        {
+                            PurchasePlanDetailId = relation.PurchasePlanDetailId,
+                            AllocatedQuantity = relation.AllocatedQuantity
+                        })
+                        .ToList()
+                })
+                .ToList()
+        };
+    }
+
+    private static CreatePurchaseOrderDto CreateManualPurchaseOrderDto(
+        int sequence,
+        Guid supplierId,
+        Guid purchaserId,
+        IReadOnlyDictionary<string, Domain.Entities.Goods.Goods> managedGoods,
+        IReadOnlyDictionary<string, Domain.Entities.Goods.GoodsUnit> managedGoodsUnits)
+    {
+        var firstGoodsSequence = (sequence - 1) % 30 + 1;
+        var secondGoodsSequence = sequence % 30 + 1;
+        return new CreatePurchaseOrderDto
+        {
+            SupplierId = supplierId,
+            PurchaserId = purchaserId,
+            PurchasePattern = PurchasePattern.SupplierDirect,
+            ReceiveTime = CreatePurchaseOrderReceiveTime(sequence),
+            SupplierContactName = $"冯采购联系人{sequence:D2}",
+            SupplierContactPhone = $"021-6600{sequence:D4}",
+            Remark = CreatePurchaseOrderRemark(sequence),
+            Details =
+            [
+                CreateManualPurchaseOrderDetailDto(sequence, 0, firstGoodsSequence, managedGoods, managedGoodsUnits),
+                CreateManualPurchaseOrderDetailDto(sequence, 1, secondGoodsSequence, managedGoods, managedGoodsUnits)
+            ]
+        };
+    }
+
+    private static CreatePurchaseOrderDetailDto CreateManualPurchaseOrderDetailDto(
+        int orderSequence,
+        int detailIndex,
+        int goodsSequence,
+        IReadOnlyDictionary<string, Domain.Entities.Goods.Goods> managedGoods,
+        IReadOnlyDictionary<string, Domain.Entities.Goods.GoodsUnit> managedGoodsUnits)
+    {
+        var goods = GetManagedReference(
+            managedGoods,
+            DemoDataStableKeyCatalog.Create("GOODS", goodsSequence),
+            "商品");
+        var unit = GetManagedReference(
+            managedGoodsUnits,
+            DemoDataStableKeyCatalog.Create("GOODS-UNIT", goodsSequence),
+            "商品单位");
+        var quantity = NumericPrecision.RoundQuantity(8m + orderSequence % 6 + detailIndex);
+        return new CreatePurchaseOrderDetailDto
+        {
+            GoodsId = goods.Id,
+            PurchaseUnitId = unit.Id,
+            RequiredQuantity = quantity,
+            PurchaseQuantity = quantity,
+            PurchasePrice = CreatePurchasePrice(orderSequence, detailIndex),
+            ProductDate = CreatePurchaseProductDate(orderSequence, detailIndex),
+            Remark = CreatePurchaseOrderDetailRemark(orderSequence, goods.Code, detailIndex)
+        };
+    }
+
+    private static void ApplyManagedPurchaseOrderFields(PurchaseOrder order, int sequence, DemoAuditUser auditUser)
+    {
+        order.Remark = CreatePurchaseOrderRemark(sequence);
+        order.ReceiveTime = CreatePurchaseOrderReceiveTime(sequence);
+        if (order.CreateBy != auditUser.Id || order.CreateName != auditUser.Username)
+        {
+            order.CreateBy = auditUser.Id;
+            order.CreateName = auditUser.Username;
+        }
+
+        var orderedDetails = order.Details
+            .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+            .ToArray();
+        for (var detailIndex = 0; detailIndex < orderedDetails.Length; detailIndex++)
+        {
+            var detail = orderedDetails[detailIndex];
+            detail.GoodsInfoSnapshot = SerializeGoodsInfo(detail.Goods);
+            detail.PurchasePrice = CreatePurchasePrice(sequence, detailIndex);
+            detail.PurchaseTotalPrice = NumericPrecision.RoundMoney(detail.PurchaseQuantity * detail.PurchasePrice);
+            detail.ProductDate = CreatePurchaseProductDate(sequence, detailIndex);
+            detail.Remark = CreatePurchaseOrderDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex);
+            if (detail.CreateBy != auditUser.Id || detail.CreateName != auditUser.Username)
+            {
+                detail.CreateBy = auditUser.Id;
+                detail.CreateName = auditUser.Username;
+            }
+
+            foreach (var relation in detail.PlanRelations)
+            {
+                if (relation.CreateBy == auditUser.Id && relation.CreateName == auditUser.Username)
+                    continue;
+
+                relation.CreateBy = auditUser.Id;
+                relation.CreateName = auditUser.Username;
+            }
+        }
+    }
+
+    private static string CreatePurchaseOrderRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("PURCHASE-ORDER", sequence);
+        var source = sequence <= 40 ? "由受管采购计划生成" : "由手工补货场景创建";
+        return $"{stableKey} 华东联调采购单{sequence:D2}：{source}，用于采购入库、库存和供应商结算链路。";
+    }
+
+    private static string CreatePurchaseOrderDetailRemark(int sequence, string goodsCode, int detailIndex)
+    {
+        return $"SkyRoc 联调采购单明细：采购单 {sequence:D2} 第 {detailIndex + 1} 行商品 {goodsCode}，用于后续采购入库与成本核算。";
+    }
+
+    private static DateTime CreatePurchaseOrderReceiveTime(int sequence)
+    {
+        return new DateTime(2026, 8, (sequence - 1) % 28 + 1, 2, 0, 0, DateTimeKind.Utc);
+    }
+
+    private static DateOnly CreatePurchaseProductDate(int sequence, int detailIndex)
+    {
+        return new DateOnly(2026, 7, (sequence + detailIndex - 1) % 28 + 1);
+    }
+
+    private static decimal CreatePurchasePrice(int sequence, int detailIndex)
+    {
+        return NumericPrecision.RoundMoney(6.35m + sequence * 0.18m + detailIndex * 0.42m);
+    }
+
+    private static string SerializeGoodsInfo(Domain.Entities.Goods.Goods goods)
+    {
+        return JsonSerializer.Serialize(new
+        {
+            goods.Spec,
+            goods.Brand,
+            goods.Origin
+        });
     }
 
     private static async Task ApplySaleOrderTargetStatusAsync(
