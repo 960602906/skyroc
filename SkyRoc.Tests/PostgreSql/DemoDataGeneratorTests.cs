@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Domain.Entities.Orders;
 using Domain.Entities.Printing;
 using Domain.Entities.Purchases;
+using Domain.Entities.Finance;
+using Domain.Entities.Storage;
 using Domain.Entities.System;
 using Shared.Constants;
 using SkyRoc.Tests.Testing.PostgreSql;
@@ -1111,6 +1113,131 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
                     Assert.Empty(detail.PlanRelations);
                 }
             });
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须基于已完成的受管采购单创建采购入库，审核后形成库存批次、库存流水和供应商待结账单，并在重复运行时不重复创建。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedPurchaseStockInsWithBatchesLedgersAndSupplierBills_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedStockInRemarks = Enumerable.Range(1, 40)
+            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("PURCHASE-STOCK-IN", sequence)} 华东联调采购入库{sequence:D2}：来源受管采购单，用于库存批次、流水和供应商待结链路。")
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var stockIns = await context.StockInOrders
+            .Include(order => order.Ware)
+            .Include(order => order.Supplier)
+            .Include(order => order.Purchaser)
+            .Include(order => order.PurchaseOrder)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.Goods)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.GoodsUnit)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.StockBatch)
+            .Where(order => order.Remark != null && managedStockInRemarks.Contains(order.Remark))
+            .OrderBy(order => order.Remark)
+            .ToListAsync();
+        var stockInIds = stockIns.Select(order => order.Id).ToArray();
+        var stockInDetailIds = stockIns.SelectMany(order => order.Details.Select(detail => detail.Id)).ToArray();
+        var ledgers = await context.StockLedgers
+            .Where(ledger => stockInIds.Contains(ledger.SourceOrderId))
+            .OrderBy(ledger => ledger.SourceDetailId)
+            .ToListAsync();
+        var supplierBills = await context.SupplierBills
+            .Include(bill => bill.Details)
+            .Where(bill => bill.StockInOrderId != null && stockInIds.Contains(bill.StockInOrderId.Value))
+            .OrderBy(bill => bill.SourceDocumentNoSnapshot)
+            .ToListAsync();
+
+        Assert.Equal(40, stockIns.Count);
+        Assert.Equal(40, stockIns.Select(order => order.Remark).Distinct().Count());
+        Assert.Equal(40, first.CreatedByLayer["purchase-stock-ins"] + first.ReusedByLayer["purchase-stock-ins"]);
+        Assert.Equal(80, first.CreatedByLayer["purchase-stock-in-details"] + first.ReusedByLayer["purchase-stock-in-details"]);
+        Assert.Equal(80, first.CreatedByLayer["stock-batches"] + first.ReusedByLayer["stock-batches"]);
+        Assert.Equal(80, first.CreatedByLayer["stock-ledgers"] + first.ReusedByLayer["stock-ledgers"]);
+        Assert.Equal(40, first.CreatedByLayer["supplier-bills"] + first.ReusedByLayer["supplier-bills"]);
+        Assert.Equal(80, first.CreatedByLayer["supplier-bill-details"] + first.ReusedByLayer["supplier-bill-details"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-stock-ins"]);
+        Assert.Equal(0, second.CreatedByLayer["purchase-stock-in-details"]);
+        Assert.Equal(0, second.CreatedByLayer["stock-batches"]);
+        Assert.Equal(0, second.CreatedByLayer["stock-ledgers"]);
+        Assert.Equal(0, second.CreatedByLayer["supplier-bills"]);
+        Assert.Equal(0, second.CreatedByLayer["supplier-bill-details"]);
+        Assert.Equal(80, ledgers.Count);
+        Assert.Equal(40, supplierBills.Count);
+        Assert.All(stockIns, order =>
+        {
+            Assert.Equal(StockInOrderType.Purchase, order.OrderType);
+            Assert.Equal(StockDocumentStatus.Audited, order.BusinessStatus);
+            Assert.NotNull(order.Ware);
+            Assert.NotNull(order.Supplier);
+            Assert.NotNull(order.Purchaser);
+            Assert.NotNull(order.PurchaseOrder);
+            Assert.False(string.IsNullOrWhiteSpace(order.InNo));
+            Assert.False(string.IsNullOrWhiteSpace(order.WareNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.SupplierNameSnapshot));
+            Assert.False(string.IsNullOrWhiteSpace(order.PurchaserNameSnapshot));
+            Assert.NotNull(order.DepartmentId);
+            Assert.False(string.IsNullOrWhiteSpace(order.DepartmentNameSnapshot));
+            Assert.NotNull(order.ExpectedArrivalTime);
+            Assert.True(order.TotalBaseQuantity > 0m);
+            Assert.True(order.TotalAmount > 0m);
+            Assert.NotNull(order.AuditUserId);
+            Assert.False(string.IsNullOrWhiteSpace(order.AuditUserNameSnapshot));
+            Assert.NotNull(order.AuditTime);
+            Assert.NotNull(order.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(order.CreateName));
+            Assert.Equal(2, order.Details.Count);
+            Assert.All(order.Details, detail =>
+            {
+                Assert.NotNull(detail.PurchaseOrderDetailId);
+                Assert.NotNull(detail.Goods);
+                Assert.NotNull(detail.GoodsUnit);
+                Assert.NotNull(detail.StockBatch);
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsCodeSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsUnitNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.BatchNo));
+                Assert.NotNull(detail.ProductDate);
+                Assert.NotNull(detail.ExpireDate);
+                Assert.True(detail.Quantity > 0m);
+                Assert.True(detail.BaseQuantity > 0m);
+                Assert.True(detail.UnitPrice > 0m);
+                Assert.Equal(NumericPrecision.RoundMoney(detail.Quantity * detail.UnitPrice), detail.TotalPrice);
+                Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+            });
+        });
+        Assert.All(ledgers, ledger =>
+        {
+            Assert.Contains(ledger.SourceDetailId, stockInDetailIds);
+            Assert.Equal(StockLedgerDirection.Increase, ledger.Direction);
+            Assert.Equal(StockLedgerSourceType.PurchaseInbound, ledger.SourceType);
+            Assert.True(ledger.ChangeQuantity > 0m);
+            Assert.True(ledger.BalanceQuantity > 0m);
+            Assert.True(ledger.UnitCost > 0m);
+            Assert.True(ledger.TotalCost > 0m);
+            Assert.False(string.IsNullOrWhiteSpace(ledger.Remark));
+            Assert.NotNull(ledger.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(ledger.CreateName));
+        });
+        Assert.All(supplierBills, bill =>
+        {
+            Assert.Equal(SupplierBillSourceType.PurchaseStockIn, bill.SourceType);
+            Assert.NotNull(bill.StockInOrderId);
+            Assert.True(bill.PayableAmount > 0m);
+            Assert.Equal(0m, bill.SettledAmount);
+            Assert.NotEmpty(bill.Details);
+            Assert.NotNull(bill.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(bill.CreateName));
         });
     }
 }

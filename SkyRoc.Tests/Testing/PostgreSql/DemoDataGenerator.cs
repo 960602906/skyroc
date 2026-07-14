@@ -16,6 +16,7 @@ using Domain.Entities;
 using Domain.Entities.Orders;
 using Domain.Entities.Printing;
 using Domain.Entities.Purchases;
+using Domain.Entities.Storage;
 using Domain.Entities.System;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
@@ -54,6 +55,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string PurchaseOrderDetailsLayer = "purchase-order-details";
     private const string PurchaseOrderPlanRelationsLayer = "purchase-order-plan-relations";
     private const string PurchaseOrdersLayer = "purchase-orders";
+    private const string PurchaseStockInDetailsLayer = "purchase-stock-in-details";
+    private const string PurchaseStockInsLayer = "purchase-stock-ins";
     private const string PurchaseRulesLayer = "purchase-rules";
     private const string SaleOrderDetailsLayer = "sale-order-details";
     private const string SaleOrdersLayer = "sale-orders";
@@ -65,6 +68,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string QuotationGoodsLayer = "quotation-goods";
     private const string QuotationsLayer = "quotations";
     private const string SuppliersLayer = "suppliers";
+    private const string SupplierBillDetailsLayer = "supplier-bill-details";
+    private const string SupplierBillsLayer = "supplier-bills";
+    private const string StockBatchesLayer = "stock-batches";
+    private const string StockLedgersLayer = "stock-ledgers";
     private const string SystemRolesLayer = "system-roles";
     private const string SystemUsersLayer = "system-users";
     private const string WaresLayer = "wares";
@@ -99,6 +106,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var purchaseOrderService = scope.ServiceProvider.GetRequiredService<IPurchaseOrderService>();
         var purchaseRuleService = scope.ServiceProvider.GetRequiredService<IPurchaseRuleService>();
         var saleOrderService = scope.ServiceProvider.GetRequiredService<ISaleOrderService>();
+        var stockInService = scope.ServiceProvider.GetRequiredService<IStockInService>();
         var systemSupportService = scope.ServiceProvider.GetRequiredService<ISystemSupportService>();
         var printService = scope.ServiceProvider.GetRequiredService<IPrintService>();
         var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
@@ -281,6 +289,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedPurchaseOrderPlanRelations = 0;
         var createdPurchaseOrders = 0;
         var reusedPurchaseOrders = 0;
+        var createdPurchaseStockInDetails = 0;
+        var reusedPurchaseStockInDetails = 0;
+        var createdPurchaseStockIns = 0;
+        var reusedPurchaseStockIns = 0;
         var createdPurchaseRules = 0;
         var reusedPurchaseRules = 0;
         var createdSaleOrderDetails = 0;
@@ -303,6 +315,14 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedQuotations = 0;
         var createdSuppliers = 0;
         var reusedSuppliers = 0;
+        var createdSupplierBillDetails = 0;
+        var reusedSupplierBillDetails = 0;
+        var createdSupplierBills = 0;
+        var reusedSupplierBills = 0;
+        var createdStockBatches = 0;
+        var reusedStockBatches = 0;
+        var createdStockLedgers = 0;
+        var reusedStockLedgers = 0;
         var createdSystemRoles = 0;
         var reusedSystemRoles = 0;
         var createdSystemUsers = 0;
@@ -1165,6 +1185,24 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             auditUser,
             cancellationToken);
 
+        (
+            createdPurchaseStockIns,
+            reusedPurchaseStockIns,
+            createdPurchaseStockInDetails,
+            reusedPurchaseStockInDetails,
+            createdStockBatches,
+            reusedStockBatches,
+            createdStockLedgers,
+            reusedStockLedgers,
+            createdSupplierBills,
+            reusedSupplierBills,
+            createdSupplierBillDetails,
+            reusedSupplierBillDetails) = await GeneratePurchaseStockInsAsync(
+            context,
+            stockInService,
+            auditUser,
+            cancellationToken);
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1188,6 +1226,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [PurchaseOrderDetailsLayer] = createdPurchaseOrderDetails,
                 [PurchaseOrderPlanRelationsLayer] = createdPurchaseOrderPlanRelations,
                 [PurchaseOrdersLayer] = createdPurchaseOrders,
+                [PurchaseStockInDetailsLayer] = createdPurchaseStockInDetails,
+                [PurchaseStockInsLayer] = createdPurchaseStockIns,
                 [PurchaseRulesLayer] = createdPurchaseRules,
                 [SaleOrderDetailsLayer] = createdSaleOrderDetails,
                 [SaleOrdersLayer] = createdSaleOrders,
@@ -1199,6 +1239,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [QuotationGoodsLayer] = createdQuotationGoods,
                 [QuotationsLayer] = createdQuotations,
                 [SuppliersLayer] = createdSuppliers,
+                [SupplierBillDetailsLayer] = createdSupplierBillDetails,
+                [SupplierBillsLayer] = createdSupplierBills,
+                [StockBatchesLayer] = createdStockBatches,
+                [StockLedgersLayer] = createdStockLedgers,
                 [SystemRolesLayer] = createdSystemRoles,
                 [SystemUsersLayer] = createdSystemUsers,
                 [WaresLayer] = createdWares
@@ -1225,6 +1269,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [PurchaseOrderDetailsLayer] = reusedPurchaseOrderDetails,
                 [PurchaseOrderPlanRelationsLayer] = reusedPurchaseOrderPlanRelations,
                 [PurchaseOrdersLayer] = reusedPurchaseOrders,
+                [PurchaseStockInDetailsLayer] = reusedPurchaseStockInDetails,
+                [PurchaseStockInsLayer] = reusedPurchaseStockIns,
                 [PurchaseRulesLayer] = reusedPurchaseRules,
                 [SaleOrderDetailsLayer] = reusedSaleOrderDetails,
                 [SaleOrdersLayer] = reusedSaleOrders,
@@ -1236,6 +1282,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [QuotationGoodsLayer] = reusedQuotationGoods,
                 [QuotationsLayer] = reusedQuotations,
                 [SuppliersLayer] = reusedSuppliers,
+                [SupplierBillDetailsLayer] = reusedSupplierBillDetails,
+                [SupplierBillsLayer] = reusedSupplierBills,
+                [StockBatchesLayer] = reusedStockBatches,
+                [StockLedgersLayer] = reusedStockLedgers,
                 [SystemRolesLayer] = reusedSystemRoles,
                 [SystemUsersLayer] = reusedSystemUsers,
                 [WaresLayer] = reusedWares
@@ -1877,6 +1927,349 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private static decimal CreatePurchasePrice(int sequence, int detailIndex)
     {
         return NumericPrecision.RoundMoney(6.35m + sequence * 0.18m + detailIndex * 0.42m);
+    }
+
+    private static async Task<(
+        int CreatedStockIns,
+        int ReusedStockIns,
+        int CreatedDetails,
+        int ReusedDetails,
+        int CreatedBatches,
+        int ReusedBatches,
+        int CreatedLedgers,
+        int ReusedLedgers,
+        int CreatedSupplierBills,
+        int ReusedSupplierBills,
+        int CreatedSupplierBillDetails,
+        int ReusedSupplierBillDetails)> GeneratePurchaseStockInsAsync(
+            ApplicationDbContext context,
+            IStockInService stockInService,
+            DemoAuditUser auditUser,
+            CancellationToken cancellationToken)
+    {
+        var stockInRemarks = Enumerable.Range(1, 40)
+            .Select(CreatePurchaseStockInRemark)
+            .ToArray();
+        var purchaseOrderRemarks = Enumerable.Range(1, 40)
+            .Select(CreatePurchaseOrderRemark)
+            .ToArray();
+        var wareCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("WARE", sequence))
+            .ToArray();
+        var departmentCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("DEPARTMENT", sequence))
+            .ToArray();
+
+        var existingStockIns = await context.StockInOrders
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.StockBatch)
+            .Where(order => order.Remark != null && stockInRemarks.Contains(order.Remark))
+            .ToDictionaryAsync(order => order.Remark!, StringComparer.Ordinal, cancellationToken);
+        var managedPurchaseOrders = await context.PurchaseOrders
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.Goods)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.PurchaseUnit)
+            .Where(order => order.Remark != null && purchaseOrderRemarks.Contains(order.Remark))
+            .ToDictionaryAsync(order => order.Remark!, StringComparer.Ordinal, cancellationToken);
+        var managedWares = await context.Wares
+            .Where(ware => wareCodes.Contains(ware.Code))
+            .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
+        var managedDepartments = await context.Departments
+            .Where(department => departmentCodes.Contains(department.Code))
+            .ToDictionaryAsync(department => department.Code, StringComparer.Ordinal, cancellationToken);
+
+        var createdStockIns = 0;
+        var reusedStockIns = 0;
+        var createdDetails = 0;
+        var reusedDetails = 0;
+        var createdBatches = 0;
+        var reusedBatches = 0;
+        var createdLedgers = 0;
+        var reusedLedgers = 0;
+        var createdSupplierBills = 0;
+        var reusedSupplierBills = 0;
+        var createdSupplierBillDetails = 0;
+        var reusedSupplierBillDetails = 0;
+
+        for (var sequence = 1; sequence <= 40; sequence++)
+        {
+            var stockInRemark = CreatePurchaseStockInRemark(sequence);
+            var purchaseOrder = GetManagedReference(
+                managedPurchaseOrders,
+                CreatePurchaseOrderRemark(sequence),
+                "采购单");
+            if (purchaseOrder.BusinessStatus != PurchaseOrderStatus.Completed)
+            {
+                throw new InvalidOperationException(
+                    $"受管采购入库 {stockInRemark} 需要已完成采购单，当前采购单状态为 {purchaseOrder.BusinessStatus}。");
+            }
+
+            var referenceSequence = (sequence - 1) % 30 + 1;
+            var ware = GetManagedReference(
+                managedWares,
+                DemoDataStableKeyCatalog.Create("WARE", referenceSequence),
+                "仓库");
+            var department = GetManagedReference(
+                managedDepartments,
+                DemoDataStableKeyCatalog.Create("DEPARTMENT", referenceSequence),
+                "部门");
+
+            StockInOrder stockIn;
+            var wasCreated = false;
+            if (!existingStockIns.TryGetValue(stockInRemark, out var existingStockIn))
+            {
+                var created = await stockInService.CreatePurchaseAsync(CreatePurchaseStockInDto(
+                    purchaseOrder,
+                    ware.Id,
+                    department.Id,
+                    sequence));
+                await stockInService.AuditAsync(
+                    StockInOrderType.Purchase,
+                    created.Id,
+                    CreatePurchaseStockInAuditRemark(sequence));
+                stockIn = await GetManagedPurchaseStockInAsync(context, created.Id, cancellationToken);
+                wasCreated = true;
+            }
+            else
+            {
+                stockIn = existingStockIn;
+                if (stockIn.BusinessStatus is StockDocumentStatus.Draft or StockDocumentStatus.PendingAudit)
+                {
+                    if (stockIn.BusinessStatus == StockDocumentStatus.Draft)
+                    {
+                        await stockInService.UpdatePurchaseAsync(CreatePurchaseStockInUpdateDto(
+                            stockIn,
+                            purchaseOrder,
+                            ware.Id,
+                            department.Id,
+                            sequence));
+                    }
+
+                    await stockInService.AuditAsync(
+                        StockInOrderType.Purchase,
+                        stockIn.Id,
+                        CreatePurchaseStockInAuditRemark(sequence));
+                }
+                else if (stockIn.BusinessStatus != StockDocumentStatus.Audited)
+                {
+                    throw new InvalidOperationException(
+                        $"受管采购入库 {stockInRemark} 当前状态为 {stockIn.BusinessStatus}，不能安全复用。");
+                }
+
+                stockIn = await GetManagedPurchaseStockInAsync(context, stockIn.Id, cancellationToken);
+            }
+
+            ApplyManagedPurchaseStockInFields(stockIn, sequence, auditUser);
+            await context.SaveChangesAsync(cancellationToken);
+
+            var stockInDetailIds = stockIn.Details.Select(detail => detail.Id).ToArray();
+            var ledgerCount = await context.StockLedgers
+                .CountAsync(ledger => ledger.SourceOrderId == stockIn.Id, cancellationToken);
+            var supplierBill = await context.SupplierBills
+                .Include(bill => bill.Details)
+                .SingleOrDefaultAsync(bill => bill.StockInOrderId == stockIn.Id, cancellationToken)
+                ?? throw new InvalidOperationException($"受管采购入库 {stockInRemark} 未生成供应商待结单据。");
+            var batchCount = stockIn.Details.Count(detail => detail.StockBatchId.HasValue);
+            if (ledgerCount != stockInDetailIds.Length)
+            {
+                throw new InvalidOperationException(
+                    $"受管采购入库 {stockInRemark} 库存流水数量 {ledgerCount} 与明细数量 {stockInDetailIds.Length} 不一致。");
+            }
+
+            if (wasCreated)
+            {
+                createdStockIns++;
+                createdDetails += stockIn.Details.Count;
+                createdBatches += batchCount;
+                createdLedgers += ledgerCount;
+                createdSupplierBills++;
+                createdSupplierBillDetails += supplierBill.Details.Count;
+            }
+            else
+            {
+                reusedStockIns++;
+                reusedDetails += stockIn.Details.Count;
+                reusedBatches += batchCount;
+                reusedLedgers += ledgerCount;
+                reusedSupplierBills++;
+                reusedSupplierBillDetails += supplierBill.Details.Count;
+            }
+        }
+
+        return (
+            createdStockIns,
+            reusedStockIns,
+            createdDetails,
+            reusedDetails,
+            createdBatches,
+            reusedBatches,
+            createdLedgers,
+            reusedLedgers,
+            createdSupplierBills,
+            reusedSupplierBills,
+            createdSupplierBillDetails,
+            reusedSupplierBillDetails);
+    }
+
+    private static async Task<StockInOrder> GetManagedPurchaseStockInAsync(
+        ApplicationDbContext context,
+        Guid stockInOrderId,
+        CancellationToken cancellationToken)
+    {
+        return await context.StockInOrders
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.Goods)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.GoodsUnit)
+            .Include(order => order.Details)
+            .ThenInclude(detail => detail.StockBatch)
+            .SingleAsync(order => order.Id == stockInOrderId, cancellationToken);
+    }
+
+    private static CreatePurchaseStockInDto CreatePurchaseStockInDto(
+        PurchaseOrder purchaseOrder,
+        Guid wareId,
+        Guid departmentId,
+        int sequence)
+    {
+        return new CreatePurchaseStockInDto
+        {
+            WareId = wareId,
+            PurchaseOrderId = purchaseOrder.Id,
+            SupplierId = purchaseOrder.SupplierId,
+            DepartmentId = departmentId,
+            PurchaserId = purchaseOrder.PurchaserId,
+            PurchasePattern = purchaseOrder.PurchasePattern,
+            InTime = CreatePurchaseStockInTime(sequence),
+            ExpectedArrivalTime = CreatePurchaseStockInTime(sequence).AddHours(6),
+            Remark = CreatePurchaseStockInRemark(sequence),
+            Details = purchaseOrder.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .Select((detail, detailIndex) => CreatePurchaseStockInDetailDto(sequence, detailIndex, detail))
+                .ToList()
+        };
+    }
+
+    private static UpdatePurchaseStockInDto CreatePurchaseStockInUpdateDto(
+        StockInOrder stockIn,
+        PurchaseOrder purchaseOrder,
+        Guid wareId,
+        Guid departmentId,
+        int sequence)
+    {
+        var stockInDetailsByPurchaseDetailId = stockIn.Details
+            .Where(detail => detail.PurchaseOrderDetailId.HasValue)
+            .ToDictionary(detail => detail.PurchaseOrderDetailId!.Value);
+        return new UpdatePurchaseStockInDto
+        {
+            Id = stockIn.Id,
+            WareId = wareId,
+            PurchaseOrderId = purchaseOrder.Id,
+            SupplierId = purchaseOrder.SupplierId,
+            DepartmentId = departmentId,
+            PurchaserId = purchaseOrder.PurchaserId,
+            PurchasePattern = purchaseOrder.PurchasePattern,
+            InTime = CreatePurchaseStockInTime(sequence),
+            ExpectedArrivalTime = CreatePurchaseStockInTime(sequence).AddHours(6),
+            Remark = CreatePurchaseStockInRemark(sequence),
+            Details = purchaseOrder.Details
+                .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+                .Select((detail, detailIndex) =>
+                {
+                    var dto = CreatePurchaseStockInDetailDto(sequence, detailIndex, detail);
+                    return new UpdateStockInDetailDto
+                    {
+                        Id = stockInDetailsByPurchaseDetailId.GetValueOrDefault(detail.Id)?.Id,
+                        PurchaseOrderDetailId = dto.PurchaseOrderDetailId,
+                        GoodsId = dto.GoodsId,
+                        GoodsUnitId = dto.GoodsUnitId,
+                        Quantity = dto.Quantity,
+                        UnitPrice = dto.UnitPrice,
+                        BatchNo = dto.BatchNo,
+                        ProductDate = dto.ProductDate,
+                        ExpireDate = dto.ExpireDate,
+                        Remark = dto.Remark
+                    };
+                })
+                .ToList()
+        };
+    }
+
+    private static CreateStockInDetailDto CreatePurchaseStockInDetailDto(
+        int sequence,
+        int detailIndex,
+        PurchaseOrderDetail detail)
+    {
+        var productDate = detail.ProductDate ?? CreatePurchaseProductDate(sequence, detailIndex);
+        return new CreateStockInDetailDto
+        {
+            PurchaseOrderDetailId = detail.Id,
+            GoodsId = detail.GoodsId,
+            GoodsUnitId = detail.PurchaseUnitId,
+            Quantity = detail.PurchaseQuantity,
+            UnitPrice = detail.PurchasePrice,
+            BatchNo = CreatePurchaseStockBatchNo(sequence, detailIndex),
+            ProductDate = productDate,
+            ExpireDate = productDate.AddDays(10 + detailIndex),
+            Remark = CreatePurchaseStockInDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex)
+        };
+    }
+
+    private static void ApplyManagedPurchaseStockInFields(
+        StockInOrder stockIn,
+        int sequence,
+        DemoAuditUser auditUser)
+    {
+        stockIn.Remark = CreatePurchaseStockInRemark(sequence);
+        stockIn.InTime = CreatePurchaseStockInTime(sequence);
+        stockIn.ExpectedArrivalTime = CreatePurchaseStockInTime(sequence).AddHours(6);
+        if (stockIn.CreateBy != auditUser.Id || stockIn.CreateName != auditUser.Username)
+        {
+            stockIn.CreateBy = auditUser.Id;
+            stockIn.CreateName = auditUser.Username;
+        }
+
+        var orderedDetails = stockIn.Details
+            .OrderBy(detail => detail.GoodsCodeSnapshot, StringComparer.Ordinal)
+            .ToArray();
+        for (var detailIndex = 0; detailIndex < orderedDetails.Length; detailIndex++)
+        {
+            var detail = orderedDetails[detailIndex];
+            detail.BatchNo = CreatePurchaseStockBatchNo(sequence, detailIndex);
+            detail.Remark = CreatePurchaseStockInDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex);
+            if (detail.CreateBy != auditUser.Id || detail.CreateName != auditUser.Username)
+            {
+                detail.CreateBy = auditUser.Id;
+                detail.CreateName = auditUser.Username;
+            }
+        }
+    }
+
+    private static string CreatePurchaseStockInRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("PURCHASE-STOCK-IN", sequence);
+        return $"{stableKey} 华东联调采购入库{sequence:D2}：来源受管采购单，用于库存批次、流水和供应商待结链路。";
+    }
+
+    private static string CreatePurchaseStockInDetailRemark(int sequence, string goodsCode, int detailIndex)
+    {
+        return $"SkyRoc 联调采购入库明细：入库单 {sequence:D2} 第 {detailIndex + 1} 行商品 {goodsCode}，用于形成库存批次和供应商待结。";
+    }
+
+    private static string CreatePurchaseStockInAuditRemark(int sequence)
+    {
+        return $"SkyRoc 联调采购入库审核：确认第 {sequence:D2} 张受管采购单到货并形成库存流水。";
+    }
+
+    private static string CreatePurchaseStockBatchNo(int sequence, int detailIndex)
+    {
+        return $"{DemoDataStableKeyCatalog.Create("PURCHASE-BATCH", sequence)}-{detailIndex + 1:D2}";
+    }
+
+    private static DateTime CreatePurchaseStockInTime(int sequence)
+    {
+        return new DateTime(2026, 8, (sequence - 1) % 28 + 1, 10, 30, 0, DateTimeKind.Utc);
     }
 
     private static string SerializeGoodsInfo(Domain.Entities.Goods.Goods goods)
