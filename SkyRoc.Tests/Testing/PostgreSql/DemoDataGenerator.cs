@@ -58,6 +58,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string DeliveryRoutesLayer = "delivery-routes";
     private const string DriversLayer = "drivers";
     private const string GoodsLayer = "goods";
+    private const string GoodsImagesLayer = "goods-images";
     private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
     private const string InspectionAttachmentsLayer = "inspection-attachments";
@@ -101,6 +102,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string SupplierSettlementsLayer = "supplier-settlements";
     private const string StockBatchesLayer = "stock-batches";
     private const string StockLedgersLayer = "stock-ledgers";
+    private const string StoredFilesLayer = "stored-files";
     private const string SystemRolesLayer = "system-roles";
     private const string SystemUsersLayer = "system-users";
     private const string TraceRecordsLayer = "trace-records";
@@ -133,6 +135,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var customerSettlementService = scope.ServiceProvider.GetRequiredService<ICustomerSettlementService>();
         var supplierSettlementService = scope.ServiceProvider.GetRequiredService<ISupplierSettlementService>();
         var traceabilityService = scope.ServiceProvider.GetRequiredService<ITraceabilityService>();
+        var fileStorageService = scope.ServiceProvider.GetRequiredService<IFileStorageService>();
         var deliveryRouteService = scope.ServiceProvider.GetRequiredService<IDeliveryRouteService>();
         var deliveryTaskService = scope.ServiceProvider.GetRequiredService<IDeliveryTaskService>();
         var driverService = scope.ServiceProvider.GetRequiredService<IDriverService>();
@@ -330,6 +333,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCustomerProtocols = 0;
         var createdGoods = 0;
         var reusedGoods = 0;
+        var createdGoodsImages = 0;
+        var reusedGoodsImages = 0;
         var createdGoodsUnits = 0;
         var reusedGoodsUnits = 0;
         var createdGoodsTypes = 0;
@@ -416,6 +421,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedStockBatches = 0;
         var createdStockLedgers = 0;
         var reusedStockLedgers = 0;
+        var createdStoredFiles = 0;
+        var reusedStoredFiles = 0;
         var createdSystemRoles = 0;
         var reusedSystemRoles = 0;
         var createdSystemUsers = 0;
@@ -1422,6 +1429,17 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         createdTraceRecords = traceabilityResult.CreatedTraceRecords;
         reusedTraceRecords = traceabilityResult.ReusedTraceRecords;
 
+        var fileResult = await new DemoDataFileBuilder(
+                context,
+                fileStorageService,
+                auditUser.Id,
+                auditUser.Username)
+            .GenerateAsync(cancellationToken);
+        createdStoredFiles = fileResult.CreatedStoredFiles;
+        reusedStoredFiles = fileResult.ReusedStoredFiles;
+        createdGoodsImages = fileResult.CreatedGoodsImages;
+        reusedGoodsImages = fileResult.ReusedGoodsImages;
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1444,6 +1462,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [DeliveryRoutesLayer] = createdDeliveryRoutes,
                 [DriversLayer] = createdDrivers,
                 [GoodsLayer] = createdGoods,
+                [GoodsImagesLayer] = createdGoodsImages,
                 [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
                 [InspectionAttachmentsLayer] = createdInspectionAttachments,
@@ -1487,6 +1506,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SupplierSettlementsLayer] = createdSupplierSettlements,
                 [StockBatchesLayer] = createdStockBatches,
                 [StockLedgersLayer] = createdStockLedgers,
+                [StoredFilesLayer] = createdStoredFiles,
                 [SystemRolesLayer] = createdSystemRoles,
                 [SystemUsersLayer] = createdSystemUsers,
                 [TraceRecordsLayer] = createdTraceRecords,
@@ -1519,6 +1539,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [DeliveryRoutesLayer] = reusedDeliveryRoutes,
                 [DriversLayer] = reusedDrivers,
                 [GoodsLayer] = reusedGoods,
+                [GoodsImagesLayer] = reusedGoodsImages,
                 [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
                 [InspectionAttachmentsLayer] = reusedInspectionAttachments,
@@ -1562,6 +1583,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SupplierSettlementsLayer] = reusedSupplierSettlements,
                 [StockBatchesLayer] = reusedStockBatches,
                 [StockLedgersLayer] = reusedStockLedgers,
+                [StoredFilesLayer] = reusedStoredFiles,
                 [SystemRolesLayer] = reusedSystemRoles,
                 [SystemUsersLayer] = reusedSystemUsers,
                 [TraceRecordsLayer] = reusedTraceRecords,

@@ -367,6 +367,124 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
     }
 
     /// <summary>
+    ///     生成器必须通过安全文件服务保存真实 PNG，并将受保护下载地址作为商品图片绑定到受管商品；重复运行不得改写文件、图片主键或审计快照。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedStoredFilesAndGoodsImages_AndSecondRunIsIdempotent()
+    {
+        var managedFileNames = Enumerable.Range(1, 30)
+            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("STORED-FILE", sequence)}.png")
+            .ToArray();
+        var managedGoodsCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("GOODS", sequence))
+            .ToArray();
+
+        var first = await fixture.GenerateDemoDataAsync();
+        await using var firstContext = fixture.CreateDbContext();
+        var firstFiles = await firstContext.StoredFiles
+            .Where(file => managedFileNames.Contains(file.OriginalFileName))
+            .OrderBy(file => file.OriginalFileName)
+            .Select(file => new
+            {
+                file.Id,
+                file.StorageKey,
+                file.OriginalFileName,
+                file.ContentType,
+                file.FileSize,
+                file.CreateTime,
+                file.CreateBy,
+                file.CreateName
+            })
+            .ToArrayAsync();
+        var firstImages = await firstContext.GoodsImages
+            .Where(image => image.FileName != null && managedFileNames.Contains(image.FileName))
+            .OrderBy(image => image.FileName)
+            .Select(image => new
+            {
+                image.Id,
+                image.GoodsId,
+                image.Url,
+                image.FileName,
+                image.Sort,
+                image.IsPrimary,
+                image.CreateTime,
+                image.CreateBy,
+                image.CreateName
+            })
+            .ToArrayAsync();
+
+        var second = await fixture.GenerateDemoDataAsync();
+        await using var secondContext = fixture.CreateDbContext();
+        var files = await secondContext.StoredFiles
+            .Where(file => managedFileNames.Contains(file.OriginalFileName))
+            .OrderBy(file => file.OriginalFileName)
+            .ToArrayAsync();
+        var images = await secondContext.GoodsImages
+            .Include(image => image.Goods)
+            .Where(image => image.FileName != null && managedFileNames.Contains(image.FileName))
+            .OrderBy(image => image.FileName)
+            .ToArrayAsync();
+
+        Assert.Equal(30, files.Length);
+        Assert.Equal(30, images.Length);
+        Assert.Equal(30, files.Select(file => file.StorageKey).Distinct().Count());
+        Assert.Equal(30, images.Select(image => image.GoodsId).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["stored-files"] + first.ReusedByLayer["stored-files"]);
+        Assert.Equal(30, first.CreatedByLayer["goods-images"] + first.ReusedByLayer["goods-images"]);
+        Assert.Equal(0, second.CreatedByLayer["stored-files"]);
+        Assert.Equal(0, second.CreatedByLayer["goods-images"]);
+        Assert.Equal(
+            firstFiles,
+            files.Select(file => new
+            {
+                file.Id,
+                file.StorageKey,
+                file.OriginalFileName,
+                file.ContentType,
+                file.FileSize,
+                file.CreateTime,
+                file.CreateBy,
+                file.CreateName
+            }).ToArray());
+        Assert.Equal(
+            firstImages,
+            images.Select(image => new
+            {
+                image.Id,
+                image.GoodsId,
+                image.Url,
+                image.FileName,
+                image.Sort,
+                image.IsPrimary,
+                image.CreateTime,
+                image.CreateBy,
+                image.CreateName
+            }).ToArray());
+
+        var storageRoot = Path.Combine(fixture.Settings.ReportDirectory, "demo-files");
+        Assert.All(files, file =>
+        {
+            Assert.Equal("image/png", file.ContentType);
+            Assert.True(file.FileSize > 8);
+            Assert.NotNull(file.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(file.CreateName));
+            var physicalPath = Path.Combine(storageRoot, file.StorageKey.Replace('/', Path.DirectorySeparatorChar));
+            Assert.True(File.Exists(physicalPath));
+            Assert.Equal(file.FileSize, new FileInfo(physicalPath).Length);
+        });
+        Assert.All(images, image =>
+        {
+            Assert.NotNull(image.Goods);
+            Assert.Contains(image.Goods.Code, managedGoodsCodes);
+            Assert.Equal($"/api/files/{files.Single(file => file.OriginalFileName == image.FileName).Id}/download", image.Url);
+            Assert.Equal(1, image.Sort);
+            Assert.True(image.IsPrimary);
+            Assert.NotNull(image.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(image.CreateName));
+        });
+    }
+
+    /// <summary>
     ///     生成器必须经报价与报价商品应用服务补齐稳定编码的报价资料，为每个受管客户和商品保留有效期、审核状态、单价及最小起订量，并在重复运行时复用既有记录。
     /// </summary>
     [Fact]

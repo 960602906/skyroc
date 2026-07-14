@@ -9,7 +9,7 @@ namespace SkyRoc.Tests.Testing.PostgreSql;
 public sealed class PostgreSqlWebApplicationFactory(PostgreSqlTestSettings settings) : WebApplicationFactory<Program>
 {
     /// <summary>
-    ///     将真实宿主连接、认证密钥和缓存设置固定到测试用途。
+    ///     将真实宿主连接、认证密钥、缓存和受保护文件目录固定到测试用途。
     /// </summary>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -19,5 +19,6 @@ public sealed class PostgreSqlWebApplicationFactory(PostgreSqlTestSettings setti
         builder.UseSetting("JwtSettings:SecretKey", "postgresql-test-only-key-with-at-least-32-bytes");
         builder.UseSetting("Redis:Enabled", "false");
         builder.UseSetting("DevSeed:Enabled", "false");
+        builder.UseSetting("FileStorage:StorageRoot", Path.Combine(settings.ReportDirectory, "demo-files"));
     }
 }
