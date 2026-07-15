@@ -42,6 +42,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 {
     private const string CompaniesLayer = "companies";
     private const string CustomerTagsLayer = "customer-tags";
+    private const string CustomerTagRelationsLayer = "customer-tag-relations";
     private const string CustomerProtocolGoodsLayer = "customer-protocol-goods";
     private const string CustomerProtocolsLayer = "customer-protocols";
     private const string CustomerSubAccountsLayer = "customer-sub-accounts";
@@ -62,6 +63,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string DriversLayer = "drivers";
     private const string GoodsLayer = "goods";
     private const string GoodsImagesLayer = "goods-images";
+    private const string GoodsSupplierRelationsLayer = "goods-supplier-relations";
     private const string GoodsUnitsLayer = "goods-units";
     private const string GoodsTypesLayer = "goods-types";
     private const string InspectionAttachmentsLayer = "inspection-attachments";
@@ -261,6 +263,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .Where(ware => wareCodes.Contains(ware.Code))
             .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
         var existingGoods = await context.Goods
+            .Include(goods => goods.SupplierRelations)
             .Where(goods => goodsCodes.Contains(goods.Code))
             .ToDictionaryAsync(goods => goods.Code, StringComparer.Ordinal, cancellationToken);
         var existingGoodsUnits = await context.GoodsUnits
@@ -327,6 +330,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedCarriers = 0;
         var createdCustomerTags = 0;
         var reusedCustomerTags = 0;
+        var createdCustomerTagRelations = 0;
+        var reusedCustomerTagRelations = 0;
         var createdCustomers = 0;
         var reusedCustomers = 0;
         var createdDepartments = 0;
@@ -359,6 +364,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedGoods = 0;
         var createdGoodsImages = 0;
         var reusedGoodsImages = 0;
+        var createdGoodsSupplierRelations = 0;
+        var reusedGoodsSupplierRelations = 0;
         var createdGoodsUnits = 0;
         var reusedGoodsUnits = 0;
         var createdGoodsTypes = 0;
@@ -702,16 +709,19 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             foreach (var seed in customerSeeds)
             {
                 var companyId = GetManagedReferenceId(managedCompanies, seed.CompanyCode, "公司");
-                var customerTagId = GetManagedReferenceId(managedCustomerTags, seed.CustomerTagCode, "客户标签");
+                var customerTagIds = seed.CustomerTagCodes
+                    .Select(code => GetManagedReferenceId(managedCustomerTags, code, "客户标签"))
+                    .ToArray();
                 if (!existingCustomers.TryGetValue(seed.Code, out var customer))
                 {
-                    await customerService.CreateAsync(seed.ToCreateDto(companyId, customerTagId));
+                    await customerService.CreateAsync(seed.ToCreateDto(companyId, customerTagIds));
                     createdCustomers++;
+                    createdCustomerTagRelations += customerTagIds.Length;
                     continue;
                 }
 
-                if (!seed.Matches(customer, companyId, customerTagId))
-                    await customerService.UpdateAsync(customer.Id, seed.ToUpdateDto(customer.Id, companyId, customerTagId));
+                if (!seed.Matches(customer, companyId, customerTagIds))
+                    await customerService.UpdateAsync(customer.Id, seed.ToUpdateDto(customer.Id, companyId, customerTagIds));
 
                 if (customer.CreateBy != auditUser.Id || customer.CreateName != auditUser.Username)
                 {
@@ -721,6 +731,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 }
 
                 reusedCustomers++;
+                reusedCustomerTagRelations += customerTagIds.Length;
             }
 
             var managedCustomers = await context.Customers
@@ -957,17 +968,23 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             foreach (var seed in goodsSeeds)
             {
                 var goodsTypeId = GetManagedReferenceId(managedGoodsTypes, seed.GoodsTypeCode, "商品分类");
-                var supplierId = GetManagedReferenceId(managedSuppliers, seed.SupplierCode, "供应商");
+                var defaultSupplierId = GetManagedReferenceId(managedSuppliers, seed.SupplierCode, "供应商");
+                var supplierIds = seed.SupplierCodes
+                    .Select(code => GetManagedReferenceId(managedSuppliers, code, "供应商"))
+                    .ToArray();
                 var wareId = GetManagedReferenceId(managedWares, seed.WareCode, "仓库");
                 if (!existingGoods.TryGetValue(seed.Code, out var goods))
                 {
-                    await goodsService.CreateAsync(seed.ToCreateDto(goodsTypeId, supplierId, wareId));
+                    await goodsService.CreateAsync(seed.ToCreateDto(goodsTypeId, defaultSupplierId, supplierIds, wareId));
                     createdGoods++;
+                    createdGoodsSupplierRelations += supplierIds.Length;
                     continue;
                 }
 
-                if (!seed.Matches(goods, goodsTypeId, supplierId, wareId))
-                    await goodsService.UpdateAsync(goods.Id, seed.ToUpdateDto(goods.Id, goodsTypeId, supplierId, wareId));
+                if (!seed.Matches(goods, goodsTypeId, defaultSupplierId, supplierIds, wareId))
+                    await goodsService.UpdateAsync(
+                        goods.Id,
+                        seed.ToUpdateDto(goods.Id, goodsTypeId, defaultSupplierId, supplierIds, wareId));
 
                 if (goods.CreateBy != auditUser.Id || goods.CreateName != auditUser.Username)
                 {
@@ -977,6 +994,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 }
 
                 reusedGoods++;
+                reusedGoodsSupplierRelations += supplierIds.Length;
             }
 
             var managedGoods = await context.Goods
@@ -1566,6 +1584,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [AfterSalesLayer] = createdAfterSales,
                 [CarriersLayer] = createdCarriers,
                 [CustomerTagsLayer] = createdCustomerTags,
+                [CustomerTagRelationsLayer] = createdCustomerTagRelations,
                 [CustomerProtocolGoodsLayer] = createdCustomerProtocolGoods,
                 [CustomerProtocolsLayer] = createdCustomerProtocols,
                 [CustomerSubAccountsLayer] = createdCustomerSubAccounts,
@@ -1582,6 +1601,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [DriversLayer] = createdDrivers,
                 [GoodsLayer] = createdGoods,
                 [GoodsImagesLayer] = createdGoodsImages,
+                [GoodsSupplierRelationsLayer] = createdGoodsSupplierRelations,
                 [GoodsUnitsLayer] = createdGoodsUnits,
                 [GoodsTypesLayer] = createdGoodsTypes,
                 [InspectionAttachmentsLayer] = createdInspectionAttachments,
@@ -1651,6 +1671,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [AfterSalesLayer] = reusedAfterSales,
                 [CarriersLayer] = reusedCarriers,
                 [CustomerTagsLayer] = reusedCustomerTags,
+                [CustomerTagRelationsLayer] = reusedCustomerTagRelations,
                 [CustomerProtocolGoodsLayer] = reusedCustomerProtocolGoods,
                 [CustomerProtocolsLayer] = reusedCustomerProtocols,
                 [CustomerSubAccountsLayer] = reusedCustomerSubAccounts,
@@ -1667,6 +1688,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [DriversLayer] = reusedDrivers,
                 [GoodsLayer] = reusedGoods,
                 [GoodsImagesLayer] = reusedGoodsImages,
+                [GoodsSupplierRelationsLayer] = reusedGoodsSupplierRelations,
                 [GoodsUnitsLayer] = reusedGoodsUnits,
                 [GoodsTypesLayer] = reusedGoodsTypes,
                 [InspectionAttachmentsLayer] = reusedInspectionAttachments,
@@ -4427,7 +4449,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             .Select(sequence => new CustomerSeed(
                 DemoDataStableKeyCatalog.Create("CUSTOMER", sequence),
                 DemoDataStableKeyCatalog.Create("COMPANY", sequence),
-                DemoDataStableKeyCatalog.Create("CUSTOMER-TAG", sequence),
+                Enumerable.Range(0, 4)
+                    .Select(offset => DemoDataStableKeyCatalog.Create("CUSTOMER-TAG", (sequence - 1 + offset) % 30 + 1))
+                    .ToArray(),
                 $"华东鲜品团餐客户服务中心{sequence:D2}",
                 $"91310115DEMO{sequence:D6}",
                 $"李主任{sequence:D2}",
@@ -4536,6 +4560,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 DemoDataStableKeyCatalog.Create("GOODS-UNIT", sequence),
                 DemoDataStableKeyCatalog.Create("GOODS-TYPE", sequence),
                 DemoDataStableKeyCatalog.Create("SUPPLIER", sequence),
+                Enumerable.Range(0, 4)
+                    .Select(offset => DemoDataStableKeyCatalog.Create("SUPPLIER", (sequence - 1 + offset) % 30 + 1))
+                    .ToArray(),
                 DemoDataStableKeyCatalog.Create("WARE", sequence),
                 $"华东联调生鲜商品{sequence:D2}",
                 $"{10 + sequence} 千克/箱",
@@ -4938,7 +4965,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private sealed record CustomerSeed(
         string Code,
         string CompanyCode,
-        string CustomerTagCode,
+        IReadOnlyList<string> CustomerTagCodes,
         string Name,
         string UnifiedSocialCreditCode,
         string LegalRepresentative,
@@ -4964,7 +4991,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         string Address,
         string Remark)
     {
-        public CreateCustomerDto ToCreateDto(Guid companyId, Guid customerTagId) => new()
+        public CreateCustomerDto ToCreateDto(Guid companyId, IReadOnlyList<Guid> customerTagIds) => new()
         {
             Code = Code,
             Name = Name,
@@ -4992,20 +5019,20 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             ContactPhone = ContactPhone,
             Address = Address,
             Remark = Remark,
-            TagIds = [customerTagId],
+            TagIds = customerTagIds.ToList(),
             Status = Status.Enable
         };
 
         public UpdateCustomerDto ToUpdateDto(
             Guid id,
             Guid? companyId,
-            Guid customerTagId,
+            IReadOnlyList<Guid> customerTagIds,
             Guid? quotationId = null,
             Guid? defaultWareId = null)
         {
             var dto = ToCreateDto(
                 companyId ?? throw new InvalidOperationException("受管客户必须关联受管公司。"),
-                customerTagId);
+                customerTagIds);
             return new UpdateCustomerDto
             {
                 Id = id,
@@ -5042,8 +5069,18 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             };
         }
 
-        public bool Matches(Domain.Entities.Customers.Customer customer, Guid companyId, Guid customerTagId)
+        public bool Matches(Domain.Entities.Customers.Customer customer, Guid companyId, IReadOnlyList<Guid> customerTagIds)
         {
+            var expectedTagIds = customerTagIds
+                .Distinct()
+                .OrderBy(id => id)
+                .ToArray();
+            var actualTagIds = customer.TagRelations
+                .Select(relation => relation.CustomerTagId)
+                .Distinct()
+                .OrderBy(id => id)
+                .ToArray();
+
             return customer.CompanyId == companyId
                    && customer.Name == Name
                    && customer.UnifiedSocialCreditCode == UnifiedSocialCreditCode
@@ -5070,8 +5107,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && customer.Address == Address
                    && customer.Remark == Remark
                    && customer.Status == Status.Enable
-                   && customer.TagRelations.Count == 1
-                   && customer.TagRelations.Single().CustomerTagId == customerTagId;
+                   && actualTagIds.SequenceEqual(expectedTagIds);
         }
     }
 
@@ -5199,6 +5235,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         string UnitCode,
         string GoodsTypeCode,
         string SupplierCode,
+        IReadOnlyList<string> SupplierCodes,
         string WareCode,
         string Name,
         string Spec,
@@ -5210,27 +5247,39 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         string UnitRemark,
         string Remark)
     {
-        public CreateGoodsDto ToCreateDto(Guid goodsTypeId, Guid supplierId, Guid wareId) => new()
+        public CreateGoodsDto ToCreateDto(
+            Guid goodsTypeId,
+            Guid defaultSupplierId,
+            IReadOnlyList<Guid> supplierIds,
+            Guid wareId)
         {
-            Code = Code,
-            Name = Name,
-            GoodsTypeId = goodsTypeId,
-            DefaultSupplierId = supplierId,
-            DefaultWareId = wareId,
-            Spec = Spec,
-            Brand = Brand,
-            Origin = Origin,
-            Description = Description,
-            TaxRate = TaxRate,
-            IsOnSale = true,
-            SupplierIds = [supplierId],
-            Remark = Remark,
-            Status = Status.Enable
-        };
+            return new CreateGoodsDto
+            {
+                Code = Code,
+                Name = Name,
+                GoodsTypeId = goodsTypeId,
+                DefaultSupplierId = defaultSupplierId,
+                DefaultWareId = wareId,
+                Spec = Spec,
+                Brand = Brand,
+                Origin = Origin,
+                Description = Description,
+                TaxRate = TaxRate,
+                IsOnSale = true,
+                SupplierIds = supplierIds.ToList(),
+                Remark = Remark,
+                Status = Status.Enable
+            };
+        }
 
-        public UpdateGoodsDto ToUpdateDto(Guid id, Guid goodsTypeId, Guid supplierId, Guid wareId)
+        public UpdateGoodsDto ToUpdateDto(
+            Guid id,
+            Guid goodsTypeId,
+            Guid defaultSupplierId,
+            IReadOnlyList<Guid> supplierIds,
+            Guid wareId)
         {
-            var dto = ToCreateDto(goodsTypeId, supplierId, wareId);
+            var dto = ToCreateDto(goodsTypeId, defaultSupplierId, supplierIds, wareId);
             return new UpdateGoodsDto
             {
                 Id = id,
@@ -5280,11 +5329,27 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             };
         }
 
-        public bool Matches(Domain.Entities.Goods.Goods goods, Guid goodsTypeId, Guid supplierId, Guid wareId)
+        public bool Matches(
+            Domain.Entities.Goods.Goods goods,
+            Guid goodsTypeId,
+            Guid defaultSupplierId,
+            IReadOnlyList<Guid> supplierIds,
+            Guid wareId)
         {
+            var expectedSupplierIds = supplierIds
+                .Distinct()
+                .OrderBy(id => id)
+                .ToArray();
+            var actualSupplierIds = goods.SupplierRelations
+                .Select(relation => relation.SupplierId)
+                .Distinct()
+                .OrderBy(id => id)
+                .ToArray();
+            var defaultRelation = goods.SupplierRelations.SingleOrDefault(relation => relation.IsDefault);
+
             return goods.Name == Name
                    && goods.GoodsTypeId == goodsTypeId
-                   && goods.DefaultSupplierId == supplierId
+                   && goods.DefaultSupplierId == defaultSupplierId
                    && goods.DefaultWareId == wareId
                    && goods.Spec == Spec
                    && goods.Brand == Brand
@@ -5293,7 +5358,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                    && goods.TaxRate == TaxRate
                    && goods.IsOnSale
                    && goods.Remark == Remark
-                   && goods.Status == Status.Enable;
+                   && goods.Status == Status.Enable
+                   && actualSupplierIds.SequenceEqual(expectedSupplierIds)
+                   && defaultRelation is not null
+                   && defaultRelation.SupplierId == defaultSupplierId
+                   && goods.SupplierRelations.Count(relation => relation.IsDefault) == 1;
         }
 
         public bool Matches(Domain.Entities.Goods.GoodsUnit unit, Guid goodsId)

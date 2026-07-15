@@ -114,7 +114,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         Assert.All(customers, customer =>
         {
             Assert.NotNull(customer.Company);
-            Assert.Single(customer.TagRelations);
+            Assert.Equal(4, customer.TagRelations.Count);
             Assert.False(string.IsNullOrWhiteSpace(customer.UnifiedSocialCreditCode));
             Assert.False(string.IsNullOrWhiteSpace(customer.LegalRepresentative));
             Assert.False(string.IsNullOrWhiteSpace(customer.RegisteredCapital));
@@ -354,7 +354,9 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.NotNull(item.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(item.CreateName));
             Assert.Single(item.Units);
-            Assert.Single(item.SupplierRelations);
+            Assert.Equal(4, item.SupplierRelations.Count);
+            Assert.Equal(1, item.SupplierRelations.Count(relation => relation.IsDefault));
+            Assert.Equal(item.DefaultSupplierId, item.SupplierRelations.Single(relation => relation.IsDefault).SupplierId);
             Assert.Equal(item.BaseUnitId, item.Units.Single().Id);
         });
         Assert.All(units, unit =>
@@ -365,6 +367,79 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.False(string.IsNullOrWhiteSpace(unit.Remark));
             Assert.NotNull(unit.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(unit.CreateName));
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须把受管客户标签关系与商品供应商关系补齐到明细关系目标下限：每名受管客户绑定 4 个标签、每个受管商品绑定 4 个供应商，重复运行不得改写既有主键组合。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedCustomerTagAndGoodsSupplierRelations_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedCustomerCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER", sequence))
+            .ToArray();
+        var managedGoodsCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("GOODS", sequence))
+            .ToArray();
+        var managedTagCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("CUSTOMER-TAG", sequence))
+            .ToArray();
+        var managedSupplierCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("SUPPLIER", sequence))
+            .ToArray();
+
+        await using var context = fixture.CreateDbContext();
+        var customers = await context.Customers
+            .Include(customer => customer.TagRelations)
+            .ThenInclude(relation => relation.CustomerTag)
+            .Where(customer => managedCustomerCodes.Contains(customer.Code))
+            .OrderBy(customer => customer.Code)
+            .ToListAsync();
+        var goods = await context.Goods
+            .Include(item => item.SupplierRelations)
+            .ThenInclude(relation => relation.Supplier)
+            .Where(item => managedGoodsCodes.Contains(item.Code))
+            .OrderBy(item => item.Code)
+            .ToListAsync();
+
+        var managedCustomerTagRelations = customers
+            .SelectMany(customer => customer.TagRelations)
+            .ToList();
+        var managedGoodsSupplierRelations = goods
+            .SelectMany(item => item.SupplierRelations)
+            .ToList();
+
+        Assert.Equal(30, customers.Count);
+        Assert.Equal(30, goods.Count);
+        Assert.Equal(120, managedCustomerTagRelations.Count);
+        Assert.Equal(120, managedGoodsSupplierRelations.Count);
+        Assert.Equal(120, first.CreatedByLayer["customer-tag-relations"] + first.ReusedByLayer["customer-tag-relations"]);
+        Assert.Equal(120, first.CreatedByLayer["goods-supplier-relations"] + first.ReusedByLayer["goods-supplier-relations"]);
+        Assert.Equal(0, second.CreatedByLayer["customer-tag-relations"]);
+        Assert.Equal(0, second.CreatedByLayer["goods-supplier-relations"]);
+        Assert.All(customers, customer =>
+        {
+            Assert.Equal(4, customer.TagRelations.Count);
+            Assert.All(customer.TagRelations, relation =>
+            {
+                Assert.NotNull(relation.CustomerTag);
+                Assert.Contains(relation.CustomerTag.Code, managedTagCodes);
+            });
+        });
+        Assert.All(goods, item =>
+        {
+            Assert.Equal(4, item.SupplierRelations.Count);
+            Assert.Equal(1, item.SupplierRelations.Count(relation => relation.IsDefault));
+            Assert.Equal(item.DefaultSupplierId, item.SupplierRelations.Single(relation => relation.IsDefault).SupplierId);
+            Assert.All(item.SupplierRelations, relation =>
+            {
+                Assert.NotNull(relation.Supplier);
+                Assert.Contains(relation.Supplier.Code, managedSupplierCodes);
+            });
         });
     }
 
