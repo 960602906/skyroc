@@ -106,6 +106,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string SupplierSettlementsLayer = "supplier-settlements";
     private const string StockBatchesLayer = "stock-batches";
     private const string StockLedgersLayer = "stock-ledgers";
+    private const string StocktakingDetailsLayer = "stocktaking-details";
+    private const string StocktakingLedgersLayer = "stocktaking-ledgers";
+    private const string StocktakingOrdersLayer = "stocktaking-orders";
     private const string StoredFilesLayer = "stored-files";
     private const string SystemRolesLayer = "system-roles";
     private const string SystemUsersLayer = "system-users";
@@ -158,6 +161,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var saleOrderService = scope.ServiceProvider.GetRequiredService<ISaleOrderService>();
         var stockInService = scope.ServiceProvider.GetRequiredService<IStockInService>();
         var stockOutService = scope.ServiceProvider.GetRequiredService<IStockOutService>();
+        var stocktakingService = scope.ServiceProvider.GetRequiredService<IStocktakingService>();
         var systemSupportService = scope.ServiceProvider.GetRequiredService<ISystemSupportService>();
         var printService = scope.ServiceProvider.GetRequiredService<IPrintService>();
         var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
@@ -434,6 +438,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedStockBatches = 0;
         var createdStockLedgers = 0;
         var reusedStockLedgers = 0;
+        var createdStocktakingDetails = 0;
+        var reusedStocktakingDetails = 0;
+        var createdStocktakingLedgers = 0;
+        var reusedStocktakingLedgers = 0;
+        var createdStocktakingOrders = 0;
+        var reusedStocktakingOrders = 0;
         var createdStoredFiles = 0;
         var reusedStoredFiles = 0;
         var createdSystemRoles = 0;
@@ -1481,6 +1491,19 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         createdImportExportJobs = importExportJobResult.CreatedJobs;
         reusedImportExportJobs = importExportJobResult.ReusedJobs;
 
+        var stocktakingResult = await new DemoDataStocktakingBuilder(
+                context,
+                stocktakingService,
+                auditUser.Id,
+                auditUser.Username)
+            .GenerateAsync(cancellationToken);
+        createdStocktakingOrders = stocktakingResult.CreatedOrders;
+        reusedStocktakingOrders = stocktakingResult.ReusedOrders;
+        createdStocktakingDetails = stocktakingResult.CreatedDetails;
+        reusedStocktakingDetails = stocktakingResult.ReusedDetails;
+        createdStocktakingLedgers = stocktakingResult.CreatedLedgers;
+        reusedStocktakingLedgers = stocktakingResult.ReusedLedgers;
+
         return new DemoDataGenerationResult(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -1551,6 +1574,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SupplierSettlementsLayer] = createdSupplierSettlements,
                 [StockBatchesLayer] = createdStockBatches,
                 [StockLedgersLayer] = createdStockLedgers,
+                [StocktakingDetailsLayer] = createdStocktakingDetails,
+                [StocktakingLedgersLayer] = createdStocktakingLedgers,
+                [StocktakingOrdersLayer] = createdStocktakingOrders,
                 [StoredFilesLayer] = createdStoredFiles,
                 [SystemRolesLayer] = createdSystemRoles,
                 [SystemUsersLayer] = createdSystemUsers,
@@ -1632,6 +1658,9 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [SupplierSettlementsLayer] = reusedSupplierSettlements,
                 [StockBatchesLayer] = reusedStockBatches,
                 [StockLedgersLayer] = reusedStockLedgers,
+                [StocktakingDetailsLayer] = reusedStocktakingDetails,
+                [StocktakingLedgersLayer] = reusedStocktakingLedgers,
+                [StocktakingOrdersLayer] = reusedStocktakingOrders,
                 [StoredFilesLayer] = reusedStoredFiles,
                 [SystemRolesLayer] = reusedSystemRoles,
                 [SystemUsersLayer] = reusedSystemUsers,

@@ -2714,6 +2714,218 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
     private sealed record SupplierSettlementDatabaseSnapshot(string Settlements, string Bills);
 
     /// <summary>
+    ///     生成器必须基于受管库存批次形成盘盈、盘亏和零差异盘点，并在重复运行时保持盘点快照与调整流水不变。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedStocktakingOrdersWithAdjustments_AndSecondRunIsIdempotent()
+    {
+        var expectedRemarks = Enumerable.Range(1, 60)
+            .Select(CreateStocktakingRemark)
+            .ToArray();
+
+        var first = await fixture.GenerateDemoDataAsync();
+        var firstDatabaseSnapshot = await CaptureManagedStocktakingDatabaseSnapshotAsync(expectedRemarks);
+        var second = await fixture.GenerateDemoDataAsync();
+        var secondDatabaseSnapshot = await CaptureManagedStocktakingDatabaseSnapshotAsync(expectedRemarks);
+
+        await using var context = fixture.CreateDbContext();
+        var orders = await context.StocktakingOrders
+            .AsNoTracking()
+            .Include(order => order.Details)
+            .Where(order => order.Remark != null && expectedRemarks.Contains(order.Remark))
+            .OrderBy(order => order.Remark)
+            .ToListAsync();
+        var orderIds = orders.Select(order => order.Id).ToArray();
+        var ledgers = await context.StockLedgers
+            .AsNoTracking()
+            .Where(ledger => ledger.SourceType == StockLedgerSourceType.Stocktaking
+                             && orderIds.Contains(ledger.SourceOrderId))
+            .OrderBy(ledger => ledger.SourceOrderId)
+            .ThenBy(ledger => ledger.SourceDetailId)
+            .ToListAsync();
+
+        Assert.Equal(60, orders.Count);
+        Assert.Equal(120, orders.Sum(order => order.Details.Count));
+        Assert.Equal(40, orders.Count(order => order.BusinessStatus == StockDocumentStatus.Audited));
+        Assert.Equal(20, orders.Count(order => order.BusinessStatus == StockDocumentStatus.Draft));
+        Assert.Equal(40, orders.SelectMany(order => order.Details).Count(detail => detail.DifferenceQuantity > 0m));
+        Assert.Equal(40, orders.SelectMany(order => order.Details).Count(detail => detail.DifferenceQuantity < 0m));
+        Assert.Equal(40, orders.SelectMany(order => order.Details).Count(detail => detail.DifferenceQuantity == 0m));
+        Assert.Equal(80, ledgers.Count);
+        Assert.Equal(40, ledgers.Count(ledger => ledger.Direction == StockLedgerDirection.Increase));
+        Assert.Equal(40, ledgers.Count(ledger => ledger.Direction == StockLedgerDirection.Decrease));
+        Assert.Equal(
+            60,
+            first.CreatedByLayer.GetValueOrDefault("stocktaking-orders")
+            + first.ReusedByLayer.GetValueOrDefault("stocktaking-orders"));
+        Assert.Equal(
+            120,
+            first.CreatedByLayer.GetValueOrDefault("stocktaking-details")
+            + first.ReusedByLayer.GetValueOrDefault("stocktaking-details"));
+        Assert.Equal(
+            80,
+            first.CreatedByLayer.GetValueOrDefault("stocktaking-ledgers")
+            + first.ReusedByLayer.GetValueOrDefault("stocktaking-ledgers"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("stocktaking-orders"));
+        Assert.Equal(60, second.ReusedByLayer.GetValueOrDefault("stocktaking-orders"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("stocktaking-details"));
+        Assert.Equal(120, second.ReusedByLayer.GetValueOrDefault("stocktaking-details"));
+        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("stocktaking-ledgers"));
+        Assert.Equal(80, second.ReusedByLayer.GetValueOrDefault("stocktaking-ledgers"));
+        Assert.Equal(firstDatabaseSnapshot, secondDatabaseSnapshot);
+
+        Assert.All(orders, order =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(order.StocktakingNo));
+            Assert.False(string.IsNullOrWhiteSpace(order.WareNameSnapshot));
+            Assert.NotNull(order.CreateTime);
+            Assert.NotNull(order.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(order.CreateName));
+            Assert.Equal(Status.Enable, order.Status);
+            Assert.Equal(2, order.Details.Count);
+            Assert.Equal(2, order.Details.Select(detail => detail.StockBatchId).Distinct().Count());
+            Assert.Equal(order.TotalBookQuantity, order.Details.Sum(detail => detail.BookQuantity));
+            Assert.Equal(order.TotalActualQuantity, order.Details.Sum(detail => detail.ActualQuantity));
+            Assert.Equal(order.TotalDifferenceQuantity, order.Details.Sum(detail => detail.DifferenceQuantity));
+            Assert.All(order.Details, detail =>
+            {
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsCodeSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.BatchNoSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.BaseUnitNameSnapshot));
+                Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
+                Assert.True(detail.BookQuantity >= 0m);
+                Assert.True(detail.ActualQuantity >= 0m);
+                Assert.True(detail.UnitCost >= 0m);
+                Assert.NotNull(detail.CreateTime);
+                Assert.NotNull(detail.CreateBy);
+                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+                Assert.Equal(Status.Enable, detail.Status);
+            });
+
+            if (order.BusinessStatus == StockDocumentStatus.Audited)
+            {
+                Assert.True(order.IsAdjustmentApplied);
+                Assert.NotNull(order.AdjustmentTime);
+                Assert.NotNull(order.AuditUserId);
+                Assert.False(string.IsNullOrWhiteSpace(order.AuditUserNameSnapshot));
+                Assert.NotNull(order.AuditTime);
+                Assert.Equal(2, ledgers.Count(ledger => ledger.SourceOrderId == order.Id));
+            }
+            else
+            {
+                Assert.False(order.IsAdjustmentApplied);
+                Assert.Null(order.AdjustmentTime);
+                Assert.Null(order.AuditUserId);
+                Assert.Null(order.AuditUserNameSnapshot);
+                Assert.Null(order.AuditTime);
+                Assert.DoesNotContain(ledgers, ledger => ledger.SourceOrderId == order.Id);
+            }
+        });
+        Assert.All(ledgers, ledger =>
+        {
+            Assert.Contains(ledger.SourceOrderId, orderIds);
+            Assert.NotEqual(Guid.Empty, ledger.SourceDetailId);
+            Assert.True(ledger.ChangeQuantity > 0m);
+            Assert.True(ledger.BalanceQuantity >= 0m);
+            Assert.True(ledger.TotalCost >= 0m);
+            Assert.False(string.IsNullOrWhiteSpace(ledger.Remark));
+            Assert.NotNull(ledger.CreateTime);
+            Assert.NotNull(ledger.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(ledger.CreateName));
+            Assert.Equal(Status.Enable, ledger.Status);
+        });
+    }
+
+    private async Task<StocktakingDatabaseSnapshot> CaptureManagedStocktakingDatabaseSnapshotAsync(
+        string[] expectedRemarks)
+    {
+        await using var context = fixture.CreateDbContext();
+        var orders = await context.StocktakingOrders
+            .AsNoTracking()
+            .Include(order => order.Details)
+            .Where(order => order.Remark != null && expectedRemarks.Contains(order.Remark))
+            .OrderBy(order => order.Remark)
+            .ToListAsync();
+        var orderIds = orders.Select(order => order.Id).ToArray();
+        var ledgers = await context.StockLedgers
+            .AsNoTracking()
+            .Where(ledger => ledger.SourceType == StockLedgerSourceType.Stocktaking
+                             && orderIds.Contains(ledger.SourceOrderId))
+            .OrderBy(ledger => ledger.SourceOrderId)
+            .ThenBy(ledger => ledger.SourceDetailId)
+            .ToListAsync();
+
+        var orderState = string.Join(
+            Environment.NewLine,
+            orders.Select(order => string.Join(
+                '|',
+                order.Id,
+                order.StocktakingNo,
+                order.BusinessStatus,
+                order.WareId,
+                order.StocktakingTime.ToString("O"),
+                order.TotalBookQuantity,
+                order.TotalActualQuantity,
+                order.TotalDifferenceQuantity,
+                order.IsAdjustmentApplied,
+                order.AdjustmentTime?.ToString("O"),
+                order.AuditUserId,
+                order.AuditUserNameSnapshot,
+                order.AuditTime?.ToString("O"),
+                order.Remark,
+                order.CreateTime?.ToString("O"),
+                order.CreateBy,
+                order.CreateName,
+                order.UpdateTime?.ToString("O"),
+                order.UpdateBy,
+                order.UpdateName,
+                string.Join(',', order.Details.OrderBy(detail => detail.StockBatchId).Select(detail => string.Join(
+                    ':',
+                    detail.Id,
+                    detail.StockBatchId,
+                    detail.BookQuantity,
+                    detail.ActualQuantity,
+                    detail.DifferenceQuantity,
+                    detail.UnitCost,
+                    detail.DifferenceAmount,
+                    detail.Remark,
+                    detail.CreateTime?.ToString("O"),
+                    detail.CreateBy,
+                    detail.CreateName,
+                    detail.UpdateTime?.ToString("O"),
+                    detail.UpdateBy,
+                    detail.UpdateName))))));
+        var ledgerState = string.Join(
+            Environment.NewLine,
+            ledgers.Select(ledger => string.Join(
+                '|',
+                ledger.Id,
+                ledger.SourceOrderId,
+                ledger.SourceDetailId,
+                ledger.StockBatchId,
+                ledger.Direction,
+                ledger.ChangeQuantity,
+                ledger.BalanceQuantity,
+                ledger.UnitCost,
+                ledger.TotalCost,
+                ledger.OccurredTime.ToString("O"),
+                ledger.Remark,
+                ledger.CreateTime?.ToString("O"),
+                ledger.CreateBy,
+                ledger.CreateName)));
+        return new StocktakingDatabaseSnapshot(orderState, ledgerState);
+    }
+
+    private static string CreateStocktakingRemark(int sequence)
+    {
+        var stableKey = DemoDataStableKeyCatalog.Create("STOCKTAKING", sequence);
+        return $"{stableKey} 华东联调库存盘点{sequence:D2}：核对受管采购批次账实数量与调整流水。";
+    }
+
+    private sealed record StocktakingDatabaseSnapshot(string Orders, string Ledgers);
+
+    /// <summary>
     ///     生成器必须从受管采购入库形成检测报告及附件，并通过真实采购批次销售出库生成可重复复用的溯源记录。
     /// </summary>
     [Fact]
