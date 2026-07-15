@@ -1002,16 +1002,17 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 .ToDictionaryAsync(goods => goods.Code, StringComparer.Ordinal, cancellationToken);
             foreach (var seed in goodsSeeds)
             {
-                var goodsId = GetManagedReferenceId(managedGoods, seed.Code, "商品");
+                var goods = GetManagedReference(managedGoods, seed.Code, "商品");
                 if (!existingGoodsUnits.TryGetValue(seed.UnitCode, out var unit))
                 {
-                    await goodsUnitService.CreateAsync(seed.ToCreateGoodsUnitDto(goodsId));
+                    await goodsUnitService.CreateAsync(seed.ToCreateGoodsUnitDto(goods.Id));
                     createdGoodsUnits++;
                     continue;
                 }
 
-                if (!seed.Matches(unit, goodsId))
-                    await goodsUnitService.UpdateAsync(unit.Id, seed.ToUpdateGoodsUnitDto(unit.Id, goodsId));
+                // 商品档案更新曾误清 BaseUnitId；单位字段未漂移时也要经单位服务重新挂回基础单位。
+                if (!seed.Matches(unit, goods.Id) || goods.BaseUnitId != unit.Id)
+                    await goodsUnitService.UpdateAsync(unit.Id, seed.ToUpdateGoodsUnitDto(unit.Id, goods.Id));
 
                 if (unit.CreateBy != auditUser.Id || unit.CreateName != auditUser.Username)
                 {
@@ -1862,10 +1863,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             DemoAuditUser auditUser,
             CancellationToken cancellationToken)
     {
-        var saleOrderKeys = Enumerable.Range(1, 60)
+        var saleOrderKeys = Enumerable.Range(1, 70)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
             .ToArray();
-        var planRemarks = Enumerable.Range(1, 40)
+        var planRemarks = Enumerable.Range(1, 50)
             .Select(CreatePurchasePlanRemark)
             .ToArray();
         var supplierCodes = Enumerable.Range(1, 30)
@@ -1883,10 +1884,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                             && order.OrderStatus != SaleOrderStatus.Rejected)
             .OrderBy(order => order.InnerRemark)
             .ToListAsync(cancellationToken);
-        if (approvedOrders.Count != 40)
+        if (approvedOrders.Count != 50)
         {
             throw new InvalidOperationException(
-                $"受管采购计划生成需要 40 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
+                $"受管采购计划生成需要 50 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
         }
 
         var existingPlans = await context.PurchasePlans
@@ -4621,11 +4622,19 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 
     private static IReadOnlyList<SaleOrderSeed> CreateSaleOrderSeeds()
     {
-        return Enumerable.Range(1, 60)
+        return Enumerable.Range(1, 70)
             .Select(sequence =>
             {
                 var primary = (sequence - 1) % 30 + 1;
                 var secondary = sequence % 30 + 1;
+                // 001–060 保留既有待审核/驳回/待分拣分布；061–070 全部待分拣，专供采购计划数量下限扩容。
+                var targetStatus = sequence > 60
+                    ? SaleOrderStatus.SortingPending
+                    : sequence % 6 == 0
+                        ? SaleOrderStatus.Rejected
+                        : sequence % 3 == 0
+                            ? SaleOrderStatus.PendingAudit
+                            : SaleOrderStatus.SortingPending;
                 return new SaleOrderSeed(
                     sequence,
                     DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence),
@@ -4638,11 +4647,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                     $"1385000{sequence:D4}",
                     $"上海市浦东新区鲜品大道{primary}号客户配送月台{sequence:D2}",
                     $"SkyRoc 联调销售订单：第 {sequence:D2} 张长期订单，覆盖客户下单、审核、采购计划和销售出库来源。",
-                    sequence % 6 == 0
-                        ? SaleOrderStatus.Rejected
-                        : sequence % 3 == 0
-                            ? SaleOrderStatus.PendingAudit
-                            : SaleOrderStatus.SortingPending,
+                    targetStatus,
                     $"SkyRoc 联调订单审核意见：第 {sequence:D2} 张订单按状态样本进入后续链路。",
                     [
                         new SaleOrderDetailSeed(

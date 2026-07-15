@@ -34,7 +34,9 @@ public class BaseDataMappingProfile : Profile
             .ForMember(x => x.DefaultWareName, opt => opt.MapFrom(src => src.DefaultWare == null ? null : src.DefaultWare.Name))
             .ForMember(x => x.SupplierIds, opt => opt.MapFrom(src => src.SupplierRelations.Select(x => x.SupplierId).ToList()));
         CreateMap<CreateGoodsDto, GoodsEntity>();
-        CreateMap<UpdateGoodsDto, GoodsEntity>();
+        // 基础单位仅由商品单位服务 SetBaseUnit 维护，更新商品档案不得用空 DTO 覆盖已有 BaseUnitId。
+        CreateMap<UpdateGoodsDto, GoodsEntity>()
+            .ForMember(x => x.BaseUnitId, opt => opt.Ignore());
 
         CreateMap<GoodsUnit, GoodsUnitDto>();
         CreateMap<CreateGoodsUnitDto, GoodsUnit>();

@@ -10,6 +10,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Constants;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -123,6 +124,36 @@ public class GoodsServiceTests
         var savedGoods = await context.Goods.SingleAsync(x => x.Id == data.GoodsId);
         Assert.True(savedGoods.IsOnSale);
         Assert.Equal(CurrentUserId, savedGoods.UpdateBy);
+    }
+
+    [Fact]
+    public async Task Update_goods_should_preserve_existing_base_unit_id()
+    {
+        await using var context = CreateDbContext();
+        var data = await SeedGoodsAsync(context, includeBaseUnit: true);
+        var service = CreateGoodsService(context);
+        var goods = await context.Goods.SingleAsync(x => x.Id == data.GoodsId);
+
+        await service.UpdateAsync(goods.Id, new UpdateGoodsDto
+        {
+            Id = goods.Id,
+            Code = goods.Code,
+            Name = "番茄（联调更新）",
+            GoodsTypeId = data.GoodsTypeId,
+            Spec = "一级果",
+            Brand = "鲜品联调",
+            Origin = "华东",
+            Description = "更新商品档案不得清空基础单位。",
+            TaxRate = 0.09m,
+            IsOnSale = true,
+            Status = Status.Enable,
+            BaseUnitId = null,
+            SupplierIds = []
+        });
+
+        var savedGoods = await context.Goods.SingleAsync(x => x.Id == data.GoodsId);
+        Assert.Equal(data.BaseUnitId, savedGoods.BaseUnitId);
+        Assert.Equal("番茄（联调更新）", savedGoods.Name);
     }
 
     private static ApplicationDbContext CreateDbContext()

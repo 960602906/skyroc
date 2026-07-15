@@ -1384,7 +1384,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedOrderKeys = Enumerable.Range(1, 60)
+        var managedOrderKeys = Enumerable.Range(1, 70)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
             .ToArray();
         await using var context = fixture.CreateDbContext();
@@ -1401,10 +1401,10 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             .OrderBy(order => order.InnerRemark)
             .ToListAsync();
 
-        Assert.Equal(60, orders.Count);
-        Assert.Equal(60, orders.Select(order => order.InnerRemark).Distinct().Count());
-        Assert.Equal(60, first.CreatedByLayer["sale-orders"] + first.ReusedByLayer["sale-orders"]);
-        Assert.Equal(120, first.CreatedByLayer["sale-order-details"] + first.ReusedByLayer["sale-order-details"]);
+        Assert.Equal(70, orders.Count);
+        Assert.Equal(70, orders.Select(order => order.InnerRemark).Distinct().Count());
+        Assert.Equal(70, first.CreatedByLayer["sale-orders"] + first.ReusedByLayer["sale-orders"]);
+        Assert.Equal(140, first.CreatedByLayer["sale-order-details"] + first.ReusedByLayer["sale-order-details"]);
         Assert.Equal(0, second.CreatedByLayer["sale-orders"]);
         Assert.Equal(0, second.CreatedByLayer["sale-order-details"]);
         Assert.Contains(orders, order => order.OrderStatus == SaleOrderStatus.Signed);
@@ -1454,6 +1454,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
 
     /// <summary>
     ///     生成器必须基于已审核的受管销售订单补齐采购计划，保留来源订单关系、供应商和采购员快照，并在重复运行时不重复生成计划。
+    ///     前 40 张计划已生成采购单，后 10 张保留未发布以覆盖状态并达到主单/明细/关系数量下限。
     /// </summary>
     [Fact]
     public async Task GenerateAsync_CreatesManagedPurchasePlansFromApprovedSaleOrders_AndSecondRunIsIdempotent()
@@ -1461,10 +1462,10 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedPlanKeys = Enumerable.Range(1, 40)
+        var managedPlanKeys = Enumerable.Range(1, 50)
             .Select(sequence => $"{DemoDataStableKeyCatalog.Create("PURCHASE-PLAN", sequence)} 华东联调采购计划{sequence:D2}：由已审核销售订单生成，用于采购单、入库和供应商结算链路。")
             .ToArray();
-        var managedOrderKeys = Enumerable.Range(1, 60)
+        var managedOrderKeys = Enumerable.Range(1, 70)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
             .ToArray();
 
@@ -1483,17 +1484,18 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             .OrderBy(plan => plan.Remark)
             .ToListAsync();
 
-        Assert.Equal(40, plans.Count);
-        Assert.Equal(40, plans.Select(plan => plan.Remark).Distinct().Count());
-        Assert.Equal(40, first.CreatedByLayer["purchase-plans"] + first.ReusedByLayer["purchase-plans"]);
-        Assert.Equal(80, first.CreatedByLayer["purchase-plan-details"] + first.ReusedByLayer["purchase-plan-details"]);
-        Assert.Equal(80, first.CreatedByLayer["purchase-plan-order-relations"] + first.ReusedByLayer["purchase-plan-order-relations"]);
+        Assert.Equal(50, plans.Count);
+        Assert.Equal(50, plans.Select(plan => plan.Remark).Distinct().Count());
+        Assert.Equal(50, first.CreatedByLayer["purchase-plans"] + first.ReusedByLayer["purchase-plans"]);
+        Assert.Equal(100, first.CreatedByLayer["purchase-plan-details"] + first.ReusedByLayer["purchase-plan-details"]);
+        Assert.Equal(100, first.CreatedByLayer["purchase-plan-order-relations"] + first.ReusedByLayer["purchase-plan-order-relations"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-plans"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-plan-details"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-plan-order-relations"]);
+        Assert.Equal(40, plans.Count(plan => plan.PurchaseStatus == PurchasePlanStatus.Generated));
+        Assert.Equal(10, plans.Count(plan => plan.PurchaseStatus == PurchasePlanStatus.Unpublished));
         Assert.All(plans, plan =>
         {
-            Assert.Equal(PurchasePlanStatus.Generated, plan.PurchaseStatus);
             Assert.Equal(PurchasePattern.SupplierDirect, plan.PurchasePattern);
             Assert.NotNull(plan.Supplier);
             Assert.NotNull(plan.Purchaser);
@@ -1515,7 +1517,15 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
                 Assert.False(string.IsNullOrWhiteSpace(detail.Remark));
                 Assert.True(detail.RequiredQuantity > 0m);
                 Assert.Equal(detail.RequiredQuantity, detail.PlannedQuantity);
-                Assert.Equal(detail.PlannedQuantity, detail.PurchasedQuantity);
+                if (plan.PurchaseStatus == PurchasePlanStatus.Generated)
+                {
+                    Assert.Equal(detail.PlannedQuantity, detail.PurchasedQuantity);
+                }
+                else
+                {
+                    Assert.Equal(0m, detail.PurchasedQuantity);
+                }
+
                 Assert.NotNull(detail.CreateBy);
                 Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
                 var relation = Assert.Single(detail.OrderRelations);
