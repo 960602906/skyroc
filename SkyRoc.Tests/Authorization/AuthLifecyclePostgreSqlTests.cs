@@ -26,7 +26,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
     };
 
     /// <summary>
-    ///     临时启用账号可完成登录→受保护读→刷新轮换→注销失效；错误凭据与禁用账号失败并写审计；本轮临时数据必须精确清理。
+    ///     临时启用账号可完成登录→受保护读→刷新轮换→注销失效；错误凭据与禁用账号均失败并写审计；本轮临时数据必须精确清理。
     /// </summary>
     [Fact]
     public async Task AuthLifecycle_LoginRefreshUserInfoRoutesLogoutAndAudit_OnPostgreSql()
@@ -122,27 +122,19 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
                 Assert.Equal(HttpStatusCode.NotFound, missingUserResponse.StatusCode);
             }
 
-            // 禁用用户当前仍可登录（AuthService 未拦截 Status=Disable），记录现状供后续切片收口
+            // 禁用用户即使密码正确也不得登录
             using (var disabledLoginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginReqDto
             {
                 Username = disabledUsername,
                 Password = password
             }))
             {
-                Assert.Equal(HttpStatusCode.OK, disabledLoginResponse.StatusCode);
-                var disabledLogin = await ReadApiDataAsync<LoginResDto>(disabledLoginResponse);
-                Assert.False(string.IsNullOrWhiteSpace(disabledLogin.Token));
-                Assert.False(string.IsNullOrWhiteSpace(disabledLogin.RefreshToken));
-
-                // 立即注销禁用用户令牌，避免残留缓存影响后续断言
-                using var disabledClient = factory.CreateClient();
-                disabledClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue(AuthConstants.BearerScheme, disabledLogin.Token);
-                disabledClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgent);
-                using var disabledLogout = await disabledClient.PostAsJsonAsync(
-                    "/api/auth/logout",
-                    new RefreshTokenReqDto { RefreshToken = disabledLogin.RefreshToken });
-                Assert.Equal(HttpStatusCode.OK, disabledLogout.StatusCode);
+                Assert.Equal(HttpStatusCode.BadGateway, disabledLoginResponse.StatusCode);
+                var disabledBody = await disabledLoginResponse.Content.ReadAsStringAsync();
+                var disabledPayload = JsonSerializer.Deserialize<ApiResponse<object?>>(disabledBody, JsonOptions);
+                Assert.NotNull(disabledPayload);
+                Assert.Equal("用户已禁用", disabledPayload.Msg);
+                Assert.DoesNotContain(password, disabledBody, StringComparison.Ordinal);
             }
 
             // 正常登录
@@ -282,8 +274,9 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
                 && log.FailureReason == null);
             Assert.Contains(loginLogs, log =>
                 log.Username == disabledUsername
-                && log.IsSuccess
-                && log.UserId == disabledUserId);
+                && !log.IsSuccess
+                && log.UserId == disabledUserId
+                && log.FailureReason == "用户已禁用");
 
             Assert.All(loginLogs, log =>
             {

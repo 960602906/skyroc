@@ -49,6 +49,12 @@ public class AuthService(
                 throw new BusinessException("密码错误");
             }
 
+            if (user.Status != Status.Enable)
+            {
+                failureReason = "用户已禁用";
+                throw new BusinessException("用户已禁用");
+            }
+
             var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
             var roleList = roles.ToList();
             var roleCodes = roleList.Select(r => r.Code).ToList();
@@ -105,6 +111,12 @@ public class AuthService(
 
         var user = await userRepository.GetByIdAsync(stored.UserId);
         if (user is null) return null;
+
+        if (user.Status != Status.Enable)
+        {
+            await tokenCache.RevokeRefreshTokenAsync(refreshToken);
+            return null;
+        }
 
         var roles = await roleRepository.GetRolesByUserIdAsync(user.Id);
         var roleList = roles.ToList();
