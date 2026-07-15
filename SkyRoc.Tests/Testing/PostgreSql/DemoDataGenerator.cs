@@ -3,6 +3,7 @@ using Application.DTOs.Customers;
 using Application.DTOs.Department;
 using Application.DTOs.Delivery;
 using Application.DTOs.Goods;
+using Application.DTOs.MenuButton;
 using Application.DTOs.Orders;
 using Application.DTOs.Printing;
 using Application.DTOs.Purchases;
@@ -97,6 +98,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private const string PrintTemplatesLayer = "print-templates";
     private const string OperationLogsLayer = "operation-logs";
     private const string LoginLogsLayer = "login-logs";
+    private const string MenuButtonsLayer = "menu-buttons";
     private const string QuotationGoodsLayer = "quotation-goods";
     private const string QuotationsLayer = "quotations";
     private const string SuppliersLayer = "suppliers";
@@ -167,6 +169,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var quotationGoodsService = scope.ServiceProvider.GetRequiredService<IQuotationGoodsService>();
         var quotationService = scope.ServiceProvider.GetRequiredService<IQuotationService>();
         var supplierService = scope.ServiceProvider.GetRequiredService<ISupplierService>();
+        var menuButtonService = scope.ServiceProvider.GetRequiredService<IMenuButtonService>();
         var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
         var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
         var wareService = scope.ServiceProvider.GetRequiredService<IWareService>();
@@ -189,6 +192,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var printTemplateSeeds = CreatePrintTemplateSeeds();
         var operationLogSeeds = CreateOperationLogSeeds();
         var loginLogSeeds = CreateLoginLogSeeds();
+        var menuButtonSeeds = Enumerable.Range(1, 30)
+            .Select(sequence => new
+            {
+                Code = DemoDataStableKeyCatalog.Create("MENU-BUTTON", sequence),
+                Desc = $"前端联调管理权限按钮{sequence:D2}"
+            })
+            .ToArray();
         var quotationSeeds = CreateQuotationSeeds();
         var supplierSeeds = CreateSupplierSeeds();
         var systemRoleSeeds = CreateSystemRoleSeeds();
@@ -213,6 +223,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var printTemplateCodes = printTemplateSeeds.Select(seed => seed.TemplateCode).ToArray();
         var operationLogDescriptions = operationLogSeeds.Select(seed => seed.Description).ToArray();
         var loginLogUsernames = loginLogSeeds.Select(seed => seed.Username).ToArray();
+        var menuButtonCodes = menuButtonSeeds.Select(seed => seed.Code).ToArray();
         var quotationCodes = quotationSeeds.Select(seed => seed.Code).ToArray();
         var supplierCodes = supplierSeeds.Select(seed => seed.Code).ToArray();
         var systemRoleCodes = systemRoleSeeds.Select(seed => seed.Code).ToArray();
@@ -420,6 +431,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedOperationLogs = 0;
         var createdLoginLogs = 0;
         var reusedLoginLogs = 0;
+        var createdMenuButtons = 0;
+        var reusedMenuButtons = 0;
         var createdQuotationGoods = 0;
         var reusedQuotationGoods = 0;
         var createdQuotations = 0;
@@ -537,6 +550,46 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             if (permissionMenuIds.Length != permissionMenuNames.Length)
             {
                 throw new InvalidOperationException("长期联调系统角色生成需要已存在的首页、管理、角色和用户菜单。 ");
+            }
+
+            var managedMenuId = await context.Menus
+                .Where(menu => menu.Name == "manage")
+                .Select(menu => menu.Id)
+                .SingleAsync(cancellationToken);
+            var existingMenuButtons = await context.MenuButtons
+                .Where(button => button.MenuId == managedMenuId && menuButtonCodes.Contains(button.Code))
+                .ToDictionaryAsync(button => button.Code, StringComparer.Ordinal, cancellationToken);
+            var unknownManagedMenuButtons = await context.MenuButtons
+                .Where(button => button.MenuId == managedMenuId && button.Code.StartsWith($"{DemoDataStableKeyCatalog.ManagedPrefix}-MENU-BUTTON-"))
+                .Where(button => !menuButtonCodes.Contains(button.Code))
+                .Select(button => button.Code)
+                .ToListAsync(cancellationToken);
+            if (unknownManagedMenuButtons.Count != 0)
+            {
+                throw new InvalidOperationException(
+                    $"管理菜单存在未登记的受管权限按钮：{string.Join(", ", unknownManagedMenuButtons)}。");
+            }
+
+            foreach (var seed in menuButtonSeeds)
+            {
+                if (!existingMenuButtons.TryGetValue(seed.Code, out var button))
+                {
+                    await menuButtonService.CreateMenuButtonAsync(new CreateMenuButtonDto
+                    {
+                        MenuId = managedMenuId,
+                        Code = seed.Code,
+                        Desc = seed.Desc
+                    });
+                    createdMenuButtons++;
+                    continue;
+                }
+
+                if (button.Desc != seed.Desc || button.CreateBy != auditUser.Id || button.CreateName != auditUser.Username)
+                {
+                    throw new InvalidOperationException($"受管菜单按钮 {seed.Code} 的业务字段或创建审计发生漂移。");
+                }
+
+                reusedMenuButtons++;
             }
 
             var managedRoleIds = managedSystemRoles.Values.Select(role => role.Id).ToArray();
@@ -1565,6 +1618,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [PrintTemplatesLayer] = createdPrintTemplates,
                 [OperationLogsLayer] = createdOperationLogs,
                 [LoginLogsLayer] = createdLoginLogs,
+                [MenuButtonsLayer] = createdMenuButtons,
                 [QuotationGoodsLayer] = createdQuotationGoods,
                 [QuotationsLayer] = createdQuotations,
                 [SuppliersLayer] = createdSuppliers,
@@ -1649,6 +1703,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 [PrintTemplatesLayer] = reusedPrintTemplates,
                 [OperationLogsLayer] = reusedOperationLogs,
                 [LoginLogsLayer] = reusedLoginLogs,
+                [MenuButtonsLayer] = reusedMenuButtons,
                 [QuotationGoodsLayer] = reusedQuotationGoods,
                 [QuotationsLayer] = reusedQuotations,
                 [SuppliersLayer] = reusedSuppliers,

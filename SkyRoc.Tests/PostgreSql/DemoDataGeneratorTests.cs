@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Domain.Entities;
 using Domain.Entities.AfterSales;
 using Domain.Entities.Delivery;
 using Domain.Entities.Orders;
@@ -1090,6 +1091,39 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.NotNull(role.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(role.CreateName));
             Assert.Equal(4, role.RoleMenus.Count);
+        });
+    }
+
+    /// <summary>
+    ///     生成器必须仅向既有管理菜单补齐完整稳定编码的权限按钮，按钮描述和创建审计完整，重复运行不得新增或修改非受管菜单按钮。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_CreatesManagedMenuButtons_AndSecondRunIsIdempotent()
+    {
+        var first = await fixture.GenerateDemoDataAsync();
+        var second = await fixture.GenerateDemoDataAsync();
+
+        var managedCodes = Enumerable.Range(1, 30)
+            .Select(sequence => DemoDataStableKeyCatalog.Create("MENU-BUTTON", sequence))
+            .ToArray();
+        await using var context = fixture.CreateDbContext();
+        var buttons = await context.MenuButtons
+            .Include(button => button.Menu)
+            .Where(button => managedCodes.Contains(button.Code))
+            .OrderBy(button => button.Code)
+            .ToListAsync();
+
+        Assert.Equal(30, buttons.Count);
+        Assert.Equal(30, buttons.Select(button => button.Code).Distinct().Count());
+        Assert.Equal(30, first.CreatedByLayer["menu-buttons"] + first.ReusedByLayer["menu-buttons"]);
+        Assert.Equal(0, second.CreatedByLayer["menu-buttons"]);
+        Assert.All(buttons, button =>
+        {
+            Assert.NotNull(button.Menu);
+            Assert.Equal("manage", button.Menu.Name);
+            Assert.Equal($"前端联调管理权限按钮{int.Parse(button.Code[^3..]):D2}", button.Desc);
+            Assert.NotNull(button.CreateBy);
+            Assert.False(string.IsNullOrWhiteSpace(button.CreateName));
         });
     }
 
