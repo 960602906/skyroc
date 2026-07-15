@@ -34,6 +34,7 @@ internal sealed class DemoDataCustomerSettlementBuilder(
             CancellationToken cancellationToken)
     {
         context.ChangeTracker.Clear();
+        // 客户结款仍仅覆盖 001–060 中 40 张既有签收账单；061–070 新增账单保留待结，留给后续结款扩容切片。
         var expectedSaleOrderKeys = Enumerable.Range(1, 60)
             .Where(sequence => sequence % 3 != 0)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
@@ -53,7 +54,7 @@ internal sealed class DemoDataCustomerSettlementBuilder(
         if (!actualSaleOrderKeys.SequenceEqual(expectedSaleOrderKeys, StringComparer.Ordinal))
         {
             throw new InvalidOperationException(
-                $"受管客户结款需要精确匹配 {expectedSaleOrderKeys.Length} 个已审核订单稳定键，当前匹配 {actualSaleOrderKeys.Length} 个。");
+                $"受管客户结款需要精确匹配 {expectedSaleOrderKeys.Length} 个既有签收订单稳定键，当前匹配 {actualSaleOrderKeys.Length} 个。");
         }
 
         var seeds = CreateCustomerSettlementSeeds(managedBills);

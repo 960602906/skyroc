@@ -2755,13 +2755,14 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             DemoAuditUser auditUser,
             CancellationToken cancellationToken)
     {
-        var saleOrderKeys = Enumerable.Range(1, 60)
+        // 001–060 中待分拣 40 张 + 061–070 待分拣 10 张，共 50 张已审核销售订单进入出库/签收链路。
+        var saleOrderKeys = Enumerable.Range(1, 70)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
             .ToArray();
-        var supportInRemarks = Enumerable.Range(1, 40)
+        var supportInRemarks = Enumerable.Range(1, 50)
             .Select(CreateSaleStockSupportInRemark)
             .ToArray();
-        var stockOutRemarks = Enumerable.Range(1, 40)
+        var stockOutRemarks = Enumerable.Range(1, 50)
             .Select(CreateSaleStockOutRemark)
             .ToArray();
         var departmentCodes = Enumerable.Range(1, 30)
@@ -2776,10 +2777,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                             && order.OrderStatus != SaleOrderStatus.Rejected)
             .OrderBy(order => order.InnerRemark)
             .ToListAsync(cancellationToken);
-        if (approvedOrders.Count != 40)
+        if (approvedOrders.Count != 50)
         {
             throw new InvalidOperationException(
-                $"受管销售出库生成需要 40 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
+                $"受管销售出库生成需要 50 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
         }
 
         var existingSupportIns = await context.StockInOrders
@@ -3294,7 +3295,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             DemoAuditUser auditUser,
             CancellationToken cancellationToken)
     {
-        var stockOutRemarks = Enumerable.Range(1, 40)
+        var stockOutRemarks = Enumerable.Range(1, 50)
             .Select(CreateSaleStockOutRemark)
             .ToArray();
         var driverCodes = Enumerable.Range(1, 30)
@@ -3309,10 +3310,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                             && order.BusinessStatus == StockDocumentStatus.Audited)
             .OrderBy(order => order.Remark)
             .ToListAsync(cancellationToken);
-        if (managedStockOuts.Count != 40)
+        if (managedStockOuts.Count != 50)
         {
             throw new InvalidOperationException(
-                $"受管配送任务生成需要 40 张已审核销售出库，当前为 {managedStockOuts.Count} 张。");
+                $"受管配送任务生成需要 50 张已审核销售出库，当前为 {managedStockOuts.Count} 张。");
         }
 
         var managedDrivers = await context.Drivers

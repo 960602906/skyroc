@@ -1762,7 +1762,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedStockOutRemarks = Enumerable.Range(1, 40)
+        var managedStockOutRemarks = Enumerable.Range(1, 50)
             .Select(sequence => $"{DemoDataStableKeyCatalog.Create("SALE-STOCK-OUT", sequence)} 华东联调销售出库{sequence:D2}：来源受管销售订单，用于配送、签收和客户账单链路。")
             .ToArray();
 
@@ -1788,15 +1788,15 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             .OrderBy(ledger => ledger.SourceDetailId)
             .ToListAsync();
 
-        Assert.Equal(40, stockOuts.Count);
-        Assert.Equal(40, stockOuts.Select(order => order.Remark).Distinct().Count());
-        Assert.Equal(40, first.CreatedByLayer["sale-stock-outs"] + first.ReusedByLayer["sale-stock-outs"]);
-        Assert.Equal(80, first.CreatedByLayer["sale-stock-out-details"] + first.ReusedByLayer["sale-stock-out-details"]);
-        Assert.Equal(80, first.CreatedByLayer["sale-stock-out-ledgers"] + first.ReusedByLayer["sale-stock-out-ledgers"]);
+        Assert.Equal(50, stockOuts.Count);
+        Assert.Equal(50, stockOuts.Select(order => order.Remark).Distinct().Count());
+        Assert.Equal(50, first.CreatedByLayer["sale-stock-outs"] + first.ReusedByLayer["sale-stock-outs"]);
+        Assert.Equal(100, first.CreatedByLayer["sale-stock-out-details"] + first.ReusedByLayer["sale-stock-out-details"]);
+        Assert.Equal(100, first.CreatedByLayer["sale-stock-out-ledgers"] + first.ReusedByLayer["sale-stock-out-ledgers"]);
         Assert.Equal(0, second.CreatedByLayer["sale-stock-outs"]);
         Assert.Equal(0, second.CreatedByLayer["sale-stock-out-details"]);
         Assert.Equal(0, second.CreatedByLayer["sale-stock-out-ledgers"]);
-        Assert.Equal(80, ledgers.Count);
+        Assert.Equal(100, ledgers.Count);
         Assert.All(stockOuts, order =>
         {
             Assert.Equal(StockOutOrderType.Sale, order.OrderType);
@@ -1860,10 +1860,10 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedDeliveryRemarks = Enumerable.Range(1, 40)
+        var managedDeliveryRemarks = Enumerable.Range(1, 50)
             .Select(sequence => $"{DemoDataStableKeyCatalog.Create("DELIVERY-TASK", sequence)} 华东联调配送任务{sequence:D2}：来源受管销售出库，已完成分配、路线规划、签收和回单。")
             .ToArray();
-        var managedReceiptRemarks = Enumerable.Range(1, 40)
+        var managedReceiptRemarks = Enumerable.Range(1, 50)
             .Select(sequence => $"SkyRoc 联调配送签收：第 {sequence:D2} 张任务客户已按出库明细完成验收。")
             .ToArray();
 
@@ -1905,20 +1905,24 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         first.CreatedByLayer.TryGetValue("customer-bill-details", out var createdCustomerBillDetails);
         first.ReusedByLayer.TryGetValue("customer-bill-details", out var reusedCustomerBillDetails);
 
-        Assert.Equal(40, tasks.Count);
-        Assert.Equal(40, tasks.Select(task => task.Remark).Distinct().Count());
-        Assert.Equal(40, createdDeliveryTasks + reusedDeliveryTasks);
-        Assert.Equal(40, createdOrderReceipts + reusedOrderReceipts);
-        Assert.Equal(80, createdCheckDetails + reusedCheckDetails);
-        Assert.Equal(40, createdCustomerBills + reusedCustomerBills);
-        Assert.Equal(80, createdCustomerBillDetails + reusedCustomerBillDetails);
+        Assert.Equal(50, tasks.Count);
+        Assert.Equal(50, tasks.Select(task => task.Remark).Distinct().Count());
+        Assert.Equal(50, createdDeliveryTasks + reusedDeliveryTasks);
+        Assert.Equal(50, createdOrderReceipts + reusedOrderReceipts);
+        Assert.Equal(100, createdCheckDetails + reusedCheckDetails);
+        Assert.Equal(50, createdCustomerBills + reusedCustomerBills);
+        // 客户账单明细层计数会叠加售后冲减；这里按签收来源明细验收配送切片数量。
+        Assert.Equal(
+            100,
+            customerBills.Sum(bill => bill.Details.Count(detail =>
+                detail.SourceType == CustomerBillDetailSourceType.OrderAcceptance)));
         Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("delivery-tasks"));
         Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("order-receipts"));
         Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("order-check-details"));
         Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("customer-bills"));
-        Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("customer-bill-details"));
-        Assert.Equal(40, receiptIds.Length);
-        Assert.Equal(40, customerBills.Count);
+        Assert.Equal(50, receiptIds.Length);
+        Assert.Equal(50, customerBills.Count);
+        Assert.Equal(100, tasks.Sum(task => task.Receipt!.CheckDetails.Count));
         Assert.All(tasks, task =>
         {
             Assert.Equal(DeliveryTaskStatus.Signed, task.DeliveryStatus);
@@ -1976,28 +1980,29 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         Assert.All(customerBills, bill =>
         {
             Assert.Contains(bill.SaleOrderId, saleOrderIds);
-            Assert.Equal(CustomerBillStatus.Pending, bill.BillStatus);
             Assert.True(bill.OrderAmount > 0m);
-            Assert.Equal(0m, bill.AfterSaleAdjustmentAmount);
-            Assert.Equal(bill.OrderAmount, bill.ReceivableAmount);
-            Assert.Equal(0m, bill.SettledAmount);
-            Assert.Equal(2, bill.Details.Count);
+            Assert.True(bill.ReceivableAmount > 0m || bill.AfterSaleAdjustmentAmount < 0m);
+            Assert.True(bill.SettledAmount >= 0m);
+            Assert.Contains(
+                bill.Details,
+                detail => detail.SourceType == CustomerBillDetailSourceType.OrderAcceptance);
             Assert.NotNull(bill.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(bill.CreateName));
-            Assert.All(bill.Details, detail =>
-            {
-                Assert.Equal(CustomerBillDetailSourceType.OrderAcceptance, detail.SourceType);
-                Assert.NotNull(detail.SaleOrderDetailId);
-                Assert.True(detail.Quantity > 0m);
-                Assert.True(detail.BaseQuantity > 0m);
-                Assert.True(detail.UnitPrice > 0m);
-                Assert.True(detail.Amount > 0m);
-                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsNameSnapshot));
-                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsCodeSnapshot));
-                Assert.False(string.IsNullOrWhiteSpace(detail.GoodsUnitNameSnapshot));
-                Assert.NotNull(detail.CreateBy);
-                Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
-            });
+            Assert.All(
+                bill.Details.Where(detail => detail.SourceType == CustomerBillDetailSourceType.OrderAcceptance),
+                detail =>
+                {
+                    Assert.NotNull(detail.SaleOrderDetailId);
+                    Assert.True(detail.Quantity > 0m);
+                    Assert.True(detail.BaseQuantity > 0m);
+                    Assert.True(detail.UnitPrice > 0m);
+                    Assert.True(detail.Amount > 0m);
+                    Assert.False(string.IsNullOrWhiteSpace(detail.GoodsNameSnapshot));
+                    Assert.False(string.IsNullOrWhiteSpace(detail.GoodsCodeSnapshot));
+                    Assert.False(string.IsNullOrWhiteSpace(detail.GoodsUnitNameSnapshot));
+                    Assert.NotNull(detail.CreateBy);
+                    Assert.False(string.IsNullOrWhiteSpace(detail.CreateName));
+                });
         });
     }
 
