@@ -105,4 +105,49 @@ public class MenuMappingProfileTests
         Assert.Equal(childId, child.Id);
         Assert.Equal("https://example.com/ui", child.Handle.Href);
     }
+
+    /// <summary>
+    ///     更新菜单 DTO 不得覆盖已加载的按钮导航，否则 EF 会把既有按钮级联删除。
+    /// </summary>
+    [Fact]
+    public void UpdateMenuDto_MapToEntity_DoesNotClearExistingButtons()
+    {
+        var menuId = Guid.NewGuid();
+        var buttonId = Guid.NewGuid();
+        var menu = new Menu
+        {
+            Id = menuId,
+            Name = "manage_menu",
+            Title = "原标题",
+            Path = "/manage/menu",
+            Status = Status.Enable,
+            CreateTime = DateTime.UtcNow
+        };
+        menu.Buttons.Add(new MenuButton
+        {
+            Id = buttonId,
+            Code = "system:menu:read",
+            Desc = "读取",
+            MenuId = menuId,
+            Menu = null!,
+            Status = Status.Enable
+        });
+
+        var update = new UpdateMenuDto
+        {
+            Id = menuId,
+            Name = "manage_menu",
+            Title = "新标题",
+            Path = "/manage/menu",
+            Status = Status.Enable,
+            Buttons = null
+        };
+
+        _mapper.Map(update, menu);
+
+        Assert.Equal("新标题", menu.Title);
+        var button = Assert.Single(menu.Buttons);
+        Assert.Equal(buttonId, button.Id);
+        Assert.Equal("system:menu:read", button.Code);
+    }
 }

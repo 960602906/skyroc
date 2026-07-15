@@ -33,10 +33,14 @@ public class MenuMappingProfile : Profile
                 return rootDos;
             });
 
+        // 按钮集合由 MenuButtonService 单独维护，禁止 DTO 映射覆盖导航属性，
+        // 否则 UpdateMenuAsync 在 Include(Buttons) 后会把 null/空集合写回并级联删除按钮。
         CreateMap<CreateMenuDto, Menu>()
-            .ForMember(x => x.I18NKey, opt => opt.MapFrom(src => src.I18NKey));
+            .ForMember(x => x.I18NKey, opt => opt.MapFrom(src => src.I18NKey))
+            .ForMember(x => x.Buttons, opt => opt.Ignore());
         CreateMap<UpdateMenuDto, Menu>()
-            .ForMember(x => x.I18NKey, opt => opt.MapFrom(src => src.I18NKey));
+            .ForMember(x => x.I18NKey, opt => opt.MapFrom(src => src.I18NKey))
+            .ForMember(x => x.Buttons, opt => opt.Ignore());
 
 
         // ==================== Route Mappings ====================
