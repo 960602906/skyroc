@@ -1863,10 +1863,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             DemoAuditUser auditUser,
             CancellationToken cancellationToken)
     {
-        var saleOrderKeys = Enumerable.Range(1, 70)
+        var saleOrderKeys = Enumerable.Range(1, 80)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
             .ToArray();
-        var planRemarks = Enumerable.Range(1, 50)
+        var planRemarks = Enumerable.Range(1, 60)
             .Select(CreatePurchasePlanRemark)
             .ToArray();
         var supplierCodes = Enumerable.Range(1, 30)
@@ -1884,10 +1884,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                             && order.OrderStatus != SaleOrderStatus.Rejected)
             .OrderBy(order => order.InnerRemark)
             .ToListAsync(cancellationToken);
-        if (approvedOrders.Count != 50)
+        if (approvedOrders.Count != 60)
         {
             throw new InvalidOperationException(
-                $"受管采购计划生成需要 50 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
+                $"受管采购计划生成需要 60 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
         }
 
         var existingPlans = await context.PurchasePlans
@@ -2060,10 +2060,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             DemoAuditUser auditUser,
             CancellationToken cancellationToken)
     {
-        var orderRemarks = Enumerable.Range(1, 50)
+        var orderRemarks = Enumerable.Range(1, 60)
             .Select(CreatePurchaseOrderRemark)
             .ToArray();
-        var planRemarks = Enumerable.Range(1, 40)
+        var planRemarks = Enumerable.Range(1, 60)
             .Select(CreatePurchasePlanRemark)
             .ToArray();
         var supplierCodes = Enumerable.Range(1, 30)
@@ -2207,6 +2207,44 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
             }
 
+            ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
+            reusedOrders++;
+            reusedDetails += order.Details.Count;
+            reusedPlanRelations += order.Details.Sum(detail => detail.PlanRelations.Count);
+        }
+
+        // 51–60：由受管采购计划（序列 51–60）生成草稿采购单，补齐 purchase_order_plan_rel 数量下限（80→100）。
+        // 不调用 CompleteAsync，保留草稿状态以覆盖状态多样性且不触发采购入库链路。
+        for (var sequence = 51; sequence <= 60; sequence++)
+        {
+            var orderRemark = CreatePurchaseOrderRemark(sequence);
+            PurchaseOrder order;
+            if (!existingOrders.TryGetValue(orderRemark, out var existingOrder))
+            {
+                var plan = GetManagedReference(managedPlans, CreatePurchasePlanRemark(sequence), "采购计划");
+                if (plan.PurchaseStatus != PurchasePlanStatus.Unpublished)
+                {
+                    throw new InvalidOperationException(
+                        $"受管采购计划 {plan.Remark} 已生成采购单，但未找到受管采购单 {orderRemark}。");
+                }
+
+                var created = await purchaseOrderService.GenerateFromPlansAsync(new GeneratePurchaseOrdersFromPlansDto
+                {
+                    PlanIds = [plan.Id],
+                    ReceiveTime = CreatePurchaseOrderReceiveTime(sequence),
+                    Remark = orderRemark
+                });
+                order = await GetManagedPurchaseOrderAsync(context, created.Single().Id, cancellationToken);
+                await purchaseOrderService.UpdateAsync(CreateManagedPurchaseOrderUpdateDto(order, sequence));
+                order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
+                ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
+                createdOrders++;
+                createdDetails += order.Details.Count;
+                createdPlanRelations += order.Details.Sum(detail => detail.PlanRelations.Count);
+                continue;
+            }
+
+            order = existingOrder;
             ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
             reusedOrders++;
             reusedDetails += order.Details.Count;
@@ -2367,7 +2405,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private static string CreatePurchaseOrderRemark(int sequence)
     {
         var stableKey = DemoDataStableKeyCatalog.Create("PURCHASE-ORDER", sequence);
-        var source = sequence <= 40 ? "由受管采购计划生成" : "由手工补货场景创建";
+        // 1–40：计划生成已完成；41–50：手工补货（草稿/已取消）；51–60：计划生成草稿（补齐 plan_rel 下限）。
+        var source = sequence is >= 41 and <= 50 ? "由手工补货场景创建" : "由受管采购计划生成";
         return $"{stableKey} 华东联调采购单{sequence:D2}：{source}，用于采购入库、库存和供应商结算链路。";
     }
 
@@ -4653,12 +4692,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 
     private static IReadOnlyList<SaleOrderSeed> CreateSaleOrderSeeds()
     {
-        return Enumerable.Range(1, 70)
+        return Enumerable.Range(1, 80)
             .Select(sequence =>
             {
                 var primary = (sequence - 1) % 30 + 1;
                 var secondary = sequence % 30 + 1;
-                // 001–060 保留既有待审核/驳回/待分拣分布；061–070 全部待分拣，专供采购计划数量下限扩容。
+                // 001–060 保留既有待审核/驳回/待分拣分布；061–080 全部待分拣，专供采购计划数量下限扩容。
                 var targetStatus = sequence > 60
                     ? SaleOrderStatus.SortingPending
                     : sequence % 6 == 0

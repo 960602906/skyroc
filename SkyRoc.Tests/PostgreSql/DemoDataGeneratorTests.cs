@@ -1384,7 +1384,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedOrderKeys = Enumerable.Range(1, 70)
+        var managedOrderKeys = Enumerable.Range(1, 80)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
             .ToArray();
         await using var context = fixture.CreateDbContext();
@@ -1401,10 +1401,10 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             .OrderBy(order => order.InnerRemark)
             .ToListAsync();
 
-        Assert.Equal(70, orders.Count);
-        Assert.Equal(70, orders.Select(order => order.InnerRemark).Distinct().Count());
-        Assert.Equal(70, first.CreatedByLayer["sale-orders"] + first.ReusedByLayer["sale-orders"]);
-        Assert.Equal(140, first.CreatedByLayer["sale-order-details"] + first.ReusedByLayer["sale-order-details"]);
+        Assert.Equal(80, orders.Count);
+        Assert.Equal(80, orders.Select(order => order.InnerRemark).Distinct().Count());
+        Assert.Equal(80, first.CreatedByLayer["sale-orders"] + first.ReusedByLayer["sale-orders"]);
+        Assert.Equal(160, first.CreatedByLayer["sale-order-details"] + first.ReusedByLayer["sale-order-details"]);
         Assert.Equal(0, second.CreatedByLayer["sale-orders"]);
         Assert.Equal(0, second.CreatedByLayer["sale-order-details"]);
         Assert.Contains(orders, order => order.OrderStatus == SaleOrderStatus.Signed);
@@ -1462,10 +1462,10 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedPlanKeys = Enumerable.Range(1, 50)
+        var managedPlanKeys = Enumerable.Range(1, 60)
             .Select(sequence => $"{DemoDataStableKeyCatalog.Create("PURCHASE-PLAN", sequence)} 华东联调采购计划{sequence:D2}：由已审核销售订单生成，用于采购单、入库和供应商结算链路。")
             .ToArray();
-        var managedOrderKeys = Enumerable.Range(1, 70)
+        var managedOrderKeys = Enumerable.Range(1, 80)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
             .ToArray();
 
@@ -1484,15 +1484,15 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             .OrderBy(plan => plan.Remark)
             .ToListAsync();
 
-        Assert.Equal(50, plans.Count);
-        Assert.Equal(50, plans.Select(plan => plan.Remark).Distinct().Count());
-        Assert.Equal(50, first.CreatedByLayer["purchase-plans"] + first.ReusedByLayer["purchase-plans"]);
-        Assert.Equal(100, first.CreatedByLayer["purchase-plan-details"] + first.ReusedByLayer["purchase-plan-details"]);
-        Assert.Equal(100, first.CreatedByLayer["purchase-plan-order-relations"] + first.ReusedByLayer["purchase-plan-order-relations"]);
+        Assert.Equal(60, plans.Count);
+        Assert.Equal(60, plans.Select(plan => plan.Remark).Distinct().Count());
+        Assert.Equal(60, first.CreatedByLayer["purchase-plans"] + first.ReusedByLayer["purchase-plans"]);
+        Assert.Equal(120, first.CreatedByLayer["purchase-plan-details"] + first.ReusedByLayer["purchase-plan-details"]);
+        Assert.Equal(120, first.CreatedByLayer["purchase-plan-order-relations"] + first.ReusedByLayer["purchase-plan-order-relations"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-plans"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-plan-details"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-plan-order-relations"]);
-        Assert.Equal(40, plans.Count(plan => plan.PurchaseStatus == PurchasePlanStatus.Generated));
+        Assert.Equal(50, plans.Count(plan => plan.PurchaseStatus == PurchasePlanStatus.Generated));
         Assert.Equal(10, plans.Count(plan => plan.PurchaseStatus == PurchasePlanStatus.Unpublished));
         Assert.All(plans, plan =>
         {
@@ -1546,8 +1546,13 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedOrderRemarks = Enumerable.Range(1, 50)
-            .Select(sequence => $"{DemoDataStableKeyCatalog.Create("PURCHASE-ORDER", sequence)} 华东联调采购单{sequence:D2}：{(sequence <= 40 ? "由受管采购计划生成" : "由手工补货场景创建")}，用于采购入库、库存和供应商结算链路。")
+        var managedOrderRemarks = Enumerable.Range(1, 60)
+            .Select(sequence =>
+            {
+                // 1–40 和 51–60 为计划生成；41–50 为手工补货
+                var source = sequence is >= 41 and <= 50 ? "由手工补货场景创建" : "由受管采购计划生成";
+                return $"{DemoDataStableKeyCatalog.Create("PURCHASE-ORDER", sequence)} 华东联调采购单{sequence:D2}：{source}，用于采购入库、库存和供应商结算链路。";
+            })
             .ToArray();
 
         await using var context = fixture.CreateDbContext();
@@ -1566,16 +1571,17 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             .OrderBy(order => order.Remark)
             .ToListAsync();
 
-        Assert.Equal(50, orders.Count);
-        Assert.Equal(50, orders.Select(order => order.Remark).Distinct().Count());
-        Assert.Equal(50, first.CreatedByLayer["purchase-orders"] + first.ReusedByLayer["purchase-orders"]);
-        Assert.Equal(100, first.CreatedByLayer["purchase-order-details"] + first.ReusedByLayer["purchase-order-details"]);
-        Assert.Equal(80, first.CreatedByLayer["purchase-order-plan-relations"] + first.ReusedByLayer["purchase-order-plan-relations"]);
+        Assert.Equal(60, orders.Count);
+        Assert.Equal(60, orders.Select(order => order.Remark).Distinct().Count());
+        Assert.Equal(60, first.CreatedByLayer["purchase-orders"] + first.ReusedByLayer["purchase-orders"]);
+        Assert.Equal(120, first.CreatedByLayer["purchase-order-details"] + first.ReusedByLayer["purchase-order-details"]);
+        Assert.Equal(100, first.CreatedByLayer["purchase-order-plan-relations"] + first.ReusedByLayer["purchase-order-plan-relations"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-orders"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-order-details"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-order-plan-relations"]);
+        // 1–40 已完成，41–45 草稿（手工），46–50 已取消，51–60 草稿（计划生成）
         Assert.Equal(40, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Completed));
-        Assert.Equal(5, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Draft));
+        Assert.Equal(15, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Draft));
         Assert.Equal(5, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Cancelled));
         Assert.All(orders, order =>
         {
