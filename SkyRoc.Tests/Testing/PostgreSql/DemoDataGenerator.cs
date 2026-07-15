@@ -2213,8 +2213,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             reusedPlanRelations += order.Details.Sum(detail => detail.PlanRelations.Count);
         }
 
-        // 51–60：由受管采购计划（序列 51–60）生成草稿采购单，补齐 purchase_order_plan_rel 数量下限（80→100）。
-        // 不调用 CompleteAsync，保留草稿状态以覆盖状态多样性且不触发采购入库链路。
+        // 51–60：由受管采购计划（序列 51–60）生成并完成采购单，补齐 purchase_order_plan_rel 下限，
+        // 同时作为采购入库 041–050 的来源，用于把 supplier_bill 提升到主单下限 50。
         for (var sequence = 51; sequence <= 60; sequence++)
         {
             var orderRemark = CreatePurchaseOrderRemark(sequence);
@@ -2236,6 +2236,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 });
                 order = await GetManagedPurchaseOrderAsync(context, created.Single().Id, cancellationToken);
                 await purchaseOrderService.UpdateAsync(CreateManagedPurchaseOrderUpdateDto(order, sequence));
+                await purchaseOrderService.CompleteAsync(order.Id);
                 order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
                 ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
                 createdOrders++;
@@ -2245,6 +2246,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             }
 
             order = existingOrder;
+            if (order.BusinessStatus == PurchaseOrderStatus.Draft)
+            {
+                await purchaseOrderService.UpdateAsync(CreateManagedPurchaseOrderUpdateDto(order, sequence));
+                await purchaseOrderService.CompleteAsync(order.Id);
+                order = await GetManagedPurchaseOrderAsync(context, order.Id, cancellationToken);
+            }
+
             ApplyManagedPurchaseOrderFields(order, sequence, auditUser);
             reusedOrders++;
             reusedDetails += order.Details.Count;
@@ -2405,9 +2413,25 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private static string CreatePurchaseOrderRemark(int sequence)
     {
         var stableKey = DemoDataStableKeyCatalog.Create("PURCHASE-ORDER", sequence);
-        // 1–40：计划生成已完成；41–50：手工补货（草稿/已取消）；51–60：计划生成草稿（补齐 plan_rel 下限）。
+        // 1–40：计划生成已完成；41–50：手工补货（草稿/已取消）；51–60：计划生成已完成（供入库 041–050）。
         var source = sequence is >= 41 and <= 50 ? "由手工补货场景创建" : "由受管采购计划生成";
         return $"{stableKey} 华东联调采购单{sequence:D2}：{source}，用于采购入库、库存和供应商结算链路。";
+    }
+
+    /// <summary>
+    ///     将受管采购入库序列映射到来源采购单序列：入库 1–40 对应采购单 1–40，入库 41–50 对应采购单 51–60。
+    /// </summary>
+    private static int MapPurchaseStockInSequenceToPurchaseOrderSequence(int stockInSequence)
+    {
+        if (stockInSequence is < 1 or > 50)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(stockInSequence),
+                stockInSequence,
+                "受管采购入库序列仅支持 1–50。");
+        }
+
+        return stockInSequence <= 40 ? stockInSequence : stockInSequence + 10;
     }
 
     private static string CreatePurchaseOrderDetailRemark(int sequence, string goodsCode, int detailIndex)
@@ -2448,11 +2472,14 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             DemoAuditUser auditUser,
             CancellationToken cancellationToken)
     {
-        var stockInRemarks = Enumerable.Range(1, 40)
+        // 采购入库 001–050：1–40 来源采购单 1–40，41–50 来源采购单 51–60（计划生成已完成）。
+        // 供应商结算仍仅核销入库 1–40 产生的待结单据，新增 41–50 保留待结以覆盖状态。
+        var stockInRemarks = Enumerable.Range(1, 50)
             .Select(CreatePurchaseStockInRemark)
             .ToArray();
         var purchaseOrderRemarks = Enumerable.Range(1, 40)
             .Select(CreatePurchaseOrderRemark)
+            .Concat(Enumerable.Range(51, 10).Select(CreatePurchaseOrderRemark))
             .ToArray();
         var wareCodes = Enumerable.Range(1, 30)
             .Select(sequence => DemoDataStableKeyCatalog.Create("WARE", sequence))
@@ -2493,12 +2520,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var createdSupplierBillDetails = 0;
         var reusedSupplierBillDetails = 0;
 
-        for (var sequence = 1; sequence <= 40; sequence++)
+        for (var sequence = 1; sequence <= 50; sequence++)
         {
             var stockInRemark = CreatePurchaseStockInRemark(sequence);
+            var purchaseOrderSequence = MapPurchaseStockInSequenceToPurchaseOrderSequence(sequence);
             var purchaseOrder = GetManagedReference(
                 managedPurchaseOrders,
-                CreatePurchaseOrderRemark(sequence),
+                CreatePurchaseOrderRemark(purchaseOrderSequence),
                 "采购单");
             if (purchaseOrder.BusinessStatus != PurchaseOrderStatus.Completed)
             {

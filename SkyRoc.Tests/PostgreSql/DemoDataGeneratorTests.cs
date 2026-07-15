@@ -1579,9 +1579,9 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         Assert.Equal(0, second.CreatedByLayer["purchase-orders"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-order-details"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-order-plan-relations"]);
-        // 1–40 已完成，41–45 草稿（手工），46–50 已取消，51–60 草稿（计划生成）
-        Assert.Equal(40, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Completed));
-        Assert.Equal(15, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Draft));
+        // 1–40 与 51–60 已完成，41–45 草稿（手工），46–50 已取消
+        Assert.Equal(50, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Completed));
+        Assert.Equal(5, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Draft));
         Assert.Equal(5, orders.Count(order => order.BusinessStatus == PurchaseOrderStatus.Cancelled));
         Assert.All(orders, order =>
         {
@@ -1643,7 +1643,7 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedStockInRemarks = Enumerable.Range(1, 40)
+        var managedStockInRemarks = Enumerable.Range(1, 50)
             .Select(sequence => $"{DemoDataStableKeyCatalog.Create("PURCHASE-STOCK-IN", sequence)} 华东联调采购入库{sequence:D2}：来源受管采购单，用于库存批次、流水和供应商待结链路。")
             .ToArray();
 
@@ -1674,22 +1674,20 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             .OrderBy(bill => bill.SourceDocumentNoSnapshot)
             .ToListAsync();
 
-        Assert.Equal(40, stockIns.Count);
-        Assert.Equal(40, stockIns.Select(order => order.Remark).Distinct().Count());
-        Assert.Equal(40, first.CreatedByLayer["purchase-stock-ins"] + first.ReusedByLayer["purchase-stock-ins"]);
-        Assert.Equal(80, first.CreatedByLayer["purchase-stock-in-details"] + first.ReusedByLayer["purchase-stock-in-details"]);
-        Assert.Equal(80, first.CreatedByLayer["stock-batches"] + first.ReusedByLayer["stock-batches"]);
-        Assert.Equal(80, first.CreatedByLayer["stock-ledgers"] + first.ReusedByLayer["stock-ledgers"]);
-        Assert.Equal(40, first.CreatedByLayer["supplier-bills"] + first.ReusedByLayer["supplier-bills"]);
-        Assert.Equal(80, first.CreatedByLayer["supplier-bill-details"] + first.ReusedByLayer["supplier-bill-details"]);
+        Assert.Equal(50, stockIns.Count);
+        Assert.Equal(50, stockIns.Select(order => order.Remark).Distinct().Count());
+        Assert.Equal(50, first.CreatedByLayer["purchase-stock-ins"] + first.ReusedByLayer["purchase-stock-ins"]);
+        Assert.Equal(100, first.CreatedByLayer["purchase-stock-in-details"] + first.ReusedByLayer["purchase-stock-in-details"]);
+        // stock-batches / stock-ledgers 层计数会叠加售后退货等后续链路，这里只断言采购入库本层与库内副作用。
+        Assert.Equal(50, first.CreatedByLayer["supplier-bills"] + first.ReusedByLayer["supplier-bills"]);
+        Assert.Equal(100, first.CreatedByLayer["supplier-bill-details"] + first.ReusedByLayer["supplier-bill-details"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-stock-ins"]);
         Assert.Equal(0, second.CreatedByLayer["purchase-stock-in-details"]);
-        Assert.Equal(0, second.CreatedByLayer["stock-batches"]);
-        Assert.Equal(0, second.CreatedByLayer["stock-ledgers"]);
         Assert.Equal(0, second.CreatedByLayer["supplier-bills"]);
         Assert.Equal(0, second.CreatedByLayer["supplier-bill-details"]);
-        Assert.Equal(80, ledgers.Count);
-        Assert.Equal(40, supplierBills.Count);
+        Assert.Equal(100, ledgers.Count);
+        Assert.Equal(50, supplierBills.Count);
+        Assert.Equal(100, stockIns.Sum(order => order.Details.Count(detail => detail.StockBatchId.HasValue)));
         Assert.All(stockIns, order =>
         {
             Assert.Equal(StockInOrderType.Purchase, order.OrderType);
@@ -1752,11 +1750,15 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
             Assert.Equal(SupplierBillSourceType.PurchaseStockIn, bill.SourceType);
             Assert.NotNull(bill.StockInOrderId);
             Assert.True(bill.PayableAmount > 0m);
-            Assert.Equal(0m, bill.SettledAmount);
+            // 供应商结算仅核销入库 001–040 的待结单据；041–050 保留 SettledAmount=0 待结状态。
+            Assert.True(bill.SettledAmount >= 0m);
+            Assert.True(bill.SettledAmount <= bill.DocumentAmount);
             Assert.NotEmpty(bill.Details);
             Assert.NotNull(bill.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(bill.CreateName));
         });
+        Assert.Equal(10, supplierBills.Count(bill => bill.SettledAmount == 0m));
+        Assert.Equal(40, supplierBills.Count(bill => bill.SettledAmount > 0m));
     }
 
     /// <summary>

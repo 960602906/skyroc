@@ -34,6 +34,7 @@ internal sealed class DemoDataSupplierSettlementBuilder(
             CancellationToken cancellationToken)
     {
         context.ChangeTracker.Clear();
+        // 供应商结算继续只锚定采购入库 001–040 的待结单据；041–050 保留待结以覆盖状态与数量下限。
         var expectedStockInRemarks = Enumerable.Range(1, 40)
             .Select(CreatePurchaseStockInRemark)
             .OrderBy(remark => remark, StringComparer.Ordinal)
