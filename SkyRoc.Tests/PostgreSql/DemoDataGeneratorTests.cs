@@ -2204,11 +2204,11 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         var first = await fixture.GenerateDemoDataAsync();
         var second = await fixture.GenerateDemoDataAsync();
 
-        var managedAfterSaleRemarks = Enumerable.Range(1, 40)
+        var managedAfterSaleRemarks = Enumerable.Range(1, 50)
             .Select(sequence =>
                 $"{DemoDataStableKeyCatalog.Create("AFTER-SALE", sequence)} 华东联调售后单{sequence:D2}：基于已签收销售订单形成退款、退货、取货和账单冲减样本。")
             .ToArray();
-        var managedSalesReturnRemarks = Enumerable.Range(21, 20)
+        var managedSalesReturnRemarks = Enumerable.Range(21, 30)
             .Select(sequence =>
                 $"{DemoDataStableKeyCatalog.Create("SALES-RETURN-STOCK-IN", sequence)} 华东联调销售退货入库{sequence:D2}：来源受管售后取货任务，审核后回补库存并支撑售后完成。")
             .ToArray();
@@ -2252,14 +2252,14 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         first.CreatedByLayer.TryGetValue("sales-return-stock-in-details", out var createdSalesReturnStockInDetails);
         first.ReusedByLayer.TryGetValue("sales-return-stock-in-details", out var reusedSalesReturnStockInDetails);
 
-        Assert.Equal(40, afterSales.Count);
-        Assert.Equal(40, afterSales.Select(afterSale => afterSale.Remark).Distinct().Count());
-        Assert.Equal(40, createdAfterSales + reusedAfterSales);
-        Assert.Equal(40, createdAfterSaleGoods + reusedAfterSaleGoods);
-        Assert.True(createdAfterSaleAuditLogs + reusedAfterSaleAuditLogs >= 55);
-        Assert.Equal(25, createdPickupTasks + reusedPickupTasks);
-        Assert.Equal(20, createdSalesReturnStockIns + reusedSalesReturnStockIns);
-        Assert.Equal(20, createdSalesReturnStockInDetails + reusedSalesReturnStockInDetails);
+        Assert.Equal(50, afterSales.Count);
+        Assert.Equal(50, afterSales.Select(afterSale => afterSale.Remark).Distinct().Count());
+        Assert.Equal(50, createdAfterSales + reusedAfterSales);
+        Assert.Equal(50, createdAfterSaleGoods + reusedAfterSaleGoods);
+        Assert.True(createdAfterSaleAuditLogs + reusedAfterSaleAuditLogs >= 100);
+        Assert.Equal(35, createdPickupTasks + reusedPickupTasks);
+        Assert.Equal(30, createdSalesReturnStockIns + reusedSalesReturnStockIns);
+        Assert.Equal(30, createdSalesReturnStockInDetails + reusedSalesReturnStockInDetails);
         Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("after-sales"));
         Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("after-sale-goods"));
         Assert.Equal(0, second.CreatedByLayer.GetValueOrDefault("after-sale-audit-logs"));
@@ -2270,8 +2270,8 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
         Assert.Equal(5, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.PendingAudit));
         Assert.Equal(5, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.RefundPending));
         Assert.Equal(5, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.ReturnPending));
-        Assert.Equal(20, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.Completed));
-        Assert.Equal(20, salesReturns.Count);
+        Assert.Equal(30, afterSales.Count(afterSale => afterSale.AfterStatus == AfterSaleStatus.Completed));
+        Assert.Equal(30, salesReturns.Count);
         Assert.All(afterSales, afterSale =>
         {
             Assert.False(string.IsNullOrWhiteSpace(afterSale.AfterSaleNo));

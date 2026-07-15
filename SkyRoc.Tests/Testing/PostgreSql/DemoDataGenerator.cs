@@ -3637,13 +3637,13 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             int existingReusedCustomerBillDetails,
             CancellationToken cancellationToken)
     {
-        var saleOrderKeys = Enumerable.Range(1, 60)
+        var saleOrderKeys = Enumerable.Range(1, 70)
             .Select(sequence => DemoDataStableKeyCatalog.Create("SALE-ORDER", sequence))
             .ToArray();
-        var afterSaleRemarks = Enumerable.Range(1, 40)
+        var afterSaleRemarks = Enumerable.Range(1, 50)
             .Select(CreateAfterSaleRemark)
             .ToArray();
-        var salesReturnRemarks = Enumerable.Range(1, 40)
+        var salesReturnRemarks = Enumerable.Range(1, 50)
             .Select(CreateSalesReturnStockInRemark)
             .ToArray();
         var driverCodes = Enumerable.Range(1, 30)
@@ -3663,12 +3663,12 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                             && order.OrderStatus == SaleOrderStatus.Signed
                             && saleOrderKeys.Contains(order.InnerRemark))
             .OrderBy(order => order.InnerRemark)
-            .Take(40)
+            .Take(50)
             .ToListAsync(cancellationToken);
-        if (signedOrders.Count != 40)
+        if (signedOrders.Count != 50)
         {
             throw new InvalidOperationException(
-                $"受管售后生成需要 40 张已签收销售订单，当前为 {signedOrders.Count} 张。");
+                $"受管售后生成需要 50 张已签收销售订单，当前为 {signedOrders.Count} 张。");
         }
 
         var managedDrivers = await context.Drivers
@@ -3786,11 +3786,21 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
             }
 
-            if (scenario.TargetStatus == AfterSaleStatus.Draft
+            // 驳回场景：用于 TargetStatus==Draft 的序列（1-5），以及需要驳回/重提覆盖的序列（RequiresResubmit）
+            if ((scenario.TargetStatus == AfterSaleStatus.Draft || scenario.RequiresResubmit)
                 && afterSale.AfterStatus == AfterSaleStatus.PendingAudit
                 && afterSale.AuditLogs.All(log => log.Action != AfterSaleAuditAction.Reject))
             {
                 await afterSaleService.RejectAsync(afterSale.Id, CreateAfterSaleRejectRemark(sequence));
+                afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
+            }
+
+            // 重提场景：驳回后重新提交，使状态恢复 PendingAudit 进入后续 Approve 路径
+            if (scenario.RequiresResubmit
+                && afterSale.AfterStatus == AfterSaleStatus.Draft
+                && afterSale.AuditLogs.Any(log => log.Action == AfterSaleAuditAction.Reject))
+            {
+                await afterSaleService.ResubmitAsync(afterSale.Id, CreateAfterSaleResubmitRemark(sequence));
                 afterSale = await GetManagedAfterSaleAsync(context, afterSale.Id, cancellationToken);
             }
 
@@ -4104,7 +4114,8 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         AfterSaleStatus TargetStatus,
         AfterSaleType AfterSaleType,
         AfterSaleReasonType ReasonType,
-        AfterSaleHandleType HandleType);
+        AfterSaleHandleType HandleType,
+        bool RequiresResubmit = false);
 
     private sealed record AfterSaleGenerationResult
     {
@@ -4164,10 +4175,24 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 AfterSaleType.ReturnAndRefund,
                 AfterSaleReasonType.SpecificationMismatch,
                 AfterSaleHandleType.Exchange),
-            _ => new AfterSaleScenario(
+            // 21-40: 直接完成（退货退款，3 条审计日志：Submit/Approve/Complete 由服务写入）
+            <= 40 => new AfterSaleScenario(
                 AfterSaleStatus.Completed,
                 AfterSaleType.ReturnAndRefund,
                 AfterSaleReasonType.QualityIssue,
+                AfterSaleHandleType.GoodsDiscount),
+            // 41-45: 驳回后重提再完成（4 条审计日志：Submit/Reject/Resubmit/Approve），覆盖重提场景
+            <= 45 => new AfterSaleScenario(
+                AfterSaleStatus.Completed,
+                AfterSaleType.ReturnAndRefund,
+                AfterSaleReasonType.QualityIssue,
+                AfterSaleHandleType.GoodsDiscount,
+                RequiresResubmit: true),
+            // 46-50: 直接完成（退货退款，2 条审计日志：Submit/Approve），补充数量缺口
+            _ => new AfterSaleScenario(
+                AfterSaleStatus.Completed,
+                AfterSaleType.ReturnAndRefund,
+                AfterSaleReasonType.QuantityMismatch,
                 AfterSaleHandleType.GoodsDiscount)
         };
     }
@@ -4305,6 +4330,11 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
     private static string CreateAfterSaleRejectRemark(int sequence)
     {
         return $"SkyRoc 联调售后驳回：第 {sequence:D2} 张售后单需补充现场照片后重提。";
+    }
+
+    private static string CreateAfterSaleResubmitRemark(int sequence)
+    {
+        return $"SkyRoc 联调售后重提：第 {sequence:D2} 张售后单已补充材料并重新提交审核。";
     }
 
     private static string CreatePickupAssignRemark(int sequence)
