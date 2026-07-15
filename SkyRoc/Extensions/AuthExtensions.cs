@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using Application.interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -130,6 +132,7 @@ public static class AuthExtensions
             return;
         }
 
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         var authHeader = context.Request.Headers.Authorization.ToString();
         if (string.IsNullOrEmpty(authHeader))
         {
@@ -143,42 +146,35 @@ public static class AuthExtensions
     }
 
     /// <summary>
-    ///     处理认证失败异常
+    ///     处理认证失败异常，并写入与业务码一致的 HTTP 状态码。
     /// </summary>
     private static Task HandleAuthenticationFailure(JwtBearerChallengeContext context, Exception exception)
     {
         return exception switch
         {
             // ⭐ 1. 令牌过期 - 最常见的情况
-            SecurityTokenExpiredException expiredException => context.Response.WriteAsJsonAsync(new ApiResponse<string>
-            {
-                Code = ResponseCode.Unauthorized,
-                Msg = "令牌已过期，请重新登录或刷新令牌"
-            }),
+            SecurityTokenExpiredException => WriteUnauthorizedChallengeAsync(
+                context,
+                "令牌已过期，请重新登录或刷新令牌"),
             // 5. 发行者无效
-            SecurityTokenInvalidIssuerException => context.Response.WriteAsJsonAsync(new ApiResponse<string>
-            {
-                Code = ResponseCode.Unauthorized,
-                Msg = "令牌发行者无效"
-            }),
+            SecurityTokenInvalidIssuerException => WriteUnauthorizedChallengeAsync(
+                context,
+                "令牌发行者无效"),
             // 6. 受众无效
-            SecurityTokenInvalidAudienceException => context.Response.WriteAsJsonAsync(new ApiResponse<string>
-            {
-                Code = ResponseCode.Unauthorized,
-                Msg = "令牌受众无效"
-            }),
-            // 7. 其他安全令牌异常
-            SecurityTokenException => context.Response.WriteAsJsonAsync(new ApiResponse<string>
-            {
-                Code = ResponseCode.Unauthorized,
-                Msg = exception.Message
-            }),
+            SecurityTokenInvalidAudienceException => WriteUnauthorizedChallengeAsync(
+                context,
+                "令牌受众无效"),
+            // 7. 其他安全令牌异常（含注销后缓存失效）
+            SecurityTokenException => WriteUnauthorizedChallengeAsync(context, exception.Message),
             // 8. 其他未知异常
-            _ => context.Response.WriteAsJsonAsync(new ApiResponse<string>
-            {
-                Code = ResponseCode.InternalError,
-                Msg = "认证过程中出现未知错误"
-            })
+            _ => WriteChallengeAsync(
+                context,
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<string>
+                {
+                    Code = ResponseCode.InternalError,
+                    Msg = "认证过程中出现未知错误"
+                })
         };
     }
 
@@ -190,21 +186,59 @@ public static class AuthExtensions
     {
         if (!context.Response.HasStarted)
         {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
             context.Response.ContentType = "application/json; charset=utf-8";
             var result = ApiResponse<string>.Forbidden();
             await context.Response.WriteAsJsonAsync(result);
         }
     }
 
+    private static Task WriteUnauthorizedChallengeAsync(JwtBearerChallengeContext context, string message)
+    {
+        return WriteChallengeAsync(
+            context,
+            StatusCodes.Status401Unauthorized,
+            ApiResponse<string>.Unauthorized(message));
+    }
+
+    private static Task WriteChallengeAsync(
+        JwtBearerChallengeContext context,
+        int statusCode,
+        ApiResponse<string> payload)
+    {
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/json; charset=utf-8";
+        return context.Response.WriteAsJsonAsync(payload);
+    }
+
     /// <summary>
-    ///     令牌验证成功处理
+    ///     令牌签名与声明验证通过后，再核对访问令牌缓存：注销或吊销后的 jti 不得继续访问受保护接口。
     /// </summary>
-    private static Task OnTokenValidated(TokenValidatedContext context)
+    private static async Task OnTokenValidated(TokenValidatedContext context)
     {
         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+        var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value
+                  ?? context.Principal?.FindFirst("jti")?.Value;
+        if (string.IsNullOrWhiteSpace(jti))
+        {
+            logger.LogWarning("Rejected access token without jti for path {Path}", context.Request.Path);
+            context.Fail(new SecurityTokenException("访问令牌缺少 jti"));
+            return;
+        }
+
+        var tokenCache = context.HttpContext.RequestServices.GetRequiredService<ITokenCacheService>();
+        if (!await tokenCache.IsAccessTokenValidAsync(jti))
+        {
+            logger.LogWarning(
+                "Rejected revoked or missing access token jti {Jti} for path {Path}",
+                jti,
+                context.Request.Path);
+            context.Fail(new SecurityTokenException("访问令牌已失效，请重新登录"));
+            return;
+        }
+
         var userName = context.Principal?.Identity?.Name ?? "Unknown";
         logger.LogDebug("JWT validated for user {UserName}", userName);
-        return Task.CompletedTask;
     }
 
     /// <summary>
