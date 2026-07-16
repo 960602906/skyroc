@@ -197,7 +197,6 @@ public class CustomerBaseDataServiceTests
             new QuotationRepository(context),
             new WareRepository(context),
             new CustomerTagRepository(context),
-            new NullCompanyInfoProvider(),
             new UnitOfWork(context),
             NullLogger<CustomerService>.Instance,
             CreateMapper(),
@@ -235,16 +234,6 @@ public class CustomerBaseDataServiceTests
     private static IMapper CreateMapper()
     {
         return new MapperConfiguration(cfg => cfg.AddProfile<BaseDataMappingProfile>()).CreateMapper();
-    }
-
-    private sealed class NullCompanyInfoProvider : ICompanyInfoProvider
-    {
-        public Task<CompanyBusinessInfo?> GetCompanyInfoAsync(
-            string keyword,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<CompanyBusinessInfo?>(null);
-        }
     }
 
     private sealed class FakeCurrentUserService : ICurrentUserService

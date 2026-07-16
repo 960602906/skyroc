@@ -580,7 +580,7 @@ Content-Type: {{contentType}}
   "tagIds": [
     "{{customerTagId}}"
   ],
-  "remark": "学校客户，创建时自动补全天眼查工商信息",
+  "remark": "学校客户",
   "status": 1
 }
 

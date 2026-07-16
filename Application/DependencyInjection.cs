@@ -1,11 +1,8 @@
 ﻿using System.Reflection;
-using Application.External;
-using Application.interfaces;
 using Application.Mappers;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Shared.Common;
 
 namespace Application;
@@ -53,14 +50,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplicationServices(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<TianyanchaOptions>(configuration.GetSection(TianyanchaOptions.SectionName));
         services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
-        services.AddHttpClient<ICompanyInfoProvider, TianyanchaCompanyInfoProvider>((provider, client) =>
-        {
-            var options = provider.GetRequiredService<IOptions<TianyanchaOptions>>().Value;
-            client.BaseAddress = new Uri(options.BaseUrl);
-            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-        });
         services.AddAutoServiceConfiguration();
         services.AddAutoMapperConfiguration();
         services.AddAuthFluentValidationConfiguration();

@@ -20,7 +20,7 @@ public class CustomerServiceTests
     private static readonly Guid CurrentUserId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
     [Fact]
-    public async Task Create_customer_should_fill_school_company_info_and_tag_relations()
+    public async Task Create_customer_should_persist_company_and_tag_relations()
     {
         await using var context = CreateDbContext();
         var company = new Company
@@ -53,17 +53,6 @@ public class CustomerServiceTests
         });
 
         Assert.Equal("北京示例学校后勤服务有限公司", result.Name);
-        Assert.Equal("91110108MA01SCHOOL1", result.UnifiedSocialCreditCode);
-        Assert.Equal("李校长", result.LegalRepresentative);
-        Assert.Equal("5000万人民币", result.RegisteredCapital);
-        Assert.Equal(new DateTime(2012, 9, 1), result.EstablishDate);
-        Assert.Equal("存续", result.RegistrationStatus);
-        Assert.Equal("北京市海淀区市场监督管理局", result.RegistrationAuthority);
-        Assert.Equal("北京市海淀区知春路1号", result.RegisteredAddress);
-        Assert.Equal("北京示例学校后勤服务有限公司", result.InvoiceTitle);
-        Assert.Equal("91110108MA01SCHOOL1", result.TaxpayerIdentificationNumber);
-        Assert.Equal("010-88886666", result.InvoicePhone);
-        Assert.Equal("school@example.edu.cn", result.InvoiceEmail);
         Assert.Equal(company.Id, result.CompanyId);
         Assert.Equal("北京示例学校后勤服务有限公司", result.CompanyName);
         var tagId = Assert.Single(result.TagIds!);
@@ -73,7 +62,6 @@ public class CustomerServiceTests
             .Include(x => x.TagRelations)
             .SingleAsync(x => x.Id == result.Id);
 
-        Assert.Equal("91110108MA01SCHOOL1", savedCustomer.UnifiedSocialCreditCode);
         Assert.Single(savedCustomer.TagRelations);
         Assert.Equal(CurrentUserId, savedCustomer.CreateBy);
         Assert.Equal("test-user", savedCustomer.CreateName);
@@ -110,31 +98,6 @@ public class CustomerServiceTests
         Assert.Equal("上海示例中学餐饮管理有限公司", subAccount.Customer!.Name);
     }
 
-    [Fact]
-    public async Task Create_customer_should_keep_manual_invoice_fields_when_tianyancha_returns_data()
-    {
-        await using var context = CreateDbContext();
-        var service = CreateCustomerService(context);
-
-        var result = await service.CreateAsync(new CreateCustomerDto
-        {
-            Name = "北京示例学校后勤服务有限公司",
-            Code = "CUST_SCHOOL_MANUAL",
-            UnifiedSocialCreditCode = "MANUAL_USCC",
-            TaxpayerIdentificationNumber = "MANUAL_TAX_NO",
-            InvoiceTitle = "手工发票抬头",
-            InvoicePhone = "010-00000000",
-            Address = "手工地址"
-        });
-
-        Assert.Equal("MANUAL_USCC", result.UnifiedSocialCreditCode);
-        Assert.Equal("MANUAL_TAX_NO", result.TaxpayerIdentificationNumber);
-        Assert.Equal("手工发票抬头", result.InvoiceTitle);
-        Assert.Equal("010-00000000", result.InvoicePhone);
-        Assert.Equal("手工地址", result.Address);
-        Assert.Equal("李校长", result.LegalRepresentative);
-    }
-
     private static ApplicationDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -155,7 +118,6 @@ public class CustomerServiceTests
             new QuotationRepository(context),
             new WareRepository(context),
             new CustomerTagRepository(context),
-            new FakeCompanyInfoProvider(),
             new UnitOfWork(context),
             NullLogger<CustomerService>.Instance,
             mapper,
@@ -308,31 +270,6 @@ public class CustomerServiceTests
         Guid MiddleSchoolCustomerId,
         Guid SchoolTagId,
         Guid CanteenTagId);
-
-    private sealed class FakeCompanyInfoProvider : ICompanyInfoProvider
-    {
-        public Task<CompanyBusinessInfo?> GetCompanyInfoAsync(
-            string keyword,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<CompanyBusinessInfo?>(new CompanyBusinessInfo
-            {
-                ExternalId = "1000000001",
-                Name = "北京示例学校后勤服务有限公司",
-                UnifiedSocialCreditCode = "91110108MA01SCHOOL1",
-                LegalRepresentative = "李校长",
-                RegisteredCapital = "5000万人民币",
-                EstablishDate = new DateTime(2012, 9, 1),
-                BusinessTerm = "2012-09-01 至 长期",
-                RegistrationStatus = "存续",
-                RegistrationAuthority = "北京市海淀区市场监督管理局",
-                RegisteredAddress = "北京市海淀区知春路1号",
-                BusinessScope = "学校后勤服务、餐饮管理、农副产品销售。",
-                ContactPhone = "010-88886666",
-                Email = "school@example.edu.cn"
-            });
-        }
-    }
 
     private sealed class FakeCurrentUserService : ICurrentUserService
     {
