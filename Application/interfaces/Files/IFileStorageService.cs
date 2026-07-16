@@ -8,7 +8,7 @@ namespace Application.interfaces;
 public interface IFileStorageService
 {
     /// <summary>
-    /// 验证并保存一个 PDF、PNG 或 JPEG 文件，返回不含物理路径的下载信息。
+    /// 验证并保存一个 PDF、PNG 或 JPEG 文件到对象存储，返回不含存储键的下载信息。
     /// </summary>
     /// <param name="upload">包含原始名称、声明类型、长度和内容流的上传请求。</param>
     /// <param name="cancellationToken">取消当前上传读写的令牌。</param>

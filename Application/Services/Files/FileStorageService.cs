@@ -4,13 +4,12 @@ using Application.interfaces;
 using AutoMapper;
 using Domain.Entities.Files;
 using Domain.Interfaces;
-using Microsoft.Extensions.Options;
 using Shared.Common;
 
 namespace Application.Services;
 
 /// <summary>
-/// 将签名已验证的有限类型文件保存到经过静态目录隔离验证的非公开位置，并按创建人隔离下载访问。
+/// 将签名已验证的有限类型文件保存到对象存储，并按创建人隔离下载访问。
 /// </summary>
 public class FileStorageService : IFileStorageService
 {
@@ -21,31 +20,23 @@ public class FileStorageService : IFileStorageService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
-    private readonly string _storageRoot;
+    private readonly IObjectStorage _objectStorage;
 
     /// <summary>
-    /// 初始化安全存储服务，并拒绝落在 Web 根目录内的文件存储配置。
+    /// 初始化安全存储服务。
     /// </summary>
     public FileStorageService(
         IStoredFileRepository storedFileRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
         IMapper mapper,
-        IOptions<FileStorageOptions> options,
-        IFileStoragePathProvider pathProvider)
+        IObjectStorage objectStorage)
     {
         _storedFileRepository = storedFileRepository;
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _mapper = mapper;
-        var storageRoot = options.Value.StorageRoot;
-        if (string.IsNullOrWhiteSpace(storageRoot)) throw new InvalidOperationException("必须配置文件存储目录");
-        _storageRoot = Path.GetFullPath(storageRoot, pathProvider.ContentRootPath);
-        if (!string.IsNullOrWhiteSpace(pathProvider.WebRootPath)
-            && IsSameOrDescendant(Path.GetFullPath(pathProvider.WebRootPath), _storageRoot))
-        {
-            throw new InvalidOperationException("文件存储目录不能位于 Web 根目录内");
-        }
+        _objectStorage = objectStorage;
     }
 
     /// <inheritdoc />
@@ -78,17 +69,12 @@ public class FileStorageService : IFileStorageService
 
         var userId = _currentUserService.GetUserId() ?? throw new BusinessException("无法识别当前操作人");
         var storageKey = $"{DateTime.UtcNow:yyyy/MM}/{Guid.NewGuid():N}{extension}";
-        var physicalPath = GetPhysicalPath(storageKey);
-        Directory.CreateDirectory(Path.GetDirectoryName(physicalPath)!);
-        var createdFile = false;
+        var createdObject = false;
         try
         {
             verifiedContent.Position = 0;
-            await using (var destination = new FileStream(physicalPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true))
-            {
-                createdFile = true;
-                await verifiedContent.CopyToAsync(destination, cancellationToken);
-            }
+            await _objectStorage.PutAsync(storageKey, verifiedContent, contentType, verifiedContent.Length, cancellationToken);
+            createdObject = true;
 
             var storedFile = new StoredFile
             {
@@ -106,7 +92,7 @@ public class FileStorageService : IFileStorageService
         }
         catch
         {
-            if (createdFile) TryDelete(physicalPath);
+            if (createdObject) await TryDeleteObjectAsync(storageKey, cancellationToken);
             throw;
         }
     }
@@ -118,24 +104,15 @@ public class FileStorageService : IFileStorageService
         var storedFile = await _storedFileRepository.GetByConditionAsync(file => file.Id == id && file.CreateBy == userId);
         if (storedFile is null) throw new NotFoundException("上传文件不存在");
 
-        var physicalPath = GetPhysicalPath(storedFile.StorageKey);
         try
         {
-            var content = new FileStream(physicalPath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+            var content = await _objectStorage.OpenReadAsync(storedFile.StorageKey, cancellationToken);
             return new StoredFileContent { Content = content, FileName = storedFile.OriginalFileName, ContentType = storedFile.ContentType };
         }
         catch (Exception exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
         {
             throw new NotFoundException("上传文件不存在");
         }
-    }
-
-    private string GetPhysicalPath(string storageKey)
-    {
-        var physicalPath = Path.GetFullPath(Path.Combine(_storageRoot, storageKey.Replace('/', Path.DirectorySeparatorChar)));
-        var rootPrefix = _storageRoot.EndsWith(Path.DirectorySeparatorChar) ? _storageRoot : _storageRoot + Path.DirectorySeparatorChar;
-        if (!physicalPath.StartsWith(rootPrefix, StringComparison.Ordinal)) throw new BusinessException("文件存储路径无效");
-        return physicalPath;
     }
 
     private static string IdentifyContentType(ReadOnlySpan<byte> content)
@@ -189,18 +166,15 @@ public class FileStorageService : IFileStorageService
     private static string NormalizeContentType(string contentType) =>
         string.IsNullOrWhiteSpace(contentType) ? string.Empty : contentType.Trim().Split(';', 2)[0].ToLowerInvariant();
 
-    private static bool IsSameOrDescendant(string parentPath, string candidatePath)
+    private async Task TryDeleteObjectAsync(string storageKey, CancellationToken cancellationToken)
     {
-        var relativePath = Path.GetRelativePath(parentPath, candidatePath);
-        if (Path.IsPathFullyQualified(relativePath)) return false;
-        return relativePath is "." or "" || (!relativePath.Equals("..", StringComparison.Ordinal)
-            && !relativePath.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
-    }
-
-    private static void TryDelete(string physicalPath)
-    {
-        try { File.Delete(physicalPath); }
-        catch (IOException) { }
-        catch (UnauthorizedAccessException) { }
+        try
+        {
+            await _objectStorage.DeleteAsync(storageKey, cancellationToken);
+        }
+        catch
+        {
+            // 补偿删除失败时不掩盖原始上传/元数据异常。
+        }
     }
 }

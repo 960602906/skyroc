@@ -97,7 +97,7 @@ public static class DatabaseCommentExtensions
         [typeof(TraceRecord)] = "商品溯源记录，将销售订单商品行与采购入库来源和检测报告串联供二维码展示",
         [typeof(ExternalPushLog)] = "外部报送日志，只追加记录向外部监管或溯源平台每次报送的请求、响应和结果状态",
         [typeof(ImportExportJob)] = "导入导出任务，记录 CSV 模板、导入或导出的执行状态和结果摘要",
-        [typeof(StoredFile)] = "受保护上传文件元数据，记录经签名校验后的文件存储键、类型、大小和创建人",
+        [typeof(StoredFile)] = "受保护上传文件元数据，记录经签名校验后写入对象存储的存储键、类型、大小和创建人",
         [typeof(PrintTemplate)] = "打印模板，保存业务单据可复用的设计器 JSON 和启用状态",
         [typeof(PrintTemplateField)] = "打印模板字段定义，记录设计器可绑定的数据路径、名称和展示顺序",
         [typeof(ServicePeriod)] = "运营服务时段，维护系统可提供服务或接受下单的日内时间窗口",

@@ -7,6 +7,7 @@ using Domain.Entities.Files;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Xunit;
@@ -14,17 +15,16 @@ using Xunit;
 namespace SkyRoc.Tests.Files;
 
 /// <summary>
-/// 验证受保护文件存储服务的内容校验、物理隔离和创建人访问边界。
+/// 验证受保护文件存储服务的内容校验、对象存储写入和创建人访问边界。
 /// </summary>
-public class FileStorageServiceTests : IDisposable
+public class FileStorageServiceTests
 {
-    private readonly string _storageRoot = Path.Combine(Path.GetTempPath(), $"skyroc-file-tests-{Guid.NewGuid():N}");
-
     [Fact]
-    public async Task UploadAsync_ValidPdf_PersistsMetadataAndStoresOutsidePublicRoot()
+    public async Task UploadAsync_ValidPdf_PersistsMetadataAndStoresObject()
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var objectStorage = new InMemoryObjectStorage();
+        var service = CreateService(context, TestCurrentUserService.Owner, objectStorage);
         var payload = "%PDF-1.7\n安全检测报告"u8.ToArray();
 
         var result = await service.UploadAsync(new FileUploadRequest
@@ -41,14 +41,19 @@ public class FileStorageServiceTests : IDisposable
         Assert.Equal(payload.Length, result.Size);
         Assert.Equal(TestCurrentUserService.OwnerId, stored.CreateBy);
         Assert.DoesNotContain("检测报告", stored.StorageKey, StringComparison.Ordinal);
-        Assert.True(File.Exists(Path.Combine(_storageRoot, stored.StorageKey.Replace('/', Path.DirectorySeparatorChar))));
+        Assert.True(await objectStorage.ExistsAsync(stored.StorageKey));
+        await using var storedContent = await objectStorage.OpenReadAsync(stored.StorageKey);
+        using var copy = new MemoryStream();
+        await storedContent.CopyToAsync(copy);
+        Assert.Equal(payload, copy.ToArray());
     }
 
     [Fact]
-    public async Task UploadAsync_PdfExtensionWithNonPdfPayload_ThrowsBusinessExceptionWithoutWritingMetadataOrFile()
+    public async Task UploadAsync_PdfExtensionWithNonPdfPayload_ThrowsBusinessExceptionWithoutWritingMetadataOrObject()
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var objectStorage = new InMemoryObjectStorage();
+        var service = CreateService(context, TestCurrentUserService.Owner, objectStorage);
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() => service.UploadAsync(new FileUploadRequest
         {
@@ -60,14 +65,15 @@ public class FileStorageServiceTests : IDisposable
 
         Assert.Contains("文件内容", exception.Message);
         Assert.Empty(context.StoredFiles);
-        Assert.False(Directory.Exists(_storageRoot));
+        Assert.False(await objectStorage.ExistsAsync("any"));
     }
 
     [Fact]
     public async Task UploadAsync_FileLargerThanTenMiB_ThrowsBusinessExceptionBeforeReadingOrPersisting()
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var objectStorage = new InMemoryObjectStorage();
+        var service = CreateService(context, TestCurrentUserService.Owner, objectStorage);
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() => service.UploadAsync(new FileUploadRequest
         {
@@ -85,7 +91,8 @@ public class FileStorageServiceTests : IDisposable
     public async Task UploadAsync_ActualStreamLargerThanTenMiB_StopsAtLimitWithoutPersisting()
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var objectStorage = new InMemoryObjectStorage();
+        var service = CreateService(context, TestCurrentUserService.Owner, objectStorage);
         var payload = new byte[FileStorageOptions.MaxUploadSizeBytes + 1];
         "%PDF-1.7"u8.CopyTo(payload);
 
@@ -106,7 +113,7 @@ public class FileStorageServiceTests : IDisposable
     public async Task UploadAsync_ValidImageSignature_PersistsVerifiedMimeType(string fileName, string contentType, byte[] payload)
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var service = CreateService(context, TestCurrentUserService.Owner, new InMemoryObjectStorage());
 
         var result = await service.UploadAsync(new FileUploadRequest
         {
@@ -124,7 +131,7 @@ public class FileStorageServiceTests : IDisposable
     public async Task UploadAsync_MismatchedDeclaredMimeType_ThrowsBusinessException()
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var service = CreateService(context, TestCurrentUserService.Owner, new InMemoryObjectStorage());
         var payload = "%PDF-1.7"u8.ToArray();
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() => service.UploadAsync(new FileUploadRequest
@@ -142,7 +149,7 @@ public class FileStorageServiceTests : IDisposable
     public async Task UploadAsync_MismatchedExtension_ThrowsBusinessException()
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var service = CreateService(context, TestCurrentUserService.Owner, new InMemoryObjectStorage());
         var payload = "%PDF-1.7"u8.ToArray();
 
         await Assert.ThrowsAsync<BusinessException>(() => service.UploadAsync(new FileUploadRequest
@@ -158,7 +165,7 @@ public class FileStorageServiceTests : IDisposable
     public async Task UploadAsync_FileNameContainsBackslash_ThrowsBusinessException()
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var service = CreateService(context, TestCurrentUserService.Owner, new InMemoryObjectStorage());
         var payload = "%PDF-1.7"u8.ToArray();
 
         await Assert.ThrowsAsync<BusinessException>(() => service.UploadAsync(new FileUploadRequest
@@ -174,7 +181,8 @@ public class FileStorageServiceTests : IDisposable
     public async Task DownloadAsync_FileCreatedByAnotherUser_ThrowsNotFoundException()
     {
         await using var context = CreateDbContext();
-        var ownerService = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var objectStorage = new InMemoryObjectStorage();
+        var ownerService = CreateService(context, TestCurrentUserService.Owner, objectStorage);
         var payload = "%PDF-1.7\nprivate"u8.ToArray();
         var stored = await ownerService.UploadAsync(new FileUploadRequest
         {
@@ -183,13 +191,13 @@ public class FileStorageServiceTests : IDisposable
             Length = payload.Length,
             Content = new MemoryStream(payload)
         });
-        var otherUserService = CreateService(context, TestCurrentUserService.Other, _storageRoot);
+        var otherUserService = CreateService(context, TestCurrentUserService.Other, objectStorage);
 
         await Assert.ThrowsAsync<NotFoundException>(() => otherUserService.DownloadAsync(stored.Id));
     }
 
     [Fact]
-    public async Task DownloadAsync_MetadataExistsButPhysicalFileMissing_ThrowsNotFoundException()
+    public async Task DownloadAsync_MetadataExistsButObjectMissing_ThrowsNotFoundException()
     {
         await using var context = CreateDbContext();
         var stored = new StoredFile
@@ -203,16 +211,17 @@ public class FileStorageServiceTests : IDisposable
         };
         await context.StoredFiles.AddAsync(stored);
         await context.SaveChangesAsync();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot);
+        var service = CreateService(context, TestCurrentUserService.Owner, new InMemoryObjectStorage());
 
         await Assert.ThrowsAsync<NotFoundException>(() => service.DownloadAsync(stored.Id));
     }
 
     [Fact]
-    public async Task UploadAsync_MetadataSaveFails_DeletesWrittenPhysicalFile()
+    public async Task UploadAsync_MetadataSaveFails_DeletesWrittenObject()
     {
         await using var context = CreateDbContext();
-        var service = CreateService(context, TestCurrentUserService.Owner, _storageRoot, new ThrowingUnitOfWork());
+        var objectStorage = new InMemoryObjectStorage();
+        var service = CreateService(context, TestCurrentUserService.Owner, objectStorage, new ThrowingUnitOfWork());
         var payload = "%PDF-1.7"u8.ToArray();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.UploadAsync(new FileUploadRequest
@@ -223,37 +232,8 @@ public class FileStorageServiceTests : IDisposable
             Content = new MemoryStream(payload)
         }));
 
-        Assert.Empty(Directory.Exists(_storageRoot)
-            ? Directory.EnumerateFiles(_storageRoot, "*", SearchOption.AllDirectories)
-            : []);
         Assert.Empty(context.StoredFiles);
-    }
-
-    [Fact]
-    public void Constructor_StorageRootUnderWebRoot_ThrowsInvalidOperationException()
-    {
-        using var context = CreateDbContext();
-        var webRoot = Path.Combine(_storageRoot, "wwwroot");
-
-        Assert.Throws<InvalidOperationException>(() => CreateService(
-            context,
-            TestCurrentUserService.Owner,
-            Path.Combine(webRoot, "uploads"),
-            webRoot: webRoot));
-    }
-
-    [Fact]
-    public void Constructor_StorageRootOnDifferentWindowsDrive_DoesNotTreatItAsUnderWebRoot()
-    {
-        if (!OperatingSystem.IsWindows()) return;
-
-        using var context = CreateDbContext();
-        var webRoot = @"C:\site\wwwroot";
-        var storageRoot = @"D:\skyroc-uploads";
-
-        var service = CreateService(context, TestCurrentUserService.Owner, storageRoot, webRoot: webRoot);
-
-        Assert.NotNull(service);
+        Assert.Equal(0, objectStorage.Count);
     }
 
     [Fact]
@@ -273,11 +253,6 @@ public class FileStorageServiceTests : IDisposable
         ["report.jpeg", "image/jpeg", new byte[] { 255, 216, 255, 0 }]
     ];
 
-    public void Dispose()
-    {
-        if (Directory.Exists(_storageRoot)) Directory.Delete(_storageRoot, recursive: true);
-    }
-
     private static ApplicationDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -289,17 +264,15 @@ public class FileStorageServiceTests : IDisposable
     private static FileStorageService CreateService(
         ApplicationDbContext context,
         TestCurrentUserService currentUserService,
-        string root,
-        IUnitOfWork? unitOfWork = null,
-        string? webRoot = null)
+        IObjectStorage objectStorage,
+        IUnitOfWork? unitOfWork = null)
     {
         return new FileStorageService(
             new StoredFileRepository(context),
             unitOfWork ?? new UnitOfWork(context),
             currentUserService,
             new MapperConfiguration(config => config.AddProfile<FileMappingProfile>()).CreateMapper(),
-            Microsoft.Extensions.Options.Options.Create(new FileStorageOptions { StorageRoot = root }),
-            new TestFileStoragePathProvider { ContentRootPath = Path.GetTempPath(), WebRootPath = webRoot });
+            objectStorage);
     }
 
     private sealed class TestCurrentUserService(Guid userId) : Application.interfaces.ICurrentUserService
@@ -313,12 +286,6 @@ public class FileStorageServiceTests : IDisposable
         public string? GetRole() => "admin";
         public IReadOnlyList<string> GetRoles() => ["admin"];
         public bool HasClaim(string claimType, string claimValue) => false;
-    }
-
-    private sealed class TestFileStoragePathProvider : Application.interfaces.IFileStoragePathProvider
-    {
-        public string ContentRootPath { get; set; } = string.Empty;
-        public string? WebRootPath { get; set; }
     }
 
     private sealed class ThrowingUnitOfWork : IUnitOfWork

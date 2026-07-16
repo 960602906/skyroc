@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application;
-using Application.interfaces;
 using Infrastructure;
 using Infrastructure.Data;
 using Microsoft.Extensions.Options;
@@ -17,7 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 builder.Services.Configure<DevSeedOptions>(configuration.GetSection(DevSeedOptions.SectionName));
-builder.Services.AddSingleton<IFileStoragePathProvider, WebHostFileStoragePathProvider>();
 builder.Services.AddScoped<Application.interfaces.System.IAuditRequestSourceAccessor, HttpAuditRequestSourceAccessor>();
 
 // ========================================

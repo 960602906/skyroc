@@ -538,17 +538,16 @@ public class DemoDataGeneratorTests(PostgreSqlTestFixture fixture)
                 image.CreateName
             }).ToArray());
 
-        var storageRoot = Path.Combine(fixture.Settings.ReportDirectory, "demo-files");
-        Assert.All(files, file =>
+        foreach (var file in files)
         {
             Assert.Equal("image/png", file.ContentType);
             Assert.True(file.FileSize > 8);
             Assert.NotNull(file.CreateBy);
             Assert.False(string.IsNullOrWhiteSpace(file.CreateName));
-            var physicalPath = Path.Combine(storageRoot, file.StorageKey.Replace('/', Path.DirectorySeparatorChar));
-            Assert.True(File.Exists(physicalPath));
-            Assert.Equal(file.FileSize, new FileInfo(physicalPath).Length);
-        });
+            Assert.True(await fixture.ObjectStorage.ExistsAsync(file.StorageKey));
+            await using var content = await fixture.ObjectStorage.OpenReadAsync(file.StorageKey);
+            Assert.Equal(file.FileSize, content.Length);
+        }
         Assert.All(images, image =>
         {
             Assert.NotNull(image.Goods);

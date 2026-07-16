@@ -76,6 +76,8 @@ $env:JwtSettings__SecretKey = "<high-entropy signing key>"
 $env:JwtSettings__Issuer = "skyroc"
 $env:JwtSettings__Audience = "skyroc"
 $env:Redis__Enabled = "false"
+$env:RustFS__AccessKey = "<rustfs-access-key>"
+$env:RustFS__SecretKey = "<rustfs-secret-key>"
 ```
 
 生产部署要求：
@@ -83,7 +85,7 @@ $env:Redis__Enabled = "false"
 - 生产环境优先使用部署平台的密钥管理能力覆盖数据库连接串，并注入 JWT 密钥和外部 API Token。
 - JWT 签名密钥应为独立生成的高熵随机值，并建立轮换流程。
 - 多实例必须使用共享 Redis；内存降级只适合本地或单实例临时兜底。
-- `FileStorage__StorageRoot` 应指向受保护的持久卷，且不能映射为公开静态目录。
+- 文件二进制存放在 RustFS（S3 兼容）；通过 `RustFS__Endpoint`、`RustFS__BucketName`、`RustFS__AccessKey`、`RustFS__SecretKey` 注入，且不得把 Bucket 配成公开匿名可读。
 - 反向代理终止 TLS 时，应正确转发协议和客户端地址，并限制可信代理范围。
 - 发布前运行数据库迁移、健康检查、构建和全量测试。
 

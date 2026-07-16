@@ -1,5 +1,7 @@
 using Infrastructure.Data;
+using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
+using Shared.Common;
 using Xunit;
 
 namespace SkyRoc.Tests.Testing.PostgreSql;
@@ -21,7 +23,13 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
         DatabaseName = DatabaseSafetyGuard.Validate(Settings);
         _batchCleaner = new PostgreSqlBatchCleaner(Settings);
         _reportGenerator = new DatabaseQualityReportGenerator(Settings);
+        ObjectStorage = new InMemoryObjectStorage();
     }
+
+    /// <summary>
+    ///     跨 Web 宿主共享的进程内对象存储，保证联调文件在多次生成间可复用校验。
+    /// </summary>
+    public IObjectStorage ObjectStorage { get; }
 
     /// <summary>
     ///     当前真实 PostgreSQL 测试设置。
@@ -67,7 +75,7 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
     /// </summary>
     public PostgreSqlWebApplicationFactory CreateWebApplicationFactory()
     {
-        return new PostgreSqlWebApplicationFactory(Settings);
+        return new PostgreSqlWebApplicationFactory(Settings, ObjectStorage);
     }
 
     /// <summary>

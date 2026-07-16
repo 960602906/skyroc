@@ -1,7 +1,7 @@
 namespace Application.DTOs.Files;
 
 /// <summary>
-/// 已上传文件的安全响应模型，不暴露服务器物理路径或存储键。
+/// 已上传文件的安全响应模型，不暴露对象存储键或服务端内部路径。
 /// </summary>
 public class StoredFileDto
 {
