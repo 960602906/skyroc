@@ -268,6 +268,8 @@ public class SaleOrderServiceTests
             service.ResubmitAsync(created.Id, null));
         var approved = await service.ApproveAsync(created.Id, null);
         var beginCount = unitOfWork.BeginCount;
+        var commitCount = unitOfWork.CommitCount;
+        var rollbackCount = unitOfWork.RollbackCount;
         var auditLogCount = await context.OrderAuditLogs.CountAsync();
 
         await Assert.ThrowsAsync<Application.Exceptions.BusinessException>(() =>
@@ -276,7 +278,10 @@ public class SaleOrderServiceTests
             service.RejectAsync(created.Id, null));
 
         Assert.Equal(SaleOrderStatus.SortingPending, approved.OrderStatus);
-        Assert.Equal(beginCount, unitOfWork.BeginCount);
+        // 非法流转在事务内 FOR UPDATE 后校验失败并回滚，不写入审核轨迹、不提交
+        Assert.Equal(beginCount + 2, unitOfWork.BeginCount);
+        Assert.Equal(commitCount, unitOfWork.CommitCount);
+        Assert.Equal(rollbackCount + 2, unitOfWork.RollbackCount);
         Assert.Equal(auditLogCount, await context.OrderAuditLogs.CountAsync());
     }
 

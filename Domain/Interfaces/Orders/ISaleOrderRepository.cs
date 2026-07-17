@@ -8,7 +8,7 @@ namespace Domain.Interfaces;
 public interface ISaleOrderRepository : IRepository<SaleOrder>
 {
     /// <summary>
-    /// 在当前数据库事务内锁定并读取销售订单聚合，供销售出库审核串行校验来源数量。
+    /// 在当前数据库事务内锁定并读取销售订单聚合，供审核状态流转、销售出库等需要串行校验的场景使用。
     /// </summary>
     /// <param name="id">待锁定的销售订单主键。</param>
     /// <returns>包含商品明细的销售订单；不存在时返回 <c>null</c>。</returns>

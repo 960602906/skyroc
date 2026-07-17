@@ -231,16 +231,20 @@ public class SaleOrderService(
         SaleOrderStatus targetStatus,
         string? remark)
     {
-        var order = await GetRequiredOrderAsync(id);
-        if (order.OrderStatus != requiredStatus)
-        {
-            throw new BusinessException(
-                $"订单状态为 {order.OrderStatus}，不能执行 {GetActionName(action)} 操作");
-        }
-
-        var previousStatus = order.OrderStatus;
+        // 事务内 FOR UPDATE 锁定并重新校验状态，避免并发通过/驳回/重提出现双重流转或审核轨迹不一致
+        SaleOrder order = null!;
+        SaleOrderStatus previousStatus = default;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
+            order = await saleOrderRepository.GetByIdForUpdateAsync(id)
+                    ?? throw new NotFoundException("销售订单不存在");
+            if (order.OrderStatus != requiredStatus)
+            {
+                throw new BusinessException(
+                    $"订单状态为 {order.OrderStatus}，不能执行 {GetActionName(action)} 操作");
+            }
+
+            previousStatus = order.OrderStatus;
             order.OrderStatus = targetStatus;
             ApplyUpdateAudit(order);
             await orderAuditLogRepository.AddAsync(CreateAuditLog(
