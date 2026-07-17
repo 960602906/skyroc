@@ -191,6 +191,12 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+
+# 前端构建产物 (client/)
+client/dist/
+client/dist-ssr/
+*.local
 
 # 临时文件
 *.tmp

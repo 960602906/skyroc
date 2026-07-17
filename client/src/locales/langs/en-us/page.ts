@@ -1,0 +1,714 @@
+const page: App.I18n.Schema['translation']['page'] = {
+  about: {
+    devDep: 'Development Dependency',
+    introduction: `SkyrocAdmin is an elegant and powerful admin template, based on the latest front-end technology stack, including React19.0, Vite6, TypeScript, ReactRouter7,Redux/toolkitand UnoCSS. It has built-in rich theme configuration and components, strict code specifications, and an automated file routing system. In addition, it also uses the online mock data solution based on ApiFox. SkyrocAdmin provides you with a one-stop admin solution, no additional configuration, and out of the box. It is also a best practice for learning cutting-edge technologies quickly.`,
+    prdDep: 'Production Dependency',
+    projectInfo: {
+      githubLink: 'Github Link',
+      latestBuildTime: 'Latest Build Time',
+      previewLink: 'Preview Link',
+      title: 'Project Info',
+      version: 'Version'
+    },
+    title: 'About'
+  },
+  customer: {
+    company: {
+      addCompany: 'Add Company',
+      address: 'Address',
+      code: 'Company Code',
+      contactName: 'Contact Name',
+      contactPhone: 'Contact Phone',
+      createTime: 'Created At',
+      editCompany: 'Edit Company',
+      form: {
+        address: 'Please enter address',
+        code: 'Please enter company code',
+        contactName: 'Please enter contact name',
+        contactPhone: 'Please enter contact phone',
+        name: 'Please enter company name',
+        remark: 'Please enter remark',
+        status: 'Please select status'
+      },
+      name: 'Company Name',
+      remark: 'Remark',
+      status: 'Status',
+      title: 'Company Profile'
+    },
+    list: {
+      addCustomer: 'Add Customer',
+      address: 'Address',
+      code: 'Customer Code',
+      companyId: 'Company',
+      contactName: 'Contact Name',
+      contactPhone: 'Contact Phone',
+      createTime: 'Created At',
+      editCustomer: 'Edit Customer',
+      form: {
+        address: 'Please enter address',
+        code: 'Please enter customer code',
+        companyId: 'Please select company',
+        contactName: 'Please enter contact name',
+        contactPhone: 'Please enter contact phone',
+        name: 'Please enter customer name',
+        status: 'Please select status'
+      },
+      name: 'Customer Name',
+      status: 'Status',
+      title: 'Customer List'
+    },
+    operate: {
+      bankAccount: 'Bank Account',
+      bankName: 'Bank Name',
+      businessScope: 'Business Scope',
+      businessTerm: 'Business Term',
+      defaultWareId: 'Default Warehouse',
+      establishDate: 'Establish Date',
+      form: {
+        bankAccount: 'Please enter bank account',
+        bankName: 'Please enter bank name',
+        businessScope: 'Please enter business scope',
+        businessTerm: 'Please enter business term',
+        defaultWareId: 'Please select default warehouse',
+        establishDate: 'Please select establish date',
+        invoiceAddress: 'Please enter invoice address',
+        invoiceEmail: 'Please enter invoice email',
+        invoicePhone: 'Please enter invoice phone',
+        invoiceReceiverAddress: 'Please enter receiver address',
+        invoiceReceiverName: 'Please enter receiver name',
+        invoiceReceiverPhone: 'Please enter receiver phone',
+        invoiceTitle: 'Please enter invoice title',
+        legalRepresentative: 'Please enter legal representative',
+        quotationId: 'Please select quotation',
+        registeredAddress: 'Please enter registered address',
+        registeredCapital: 'Please enter registered capital',
+        registrationAuthority: 'Please enter registration authority',
+        registrationStatus: 'Please enter registration status',
+        remark: 'Please enter remark',
+        tagIds: 'Please select customer tags',
+        taxpayerIdentificationNumber: 'Please enter taxpayer ID',
+        unifiedSocialCreditCode: 'Please enter unified social credit code'
+      },
+      invoiceAddress: 'Invoice Address',
+      invoiceEmail: 'Invoice Email',
+      invoicePhone: 'Invoice Phone',
+      invoiceReceiverAddress: 'Receiver Address',
+      invoiceReceiverName: 'Receiver Name',
+      invoiceReceiverPhone: 'Receiver Phone',
+      invoiceTitle: 'Invoice Title',
+      legalRepresentative: 'Legal Representative',
+      quotationId: 'Quotation',
+      registeredAddress: 'Registered Address',
+      registeredCapital: 'Registered Capital',
+      registrationAuthority: 'Registration Authority',
+      registrationStatus: 'Registration Status',
+      remark: 'Remark',
+      tabs: {
+        basic: 'Basic Info',
+        business: 'Business Info',
+        invoice: 'Invoice Info'
+      },
+      tagIds: 'Customer Tags',
+      taxpayerIdentificationNumber: 'Taxpayer ID',
+      unifiedSocialCreditCode: 'Unified Social Credit Code'
+    },
+    protocol: {
+      addProtocol: 'Add Protocol',
+      code: 'Protocol Code',
+      createTime: 'Created At',
+      customerIds: 'Customers',
+      editProtocol: 'Edit Protocol',
+      effectiveEnd: 'Effective End',
+      effectiveStart: 'Effective Start',
+      form: {
+        code: 'Please enter protocol code',
+        customerIds: 'Please select customers',
+        name: 'Please enter protocol name',
+        quotationId: 'Please select quotation',
+        remark: 'Please enter remark',
+        status: 'Please select status'
+      },
+      name: 'Protocol Name',
+      quotationId: 'Quotation',
+      remark: 'Remark',
+      status: 'Status',
+      title: 'Customer Protocol'
+    },
+    protocolGoods: {
+      addProtocolGoods: 'Add Protocol Goods',
+      createTime: 'Created At',
+      customerProtocolId: 'Customer Protocol',
+      editProtocolGoods: 'Edit Protocol Goods',
+      form: {
+        customerProtocolId: 'Please select customer protocol',
+        goodsId: 'Please select goods',
+        goodsUnitId: 'Please enter goods unit ID',
+        minOrderQuantity: 'Please enter min order quantity',
+        protocolPrice: 'Please enter protocol price',
+        remark: 'Please enter remark'
+      },
+      goodsId: 'Goods',
+      goodsUnitId: 'Goods Unit',
+      minOrderQuantity: 'Min Order Qty',
+      protocolPrice: 'Protocol Price',
+      remark: 'Remark',
+      status: 'Status',
+      title: 'Protocol Goods'
+    },
+    subAccount: {
+      addSubAccount: 'Add Sub Account',
+      companyId: 'Company',
+      createTime: 'Created At',
+      customerId: 'Customer',
+      editSubAccount: 'Edit Sub Account',
+      email: 'Email',
+      form: {
+        companyId: 'Please select company',
+        customerId: 'Please select customer',
+        email: 'Please enter email',
+        nickName: 'Please enter nickname',
+        phone: 'Please enter phone',
+        remark: 'Please enter remark',
+        status: 'Please select status',
+        username: 'Please enter username'
+      },
+      nickName: 'Nickname',
+      phone: 'Phone',
+      remark: 'Remark',
+      status: 'Status',
+      title: 'Sub Account',
+      username: 'Username'
+    },
+    tag: {
+      addTag: 'Add Tag',
+      code: 'Tag Code',
+      createTime: 'Created At',
+      editTag: 'Edit Tag',
+      form: {
+        code: 'Please enter tag code',
+        name: 'Please enter tag name',
+        parentId: 'Please select parent tag',
+        remark: 'Please enter remark',
+        sort: 'Please enter sort',
+        status: 'Please select status'
+      },
+      name: 'Tag Name',
+      parentId: 'Parent Tag',
+      remark: 'Remark',
+      sort: 'Sort',
+      status: 'Status',
+      title: 'Customer Tags'
+    }
+  },
+  function: {
+    multiTab: {
+      backTab: 'Back function_tab',
+      routeParam: 'Route Param'
+    },
+    request: {
+      repeatedError: 'Repeated Request Error',
+      repeatedErrorMsg1: 'Custom Request Error 1',
+      repeatedErrorMsg2: 'Custom Request Error 2',
+      repeatedErrorOccurOnce: 'Repeated Request Error Occurs Once'
+    },
+    tab: {
+      tabOperate: {
+        addMultiTab: 'Add Multi Tab',
+        addMultiTabDesc1: 'To MultiTab page',
+        addMultiTabDesc2: 'To MultiTab page(with query params)',
+        addTab: 'Add Tab',
+        addTabDesc: 'To about page',
+        closeAboutTab: 'Close "About" Tab',
+        closeCurrentTab: 'Close Current Tab',
+        closeTab: 'Close Tab',
+        title: 'Tab Operation'
+      },
+      tabTitle: {
+        change: 'Change',
+        changeTitle: 'Change Title',
+        reset: 'Reset',
+        resetTitle: 'Reset Title',
+        title: 'Tab Title'
+      }
+    },
+    toggleAuth: {
+      adminOrUserVisible: 'Admin and User Visible',
+      adminVisible: 'Admin Visible',
+      authHook: 'Auth Hook Function `hasAuth`',
+      superAdminVisible: 'Super Admin Visible',
+      toggleAccount: 'Toggle Account'
+    }
+  },
+  goods: {
+    list: {
+      brand: 'Brand',
+      code: 'Goods Code',
+      createTime: 'Created At',
+      defaultSupplierId: 'Default Supplier',
+      defaultWareId: 'Default Warehouse',
+      form: {
+        code: 'Please enter goods code',
+        defaultSupplierId: 'Please select default supplier',
+        defaultWareId: 'Please select default warehouse',
+        goodsTypeId: 'Please select goods type',
+        isOnSale: 'Please select sale status',
+        name: 'Please enter goods name',
+        status: 'Please select status'
+      },
+      goodsTypeId: 'Goods Type',
+      isOnSale: 'On Sale',
+      name: 'Goods Name',
+      offSale: 'Off Sale',
+      onSale: 'On Sale',
+      spec: 'Spec',
+      status: 'Status',
+      title: 'Goods List'
+    },
+    operate: {
+      addTitle: 'Add Goods',
+      baseUnitId: 'Base Unit',
+      brand: 'Brand',
+      code: 'Goods Code',
+      defaultSupplierId: 'Default Supplier',
+      defaultWareId: 'Default Warehouse',
+      description: 'Description',
+      editTitle: 'Edit Goods',
+      form: {
+        baseUnitId: 'Please enter base unit ID',
+        brand: 'Please enter brand',
+        code: 'Please enter goods code',
+        defaultSupplierId: 'Please select default supplier',
+        defaultWareId: 'Please select default warehouse',
+        description: 'Please enter description',
+        goodsTypeId: 'Please select goods type',
+        name: 'Please enter goods name',
+        origin: 'Please enter origin',
+        remark: 'Please enter remark',
+        spec: 'Please enter spec',
+        supplierIds: 'Please select suppliers',
+        taxRate: 'Please enter tax rate'
+      },
+      goodsTypeId: 'Goods Type',
+      isOnSale: 'On Sale',
+      name: 'Goods Name',
+      origin: 'Origin',
+      remark: 'Remark',
+      spec: 'Spec',
+      status: 'Status',
+      supplierIds: 'Suppliers',
+      tabBasic: 'Basic Info',
+      tabRelation: 'Relations',
+      taxRate: 'Tax Rate'
+    },
+    quotation: {
+      add: 'Add Quotation',
+      audit: 'Audit',
+      audited: 'Audited',
+      code: 'Quotation Code',
+      customerIds: 'Customers',
+      description: 'Description',
+      edit: 'Edit Quotation',
+      effectiveEnd: 'Effective End',
+      effectiveStart: 'Effective Start',
+      form: {
+        code: 'Please enter quotation code',
+        customerIds: 'Please select customers',
+        description: 'Please enter description',
+        isAudited: 'Please select audit status',
+        name: 'Please enter quotation name',
+        remark: 'Please enter remark',
+        status: 'Please select status'
+      },
+      isAudited: 'Audit Status',
+      name: 'Quotation Name',
+      remark: 'Remark',
+      status: 'Status',
+      title: 'Quotation',
+      unaudit: 'Unaudit',
+      unaudited: 'Unaudited'
+    },
+    quotationGoods: {
+      add: 'Add Quotation Goods',
+      edit: 'Edit Quotation Goods',
+      form: {
+        goodsId: 'Please select goods',
+        goodsUnitId: 'Please select goods unit',
+        isOnSale: 'Please select sale status',
+        minOrderQuantity: 'Please enter min order quantity',
+        quotationId: 'Please select quotation',
+        remark: 'Please enter remark',
+        unitPrice: 'Please enter unit price'
+      },
+      goodsId: 'Goods',
+      goodsUnitId: 'Goods Unit',
+      isOnSale: 'On Sale',
+      minOrderQuantity: 'Min Order Qty',
+      quotationId: 'Quotation',
+      remark: 'Remark',
+      title: 'Quotation Goods',
+      unitPrice: 'Unit Price'
+    },
+    type: {
+      add: 'Add Goods Type',
+      code: 'Type Code',
+      defaultTaxRate: 'Default Tax Rate',
+      edit: 'Edit Goods Type',
+      form: {
+        code: 'Please enter type code',
+        defaultTaxRate: 'Please enter default tax rate',
+        invoiceGoodsShortName: 'Please enter invoice short name',
+        name: 'Please enter type name',
+        parentId: 'Please select parent type',
+        remark: 'Please enter remark',
+        sort: 'Please enter sort',
+        status: 'Please select status',
+        taxCategoryCode: 'Please enter tax category code',
+        taxCategoryName: 'Please enter tax category name',
+        taxPolicyBasis: 'Please enter tax policy basis'
+      },
+      invoiceGoodsShortName: 'Invoice Short Name',
+      isTaxExempt: 'Tax Exempt',
+      name: 'Type Name',
+      parentId: 'Parent Type',
+      remark: 'Remark',
+      sort: 'Sort',
+      status: 'Status',
+      taxCategoryCode: 'Tax Category Code',
+      taxCategoryName: 'Tax Category Name',
+      taxPolicyBasis: 'Tax Policy Basis',
+      title: 'Goods Type'
+    },
+    unit: {
+      add: 'Add Goods Unit',
+      code: 'Unit Code',
+      conversionRate: 'Conversion Rate',
+      edit: 'Edit Goods Unit',
+      form: {
+        code: 'Please enter unit code',
+        conversionRate: 'Please enter conversion rate',
+        goodsId: 'Please select goods',
+        name: 'Please enter unit name',
+        remark: 'Please enter remark',
+        sort: 'Please enter sort',
+        status: 'Please select status'
+      },
+      goodsId: 'Goods',
+      isBaseUnit: 'Base Unit',
+      name: 'Unit Name',
+      remark: 'Remark',
+      sort: 'Sort',
+      status: 'Status',
+      title: 'Goods Unit'
+    }
+  },
+  home: {
+    creativity: 'Creativity',
+    dealCount: 'Deal Count',
+    downloadCount: 'Download Count',
+    entertainment: 'Entertainment',
+    greeting: 'Good morning, {{userName}}, today is another day full of vitality!',
+    message: 'Message',
+    projectCount: 'Project Count',
+    projectNews: {
+      desc1: 'Skyroc created the open source project skyroc-admin on May 28, 2021!',
+      desc2: 'Yanbowe submitted a bug to skyroc-admin, the multi-tab bar will not adapt.',
+      desc3: 'Skyroc is ready to do sufficient preparation for the release of skyroc-admin!',
+      desc4: 'Skyroc is busy writing project documentation for skyroc-admin!',
+      desc5: 'Skyroc just wrote some of the workbench pages casually, and it was enough to see!',
+      moreNews: 'More News',
+      title: 'Project News'
+    },
+    registerCount: 'Register Count',
+    rest: 'Rest',
+    schedule: 'Work and rest Schedule',
+    study: 'Study',
+    todo: 'Todo',
+    turnover: 'Turnover',
+    visitCount: 'Visit Count',
+    weatherDesc: 'Today is cloudy to clear, 20℃ - 25℃!',
+    work: 'Work'
+  },
+  login: {
+    bindWeChat: {
+      title: 'Bind WeChat'
+    },
+    codeLogin: {
+      getCode: 'Get verification code',
+      imageCodePlaceholder: 'Please enter image verification code',
+      reGetCode: 'Reacquire after {{time}}s',
+      sendCodeSuccess: 'Verification code sent successfully',
+      title: 'Verification Code Login'
+    },
+    common: {
+      back: 'Back',
+      codeLogin: 'Verification code login',
+      codePlaceholder: 'Please enter verification code',
+      confirm: 'Confirm',
+      confirmPasswordPlaceholder: 'Please enter password again',
+      loginOrRegister: 'Login / Register',
+      loginSuccess: 'Login successfully',
+      passwordPlaceholder: 'Please enter password',
+      phonePlaceholder: 'Please enter phone number',
+      userNamePlaceholder: 'Please enter user name',
+      validateSuccess: 'Verification passed',
+      welcomeBack: 'Welcome back, {{userName}} !'
+    },
+    pwdLogin: {
+      admin: 'Admin',
+      forgetPassword: 'Forget password?',
+      otherAccountLogin: 'Other Account Login',
+      otherLoginMode: 'Other Login Mode',
+      register: 'Register',
+      rememberMe: 'Remember me',
+      superAdmin: 'Super Admin',
+      title: 'Password Login',
+      user: 'User'
+    },
+    register: {
+      agreement: 'I have read and agree to',
+      policy: '《Privacy Policy》',
+      protocol: '《User Agreement》',
+      title: 'Register'
+    },
+    resetPwd: {
+      title: 'Reset Password'
+    }
+  },
+  manage: {
+    common: {
+      status: {
+        disable: 'Disable',
+        enable: 'Enable'
+      }
+    },
+    menu: {
+      activeMenu: 'Active Menu',
+      addChildMenu: 'Add Child Menu',
+      addMenu: 'Add Menu',
+      button: 'Button',
+      buttonCode: 'Button Code',
+      buttonDesc: 'Button Desc',
+      buttons: 'Button List',
+      constant: 'Constant',
+      editMenu: 'Edit Menu',
+      fixedIndexInTab: 'Fixed Index In Tab',
+      form: {
+        activeMenu: 'Please select route name of the highlighted menu',
+        button: 'Please select whether it is a button',
+        buttonCode: 'Please enter button code',
+        buttonDesc: 'Please enter button description',
+        fixedIndexInTab: 'Please enter the index fixed in the tab',
+        fixedInTab: 'Please select whether to fix in the tab',
+        hideInMenu: 'Please select whether to hide menu',
+        home: 'Please select home',
+        href: 'Please enter href',
+        i18nKey: 'Please enter i18n key',
+        icon: 'Please enter iconify name',
+        keepAlive: 'Please select whether to cache route',
+        layout: 'Please select layout component',
+        localIcon: 'Please enter local icon name',
+        menuName: 'Please enter menu name',
+        menuStatus: 'Please select menu status',
+        menuType: 'Please select menu type',
+        multiTab: 'Please select whether to support multiple tabs',
+        order: 'Please enter order',
+        page: 'Please select page component',
+        parent: 'Please select whether to parent menu',
+        pathParam: 'Please enter path param',
+        queryKey: 'Please enter route parameter Key',
+        queryValue: 'Please enter route parameter Value',
+        routeName: 'Please enter route name',
+        routePath: 'Please enter route path'
+      },
+      hideInMenu: 'Hide In Menu',
+      home: 'Home',
+      href: 'Href',
+      i18nKey: 'I18n Key',
+      icon: 'Icon',
+      iconType: {
+        iconify: 'Iconify Icon',
+        local: 'Local Icon'
+      },
+      iconTypeTitle: 'Icon Type',
+      id: 'ID',
+      index: 'Index',
+      keepAlive: 'Keep Alive',
+      layout: 'Layout Component',
+      localIcon: 'Local Icon',
+      menuName: 'Menu Name',
+      menuStatus: 'Menu Status',
+      menuType: 'Menu Type',
+      multiTab: 'Multi Tab',
+      order: 'Order',
+      page: 'Page Component',
+      parent: 'Parent Menu',
+      parentId: 'Parent ID',
+      pathParam: 'Path Param',
+      query: 'Query Params',
+      routeName: 'Route Name',
+      routePath: 'Route Path',
+      title: 'Menu List',
+      type: {
+        directory: 'Directory',
+        menu: 'Menu'
+      }
+    },
+    role: {
+      addRole: 'Add Role',
+      buttonAuth: 'Button Auth',
+      editRole: 'Edit Role',
+      form: {
+        roleCode: 'Please enter role code',
+        roleDesc: 'Please enter role description',
+        roleName: 'Please enter role name',
+        roleStatus: 'Please select role status'
+      },
+      menuAuth: 'Menu Auth',
+      roleCode: 'Role Code',
+      roleDesc: 'Role Description',
+      roleName: 'Role Name',
+      roleStatus: 'Role Status',
+      title: 'Role List'
+    },
+    roleDetail: {
+      content: 'This page is solely for displaying all matched multi-level dynamic routes.',
+      explain:
+        '[...slug] is the syntax for matching all multi-level dynamic routes. The data is random and may not match.'
+    },
+    user: {
+      addUser: 'Add User',
+      editUser: 'Edit User',
+      form: {
+        nickName: 'Please enter nick name',
+        userEmail: 'Please enter email',
+        userGender: 'Please select gender',
+        userName: 'Please enter user name',
+        userPhone: 'Please enter phone number',
+        userRole: 'Please select user role',
+        userStatus: 'Please select user status'
+      },
+      gender: {
+        female: 'Female',
+        male: 'Male'
+      },
+      nickName: 'Nick Name',
+      title: 'User List',
+      userEmail: 'Email',
+      userGender: 'Gender',
+      userName: 'User Name',
+      userPhone: 'Phone Number',
+      userRole: 'User Role',
+      userStatus: 'User Status'
+    },
+    userDetail: {
+      content: `The loader allows network requests and lazy-loaded files to be triggered almost simultaneously, enabling the lazy-loaded files to be parsed while waiting for the network request to complete. Once the network request finishes, the page is displayed all at once. Leveraging React's Fiber architecture, if users find the waiting time too long, they can switch to different pages during the wait. This is an advantage of the React framework and React Router's data loader, as it avoids the conventional sequence of: request lazy-loaded file -> parse -> mount -> send network request -> render page -> display, and eliminates the need for manually adding a loading effect.`,
+      explain: `This page is solely for demonstrating the powerful capabilities of react-router-dom's loader. The data is random and may not match.`
+    }
+  },
+  purchase: {
+    purchaser: {
+      addPurchaser: 'Add Purchaser',
+      code: 'Purchaser Code',
+      createTime: 'Created At',
+      departmentId: 'Department',
+      editPurchaser: 'Edit Purchaser',
+      form: {
+        code: 'Please enter purchaser code',
+        departmentId: 'Please select department',
+        name: 'Please enter purchaser name',
+        phone: 'Please enter phone number',
+        remark: 'Please enter remark',
+        status: 'Please select status'
+      },
+      name: 'Purchaser Name',
+      phone: 'Phone',
+      remark: 'Remark',
+      status: 'Status',
+      title: 'Purchaser List'
+    },
+    rule: {
+      addRule: 'Add Purchase Rule',
+      code: 'Rule Code',
+      createTime: 'Created At',
+      editRule: 'Edit Purchase Rule',
+      form: {
+        code: 'Please enter rule code',
+        goodsTypeId: 'Please select goods type',
+        name: 'Please enter rule name',
+        purchasePattern: 'Please select purchase pattern',
+        purchaserId: 'Please select purchaser',
+        remark: 'Please enter remark',
+        status: 'Please select status',
+        supplierId: 'Please select supplier',
+        wareId: 'Please select warehouse'
+      },
+      goodsTypeId: 'Goods Type',
+      name: 'Rule Name',
+      purchasePattern: 'Purchase Pattern',
+      purchasePatternDirect: 'Direct Supply',
+      purchasePatternMarket: 'Market Purchase',
+      purchaserId: 'Purchaser',
+      remark: 'Remark',
+      status: 'Status',
+      supplierId: 'Supplier',
+      title: 'Purchase Rule List',
+      wareId: 'Warehouse'
+    },
+    supplier: {
+      address: 'Address',
+      addSupplier: 'Add Supplier',
+      bankAccount: 'Bank Account',
+      bankName: 'Bank Name',
+      code: 'Supplier Code',
+      contactName: 'Contact Name',
+      contactPhone: 'Contact Phone',
+      createTime: 'Created At',
+      editSupplier: 'Edit Supplier',
+      form: {
+        address: 'Please enter address',
+        bankAccount: 'Please enter bank account',
+        bankName: 'Please enter bank name',
+        code: 'Please enter supplier code',
+        contactName: 'Please enter contact name',
+        contactPhone: 'Please enter contact phone',
+        name: 'Please enter supplier name',
+        remark: 'Please enter remark',
+        status: 'Please select status',
+        taxNo: 'Please enter tax number'
+      },
+      name: 'Supplier Name',
+      remark: 'Remark',
+      status: 'Status',
+      taxNo: 'Tax No.',
+      title: 'Supplier List'
+    }
+  },
+  storage: {
+    ware: {
+      address: 'Address',
+      addWare: 'Add Warehouse',
+      code: 'Warehouse Code',
+      contactName: 'Contact Name',
+      contactPhone: 'Contact Phone',
+      createTime: 'Created At',
+      editWare: 'Edit Warehouse',
+      form: {
+        address: 'Please enter address',
+        code: 'Please enter warehouse code',
+        contactName: 'Please enter contact name',
+        contactPhone: 'Please enter contact phone',
+        name: 'Please enter warehouse name',
+        remark: 'Please enter remark',
+        sort: 'Please enter sort order',
+        status: 'Please select status'
+      },
+      name: 'Warehouse Name',
+      remark: 'Remark',
+      sort: 'Sort',
+      status: 'Status',
+      title: 'Warehouse List'
+    }
+  }
+};
+
+export default page;

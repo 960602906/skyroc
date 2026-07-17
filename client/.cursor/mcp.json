@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "Skyroc Admin API": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "apifox-mcp-server@latest", "--project-id=7472749"],
+      "env": {
+        "APIFOX_ACCESS_TOKEN": "afxp_3b166chud5xXC4GDZVEpgrFXBe2bjvySRm6a"
+      }
+    }
+  }
+}

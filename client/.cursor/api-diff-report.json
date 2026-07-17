@@ -1,0 +1,2453 @@
+{
+  "note": "Project VITE_SERVICE_BASE_URL already includes /api; project paths use PascalCase (/Goods), Apifox uses kebab (/api/goods). Comparison strips /api and kebab-normalizes segments.",
+  "summary": {
+    "apifox": 367,
+    "project": 178,
+    "matched_ok": 169,
+    "to_add": 198,
+    "to_modify_or_remove": 8,
+    "near_modify_pairs": 0
+  },
+  "matched": [
+    {
+      "method": "DELETE",
+      "project_path": "/Companies/batchDelete",
+      "apifox_path": "/api/companies/batchDelete",
+      "func": "fetchBatchDeleteCompany",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Companies/{param}",
+      "apifox_path": "/api/companies/{id}",
+      "func": "fetchDeleteCompany",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/CustomerProtocolGoods/batchDelete",
+      "apifox_path": "/api/customer-protocol-goods/batchDelete",
+      "func": "fetchBatchDeleteCustomerProtocolGoods",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/CustomerProtocolGoods/{param}",
+      "apifox_path": "/api/customer-protocol-goods/{id}",
+      "func": "fetchDeleteCustomerProtocolGoods",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/CustomerProtocols/batchDelete",
+      "apifox_path": "/api/customer-protocols/batchDelete",
+      "func": "fetchBatchDeleteCustomerProtocol",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/CustomerProtocols/{param}",
+      "apifox_path": "/api/customer-protocols/{id}",
+      "func": "fetchDeleteCustomerProtocol",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/CustomerSubAccounts/batchDelete",
+      "apifox_path": "/api/customer-sub-accounts/batchDelete",
+      "func": "fetchBatchDeleteCustomerSubAccount",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/CustomerSubAccounts/{param}",
+      "apifox_path": "/api/customer-sub-accounts/{id}",
+      "func": "fetchDeleteCustomerSubAccount",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/CustomerTags/batchDelete",
+      "apifox_path": "/api/customer-tags/batchDelete",
+      "func": "fetchBatchDeleteCustomerTag",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/CustomerTags/{param}",
+      "apifox_path": "/api/customer-tags/{id}",
+      "func": "fetchDeleteCustomerTag",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Customers/batchDelete",
+      "apifox_path": "/api/customers/batchDelete",
+      "func": "fetchBatchDeleteCustomer",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Customers/{param}",
+      "apifox_path": "/api/customers/{id}",
+      "func": "fetchDeleteCustomer",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Departments/batchDelete",
+      "apifox_path": "/api/departments/batchDelete",
+      "func": "fetchBatchDeleteDepartment",
+      "summary": "批量删除部门"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Departments/{param}",
+      "apifox_path": "/api/departments/{id}",
+      "func": "fetchDeleteDepartment",
+      "summary": "删除部门"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/GoodsTypes/batchDelete",
+      "apifox_path": "/api/goods-types/batchDelete",
+      "func": "fetchBatchDeleteGoodsType",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/GoodsTypes/{param}",
+      "apifox_path": "/api/goods-types/{id}",
+      "func": "fetchDeleteGoodsType",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/GoodsUnits/batchDelete",
+      "apifox_path": "/api/goods-units/batchDelete",
+      "func": "fetchBatchDeleteGoodsUnit",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/GoodsUnits/{param}",
+      "apifox_path": "/api/goods-units/{id}",
+      "func": "fetchDeleteGoodsUnit",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Goods/batchDelete",
+      "apifox_path": "/api/goods/batchDelete",
+      "func": "fetchBatchDeleteGoods",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Goods/{param}",
+      "apifox_path": "/api/goods/{id}",
+      "func": "fetchDeleteGoods",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/MenuButtons/{param}",
+      "apifox_path": "/api/menu-buttons/{id}",
+      "func": "fetchDeleteMenuButton",
+      "summary": "删除菜单按钮"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Menus/batchDelete",
+      "apifox_path": "/api/menus/batchDelete",
+      "func": "fetchBatchDeleteMenu",
+      "summary": "批量删除菜单"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Menus/{param}",
+      "apifox_path": "/api/menus/{id}",
+      "func": "fetchDeleteMenu",
+      "summary": "删除菜单"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/PurchaseRules/batchDelete",
+      "apifox_path": "/api/purchase-rules/batchDelete",
+      "func": "fetchBatchDeletePurchaseRule",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/PurchaseRules/{param}",
+      "apifox_path": "/api/purchase-rules/{id}",
+      "func": "fetchDeletePurchaseRule",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Purchasers/batchDelete",
+      "apifox_path": "/api/purchasers/batchDelete",
+      "func": "fetchBatchDeletePurchaser",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Purchasers/{param}",
+      "apifox_path": "/api/purchasers/{id}",
+      "func": "fetchDeletePurchaser",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/QuotationGoods/batchDelete",
+      "apifox_path": "/api/quotation-goods/batchDelete",
+      "func": "fetchBatchDeleteQuotationGoods",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/QuotationGoods/{param}",
+      "apifox_path": "/api/quotation-goods/{id}",
+      "func": "fetchDeleteQuotationGoods",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Quotations/batchDelete",
+      "apifox_path": "/api/quotations/batchDelete",
+      "func": "fetchBatchDeleteQuotation",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Quotations/{param}",
+      "apifox_path": "/api/quotations/{id}",
+      "func": "fetchDeleteQuotation",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Roles/batchDelete",
+      "apifox_path": "/api/roles/batchDelete",
+      "func": "fetchBatchDeleteRole",
+      "summary": "批量删除角色"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Roles/{param}",
+      "apifox_path": "/api/roles/{id}",
+      "func": "fetchDeleteRole",
+      "summary": "删除角色"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Suppliers/batchDelete",
+      "apifox_path": "/api/suppliers/batchDelete",
+      "func": "fetchBatchDeleteSupplier",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Suppliers/{param}",
+      "apifox_path": "/api/suppliers/{id}",
+      "func": "fetchDeleteSupplier",
+      "summary": "删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Users/batchDelete",
+      "apifox_path": "/api/users/batchDelete",
+      "func": "fetchBatchDeleteUser",
+      "summary": "批量删除用户"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Users/unassignRoles",
+      "apifox_path": "/api/users/unassignRoles",
+      "func": "fetchUnassignRoles",
+      "summary": "为用户移除角色"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Users/{param}",
+      "apifox_path": "/api/users/{id}",
+      "func": "fetchDeleteUser",
+      "summary": "删除用户"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Wares/batchDelete",
+      "apifox_path": "/api/wares/batchDelete",
+      "func": "fetchBatchDeleteWare",
+      "summary": "批量删除。"
+    },
+    {
+      "method": "DELETE",
+      "project_path": "/Wares/{param}",
+      "apifox_path": "/api/wares/{id}",
+      "func": "fetchDeleteWare",
+      "summary": "删除。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/auth/getRoutes",
+      "apifox_path": "/api/auth/getRoutes",
+      "func": "fetchGetBackendRoutes",
+      "summary": "获取路由信息"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Auth/getUserInfo",
+      "apifox_path": "/api/auth/getUserInfo",
+      "func": "fetchGetUserInfo",
+      "summary": "获取用户信息"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Companies",
+      "apifox_path": "/api/companies",
+      "func": "fetchGetAllCompanies",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Companies/list",
+      "apifox_path": "/api/companies/list",
+      "func": "fetchGetCompanyList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Companies/{param}",
+      "apifox_path": "/api/companies/{id}",
+      "func": "fetchGetCompanyDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerProtocolGoods",
+      "apifox_path": "/api/customer-protocol-goods",
+      "func": "fetchGetAllCustomerProtocolGoods",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerProtocolGoods/list",
+      "apifox_path": "/api/customer-protocol-goods/list",
+      "func": "fetchGetCustomerProtocolGoodsList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerProtocolGoods/{param}",
+      "apifox_path": "/api/customer-protocol-goods/{id}",
+      "func": "fetchGetCustomerProtocolGoodsDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerProtocols",
+      "apifox_path": "/api/customer-protocols",
+      "func": "fetchGetAllCustomerProtocols",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerProtocols/list",
+      "apifox_path": "/api/customer-protocols/list",
+      "func": "fetchGetCustomerProtocolList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerProtocols/{param}",
+      "apifox_path": "/api/customer-protocols/{id}",
+      "func": "fetchGetCustomerProtocolDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerSubAccounts",
+      "apifox_path": "/api/customer-sub-accounts",
+      "func": "fetchGetAllCustomerSubAccounts",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerSubAccounts/list",
+      "apifox_path": "/api/customer-sub-accounts/list",
+      "func": "fetchGetCustomerSubAccountList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerSubAccounts/{param}",
+      "apifox_path": "/api/customer-sub-accounts/{id}",
+      "func": "fetchGetCustomerSubAccountDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerTags",
+      "apifox_path": "/api/customer-tags",
+      "func": "fetchGetAllCustomerTags",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerTags/list",
+      "apifox_path": "/api/customer-tags/list",
+      "func": "fetchGetCustomerTagList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerTags/tree",
+      "apifox_path": "/api/customer-tags/tree",
+      "func": "fetchGetCustomerTagTree",
+      "summary": "获取客户标签树。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/CustomerTags/{param}",
+      "apifox_path": "/api/customer-tags/{id}",
+      "func": "fetchGetCustomerTagDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Customers",
+      "apifox_path": "/api/customers",
+      "func": "fetchGetAllCustomers",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Customers/list",
+      "apifox_path": "/api/customers/list",
+      "func": "fetchGetCustomerList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Customers/{param}",
+      "apifox_path": "/api/customers/{id}",
+      "func": "fetchGetCustomerDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Departments/tree",
+      "apifox_path": "/api/departments/tree",
+      "func": "fetchGetDepartmentTree",
+      "summary": "获取部门树"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Departments/{param}",
+      "apifox_path": "/api/departments/{id}",
+      "func": "fetchGetDepartmentDetail",
+      "summary": "根据 id 获取部门"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Departments/{param}/users",
+      "apifox_path": "/api/departments/{id}/users",
+      "func": "fetchGetDepartmentUsers",
+      "summary": "获取部门下的用户列表"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Goods",
+      "apifox_path": "/api/goods",
+      "func": "fetchGetAllGoods",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/GoodsTypes",
+      "apifox_path": "/api/goods-types",
+      "func": "fetchGetAllGoodsTypes",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/GoodsTypes/list",
+      "apifox_path": "/api/goods-types/list",
+      "func": "fetchGetGoodsTypeList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/GoodsTypes/tree",
+      "apifox_path": "/api/goods-types/tree",
+      "func": "fetchGetGoodsTypeTree",
+      "summary": "获取商品分类树。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/GoodsTypes/{param}",
+      "apifox_path": "/api/goods-types/{id}",
+      "func": "fetchGetGoodsTypeDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/GoodsUnits",
+      "apifox_path": "/api/goods-units",
+      "func": "fetchGetAllGoodsUnits",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/GoodsUnits/by-goods/{param}",
+      "apifox_path": "/api/goods-units/by-goods/{goodsId}",
+      "func": "fetchGetGoodsUnitsByGoods",
+      "summary": "查询指定商品的单位列表。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/GoodsUnits/list",
+      "apifox_path": "/api/goods-units/list",
+      "func": "fetchGetGoodsUnitList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/GoodsUnits/{param}",
+      "apifox_path": "/api/goods-units/{id}",
+      "func": "fetchGetGoodsUnitDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Goods/list",
+      "apifox_path": "/api/goods/list",
+      "func": "fetchGetGoodsList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Goods/{param}",
+      "apifox_path": "/api/goods/{id}",
+      "func": "fetchGetGoodsDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/MenuButtons/{param}",
+      "apifox_path": "/api/menu-buttons/{id}",
+      "func": "fetchGetMenuButtonDetail",
+      "summary": "根据 id 获取菜单按钮"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Menus",
+      "apifox_path": "/api/menus",
+      "func": "fetchGetAllMenus",
+      "summary": "查询所有菜单"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Menus/list",
+      "apifox_path": "/api/menus/list",
+      "func": "fetchGetMenuList",
+      "summary": "分页查询菜单"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Menus/tree",
+      "apifox_path": "/api/menus/tree",
+      "func": "fetchGetMenuTree",
+      "summary": "查询菜单树"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Menus/{param}",
+      "apifox_path": "/api/menus/{id}",
+      "func": "fetchGetMenuDetail",
+      "summary": "根据id 获取菜单"
+    },
+    {
+      "method": "GET",
+      "project_path": "/PurchaseRules",
+      "apifox_path": "/api/purchase-rules",
+      "func": "fetchGetAllPurchaseRules",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/PurchaseRules/list",
+      "apifox_path": "/api/purchase-rules/list",
+      "func": "fetchGetPurchaseRuleList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/PurchaseRules/{param}",
+      "apifox_path": "/api/purchase-rules/{id}",
+      "func": "fetchGetPurchaseRuleDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Purchasers",
+      "apifox_path": "/api/purchasers",
+      "func": "fetchGetAllPurchasers",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Purchasers/list",
+      "apifox_path": "/api/purchasers/list",
+      "func": "fetchGetPurchaserList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Purchasers/{param}",
+      "apifox_path": "/api/purchasers/{id}",
+      "func": "fetchGetPurchaserDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/QuotationGoods",
+      "apifox_path": "/api/quotation-goods",
+      "func": "fetchGetAllQuotationGoods",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/QuotationGoods/list",
+      "apifox_path": "/api/quotation-goods/list",
+      "func": "fetchGetQuotationGoodsList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/QuotationGoods/{param}",
+      "apifox_path": "/api/quotation-goods/{id}",
+      "func": "fetchGetQuotationGoodsDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Quotations",
+      "apifox_path": "/api/quotations",
+      "func": "fetchGetAllQuotations",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Quotations/list",
+      "apifox_path": "/api/quotations/list",
+      "func": "fetchGetQuotationList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Quotations/{param}",
+      "apifox_path": "/api/quotations/{id}",
+      "func": "fetchGetQuotationDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Roles",
+      "apifox_path": "/api/roles",
+      "func": "fetchGetAllRoles",
+      "summary": "查询所有角色"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Roles/list",
+      "apifox_path": "/api/roles/list",
+      "func": "fetchGetRoleList",
+      "summary": "分页查询角色"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Roles/{param}",
+      "apifox_path": "/api/roles/{id}",
+      "func": "fetchGetDetailRole",
+      "summary": "根据id获取角色"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Suppliers",
+      "apifox_path": "/api/suppliers",
+      "func": "fetchGetAllSuppliers",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Suppliers/list",
+      "apifox_path": "/api/suppliers/list",
+      "func": "fetchGetSupplierList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Suppliers/{param}",
+      "apifox_path": "/api/suppliers/{id}",
+      "func": "fetchGetSupplierDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Users/list",
+      "apifox_path": "/api/users/list",
+      "func": "fetchGetUserList",
+      "summary": "分页查询用户"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Users/{param}",
+      "apifox_path": "/api/users/{id}",
+      "func": "fetchGetDetailUser",
+      "summary": "根据id获取用户"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Wares",
+      "apifox_path": "/api/wares",
+      "func": "fetchGetAllWares",
+      "summary": "查询全部。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Wares/list",
+      "apifox_path": "/api/wares/list",
+      "func": "fetchGetWareList",
+      "summary": "分页查询。"
+    },
+    {
+      "method": "GET",
+      "project_path": "/Wares/{param}",
+      "apifox_path": "/api/wares/{id}",
+      "func": "fetchGetWareDetail",
+      "summary": "根据 ID 查询。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Companies/{param}/status",
+      "apifox_path": "/api/companies/{id}/status",
+      "func": "fetchToggleCompanyStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/CustomerProtocolGoods/{param}/status",
+      "apifox_path": "/api/customer-protocol-goods/{id}/status",
+      "func": "fetchToggleCustomerProtocolGoodsStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/CustomerProtocols/{param}/status",
+      "apifox_path": "/api/customer-protocols/{id}/status",
+      "func": "fetchToggleCustomerProtocolStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/CustomerSubAccounts/{param}/status",
+      "apifox_path": "/api/customer-sub-accounts/{id}/status",
+      "func": "fetchToggleCustomerSubAccountStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/CustomerTags/{param}/status",
+      "apifox_path": "/api/customer-tags/{id}/status",
+      "func": "fetchToggleCustomerTagStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Customers/{param}/status",
+      "apifox_path": "/api/customers/{id}/status",
+      "func": "fetchToggleCustomerStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Departments/{param}/status",
+      "apifox_path": "/api/departments/{id}/status",
+      "func": "fetchToggleDepartmentStatus",
+      "summary": "切换部门状态"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/GoodsTypes/{param}/status",
+      "apifox_path": "/api/goods-types/{id}/status",
+      "func": "fetchToggleGoodsTypeStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/GoodsUnits/{param}/status",
+      "apifox_path": "/api/goods-units/{id}/status",
+      "func": "fetchToggleGoodsUnitStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Goods/{param}/sale-status",
+      "apifox_path": "/api/goods/{id}/sale-status",
+      "func": "fetchToggleGoodsSaleStatus",
+      "summary": "修改商品上下架状态。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Goods/{param}/status",
+      "apifox_path": "/api/goods/{id}/status",
+      "func": "fetchToggleGoodsStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/PurchaseRules/{param}/status",
+      "apifox_path": "/api/purchase-rules/{id}/status",
+      "func": "fetchTogglePurchaseRuleStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Purchasers/{param}/status",
+      "apifox_path": "/api/purchasers/{id}/status",
+      "func": "fetchTogglePurchaserStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/QuotationGoods/{param}/status",
+      "apifox_path": "/api/quotation-goods/{id}/status",
+      "func": "fetchToggleQuotationGoodsStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Quotations/{param}/audit",
+      "apifox_path": "/api/quotations/{id}/audit",
+      "func": "fetchAuditQuotation",
+      "summary": "审核或反审核报价单。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Quotations/{param}/status",
+      "apifox_path": "/api/quotations/{id}/status",
+      "func": "fetchToggleQuotationStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Suppliers/{param}/status",
+      "apifox_path": "/api/suppliers/{id}/status",
+      "func": "fetchToggleSupplierStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "PATCH",
+      "project_path": "/Wares/{param}/status",
+      "apifox_path": "/api/wares/{id}/status",
+      "func": "fetchToggleWareStatus",
+      "summary": "启用或禁用。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Auth/login",
+      "apifox_path": "/api/auth/login",
+      "func": "fetchLogin",
+      "summary": "登录"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Auth/logout",
+      "apifox_path": "/api/auth/logout",
+      "func": "fetchLogout",
+      "summary": "注销登录"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Auth/refresh-token",
+      "apifox_path": "/api/auth/refresh-token",
+      "func": "fetchRefreshToken",
+      "summary": "刷新令牌"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Companies",
+      "apifox_path": "/api/companies",
+      "func": "fetchAddCompany",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/CustomerProtocolGoods",
+      "apifox_path": "/api/customer-protocol-goods",
+      "func": "fetchAddCustomerProtocolGoods",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/CustomerProtocols",
+      "apifox_path": "/api/customer-protocols",
+      "func": "fetchAddCustomerProtocol",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/CustomerSubAccounts",
+      "apifox_path": "/api/customer-sub-accounts",
+      "func": "fetchAddCustomerSubAccount",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/CustomerTags",
+      "apifox_path": "/api/customer-tags",
+      "func": "fetchAddCustomerTag",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Customers",
+      "apifox_path": "/api/customers",
+      "func": "fetchAddCustomer",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Departments",
+      "apifox_path": "/api/departments",
+      "func": "fetchAddDepartment",
+      "summary": "创建部门"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Goods",
+      "apifox_path": "/api/goods",
+      "func": "fetchAddGoods",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/GoodsTypes",
+      "apifox_path": "/api/goods-types",
+      "func": "fetchAddGoodsType",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/GoodsUnits",
+      "apifox_path": "/api/goods-units",
+      "func": "fetchAddGoodsUnit",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/MenuButtons",
+      "apifox_path": "/api/menu-buttons",
+      "func": "fetchAddMenuButton",
+      "summary": "创建菜单按钮"
+    },
+    {
+      "method": "POST",
+      "project_path": "/MenuButtons/batch",
+      "apifox_path": "/api/menu-buttons/batch",
+      "func": "fetchBatchCreateMenuButtons",
+      "summary": "批量创建菜单按钮"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Menus",
+      "apifox_path": "/api/menus",
+      "func": "fetchAddMenu",
+      "summary": "创建菜单"
+    },
+    {
+      "method": "POST",
+      "project_path": "/PurchaseRules",
+      "apifox_path": "/api/purchase-rules",
+      "func": "fetchAddPurchaseRule",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Purchasers",
+      "apifox_path": "/api/purchasers",
+      "func": "fetchAddPurchaser",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/QuotationGoods",
+      "apifox_path": "/api/quotation-goods",
+      "func": "fetchAddQuotationGoods",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Quotations",
+      "apifox_path": "/api/quotations",
+      "func": "fetchAddQuotation",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Roles",
+      "apifox_path": "/api/roles",
+      "func": "fetchAddRole",
+      "summary": "创建角色"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Roles/assignMenus",
+      "apifox_path": "/api/roles/assignMenus",
+      "func": "fetchAssignMenu",
+      "summary": "为角色分配菜单"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Roles/unassignRoles",
+      "apifox_path": "/api/roles/unassignRoles",
+      "func": "fetchUnassignMenu",
+      "summary": "为角色删除菜单"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Suppliers",
+      "apifox_path": "/api/suppliers",
+      "func": "fetchAddSupplier",
+      "summary": "创建。"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Users",
+      "apifox_path": "/api/users",
+      "func": "fetchAddUser",
+      "summary": "创建用户"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Users/assignRoles",
+      "apifox_path": "/api/users/assignRoles",
+      "func": "fetchAssignRoles",
+      "summary": "为用户分配角色"
+    },
+    {
+      "method": "POST",
+      "project_path": "/Wares",
+      "apifox_path": "/api/wares",
+      "func": "fetchAddWare",
+      "summary": "创建。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Companies",
+      "apifox_path": "/api/companies",
+      "func": "fetchUpdateCompany",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/CustomerProtocolGoods",
+      "apifox_path": "/api/customer-protocol-goods",
+      "func": "fetchUpdateCustomerProtocolGoods",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/CustomerProtocols",
+      "apifox_path": "/api/customer-protocols",
+      "func": "fetchUpdateCustomerProtocol",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/CustomerSubAccounts",
+      "apifox_path": "/api/customer-sub-accounts",
+      "func": "fetchUpdateCustomerSubAccount",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/CustomerTags",
+      "apifox_path": "/api/customer-tags",
+      "func": "fetchUpdateCustomerTag",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Customers",
+      "apifox_path": "/api/customers",
+      "func": "fetchUpdateCustomer",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Departments",
+      "apifox_path": "/api/departments",
+      "func": "fetchUpdateDepartment",
+      "summary": "更新部门"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Goods",
+      "apifox_path": "/api/goods",
+      "func": "fetchUpdateGoods",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/GoodsTypes",
+      "apifox_path": "/api/goods-types",
+      "func": "fetchUpdateGoodsType",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/GoodsUnits",
+      "apifox_path": "/api/goods-units",
+      "func": "fetchUpdateGoodsUnit",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/MenuButtons",
+      "apifox_path": "/api/menu-buttons",
+      "func": "fetchUpdateMenuButton",
+      "summary": "更新菜单按钮"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/MenuButtons/replace",
+      "apifox_path": "/api/menu-buttons/replace",
+      "func": "fetchReplaceMenuButtons",
+      "summary": "批量替换菜单按钮"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Menus",
+      "apifox_path": "/api/menus",
+      "func": "fetchUpdateMenu",
+      "summary": "更新菜单"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/PurchaseRules",
+      "apifox_path": "/api/purchase-rules",
+      "func": "fetchUpdatePurchaseRule",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Purchasers",
+      "apifox_path": "/api/purchasers",
+      "func": "fetchUpdatePurchaser",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/QuotationGoods",
+      "apifox_path": "/api/quotation-goods",
+      "func": "fetchUpdateQuotationGoods",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Quotations",
+      "apifox_path": "/api/quotations",
+      "func": "fetchUpdateQuotation",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Roles",
+      "apifox_path": "/api/roles",
+      "func": "fetchUpdateRole",
+      "summary": "更新角色"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Suppliers",
+      "apifox_path": "/api/suppliers",
+      "func": "fetchUpdateSupplier",
+      "summary": "更新。"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Users",
+      "apifox_path": "/api/users",
+      "func": "fetchUpdateUser",
+      "summary": "更新用户"
+    },
+    {
+      "method": "PUT",
+      "project_path": "/Wares",
+      "apifox_path": "/api/wares",
+      "func": "fetchUpdateWare",
+      "summary": "更新。"
+    }
+  ],
+  "to_add": [
+    {
+      "method": "DELETE",
+      "path": "/api/after-sales/{id}",
+      "summary": "删除从未提交过的售后草稿。",
+      "module": "after-sales"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/carriers/batchDelete",
+      "summary": "批量删除。",
+      "module": "carriers"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/carriers/{id}",
+      "summary": "删除。",
+      "module": "carriers"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/customer-settlements/{id}/void",
+      "summary": "作废客户结款凭证并回滚已核销账单金额。",
+      "module": "customer-settlements"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/drivers/batchDelete",
+      "summary": "批量删除。",
+      "module": "drivers"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/drivers/{id}",
+      "summary": "删除。",
+      "module": "drivers"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/notices/{id}",
+      "summary": "删除通知公告。",
+      "module": "notices"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/orders/{id}",
+      "summary": "删除销售订单。",
+      "module": "orders"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/print-templates/{id}",
+      "summary": "删除打印模板及其字段定义。",
+      "module": "print-templates"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/purchase-orders/{id}",
+      "summary": "删除采购单草稿并释放采购计划数量占用。需要采购删除权限。",
+      "module": "purchase-orders"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/routes/batchDelete",
+      "summary": "批量删除。",
+      "module": "routes"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/routes/{id}",
+      "summary": "删除。",
+      "module": "routes"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/stock-in/other/{id}",
+      "summary": "删除其他入库草稿。需要库存删除权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/stock-in/purchase/{id}",
+      "summary": "删除采购入库草稿。需要库存删除权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/stock-in/sales-return/{id}",
+      "summary": "删除销售退货入库草稿。需要库存删除权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/stock-out/other/{id}",
+      "summary": "删除其他出库草稿。需要库存删除权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/stock-out/purchase-return/{id}",
+      "summary": "删除采购退货出库草稿。需要库存删除权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/stock-out/sale/{id}",
+      "summary": "删除销售出库草稿。需要库存删除权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/supplier-settlements/{id}/void",
+      "summary": "作废供应商结算单并回滚已核销待结单据金额。",
+      "module": "supplier-settlements"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/system-settings/service-periods/{id}",
+      "summary": "删除运营服务时段。",
+      "module": "system-settings"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/traceability/inspection-reports/{id}",
+      "summary": "删除未被商品溯源引用的检测报告及其附件。",
+      "module": "traceability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/after-sales",
+      "summary": "分页查询售后单。",
+      "module": "after-sales"
+    },
+    {
+      "method": "GET",
+      "path": "/api/after-sales/pickup-tasks",
+      "summary": "分页查询取货任务及其销售退货入库衔接状态。",
+      "module": "after-sales"
+    },
+    {
+      "method": "GET",
+      "path": "/api/after-sales/{id}",
+      "summary": "查询售后单商品明细和审核轨迹。",
+      "module": "after-sales"
+    },
+    {
+      "method": "GET",
+      "path": "/api/carriers",
+      "summary": "查询全部。",
+      "module": "carriers"
+    },
+    {
+      "method": "GET",
+      "path": "/api/carriers/list",
+      "summary": "分页查询。",
+      "module": "carriers"
+    },
+    {
+      "method": "GET",
+      "path": "/api/carriers/{id}",
+      "summary": "根据 ID 查询。",
+      "module": "carriers"
+    },
+    {
+      "method": "GET",
+      "path": "/api/customer-settlements",
+      "summary": "分页查询客户结款凭证。",
+      "module": "customer-settlements"
+    },
+    {
+      "method": "GET",
+      "path": "/api/customer-settlements/bills",
+      "summary": "分页查询客户账单，可筛选仍有未结余额的待结账单。",
+      "module": "customer-settlements"
+    },
+    {
+      "method": "GET",
+      "path": "/api/customer-settlements/{id}",
+      "summary": "查询客户结款凭证明细。",
+      "module": "customer-settlements"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/brief",
+      "summary": "查询统计周期内已签收订单的经营概览。",
+      "module": "dashboard"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/customer-sales-rank",
+      "summary": "查询按客户验收销售额降序截取的客户销售排行。",
+      "module": "dashboard"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/goods-type-sales-rank",
+      "summary": "查询按客户验收销售额降序截取的商品分类销售排行。",
+      "module": "dashboard"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/pickup-statuses",
+      "summary": "查询按取货任务创建时间筛选并按当前状态汇总的取货任务数。",
+      "module": "dashboard"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/reconciliation",
+      "summary": "查询按客户账单业务日期汇总的应收、已结和待结金额。",
+      "module": "dashboard"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/sales-trend",
+      "summary": "查询按订单日期排列的已签收销售趋势。",
+      "module": "dashboard"
+    },
+    {
+      "method": "GET",
+      "path": "/api/delivery-exceptions",
+      "summary": "分页查询配送异常及其任务、司机和客户信息。需要配送读取权限。",
+      "module": "delivery-exceptions"
+    },
+    {
+      "method": "GET",
+      "path": "/api/delivery-exceptions/{id}",
+      "summary": "查询配送异常详情。需要配送读取权限。",
+      "module": "delivery-exceptions"
+    },
+    {
+      "method": "GET",
+      "path": "/api/delivery-tasks",
+      "summary": "分页查询配送订单任务。需要配送读取权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "GET",
+      "path": "/api/delivery-tasks/driver",
+      "summary": "分页查询已经分配司机的配送任务。需要配送读取权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "GET",
+      "path": "/api/delivery-tasks/{id}",
+      "summary": "查询配送任务详情。需要配送读取权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "GET",
+      "path": "/api/drivers",
+      "summary": "查询全部。",
+      "module": "drivers"
+    },
+    {
+      "method": "GET",
+      "path": "/api/drivers/list",
+      "summary": "分页查询。",
+      "module": "drivers"
+    },
+    {
+      "method": "GET",
+      "path": "/api/drivers/{id}",
+      "summary": "根据 ID 查询。",
+      "module": "drivers"
+    },
+    {
+      "method": "GET",
+      "path": "/api/files/{id}/download",
+      "summary": "下载当前创建人上传的文件；不存在、物理文件缺失或其他用户文件均返回未找到，避免泄露存在性。",
+      "module": "files"
+    },
+    {
+      "method": "GET",
+      "path": "/api/import-export/jobs/export/{jobType}",
+      "summary": "导出当前商品数据为 CSV；响应头 X-Import-Export-Job-Id 可用于查询本次任务状态。",
+      "module": "import-export"
+    },
+    {
+      "method": "GET",
+      "path": "/api/import-export/jobs/templates/{jobType}",
+      "summary": "下载指定业务类型的 CSV 导入模板；当前支持商品类型。",
+      "module": "import-export"
+    },
+    {
+      "method": "GET",
+      "path": "/api/import-export/jobs/{id}",
+      "summary": "查询当前操作人创建的导入或导出任务状态，避免泄露其他用户的文件处理结果。",
+      "module": "import-export"
+    },
+    {
+      "method": "GET",
+      "path": "/api/logs/logins",
+      "summary": "分页查询登录审计日志。",
+      "module": "logs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/logs/operations",
+      "summary": "分页查询关键操作审计日志。",
+      "module": "logs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notices",
+      "summary": "分页查询通知公告。",
+      "module": "notices"
+    },
+    {
+      "method": "GET",
+      "path": "/api/orders/list",
+      "summary": "分页查询销售订单。",
+      "module": "orders"
+    },
+    {
+      "method": "GET",
+      "path": "/api/orders/{id}",
+      "summary": "查询销售订单详情。",
+      "module": "orders"
+    },
+    {
+      "method": "GET",
+      "path": "/api/print-data/{businessType}",
+      "summary": "读取指定业务单据的打印数据；预览读取不会修改来源单据状态。",
+      "module": "print-data"
+    },
+    {
+      "method": "GET",
+      "path": "/api/print-templates",
+      "summary": "分页查询打印模板。",
+      "module": "print-templates"
+    },
+    {
+      "method": "GET",
+      "path": "/api/print-templates/by-code/{templateCode}",
+      "summary": "按稳定模板编码查询模板和字段定义。",
+      "module": "print-templates"
+    },
+    {
+      "method": "GET",
+      "path": "/api/purchase-orders/list",
+      "summary": "分页查询采购单及商品明细。需要采购读取权限。",
+      "module": "purchase-orders"
+    },
+    {
+      "method": "GET",
+      "path": "/api/purchase-orders/{id}",
+      "summary": "查询采购单详情及其采购计划来源。需要采购读取权限。",
+      "module": "purchase-orders"
+    },
+    {
+      "method": "GET",
+      "path": "/api/purchase-plans/list",
+      "summary": "分页查询采购计划。需要采购读取权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "GET",
+      "path": "/api/purchase-plans/{id}",
+      "summary": "查询采购计划详情，含商品明细与订单来源关系。需要采购读取权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "GET",
+      "path": "/api/purchase-plans/{planId}/split-orders",
+      "summary": "查询指定采购计划中可按订单拆分的来源订单。需要采购读取权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/after-sales",
+      "summary": "按售后申请类型、原因和处理方式汇总已完成售后的退款/减免；补货、换货、客户沟通数量计 0。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/purchase-in-out/goods",
+      "summary": "按商品汇总采购入库与采购退货出库的数量和金额。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/purchase-in-out/purchasers",
+      "summary": "按采购员汇总采购入库与采购退货出库的数量和金额；退货出库通过批次追溯原采购入库采购员。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/purchase-in-out/suppliers",
+      "summary": "按供应商汇总采购入库与采购退货出库的数量和金额。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/sales/areas",
+      "summary": "按订单配送地址快照汇总已签收销售订单的验收数量和金额。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/sales/categories",
+      "summary": "按商品分类汇总已签收销售订单的验收数量和金额。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/sales/customers",
+      "summary": "按客户汇总已签收销售订单的验收数量和金额。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/sales/goods",
+      "summary": "按商品汇总已签收销售订单的验收数量和金额。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/stock/daily",
+      "summary": "按自然日汇总已审核库存入库与出库的数量、金额和单据数。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/stock/daily-goods",
+      "summary": "按自然日和商品汇总已审核库存入库与出库的数量和金额。",
+      "module": "reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/routes",
+      "summary": "查询全部。",
+      "module": "routes"
+    },
+    {
+      "method": "GET",
+      "path": "/api/routes/list",
+      "summary": "分页查询。",
+      "module": "routes"
+    },
+    {
+      "method": "GET",
+      "path": "/api/routes/{id}",
+      "summary": "根据 ID 查询。",
+      "module": "routes"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-in/other/list",
+      "summary": "分页查询其他入库单及商品明细。需要库存读取权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-in/other/{id}",
+      "summary": "查询其他入库单详情。需要库存读取权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-in/purchase/list",
+      "summary": "分页查询采购入库单及商品明细。需要库存读取权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-in/purchase/{id}",
+      "summary": "查询采购入库单详情。需要库存读取权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-in/sales-return/list",
+      "summary": "分页查询销售退货入库单及商品明细。需要库存读取权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-in/sales-return/{id}",
+      "summary": "查询销售退货入库单详情。需要库存读取权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-out/other/list",
+      "summary": "分页查询其他出库单及商品批次明细。需要库存读取权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-out/other/{id}",
+      "summary": "查询其他出库单详情。需要库存读取权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-out/purchase-return/list",
+      "summary": "分页查询采购退货出库单及商品批次明细。需要库存读取权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-out/purchase-return/{id}",
+      "summary": "查询采购退货出库单详情。需要库存读取权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-out/sale/list",
+      "summary": "分页查询销售出库单及商品批次明细。需要库存读取权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock-out/sale/{id}",
+      "summary": "查询销售出库单详情。需要库存读取权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock/batches",
+      "summary": "分页查询库存批次余额、成本、生产日期和到期日期。需要库存读取权限。",
+      "module": "stock"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock/ledgers",
+      "summary": "分页查询审核与反审核产生的库存增减台账，按发生时间倒序返回。需要库存读取权限。",
+      "module": "stock"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stock/overview",
+      "summary": "按仓库和商品分页汇总当前数量、可用数量、占用量与货值。需要库存读取权限。",
+      "module": "stock"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stocktaking/list",
+      "summary": "分页查询库存盘点单和批次账实差异。需要库存读取权限。",
+      "module": "stocktaking"
+    },
+    {
+      "method": "GET",
+      "path": "/api/stocktaking/{id}",
+      "summary": "查询库存盘点单完整详情。需要库存读取权限。",
+      "module": "stocktaking"
+    },
+    {
+      "method": "GET",
+      "path": "/api/supplier-settlements",
+      "summary": "分页查询供应商结算单。",
+      "module": "supplier-settlements"
+    },
+    {
+      "method": "GET",
+      "path": "/api/supplier-settlements/bills",
+      "summary": "分页查询供应商待结单据，可筛选仍有未结余额的待处理单据。",
+      "module": "supplier-settlements"
+    },
+    {
+      "method": "GET",
+      "path": "/api/supplier-settlements/{id}",
+      "summary": "查询供应商结算单明细。",
+      "module": "supplier-settlements"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system-settings/mini-program-order",
+      "summary": "读取小程序下单全局设置。",
+      "module": "system-settings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system-settings/service-periods",
+      "summary": "查询运营服务时段。",
+      "module": "system-settings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system-settings/service-periods/{id}",
+      "summary": "查询单个运营服务时段。",
+      "module": "system-settings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system-settings/sorting-weights",
+      "summary": "读取分拣排序权重设置。",
+      "module": "system-settings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/user/profile",
+      "summary": "获取当前用户个人资料",
+      "module": "system"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traceability/inspection-reports",
+      "summary": "分页查询检测报告。",
+      "module": "traceability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traceability/inspection-reports/eligible-stock-ins",
+      "summary": "分页查询可创建检测报告的已审核采购入库单。",
+      "module": "traceability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traceability/inspection-reports/eligible-stock-ins/{stockInOrderId}/details",
+      "summary": "读取指定已审核采购入库单的商品明细，供客户端选择送检商品。",
+      "module": "traceability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traceability/inspection-reports/{id}",
+      "summary": "读取检测报告详情。",
+      "module": "traceability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traceability/push-logs",
+      "summary": "分页查询外部平台报送日志。",
+      "module": "traceability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traceability/traces",
+      "summary": "分页查询商品溯源记录。",
+      "module": "traceability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traceability/traces/qr/{traceNo}",
+      "summary": "读取二维码公开详情，仅返回已固化的商品、批次、供应商、仓库和检测报告快照。",
+      "module": "traceability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "summary": "获取所有用户",
+      "module": "users"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/carriers/{id}/status",
+      "summary": "启用或禁用。",
+      "module": "carriers"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/drivers/{id}/status",
+      "summary": "启用或禁用。",
+      "module": "drivers"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notices/{id}/status",
+      "summary": "发布或撤回通知公告。",
+      "module": "notices"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/routes/{id}/status",
+      "summary": "启用或禁用。",
+      "module": "routes"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales",
+      "summary": "创建待提交售后单并固化来源业务快照。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales/pickup-tasks/{id}/complete",
+      "summary": "完成取货中的任务，使其可以作为销售退货入库来源。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales/pickup-tasks/{id}/start",
+      "summary": "开始执行已分配的取货任务并记录开始时间。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales/{id}/approve",
+      "summary": "审核通过售后并进入实物或退款处理；退货退款商品会幂等生成取货任务。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales/{id}/complete",
+      "summary": "完成待退货、补货、换货或待退款处理；退货退款必须已完成并审核退货入库。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales/{id}/reject",
+      "summary": "驳回待审核售后到可修改草稿。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales/{id}/resubmit",
+      "summary": "将已驳回并修正的售后单重新提交审核。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales/{id}/reverse",
+      "summary": "撤销尚未产生下游取货任务的审核结论。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/after-sales/{id}/submit",
+      "summary": "首次提交售后草稿进入待审核。",
+      "module": "after-sales"
+    },
+    {
+      "method": "POST",
+      "path": "/api/carriers",
+      "summary": "创建。",
+      "module": "carriers"
+    },
+    {
+      "method": "POST",
+      "path": "/api/customer-settlements",
+      "summary": "创建客户结款凭证并回写客户账单余额。",
+      "module": "customer-settlements"
+    },
+    {
+      "method": "POST",
+      "path": "/api/delivery-exceptions",
+      "summary": "为已分配且尚未签收的配送任务登记异常，并同步任务异常状态。需要配送创建权限。",
+      "module": "delivery-exceptions"
+    },
+    {
+      "method": "POST",
+      "path": "/api/delivery-tasks/generate/{stockOutOrderId}",
+      "summary": "从已审核销售出库单幂等生成配送任务。需要配送创建权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "POST",
+      "path": "/api/drivers",
+      "summary": "创建。",
+      "module": "drivers"
+    },
+    {
+      "method": "POST",
+      "path": "/api/files",
+      "summary": "上传一个不超过 10 MiB 的 PDF、PNG 或 JPEG；文件名、声明 MIME 类型和二进制签名必须一致。",
+      "module": "files"
+    },
+    {
+      "method": "POST",
+      "path": "/api/import-export/jobs/import/{jobType}",
+      "summary": "读取商品 CSV 并在整文件校验通过后写入商品资料；失败时不写入任何商品行。",
+      "module": "import-export"
+    },
+    {
+      "method": "POST",
+      "path": "/api/notices",
+      "summary": "新建草稿通知公告。",
+      "module": "notices"
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders",
+      "summary": "创建销售订单。",
+      "module": "orders"
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders/{id}/approve",
+      "summary": "审核通过待审核订单。",
+      "module": "orders"
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders/{id}/reject",
+      "summary": "驳回待审核订单。",
+      "module": "orders"
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders/{id}/resubmit",
+      "summary": "重新提交已驳回订单。",
+      "module": "orders"
+    },
+    {
+      "method": "POST",
+      "path": "/api/print-data/{businessType}/confirm",
+      "summary": "确认订单、入库单或出库单已完成正式打印；不适用于采购单和结算单。",
+      "module": "print-data"
+    },
+    {
+      "method": "POST",
+      "path": "/api/print-templates",
+      "summary": "新增打印模板和完整字段定义。",
+      "module": "print-templates"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-orders",
+      "summary": "手工创建采购单草稿和商品明细。需要采购创建权限。",
+      "module": "purchase-orders"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-orders/generate-from-plans",
+      "summary": "从采购计划全部剩余数量批量生成采购单草稿。需要采购创建权限。",
+      "module": "purchase-orders"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-orders/{id}/cancel",
+      "summary": "取消采购单草稿并释放采购计划数量占用。需要采购更新权限。",
+      "module": "purchase-orders"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-orders/{id}/complete",
+      "summary": "完成采购单草稿，使其可供后续采购入库引用。需要采购更新权限。",
+      "module": "purchase-orders"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-plans",
+      "summary": "手工新增采购计划及其商品明细。需要采购创建权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-plans/generate",
+      "summary": "从已审核通过的销售订单批量生成采购计划。需要采购创建权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-plans/merge",
+      "summary": "合并采购模式、供应商和采购员一致的未发布采购计划。需要采购更新权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-plans/split/orders",
+      "summary": "按来源销售订单拆分未发布采购计划。需要采购更新权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchase-plans/split/quantity",
+      "summary": "按商品采购数量拆分未发布采购计划。需要采购更新权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "POST",
+      "path": "/api/routes",
+      "summary": "创建。",
+      "module": "routes"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/other",
+      "summary": "创建其他入库草稿及商品明细。需要库存创建权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/other/{id}/audit",
+      "summary": "审核其他入库单，增加库存批次并写入库存流水。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/other/{id}/reverse-audit",
+      "summary": "反审核其他入库单，回滚库存批次并写入反向流水。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/purchase",
+      "summary": "创建采购入库草稿及商品明细。需要库存创建权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/purchase/{id}/audit",
+      "summary": "审核采购入库单，增加库存批次并写入库存流水。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/purchase/{id}/reverse-audit",
+      "summary": "反审核采购入库单，回滚库存批次并写入反向流水。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/sales-return",
+      "summary": "创建销售退货入库草稿及商品明细；关联已完成取货任务时按来源幂等返回。需要库存创建权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/sales-return/{id}/audit",
+      "summary": "审核销售退货入库单，增加库存批次并写入库存流水。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-in/sales-return/{id}/reverse-audit",
+      "summary": "反审核销售退货入库单，回滚库存批次并写入反向流水。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/other",
+      "summary": "创建其他出库草稿及商品批次明细。需要库存创建权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/other/{id}/audit",
+      "summary": "审核其他出库单，校验可用库存后扣减批次并写入库存流水。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/other/{id}/reverse-audit",
+      "summary": "反审核其他出库单，恢复库存批次并写入反向流水。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/purchase-return",
+      "summary": "创建采购退货出库草稿及商品批次明细。需要库存创建权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/purchase-return/{id}/audit",
+      "summary": "审核采购退货出库单，校验可用库存后扣减批次并写入库存流水。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/purchase-return/{id}/reverse-audit",
+      "summary": "反审核采购退货出库单，恢复库存批次并写入反向流水。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/sale",
+      "summary": "创建销售出库草稿及商品批次明细。需要库存创建权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/sale/{id}/audit",
+      "summary": "审核销售出库单，校验可用库存后扣减批次并写入库存流水。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stock-out/sale/{id}/reverse-audit",
+      "summary": "反审核销售出库单，恢复库存批次并写入反向流水。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stocktaking",
+      "summary": "创建库存盘点草稿，按当前批次余额固化账面数量和成本并计算差异。需要库存创建权限。",
+      "module": "stocktaking"
+    },
+    {
+      "method": "POST",
+      "path": "/api/stocktaking/{id}/audit",
+      "summary": "审核库存盘点，锁定批次后执行盘盈盘亏并只追加调整流水。需要库存更新权限。",
+      "module": "stocktaking"
+    },
+    {
+      "method": "POST",
+      "path": "/api/supplier-settlements",
+      "summary": "创建供应商结算单并回写待结单据余额。",
+      "module": "supplier-settlements"
+    },
+    {
+      "method": "POST",
+      "path": "/api/system-settings/service-periods",
+      "summary": "新增运营服务时段。",
+      "module": "system-settings"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traceability/inspection-reports",
+      "summary": "创建检测报告并固化采购入库、商品、仓库和供应商快照。",
+      "module": "traceability"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traceability/traces/sale-orders/{saleOrderId}/generate",
+      "summary": "为销售订单中已审核销售出库的商品生成缺失溯源记录。",
+      "module": "traceability"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/after-sales",
+      "summary": "更新待提交售后单并原子替换全部商品申请行。",
+      "module": "after-sales"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/after-sales/pickup-tasks/{id}/assign",
+      "summary": "为尚未开始的取货任务分配或更换启用司机。",
+      "module": "after-sales"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/carriers",
+      "summary": "更新。",
+      "module": "carriers"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/delivery-exceptions/{id}/handle",
+      "summary": "完成待处理配送异常；没有其他待处理异常时恢复任务执行状态。需要配送更新权限。",
+      "module": "delivery-exceptions"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/delivery-tasks/driver",
+      "summary": "为待分配或已分配配送任务批量指定启用司机。需要配送更新权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/delivery-tasks/intelligent-plan",
+      "summary": "按客户已配置的启用配送路线批量规划任务。需要配送更新权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/delivery-tasks/{id}/receipt",
+      "summary": "归档已签收任务的纸质扫描件或电子回单，并在整单完成时同步回单状态。需要配送更新权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/delivery-tasks/{id}/sign",
+      "summary": "签收配送中任务，保存全部出库商品验收结果，并在整单完成时同步订单结算状态。需要配送更新权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/delivery-tasks/{id}/start",
+      "summary": "将已分配任务推进到配送中，并同步销售订单状态。需要配送更新权限。",
+      "module": "delivery-tasks"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/drivers",
+      "summary": "更新。",
+      "module": "drivers"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/notices/{id}",
+      "summary": "更新通知公告内容，不改变当前发布状态。",
+      "module": "notices"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/orders",
+      "summary": "编辑销售订单及其商品明细。",
+      "module": "orders"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/print-templates",
+      "summary": "完整更新打印模板，传入字段集合将替换原字段定义。",
+      "module": "print-templates"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/purchase-orders",
+      "summary": "编辑采购单草稿及其全部商品明细。需要采购更新权限。",
+      "module": "purchase-orders"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/purchase-plans/purchaser",
+      "summary": "批量分配或清除未发布采购计划的采购员。需要采购更新权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/purchase-plans/supplier",
+      "summary": "批量分配或清除未发布采购计划的供应商。需要采购更新权限。",
+      "module": "purchase-plans"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/routes",
+      "summary": "更新。",
+      "module": "routes"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/routes/{routeId}/customers",
+      "summary": "分配客户到指定配送路线，用请求集合整体替换该路线的客户关系。",
+      "module": "routes"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/stock-in/other",
+      "summary": "编辑其他入库草稿及其全部商品明细。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/stock-in/purchase",
+      "summary": "编辑采购入库草稿及其全部商品明细。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/stock-in/sales-return",
+      "summary": "编辑销售退货入库草稿及其全部商品明细。需要库存更新权限。",
+      "module": "stock-in"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/stock-out/other",
+      "summary": "编辑其他出库草稿及其全部商品批次明细。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/stock-out/purchase-return",
+      "summary": "编辑采购退货出库草稿及其全部商品批次明细。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/stock-out/sale",
+      "summary": "编辑销售出库草稿及其全部商品批次明细。需要库存更新权限。",
+      "module": "stock-out"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/system-settings/mini-program-order",
+      "summary": "保存小程序下单全局设置。",
+      "module": "system-settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/system-settings/service-periods/{id}",
+      "summary": "完整更新运营服务时段。",
+      "module": "system-settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/system-settings/sorting-weights",
+      "summary": "保存分拣排序权重设置。",
+      "module": "system-settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/system/user/profile",
+      "summary": "更新当前用户个人资料",
+      "module": "system"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/system/user/profile/updatePwd",
+      "summary": "修改当前用户密码",
+      "module": "system"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traceability/inspection-reports/{id}",
+      "summary": "更新未被溯源引用的检测报告；一旦生成二维码溯源，报告全文冻结不可修改。",
+      "module": "traceability"
+    }
+  ],
+  "project_only": [
+    {
+      "method": "GET",
+      "path": "/auth/error",
+      "norm": "/auth/error",
+      "func": "fetchCustomBackendError",
+      "file": "src/service/api/auth.ts",
+      "module": "auth"
+    },
+    {
+      "method": "GET",
+      "path": "/route/getConstantRoutes",
+      "norm": "/route/get-constant-routes",
+      "func": "fetchGetConstantRoutes",
+      "file": "src/service/api/route.ts",
+      "module": "route"
+    },
+    {
+      "method": "GET",
+      "path": "/route/getUserRoutes",
+      "norm": "/route/get-user-routes",
+      "func": "fetchGetVueUserRoutes",
+      "file": "src/service/api/route.ts",
+      "module": "route"
+    },
+    {
+      "method": "GET",
+      "path": "/route/isRouteExist",
+      "norm": "/route/is-route-exist",
+      "func": "fetchIsRouteExist",
+      "file": "src/service/api/route.ts",
+      "module": "route"
+    },
+    {
+      "method": "GET",
+      "path": "/systemManage/getAllPages",
+      "norm": "/system-manage/get-all-pages",
+      "func": "fetchGetAllPages",
+      "file": "src/service/api/system-manage.ts",
+      "module": "system-manage"
+    },
+    {
+      "method": "PATCH",
+      "path": "/Menus/{param}/status",
+      "norm": "/menus/{param}/status",
+      "func": "fetchToggleMenuStatus",
+      "file": "src/service/api/system-manage.ts",
+      "module": "menus"
+    },
+    {
+      "method": "PATCH",
+      "path": "/Roles/{param}/status",
+      "norm": "/roles/{param}/status",
+      "func": "fetchToggleRoleStatus",
+      "file": "src/service/api/system-manage.ts",
+      "module": "roles"
+    },
+    {
+      "method": "PATCH",
+      "path": "/Users/{param}/status",
+      "norm": "/users/{param}/status",
+      "func": "fetchToggleUserStatus",
+      "file": "src/service/api/system-manage.ts",
+      "module": "users"
+    }
+  ],
+  "likely_modify": []
+}

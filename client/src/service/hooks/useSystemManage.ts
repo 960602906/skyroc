@@ -1,0 +1,89 @@
+import { useQuery } from '@tanstack/react-query';
+
+import {
+  fetchGetAllRoles,
+  fetchGetDetailRole,
+  fetchGetMenuList,
+  fetchGetMenuTree,
+  fetchGetRoleList,
+  fetchGetUserList
+} from '../api';
+import { QUERY_KEYS } from '../keys';
+
+/**
+ * Get role list hook
+ *
+ * @example
+ *   const { data: roleList, isLoading } = useRoleList({ current: 1, size: 10 });
+ *
+ * @param params - Search parameters
+ */
+export function useRoleList(params?: Api.SystemManage.RoleSearchParams) {
+  return useQuery({
+    queryFn: () => fetchGetRoleList(params),
+    queryKey: QUERY_KEYS.SYSTEM_MANAGE.ROLE_LIST(params)
+  });
+}
+
+/**
+ * Get all roles hook
+ *
+ * @example
+ *   const { data: allRoles, isLoading } = useAllRoles();
+ */
+export function useAllRoles() {
+  return useQuery({
+    queryFn: fetchGetAllRoles,
+    queryKey: QUERY_KEYS.SYSTEM_MANAGE.ALL_ROLES,
+    staleTime: 0
+  });
+}
+
+/**
+ * Get user list hook
+ *
+ * @example
+ *   const { data: userList, isLoading } = useUserList({ current: 1, size: 10 });
+ *
+ * @param params - Search parameters
+ */
+export function useUserList(params?: Api.SystemManage.UserSearchParams) {
+  return useQuery({
+    queryFn: () => fetchGetUserList(params),
+    queryKey: QUERY_KEYS.SYSTEM_MANAGE.USER_LIST(params)
+  });
+}
+
+/**
+ * Get menu list hook
+ *
+ * @example
+ *   const { data: menuList, isLoading } = useMenuList();
+ */
+export function useMenuList(params?: Api.Menu.SearchParams) {
+  return useQuery({
+    queryFn: () => fetchGetMenuList(params),
+    queryKey: QUERY_KEYS.SYSTEM_MANAGE.MENU_LIST
+  });
+}
+
+/**
+ * Get menu tree hook
+ *
+ * @example
+ *   const { data: menuTree, isLoading } = useMenuTree();
+ */
+export function useMenuTree() {
+  return useQuery({
+    queryFn: fetchGetMenuTree,
+    queryKey: QUERY_KEYS.SYSTEM_MANAGE.MENU_TREE
+  });
+}
+
+/** details role hook */
+export function useDetailsRole(id: string) {
+  return useQuery({
+    queryFn: () => fetchGetDetailRole(id),
+    queryKey: QUERY_KEYS.SYSTEM_MANAGE.DETAILS_ROLE(id)
+  });
+}
