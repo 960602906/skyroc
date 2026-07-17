@@ -23,6 +23,7 @@ public class SupplierSettlementService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreateSupplierSettlementDto> createValidator,
     IValidator<VoidSupplierSettlementDto> voidValidator,
     ILogger<SupplierSettlementService> logger) : ISupplierSettlementService
@@ -147,7 +148,9 @@ public class SupplierSettlementService(
             var settlement = new SupplierSettlement
             {
                 Id = settlementId,
-                SettlementNo = await GenerateSettlementNoAsync(),
+                SettlementNo = await documentNoGenerator.NextAsync(
+                    DocumentNoKind.SupplierSettlement,
+                    no => supplierSettlementRepository.ExistsSettlementNoAsync(no)),
                 SupplierId = firstBill.SupplierId,
                 SupplierNameSnapshot = firstBill.SupplierNameSnapshot,
                 SettlementDate = dto.SettlementDate ?? DateTime.UtcNow,
@@ -215,21 +218,6 @@ public class SupplierSettlementService(
 
         logger.LogInformation("供应商结算单作废成功: {SettlementId}", id);
         return await GetByIdAsync(id);
-    }
-
-    private async Task<string> GenerateSettlementNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
-            var settlementNo = $"SS{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await supplierSettlementRepository.ExistsSettlementNoAsync(settlementNo))
-            {
-                return settlementNo;
-            }
-        }
-
-        throw new BusinessException("供应商结算单编号生成失败，请重试");
     }
 
     private static decimal GetPendingAmount(SupplierBill bill)

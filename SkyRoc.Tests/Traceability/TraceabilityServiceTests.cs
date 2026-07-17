@@ -12,6 +12,7 @@ using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -258,7 +259,8 @@ public class TraceabilityServiceTests
 
     private static TraceabilityService CreateService(ApplicationDbContext context) => new(
         new InspectionReportRepository(context), new TraceRecordRepository(context), new ExternalPushLogRepository(context),
-        new StockInOrderRepository(context), new SavingUnitOfWork(context), new FakeCurrentUserService(), new SaveInspectionReportValidator());
+        new StockInOrderRepository(context), new SavingUnitOfWork(context), new FakeCurrentUserService(),
+        DocumentNoGeneratorTestDouble.Instance, new SaveInspectionReportValidator());
 
     private static ApplicationDbContext CreateDbContext() => new(new DbContextOptionsBuilder<ApplicationDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);

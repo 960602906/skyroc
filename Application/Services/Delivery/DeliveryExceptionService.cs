@@ -22,6 +22,7 @@ public class DeliveryExceptionService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreateDeliveryExceptionDto> createValidator,
     IValidator<HandleDeliveryExceptionDto> handleValidator,
     ILogger<DeliveryExceptionService> logger) : IDeliveryExceptionService
@@ -74,7 +75,9 @@ public class DeliveryExceptionService(
             var entity = new DeliveryException
             {
                 Id = Guid.NewGuid(),
-                ExceptionNo = await GenerateExceptionNoAsync(),
+                ExceptionNo = await documentNoGenerator.NextAsync(
+                    DocumentNoKind.DeliveryException,
+                    no => deliveryExceptionRepository.ExistsByExceptionNoAsync(no)),
                 DeliveryTaskId = task.Id,
                 DriverId = task.DriverId,
                 CustomerId = task.CustomerId,
@@ -148,18 +151,4 @@ public class DeliveryExceptionService(
         return await GetByIdAsync(id);
     }
 
-    private async Task<string> GenerateExceptionNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
-            var exceptionNo = $"DE{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await deliveryExceptionRepository.ExistsByExceptionNoAsync(exceptionNo))
-            {
-                return exceptionNo;
-            }
-        }
-
-        throw new BusinessException("配送异常编号生成失败，请重试");
-    }
 }

@@ -23,6 +23,7 @@ public class CustomerSettlementService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreateCustomerSettlementDto> createValidator,
     IValidator<VoidCustomerSettlementDto> voidValidator,
     ILogger<CustomerSettlementService> logger) : ICustomerSettlementService
@@ -145,7 +146,9 @@ public class CustomerSettlementService(
             var settlement = new CustomerSettlement
             {
                 Id = settlementId,
-                SettlementNo = await GenerateSettlementNoAsync(),
+                SettlementNo = await documentNoGenerator.NextAsync(
+                    DocumentNoKind.CustomerSettlement,
+                    no => customerSettlementRepository.ExistsSettlementNoAsync(no)),
                 CustomerId = firstBill.CustomerId,
                 CustomerNameSnapshot = firstBill.CustomerNameSnapshot,
                 SettlementDate = dto.SettlementDate ?? DateTime.UtcNow,
@@ -213,21 +216,6 @@ public class CustomerSettlementService(
 
         logger.LogInformation("客户结款凭证作废成功: {SettlementId}", id);
         return await GetByIdAsync(id);
-    }
-
-    private async Task<string> GenerateSettlementNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
-            var settlementNo = $"CS{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await customerSettlementRepository.ExistsSettlementNoAsync(settlementNo))
-            {
-                return settlementNo;
-            }
-        }
-
-        throw new BusinessException("客户结款凭证编号生成失败，请重试");
     }
 
     private static decimal GetPendingAmount(CustomerBill bill)

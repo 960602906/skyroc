@@ -21,6 +21,7 @@ public class TraceabilityService(
     IStockInOrderRepository stockInOrderRepository,
     IUnitOfWork unitOfWork,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<SaveInspectionReportDto> reportValidator) : ITraceabilityService
 {
     /// <inheritdoc />
@@ -50,7 +51,9 @@ public class TraceabilityService(
             var report = new InspectionReport
             {
                 Id = reportId,
-                InspectionNo = await GenerateInspectionNoAsync(),
+                InspectionNo = await documentNoGenerator.NextAsync(
+                    DocumentNoKind.InspectionReport,
+                    no => inspectionReportRepository.ExistsInspectionNoAsync(no)),
                 StockInOrderId = stockInOrder.Id,
                 InNoSnapshot = stockInOrder.InNo,
                 WareId = stockInOrder.WareId,
@@ -215,7 +218,9 @@ public class TraceabilityService(
                 var trace = new TraceRecord
                 {
                     Id = Guid.NewGuid(),
-                    TraceNo = await GenerateTraceNoAsync(),
+                    TraceNo = await documentNoGenerator.NextAsync(
+                        DocumentNoKind.TraceRecord,
+                        no => traceRecordRepository.ExistsAsync(x => x.TraceNo == no)),
                     SaleOrderId = source.SaleOrderId,
                     SaleOrderNoSnapshot = source.SaleOrderNo,
                     SaleOrderDetailId = source.SaleOrderDetailId,
@@ -373,26 +378,6 @@ public class TraceabilityService(
             FileSize = x.FileSize,
             Sort = x.Sort
         }).ToList();
-    }
-
-    private async Task<string> GenerateInspectionNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var number = $"IR{DateTime.UtcNow:yyyyMMddHHmmssfff}{Guid.NewGuid():N}"[..40].ToUpperInvariant();
-            if (!await inspectionReportRepository.ExistsInspectionNoAsync(number)) return number;
-        }
-        throw new BusinessException("检测报告编号生成失败，请重试");
-    }
-
-    private async Task<string> GenerateTraceNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var number = $"TR{DateTime.UtcNow:yyyyMMddHHmmssfff}{Guid.NewGuid():N}"[..40].ToUpperInvariant();
-            if (!await traceRecordRepository.ExistsAsync(x => x.TraceNo == number)) return number;
-        }
-        throw new BusinessException("溯源编号生成失败，请重试");
     }
 
     private async Task ValidateAsync(SaveInspectionReportDto dto)

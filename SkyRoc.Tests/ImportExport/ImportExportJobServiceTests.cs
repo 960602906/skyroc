@@ -8,6 +8,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -255,7 +256,8 @@ public class ImportExportJobServiceTests
             new GoodsRepository(context),
             new GoodsTypeRepository(context),
             new UnitOfWork(context),
-            new TestCurrentUserService());
+            new TestCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance);
     }
 
     private sealed class TestCurrentUserService : Application.interfaces.ICurrentUserService

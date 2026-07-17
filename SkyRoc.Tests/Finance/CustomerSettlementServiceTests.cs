@@ -12,6 +12,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using SkyRoc.Tests.Testing;
 using Xunit;
 
 namespace SkyRoc.Tests.Finance;
@@ -159,6 +160,7 @@ public class CustomerSettlementServiceTests
             new RecordingUnitOfWork(context),
             mapper,
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new CreateCustomerSettlementValidator(detailValidator),
             new VoidCustomerSettlementValidator(),
             NullLogger<CustomerSettlementService>.Instance);

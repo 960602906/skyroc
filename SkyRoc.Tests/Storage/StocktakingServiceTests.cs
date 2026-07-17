@@ -12,6 +12,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -290,6 +291,7 @@ public class StocktakingServiceTests
             unitOfWork,
             mapper,
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new CreateStocktakingValidator(),
             NullLogger<StocktakingService>.Instance);
     }

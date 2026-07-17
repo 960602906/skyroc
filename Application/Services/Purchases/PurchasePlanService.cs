@@ -29,6 +29,7 @@ public class PurchasePlanService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreatePurchasePlanDto> createValidator,
     IValidator<GeneratePurchasePlanFromOrdersDto> generateValidator,
     ILogger<PurchasePlanService> logger) : IPurchasePlanService
@@ -60,7 +61,7 @@ public class PurchasePlanService(
         var plan = new PurchasePlan
         {
             Id = Guid.NewGuid(),
-            PlanNo = await GeneratePlanNoAsync(),
+            PlanNo = await NextPlanNoAsync(),
             PlanDate = dto.PlanDate,
             PurchasePattern = dto.PurchasePattern,
             PurchaseStatus = PurchasePlanStatus.Unpublished,
@@ -118,7 +119,7 @@ public class PurchasePlanService(
         {
             foreach (var order in orders)
             {
-                var plan = BuildPlanFromOrder(order, remark);
+                var plan = await BuildPlanFromOrderAsync(order, remark);
                 createdPlanIds.Add(plan.Id);
                 await purchasePlanRepository.AddAsync(plan);
 
@@ -469,7 +470,7 @@ public class PurchasePlanService(
         var plan = new PurchasePlan
         {
             Id = Guid.NewGuid(),
-            PlanNo = await GeneratePlanNoAsync(),
+            PlanNo = await NextPlanNoAsync(),
             PlanDate = planDate,
             PurchasePattern = source.PurchasePattern,
             PurchaseStatus = PurchasePlanStatus.Unpublished,
@@ -611,12 +612,12 @@ public class PurchasePlanService(
     /// <param name="order">已审核通过的销售订单。</param>
     /// <param name="remark">写入采购计划的备注。</param>
     /// <returns>待持久化的采购计划实体。</returns>
-    private PurchasePlan BuildPlanFromOrder(SaleOrder order, string? remark)
+    private async Task<PurchasePlan> BuildPlanFromOrderAsync(SaleOrder order, string? remark)
     {
         var plan = new PurchasePlan
         {
             Id = Guid.NewGuid(),
-            PlanNo = GeneratePlanNoValue(),
+            PlanNo = await NextPlanNoAsync(),
             PlanDate = order.ReceiveDate ?? order.OrderDate,
             PurchasePattern = PurchasePattern.SupplierDirect,
             PurchaseStatus = PurchasePlanStatus.Unpublished,
@@ -775,24 +776,11 @@ public class PurchasePlanService(
         }
     }
 
-    private async Task<string> GeneratePlanNoAsync()
+    private Task<string> NextPlanNoAsync()
     {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var planNo = GeneratePlanNoValue();
-            if (!await purchasePlanRepository.ExistsPlanNoAsync(planNo))
-            {
-                return planNo;
-            }
-        }
-
-        throw new BusinessException("采购计划编号生成失败，请重试");
-    }
-
-    private static string GeneratePlanNoValue()
-    {
-        var suffix = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
-        return $"PP{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
+        return documentNoGenerator.NextAsync(
+            DocumentNoKind.PurchasePlan,
+            no => purchasePlanRepository.ExistsPlanNoAsync(no));
     }
 
     private static string? NormalizeRemark(string? remark)

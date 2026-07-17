@@ -18,6 +18,7 @@ using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shared.Constants;
+using SkyRoc.Tests.Testing;
 using Xunit;
 
 namespace SkyRoc.Tests.Delivery;
@@ -509,12 +510,14 @@ public class DeliveryTaskServiceTests
             new CustomerBillService(
                 new CustomerBillRepository(context),
                 new AfterSaleRepository(context),
-                new FakeCurrentUserService()),
+                new FakeCurrentUserService(),
+                DocumentNoGeneratorTestDouble.Instance),
             new DriverRepository(context),
             new DeliveryRouteRepository(context),
             new RecordingUnitOfWork(context),
             CreateMapper(),
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new AssignDeliveryDriverValidator(),
             new IntelligentPlanDeliveryTasksValidator(),
             new SignDeliveryTaskValidator(),
@@ -530,6 +533,7 @@ public class DeliveryTaskServiceTests
             new RecordingUnitOfWork(context),
             CreateMapper(),
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new CreateDeliveryExceptionValidator(),
             new HandleDeliveryExceptionValidator(),
             NullLogger<DeliveryExceptionService>.Instance);

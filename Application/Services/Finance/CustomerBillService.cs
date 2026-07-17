@@ -15,7 +15,8 @@ namespace Application.Services;
 public class CustomerBillService(
     ICustomerBillRepository customerBillRepository,
     IAfterSaleRepository afterSaleRepository,
-    ICurrentUserService currentUserService) : ICustomerBillService
+    ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator) : ICustomerBillService
 {
     /// <inheritdoc />
     public async Task<CustomerBill> SyncOrderAcceptanceAsync(SaleOrder saleOrder)
@@ -116,7 +117,9 @@ public class CustomerBillService(
         var bill = new CustomerBill
         {
             Id = Guid.NewGuid(),
-            BillNo = await GenerateBillNoAsync(),
+            BillNo = await documentNoGenerator.NextAsync(
+                DocumentNoKind.CustomerBill,
+                no => customerBillRepository.ExistsBillNoAsync(no)),
             CustomerId = saleOrder.CustomerId,
             CustomerNameSnapshot = saleOrder.CustomerNameSnapshot,
             SaleOrderId = saleOrder.Id,
@@ -280,21 +283,6 @@ public class CustomerBillService(
         target.Amount = source.Amount;
         target.BusinessTime = source.BusinessTime;
         target.Remark = source.Remark;
-    }
-
-    private async Task<string> GenerateBillNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
-            var billNo = $"CB{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await customerBillRepository.ExistsBillNoAsync(billNo))
-            {
-                return billNo;
-            }
-        }
-
-        throw new BusinessException("客户账单编号生成失败，请重试");
     }
 
     private void ApplyCreateAudit(BaseEntity entity)

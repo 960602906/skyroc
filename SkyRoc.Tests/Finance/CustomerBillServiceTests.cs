@@ -8,6 +8,7 @@ using Domain.Entities.Orders;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -48,7 +49,8 @@ public class CustomerBillServiceTests
         return new CustomerBillService(
             new CustomerBillRepository(context),
             new AfterSaleRepository(context),
-            new FakeCurrentUserService());
+            new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance);
     }
 
     private static ApplicationDbContext CreateDbContext()

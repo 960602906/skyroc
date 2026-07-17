@@ -30,6 +30,7 @@ public class DeliveryTaskService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<AssignDeliveryDriverDto> assignDriverValidator,
     IValidator<IntelligentPlanDeliveryTasksDto> intelligentPlanValidator,
     IValidator<SignDeliveryTaskDto> signValidator,
@@ -95,7 +96,9 @@ public class DeliveryTaskService(
             var task = new DeliveryTask
             {
                 Id = Guid.NewGuid(),
-                TaskNo = await GenerateTaskNoAsync(),
+                TaskNo = await documentNoGenerator.NextAsync(
+                    DocumentNoKind.DeliveryTask,
+                    no => deliveryTaskRepository.ExistsTaskNoAsync(no)),
                 StockOutOrderId = stockOut.Id,
                 SaleOrderId = saleOrder.Id,
                 CustomerId = stockOut.CustomerId.Value,
@@ -264,7 +267,9 @@ public class DeliveryTaskService(
             var receipt = new OrderReceipt
             {
                 Id = Guid.NewGuid(),
-                ReceiptNo = await GenerateReceiptNoAsync(),
+                ReceiptNo = await documentNoGenerator.NextAsync(
+                    DocumentNoKind.OrderReceipt,
+                    no => orderReceiptRepository.ExistsReceiptNoAsync(no)),
                 DeliveryTaskId = task.Id,
                 SaleOrderId = task.SaleOrderId,
                 StockOutOrderId = task.StockOutOrderId,
@@ -491,36 +496,6 @@ public class DeliveryTaskService(
         saleOrder.OrderStatus = SaleOrderStatus.Signed;
         ApplyUpdateAudit(saleOrder);
         await saleOrderRepository.UpdateAsync(saleOrder);
-    }
-
-    private async Task<string> GenerateTaskNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
-            var taskNo = $"DT{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await deliveryTaskRepository.ExistsTaskNoAsync(taskNo))
-            {
-                return taskNo;
-            }
-        }
-
-        throw new BusinessException("配送任务编号生成失败，请重试");
-    }
-
-    private async Task<string> GenerateReceiptNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
-            var receiptNo = $"OR{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await orderReceiptRepository.ExistsReceiptNoAsync(receiptNo))
-            {
-                return receiptNo;
-            }
-        }
-
-        throw new BusinessException("签收回单编号生成失败，请重试");
     }
 
     private static void EnsureDispatchEditable(DeliveryTask task, string operation)

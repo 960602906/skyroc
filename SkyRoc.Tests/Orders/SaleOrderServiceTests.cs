@@ -14,6 +14,7 @@ using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shared.Constants;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -328,6 +329,7 @@ public class SaleOrderServiceTests
             unitOfWork,
             mapper,
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new CreateSaleOrderValidator(),
             new UpdateSaleOrderValidator(),
             NullLogger<SaleOrderService>.Instance);

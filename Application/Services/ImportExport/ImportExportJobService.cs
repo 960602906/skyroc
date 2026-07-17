@@ -16,7 +16,8 @@ public class ImportExportJobService(
     IGoodsRepository goodsRepository,
     IGoodsTypeRepository goodsTypeRepository,
     IUnitOfWork unitOfWork,
-    ICurrentUserService currentUserService) : IImportExportJobService
+    ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator) : IImportExportJobService
 {
     private static readonly string[] GoodsHeaders =
         ["Name", "Code", "GoodsTypeId", "Spec", "Brand", "Origin", "TaxRate", "IsOnSale", "Remark"];
@@ -135,7 +136,9 @@ public class ImportExportJobService(
         var job = new ImportExportJob
         {
             Id = Guid.NewGuid(),
-            JobNo = $"IE{DateTime.UtcNow:yyyyMMddHHmmssfff}{Guid.NewGuid():N}"[..48],
+            JobNo = await documentNoGenerator.NextAsync(
+                DocumentNoKind.ImportExportJob,
+                no => jobRepository.ExistsAsync(x => x.JobNo == no)),
             JobType = jobType,
             JobDirection = direction,
             JobStatus = ImportExportJobStatus.Processing,

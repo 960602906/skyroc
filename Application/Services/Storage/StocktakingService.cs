@@ -26,6 +26,7 @@ public class StocktakingService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreateStocktakingDto> createValidator,
     ILogger<StocktakingService> logger) : IStocktakingService
 {
@@ -57,7 +58,9 @@ public class StocktakingService(
         var order = new StocktakingOrder
         {
             Id = Guid.NewGuid(),
-            StocktakingNo = await GenerateStocktakingNoAsync(),
+            StocktakingNo = await documentNoGenerator.NextAsync(
+                DocumentNoKind.Stocktaking,
+                no => stocktakingOrderRepository.ExistsStocktakingNoAsync(no)),
             BusinessStatus = StockDocumentStatus.Draft,
             WareId = ware.Id,
             WareNameSnapshot = ware.Name,
@@ -269,21 +272,6 @@ public class StocktakingService(
     {
         return await stocktakingOrderRepository.GetByIdAsync(id)
                ?? throw new NotFoundException("库存盘点单不存在");
-    }
-
-    private async Task<string> GenerateStocktakingNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
-            var stocktakingNo = $"STK{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await stocktakingOrderRepository.ExistsStocktakingNoAsync(stocktakingNo))
-            {
-                return stocktakingNo;
-            }
-        }
-
-        throw new BusinessException("盘点单编号生成失败，请重试");
     }
 
     private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)

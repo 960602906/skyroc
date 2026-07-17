@@ -30,6 +30,7 @@ public class PurchaseOrderService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreatePurchaseOrderDto> createValidator,
     IValidator<UpdatePurchaseOrderDto> updateValidator,
     IValidator<GeneratePurchaseOrdersFromPlansDto> generateValidator,
@@ -62,7 +63,9 @@ public class PurchaseOrderService(
         var order = new PurchaseOrder
         {
             Id = Guid.NewGuid(),
-            PurchaseNo = await GeneratePurchaseNoAsync(),
+            PurchaseNo = await documentNoGenerator.NextAsync(
+                DocumentNoKind.PurchaseOrder,
+                no => purchaseOrderRepository.ExistsPurchaseNoAsync(no)),
             PurchasePattern = dto.PurchasePattern,
             ReceiveTime = dto.ReceiveTime,
             BusinessStatus = PurchaseOrderStatus.Draft,
@@ -253,7 +256,9 @@ public class PurchaseOrderService(
         var order = new PurchaseOrder
         {
             Id = Guid.NewGuid(),
-            PurchaseNo = await GeneratePurchaseNoAsync(),
+            PurchaseNo = await documentNoGenerator.NextAsync(
+                DocumentNoKind.PurchaseOrder,
+                no => purchaseOrderRepository.ExistsPurchaseNoAsync(no)),
             PurchasePattern = firstPlan.PurchasePattern,
             ReceiveTime = dto.ReceiveTime ?? plans.Min(x => x.PlanDate),
             BusinessStatus = PurchaseOrderStatus.Draft,
@@ -652,21 +657,6 @@ public class PurchaseOrderService(
     {
         return await purchaseOrderRepository.GetByIdAsync(id)
                ?? throw new NotFoundException("采购单不存在");
-    }
-
-    private async Task<string> GeneratePurchaseNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
-            var purchaseNo = $"PO{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await purchaseOrderRepository.ExistsPurchaseNoAsync(purchaseNo))
-            {
-                return purchaseNo;
-            }
-        }
-
-        throw new BusinessException("采购单编号生成失败，请重试");
     }
 
     private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)

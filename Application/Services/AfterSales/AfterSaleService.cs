@@ -39,6 +39,7 @@ public class AfterSaleService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreateAfterSaleDto> createValidator,
     IValidator<UpdateAfterSaleDto> updateValidator,
     ILogger<AfterSaleService> logger) : IAfterSaleService
@@ -77,7 +78,9 @@ public class AfterSaleService(
             var entity = new AfterSale
             {
                 Id = afterSaleId,
-                AfterSaleNo = await GenerateAfterSaleNoAsync(),
+                AfterSaleNo = await documentNoGenerator.NextAsync(
+                    DocumentNoKind.AfterSale,
+                    no => afterSaleRepository.ExistsAfterSaleNoAsync(no)),
                 SaleOrderId = saleOrder?.Id,
                 SaleOrderNoSnapshot = saleOrder?.OrderNo,
                 CustomerId = customer.Id,
@@ -583,21 +586,6 @@ public class AfterSaleService(
                ?? throw new NotFoundException("售后单不存在");
     }
 
-    private async Task<string> GenerateAfterSaleNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
-            var afterSaleNo = $"AS{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await afterSaleRepository.ExistsAfterSaleNoAsync(afterSaleNo))
-            {
-                return afterSaleNo;
-            }
-        }
-
-        throw new BusinessException("售后单号生成失败，请重试");
-    }
-
     private async Task GeneratePickupTasksAsync(AfterSale entity)
     {
         var returnGoods = entity.Goods
@@ -621,7 +609,9 @@ public class AfterSaleService(
             var task = new PickupTask
             {
                 Id = Guid.NewGuid(),
-                TaskNo = $"PU{DateTime.UtcNow:yyyyMMddHHmmssfff}{Guid.NewGuid():N}"[..42].ToUpperInvariant(),
+                TaskNo = await documentNoGenerator.NextAsync(
+                    DocumentNoKind.PickupTask,
+                    no => pickupTaskRepository.ExistsAsync(x => x.TaskNo == no)),
                 AfterSaleId = entity.Id,
                 AfterSaleGoodsId = goods.Id,
                 ContactNameSnapshot = entity.ContactNameSnapshot,

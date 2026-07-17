@@ -15,6 +15,7 @@ using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shared.Constants;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -181,7 +182,8 @@ public class AfterSaleServiceTests
         await new CustomerBillService(
             new CustomerBillRepository(context),
             new AfterSaleRepository(context),
-            new FakeCurrentUserService()).SyncOrderAcceptanceAsync(saleOrder!);
+            new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance).SyncOrderAcceptanceAsync(saleOrder!);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
         var service = CreateService(context);
@@ -337,7 +339,8 @@ public class AfterSaleServiceTests
             new CustomerBillService(
                 new CustomerBillRepository(context),
                 new AfterSaleRepository(context),
-                new FakeCurrentUserService()),
+                new FakeCurrentUserService(),
+                DocumentNoGeneratorTestDouble.Instance),
             new CustomerRepository(context),
             new GoodsRepository(context),
             new GoodsUnitRepository(context),
@@ -346,6 +349,7 @@ public class AfterSaleServiceTests
             new RecordingUnitOfWork(context),
             mapper,
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new CreateAfterSaleValidator(goodsValidator),
             new UpdateAfterSaleValidator(goodsValidator),
             NullLogger<AfterSaleService>.Instance);

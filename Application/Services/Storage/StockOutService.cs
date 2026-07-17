@@ -36,6 +36,7 @@ public class StockOutService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreateSaleStockOutDto> createSaleValidator,
     IValidator<UpdateSaleStockOutDto> updateSaleValidator,
     IValidator<CreatePurchaseReturnStockOutDto> createPurchaseReturnValidator,
@@ -363,7 +364,9 @@ public class StockOutService(
         var order = new StockOutOrder
         {
             Id = Guid.NewGuid(),
-            OutNo = await GenerateOutNoAsync(),
+            OutNo = await documentNoGenerator.NextAsync(
+                DocumentNoKind.StockOut,
+                no => stockOutOrderRepository.ExistsOutNoAsync(no)),
             OrderType = orderType,
             BusinessStatus = StockDocumentStatus.Draft,
             OutTime = outTime,
@@ -855,21 +858,6 @@ public class StockOutService(
         }
 
         return order;
-    }
-
-    private async Task<string> GenerateOutNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
-            var outNo = $"OUT{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await stockOutOrderRepository.ExistsOutNoAsync(outNo))
-            {
-                return outNo;
-            }
-        }
-
-        throw new BusinessException("出库单编号生成失败，请重试");
     }
 
     private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)

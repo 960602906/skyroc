@@ -15,6 +15,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -481,6 +482,7 @@ public class PurchasePlanServiceTests
             unitOfWork,
             mapper,
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new CreatePurchasePlanValidator(),
             new GeneratePurchasePlanFromOrdersValidator(),
             NullLogger<PurchasePlanService>.Instance);
@@ -501,6 +503,7 @@ public class PurchasePlanServiceTests
             unitOfWork,
             mapper,
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new CreateSaleOrderValidator(),
             new UpdateSaleOrderValidator(),
             NullLogger<SaleOrderService>.Instance);

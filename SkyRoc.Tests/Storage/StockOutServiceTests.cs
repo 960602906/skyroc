@@ -16,6 +16,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
@@ -448,11 +449,13 @@ public class StockOutServiceTests
             new SupplierBillService(
                 new SupplierBillRepository(context),
                 new SupplierSettlementRepository(context),
-                new FakeCurrentUserService()),
+                new FakeCurrentUserService(),
+                DocumentNoGeneratorTestDouble.Instance),
             new GoodsUnitRepository(context),
             unitOfWork,
             mapper,
             new FakeCurrentUserService(),
+            DocumentNoGeneratorTestDouble.Instance,
             new CreateSaleStockOutValidator(),
             new UpdateSaleStockOutValidator(),
             new CreatePurchaseReturnStockOutValidator(),

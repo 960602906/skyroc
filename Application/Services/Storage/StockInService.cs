@@ -41,6 +41,7 @@ public class StockInService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreatePurchaseStockInDto> createPurchaseValidator,
     IValidator<UpdatePurchaseStockInDto> updatePurchaseValidator,
     IValidator<CreateOtherStockInDto> createOtherValidator,
@@ -416,7 +417,9 @@ public class StockInService(
         var order = new StockInOrder
         {
             Id = Guid.NewGuid(),
-            InNo = await GenerateInNoAsync(),
+            InNo = await documentNoGenerator.NextAsync(
+                DocumentNoKind.StockIn,
+                no => stockInOrderRepository.ExistsInNoAsync(no)),
             OrderType = orderType,
             BusinessStatus = StockDocumentStatus.Draft,
             InTime = inTime,
@@ -1071,21 +1074,6 @@ public class StockInService(
         }
 
         return order;
-    }
-
-    private async Task<string> GenerateInNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
-            var inNo = $"IN{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await stockInOrderRepository.ExistsInNoAsync(inNo))
-            {
-                return inNo;
-            }
-        }
-
-        throw new BusinessException("入库单编号生成失败，请重试");
     }
 
     private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)

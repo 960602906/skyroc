@@ -14,7 +14,8 @@ namespace Application.Services;
 public class SupplierBillService(
     ISupplierBillRepository supplierBillRepository,
     ISupplierSettlementRepository supplierSettlementRepository,
-    ICurrentUserService currentUserService) : ISupplierBillService
+    ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator) : ISupplierBillService
 {
     /// <inheritdoc />
     public async Task<SupplierBill> SyncPurchaseStockInAsync(StockInOrder stockInOrder)
@@ -190,7 +191,9 @@ public class SupplierBillService(
         var bill = new SupplierBill
         {
             Id = Guid.NewGuid(),
-            BillNo = await GenerateBillNoAsync(),
+            BillNo = await documentNoGenerator.NextAsync(
+                DocumentNoKind.SupplierBill,
+                no => supplierBillRepository.ExistsBillNoAsync(no)),
             SupplierId = supplierId,
             SupplierNameSnapshot = supplierNameSnapshot,
             SourceType = sourceType,
@@ -342,21 +345,6 @@ public class SupplierBillService(
         target.Amount = source.Amount;
         target.BusinessTime = source.BusinessTime;
         target.Remark = source.Remark;
-    }
-
-    private async Task<string> GenerateBillNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
-            var billNo = $"SB{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await supplierBillRepository.ExistsBillNoAsync(billNo))
-            {
-                return billNo;
-            }
-        }
-
-        throw new BusinessException("供应商待结单据编号生成失败，请重试");
     }
 
     private void ApplyCreateAudit(BaseEntity entity)

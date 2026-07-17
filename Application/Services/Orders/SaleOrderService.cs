@@ -30,6 +30,7 @@ public class SaleOrderService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ICurrentUserService currentUserService,
+    IDocumentNoGenerator documentNoGenerator,
     IValidator<CreateSaleOrderDto> createValidator,
     IValidator<UpdateSaleOrderDto> updateValidator,
     ILogger<SaleOrderService> logger) : ISaleOrderService
@@ -62,7 +63,9 @@ public class SaleOrderService(
 
         var order = mapper.Map<SaleOrder>(dto);
         order.Id = Guid.NewGuid();
-        order.OrderNo = await GenerateOrderNoAsync();
+        order.OrderNo = await documentNoGenerator.NextAsync(
+            DocumentNoKind.SaleOrder,
+            no => saleOrderRepository.ExistsOrderNoAsync(no));
         ApplyCustomerSnapshot(order, customer);
         ApplyCreateAudit(order);
 
@@ -358,21 +361,6 @@ public class SaleOrderService(
             Remark = remark,
             InnerRemark = innerRemark
         };
-    }
-
-    private async Task<string> GenerateOrderNoAsync()
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var suffix = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
-            var orderNo = $"SO{DateTime.UtcNow:yyyyMMddHHmmssfff}{suffix}";
-            if (!await saleOrderRepository.ExistsOrderNoAsync(orderNo))
-            {
-                return orderNo;
-            }
-        }
-
-        throw new BusinessException("订单号生成失败，请重试");
     }
 
     private void ApplyCreateAudit(Domain.Entities.BaseEntity entity)
