@@ -264,10 +264,12 @@ public class SaleOrderConcurrencyIdempotencyRollbackPostgreSqlTests(PostgreSqlTe
                 await ApiHttpAssert.AssertBusinessCodeAsync(reReject, ResponseCode.DatabaseError);
             }
 
-            using (var illegalResubmit = await adminClient.PostAsJsonAsync(
-                       $"/api/orders/{concurrentOrder.Id}/resubmit",
-                       new SaleOrderAuditDto { Remark = $"{batch.Id}-非法重提" }))
+            // 仅「通过胜出 → SortingPending」时重提非法；若驳回胜出则订单可合法重提，不在此断言失败
+            if (expectedConcurrentStatus == SaleOrderStatus.SortingPending)
             {
+                using var illegalResubmit = await adminClient.PostAsJsonAsync(
+                    $"/api/orders/{concurrentOrder.Id}/resubmit",
+                    new SaleOrderAuditDto { Remark = $"{batch.Id}-非法重提" });
                 await ApiHttpAssert.AssertBusinessCodeAsync(illegalResubmit, ResponseCode.DatabaseError);
             }
 

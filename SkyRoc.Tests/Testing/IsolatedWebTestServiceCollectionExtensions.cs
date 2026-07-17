@@ -24,6 +24,8 @@ internal static class IsolatedWebTestServiceCollectionExtensions
         if (string.IsNullOrWhiteSpace(databaseName))
             throw new ArgumentException("The in-memory database name is required.", nameof(databaseName));
 
+        // 生产使用 AddDbContextPool；测试改 InMemory 前必须卸掉池相关单例，否则会与 scoped Options 冲突
+        RemoveDbContextPoolRegistrations(services);
         services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
         services.RemoveAll<IDbContextOptionsConfiguration<ApplicationDbContext>>();
         services.RemoveAll<ApplicationDbContext>();
@@ -32,6 +34,24 @@ internal static class IsolatedWebTestServiceCollectionExtensions
         services.RemoveAll<ILoginAuditService>();
         services.AddSingleton<IOperationAuditService, NoOpOperationAuditService>();
         services.AddSingleton<ILoginAuditService, NoOpLoginAuditService>();
+    }
+
+    /// <summary>
+    ///     移除 AddDbContextPool 注册的池类型（不依赖 EF Internal API，避免 EF1001）。
+    /// </summary>
+    private static void RemoveDbContextPoolRegistrations(IServiceCollection services)
+    {
+        var poolDescriptors = services
+            .Where(descriptor =>
+                descriptor.ServiceType.IsGenericType
+                && descriptor.ServiceType.GenericTypeArguments.Length == 1
+                && descriptor.ServiceType.GenericTypeArguments[0] == typeof(ApplicationDbContext)
+                && (descriptor.ServiceType.Name.StartsWith("IDbContextPool", StringComparison.Ordinal)
+                    || descriptor.ServiceType.Name.StartsWith("IScopedDbContextLease", StringComparison.Ordinal)))
+            .ToList();
+
+        foreach (var descriptor in poolDescriptors)
+            services.Remove(descriptor);
     }
 
     /// <summary>

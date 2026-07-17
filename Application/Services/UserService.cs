@@ -173,26 +173,27 @@ public class UserService(
     public async Task DeleteUsersAsync(List<Guid> ids)
     {
         if (ids.Count == 0) throw new BusinessException("角色ID列表不能为空");
-        // 开启事务
-        await unitOfWork.BeginTransactionAsync();
         try
         {
-            var user = await userRepository.GetByIdAsync(ids);
-            var userList = user.ToList();
-            var idList = ids.ToList();
-            if (userList.Count != idList.Count) throw new BusinessException("部分用户不存在");
-            // 删除用户
-            await userRepository.DeleteRangeAsync(userList);
+            // 走 ExecuteInTransactionAsync，兼容 EnableRetryOnFailure 的执行策略
+            await unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                var user = await userRepository.GetByIdAsync(ids);
+                var userList = user.ToList();
+                var idList = ids.ToList();
+                if (userList.Count != idList.Count) throw new BusinessException("部分用户不存在");
+                await userRepository.DeleteRangeAsync(userList);
+            });
+        }
+        catch (BusinessException)
+        {
+            throw;
         }
         catch (Exception e)
         {
-            // 回滚事务
-            await unitOfWork.RollbackTransactionAsync();
             logger.LogError(e, "批量删除用户失败: {UserIds}", ids);
             throw new BusinessException("批量删除用户失败");
         }
-
-        await unitOfWork.CommitTransactionAsync();
     }
 
     /// <summary>
@@ -222,24 +223,24 @@ public class UserService(
         var enumerable = currentRoleIds.ToList();
         var rolesToAdd = roleIdList.Except(enumerable).ToList();
         var rolesToRemove = enumerable.Except(roleIdList).ToList();
-        // 开始事务处理
-        await unitOfWork.BeginTransactionAsync();
         try
         {
-            //删除多余角色
-            if (rolesToRemove.Count != 0) await userRepository.DeleteByUserIdAndRoleIdsAsync(userId, rolesToRemove);
-            //添加新角色
-            if (rolesToAdd.Count != 0) await userRepository.AddByUserIdAndRoleIdsAsync(userId, rolesToAdd);
+            // 走 ExecuteInTransactionAsync，兼容 EnableRetryOnFailure 的执行策略
+            await unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                if (rolesToRemove.Count != 0) await userRepository.DeleteByUserIdAndRoleIdsAsync(userId, rolesToRemove);
+                if (rolesToAdd.Count != 0) await userRepository.AddByUserIdAndRoleIdsAsync(userId, rolesToAdd);
+            });
         }
-        catch
+        catch (BusinessException)
         {
-            // 回滚事务
-            await unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+        catch (Exception)
+        {
             logger.LogError("分配角色失败-UserId:{UserId}, RoleIds:{RoleIds}", userId, string.Join(",", roleIdList));
             throw new BusinessException("分配角色失败");
         }
-
-        await unitOfWork.CommitTransactionAsync();
     }
 
     /// <summary>

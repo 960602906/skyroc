@@ -110,48 +110,58 @@ public sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
     }
 
     /// <summary>
-    ///     在事务中执行操作 - 自动开启事务，操作成功后提交，发生异常时回滚并向上抛出
+    ///     在事务中执行操作 - 自动开启事务，操作成功后提交，发生异常时回滚并向上抛出。
+    ///     事务必须包在 IExecutionStrategy 内，才能与 EnableRetryOnFailure 兼容（重试会重放整个委托）。
     /// </summary>
     public async Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(action);
 
-        await BeginTransactionAsync(cancellationToken);
-        try
+        var strategy = _dbContext.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            await action();
-            await CommitTransactionAsync(cancellationToken);
-        }
-        catch
-        {
-            if (HasActiveTransaction)
-                await RollbackTransactionAsync(cancellationToken);
+            await BeginTransactionAsync(cancellationToken);
+            try
+            {
+                await action();
+                await CommitTransactionAsync(cancellationToken);
+            }
+            catch
+            {
+                if (HasActiveTransaction)
+                    await RollbackTransactionAsync(cancellationToken);
 
-            throw;
-        }
+                throw;
+            }
+        });
     }
 
     /// <summary>
-    ///     在事务中执行操作并返回结果 - 自动开启事务，操作成功后提交，发生异常时回滚并向上抛出
+    ///     在事务中执行操作并返回结果 - 自动开启事务，操作成功后提交，发生异常时回滚并向上抛出。
+    ///     事务必须包在 IExecutionStrategy 内，才能与 EnableRetryOnFailure 兼容（重试会重放整个委托）。
     /// </summary>
     public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(action);
 
-        await BeginTransactionAsync(cancellationToken);
-        try
+        var strategy = _dbContext.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var result = await action();
-            await CommitTransactionAsync(cancellationToken);
-            return result;
-        }
-        catch
-        {
-            if (HasActiveTransaction)
-                await RollbackTransactionAsync(cancellationToken);
+            await BeginTransactionAsync(cancellationToken);
+            try
+            {
+                var result = await action();
+                await CommitTransactionAsync(cancellationToken);
+                return result;
+            }
+            catch
+            {
+                if (HasActiveTransaction)
+                    await RollbackTransactionAsync(cancellationToken);
 
-            throw;
-        }
+                throw;
+            }
+        });
     }
 
     /// <summary>

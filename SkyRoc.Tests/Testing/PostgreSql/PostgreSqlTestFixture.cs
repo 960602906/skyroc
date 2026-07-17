@@ -85,16 +85,21 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
     {
         ArgumentNullException.ThrowIfNull(action);
         await using var context = CreateDbContext();
-        await using var transaction = await context.Database.BeginTransactionAsync();
-        try
+        // 与生产 EnableRetryOnFailure 对齐：手动事务必须包在执行策略内
+        var strategy = context.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            await action(context);
-        }
-        finally
-        {
-            await transaction.RollbackAsync();
-            context.ChangeTracker.Clear();
-        }
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                await action(context);
+            }
+            finally
+            {
+                await transaction.RollbackAsync();
+                context.ChangeTracker.Clear();
+            }
+        });
     }
 
     /// <summary>

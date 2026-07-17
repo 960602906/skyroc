@@ -24,19 +24,24 @@ public sealed class PostgreSqlBatchCleaner(PostgreSqlTestSettings settings)
         ArgumentNullException.ThrowIfNull(registry);
         DatabaseSafetyGuard.Validate(settings);
 
-        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-        try
+        // 与生产 EnableRetryOnFailure 对齐：手动事务必须包在执行策略内
+        var strategy = context.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            foreach (var entry in registry.GetCleanupOrder())
-                await DeleteEntryAsync(context, entry, cancellationToken);
+            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                foreach (var entry in registry.GetCleanupOrder())
+                    await DeleteEntryAsync(context, entry, cancellationToken);
 
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
     }
 
     private static async Task DeleteEntryAsync(

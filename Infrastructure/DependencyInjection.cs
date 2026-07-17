@@ -22,8 +22,18 @@ public static class DependencyInjection
         if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("__SET_IN_ENV__"))
             throw new InvalidOperationException(
                 "ConnectionStrings:DefaultConnection is not configured. Set it via environment variable 'ConnectionStrings__DefaultConnection'.");
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        // 池化 DbContext 降低高并发分配开销；启用瞬断重试与命令超时
+        services.AddDbContextPool<ApplicationDbContext>(options =>
+            options.UseNpgsql(connectionString, npgsql =>
+            {
+                // 连接瞬断/超时自动重试，避免高并发下偶发抖动直接抛错
+                npgsql.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                    errorCodesToAdd: null);
+                // 单条命令超时，防止慢查询长时间占用连接拖垮连接池
+                npgsql.CommandTimeout(30);
+            }));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         var assembly = Assembly.GetExecutingAssembly();
         services.Scan(scan => scan

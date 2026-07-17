@@ -13,7 +13,8 @@ public static class RedisServiceCollectionExtensions
     ///     注册缓存相关服务：
     ///     1. 启动时探测 Redis 是否可用
     ///     2. Redis 可用时直接使用 Redis 缓存实现
-    ///     3. Redis 不可用或禁用时直接使用内存缓存实现
+    ///     3. 非生产环境 Redis 不可用或禁用时降级为内存缓存
+    ///     4. 生产环境 Redis 已启用却不可用时 fail-fast，拒绝静默降级
     /// </summary>
     public static IServiceCollection AddRedisServices(this IServiceCollection services, IConfiguration configuration,
         IHostEnvironment environment)
@@ -53,6 +54,11 @@ public static class RedisServiceCollectionExtensions
             }
             catch (Exception ex)
             {
+                // 生产环境 Redis 已启用却连不上时 fail-fast，禁止静默降级为内存缓存（横向扩展正确性前提）
+                if (environment.IsProduction())
+                    throw new InvalidOperationException(
+                        "[Redis] 生产环境要求 Redis 可用，但连接失败，拒绝以内存缓存降级方式启动。", ex);
+
                 Console.Error.WriteLine(
                     $"[Redis] Initialization failed, using in-memory cache only. {ex.Message}");
                 RegisterMemoryCache(services);
@@ -60,6 +66,11 @@ public static class RedisServiceCollectionExtensions
         }
         else
         {
+            // Enabled=true 但连接串缺失：生产同样 fail-fast
+            if (options.Enabled && environment.IsProduction())
+                throw new InvalidOperationException(
+                    "[Redis] 生产环境要求 Redis 可用，但连接串缺失，拒绝以内存缓存降级方式启动。");
+
             Console.Error.WriteLine(
                 "[Redis] Disabled or connection string missing; using in-memory cache only.");
             RegisterMemoryCache(services);

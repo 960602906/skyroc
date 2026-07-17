@@ -317,39 +317,41 @@ public class MenuButtonService(
             throw new ValidationException(validationErrors);
         }
 
-        // 开启事务
-        await unitOfWork.BeginTransactionAsync();
         try
         {
-            // 1. 获取该菜单下的所有现有按钮
-            var existingButtons = await menuButtonRepository.GetByMenuIdAsync(menuId);
-            // 2. 删除所有现有按钮  
-            var menuButtons = existingButtons.ToList();
-            if (menuButtons.Count != 0)
+            // 走 ExecuteInTransactionAsync，兼容 EnableRetryOnFailure 的执行策略
+            return await unitOfWork.ExecuteInTransactionAsync(async () =>
             {
-                await menuButtonRepository.DeleteRangeAsync(menuButtons);
-                logger.LogInformation("已删除菜单 {MenuId} 下的 {Count} 个按钮", menuId, menuButtons.Count);
-            }
-            // 3. 创建新的按钮
+                // 1. 获取该菜单下的所有现有按钮
+                var existingButtons = await menuButtonRepository.GetByMenuIdAsync(menuId);
+                // 2. 删除所有现有按钮
+                var menuButtons = existingButtons.ToList();
+                if (menuButtons.Count != 0)
+                {
+                    await menuButtonRepository.DeleteRangeAsync(menuButtons);
+                    logger.LogInformation("已删除菜单 {MenuId} 下的 {Count} 个按钮", menuId, menuButtons.Count);
+                }
 
-            var newButtons = requestList.Select(request =>
-            {
-                var menuButton = mapper.Map<MenuButton>(request);
-                menuButton.MenuId = menuId;
-                menuButton.CreateBy = userId;
-                menuButton.CreateName = userName;
-                return menuButton;
-            }).ToList();
-            await menuButtonRepository.AddRangeAsync(newButtons);
-            logger.LogInformation("已为菜单 {MenuId} 创建 {Count} 个新按钮", menuId, newButtons.Count);
-            // 4. 提交事务
-            await unitOfWork.CommitTransactionAsync();
-            return mapper.Map<List<MenuButtonDto>>(newButtons);
+                // 3. 创建新的按钮
+                var newButtons = requestList.Select(request =>
+                {
+                    var menuButton = mapper.Map<MenuButton>(request);
+                    menuButton.MenuId = menuId;
+                    menuButton.CreateBy = userId;
+                    menuButton.CreateName = userName;
+                    return menuButton;
+                }).ToList();
+                await menuButtonRepository.AddRangeAsync(newButtons);
+                logger.LogInformation("已为菜单 {MenuId} 创建 {Count} 个新按钮", menuId, newButtons.Count);
+                return mapper.Map<List<MenuButtonDto>>(newButtons);
+            });
+        }
+        catch (BusinessException)
+        {
+            throw;
         }
         catch (Exception e)
         {
-            // 回滚事务
-            await unitOfWork.RollbackTransactionAsync();
             logger.LogError(e, "批量替换菜单按钮失败: 菜单ID：{MenuId}，错误信息：{Message}", menuId, e.Message);
             throw new BusinessException("批量替换菜单按钮失败");
         }

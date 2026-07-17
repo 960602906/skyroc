@@ -153,26 +153,26 @@ public class RoleService(
     {
         // 1. 参数验证
         if (roleIds.Count == 0) throw new BusinessException("角色ID列表不能为空");
-        // 开启事务
-        await unitOfWork.BeginTransactionAsync();
         try
         {
-            var roles = await roleRepository.GetByIdsAsync(roleIds);
-            var rolesList = roles.ToList();
-            if (roleIds.Count != rolesList.Count) throw new BusinessException("部分角色不存在");
-            // 4. 删除角色
-            await roleRepository.DeleteRangeAsync(rolesList);
+            // 走 ExecuteInTransactionAsync，兼容 EnableRetryOnFailure 的执行策略
+            await unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                var roles = await roleRepository.GetByIdsAsync(roleIds);
+                var rolesList = roles.ToList();
+                if (roleIds.Count != rolesList.Count) throw new BusinessException("部分角色不存在");
+                await roleRepository.DeleteRangeAsync(rolesList);
+            });
+        }
+        catch (BusinessException)
+        {
+            throw;
         }
         catch (Exception e)
         {
-            // 回滚事务
-            await unitOfWork.RollbackTransactionAsync();
-
             logger.LogError(e, "批量删除角色失败: {RoleIds}", roleIds);
             throw new BusinessException("批量删除角色失败");
         }
-
-        await unitOfWork.CommitTransactionAsync();
     }
 
 
@@ -205,24 +205,24 @@ public class RoleService(
         // 计算差异
         var menusToAdd = menuIdList.Except(currentMenusIdList).ToList();
         var menusToRemove = currentMenusIdList.Except(menuIdList).ToList();
-        //开启事务
-        await unitOfWork.BeginTransactionAsync();
         try
         {
-            //删除多余的菜单
-            if (menusToRemove.Count != 0) await roleRepository.DeleteByRoleIdAndMenuIdsAsync(roleId, menusToRemove);
-            //添加缺少的菜单
-            if (menusToAdd.Count != 0) await roleRepository.AddByRoleIdAndMenuIdsAsync(roleId, menusToAdd);
+            // 走 ExecuteInTransactionAsync，兼容 EnableRetryOnFailure 的执行策略
+            await unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                if (menusToRemove.Count != 0) await roleRepository.DeleteByRoleIdAndMenuIdsAsync(roleId, menusToRemove);
+                if (menusToAdd.Count != 0) await roleRepository.AddByRoleIdAndMenuIdsAsync(roleId, menusToAdd);
+            });
         }
-        catch
+        catch (BusinessException)
         {
-            //回滚事务
-            await unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+        catch (Exception)
+        {
             logger.LogError("角色分配失败-RoleId:{RoleId}, MenuIds:{MenuIds}", roleId, string.Join(",", menuIdList));
             throw new BusinessException("分配菜单失败");
         }
-
-        await unitOfWork.CommitTransactionAsync();
     }
 
     /// <inheritdoc />

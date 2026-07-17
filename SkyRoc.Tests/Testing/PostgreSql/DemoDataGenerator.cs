@@ -486,6 +486,10 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var reusedTraceStockOuts = 0;
         var createdWares = 0;
         var reusedWares = 0;
+        // EnableRetryOnFailure 要求用户事务包在 IExecutionStrategy 内，否则同 scope 的服务查询会抛错
+        var baseDataStrategy = context.Database.CreateExecutionStrategy();
+        await baseDataStrategy.ExecuteAsync(async () =>
+        {
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -1358,6 +1362,7 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
+        });
 
         (
             createdSaleOrders,

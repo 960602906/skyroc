@@ -1,14 +1,9 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Application;
 using Infrastructure;
 using Infrastructure.Data;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
-using Shared.Constants;
 using SkyRoc.Extensions;
-using SkyRoc.Filters;
 using SkyRoc.Middleware;
 using SkyRoc.Services;
 
@@ -38,53 +33,10 @@ builder.Services.AddApplicationServices(configuration);
 builder.Services.AddAuthenticationServices(configuration);
 
 // 添加控制器：业务接口受理后 HTTP 固定 200，结果码写在 body.code
-builder.Services.AddControllers(options =>
-    {
-        options.Filters.Add<ApiBusinessCodeResultFilter>();
-    })
-    .ConfigureApiBehaviorOptions(options =>
-    {
-        options.InvalidModelStateResponseFactory = context =>
-        {
-            var errors = context.ModelState
-                .Where(entry => entry.Value is { Errors.Count: > 0 })
-                .ToDictionary(
-                    entry => entry.Key,
-                    entry => entry.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
-            var payload = new ApiResponse<object>
-            {
-                Code = ResponseCode.BadRequest,
-                Msg = "请求参数错误",
-                Data = errors
-            };
-            ApiResponseHttp.MarkBusinessCode(context.HttpContext, payload.Code);
-            return new OkObjectResult(payload);
-        };
-    })
-    .AddJsonOptions(options =>
-    {
-        var jsonOptions = options.JsonSerializerOptions;
-        // 1. 枚举转数字（核心配置）
-        /*jsonOptions.Converters.Add(new EnumToNumberConverterFactory());*/
-        // 2. 属性命名策略
-        jsonOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        // 3. 忽略null值属性
-        jsonOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        // 4. 允许尾随逗号
-        jsonOptions.AllowTrailingCommas = true;
-        // 5. 只读属性序列化
-        jsonOptions.IncludeFields = false;
-        // 6. 大小写不敏感
-        jsonOptions.PropertyNameCaseInsensitive = true;
-        // 7. 数字处理
-        jsonOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
-        // 8. 循环引用处理（.NET 9.0新特性）
-        jsonOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        // 9. 最大深度限制
-        jsonOptions.MaxDepth = 64;
-        // 10.格式化输出（开发环境）
-        jsonOptions.WriteIndented = true; // 格式化输出（开发环境）
-    });
+builder.Services.AddSkyRocControllers(builder.Environment);
+
+// 全局限流：按客户端 IP 的固定窗口保护，突发流量兜底
+builder.Services.AddSkyRocRateLimiter();
 
 // 添加 Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -128,6 +80,8 @@ if (!app.Environment.IsDevelopment())
 }
 // 3. ✅ 路由 - 必须有！
 app.UseRouting();
+// 限流：放在路由之后、认证之前，拦截突发流量
+app.UseRateLimiter();
 // 使用认证中间件
 app.UseAuthentication();
 //  使用授权中间件
