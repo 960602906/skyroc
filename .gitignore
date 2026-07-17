@@ -139,10 +139,7 @@ publish/
 #------------------------------------------
 # 配置文件（包含敏感信息）
 #------------------------------------------
-appsettings.Development.json
-appsettings.Production.json
-appsettings.*.json
-!appsettings.json
+
 
 # Connection strings
 ConnectionStrings.config
