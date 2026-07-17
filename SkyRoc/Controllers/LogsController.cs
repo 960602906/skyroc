@@ -1,5 +1,5 @@
 using Application.DTOs.System;
-using Application.interfaces.System;
+using Application.Interfaces.System;
 using Application.QueryParameters.System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

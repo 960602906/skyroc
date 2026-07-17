@@ -1,5 +1,5 @@
 using Application.DTOs.Delivery;
-using Application.interfaces;
+using Application.Interfaces;
 using Domain.Entities.Delivery;
 using Domain.Entities.Storage;
 using Infrastructure.Data;

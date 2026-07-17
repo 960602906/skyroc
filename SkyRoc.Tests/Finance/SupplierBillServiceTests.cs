@@ -1,4 +1,4 @@
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Services;
 using Domain.Entities.Finance;
 using Domain.Entities.Goods;

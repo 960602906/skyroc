@@ -1,7 +1,7 @@
 ﻿using Application.DTOs.Department;
 using Application.DTOs.User;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;

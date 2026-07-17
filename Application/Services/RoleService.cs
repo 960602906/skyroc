@@ -2,7 +2,7 @@ using Application.DTOs.Menu;
 using Application.DTOs.Role;
 using Application.Exceptions;
 using Application.Extensions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using AutoMapper;
 using Domain.Entities;

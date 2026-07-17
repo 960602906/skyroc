@@ -1,5 +1,5 @@
 using Application.DTOs.Storage;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using Domain.Entities.Storage;
 using Microsoft.AspNetCore.Authorization;

@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
-using Application.interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Repositories;
 using SkyRoc.Controllers;
@@ -14,7 +14,7 @@ public class XmlDocumentationCoverageTests
     private static readonly (Assembly Assembly, string[] NamespacePrefixes)[] Targets =
     [
         (typeof(BaseEntity).Assembly, ["Domain.Entities", "Domain.Interfaces"]),
-        (typeof(IAuthService).Assembly, ["Application.interfaces", "Application.Services"]),
+        (typeof(IAuthService).Assembly, ["Application.Interfaces", "Application.Services"]),
         (typeof(UnitOfWork).Assembly, ["Infrastructure.Repositories"]),
         (typeof(AuthController).Assembly, ["SkyRoc.Controllers"])
     ];

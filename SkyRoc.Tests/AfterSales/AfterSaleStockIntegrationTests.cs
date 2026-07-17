@@ -4,7 +4,7 @@ using Application.Mappers;
 using Application.Services;
 using Application.Validator;
 using Application.Validator.AfterSales;
-using Application.interfaces;
+using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;

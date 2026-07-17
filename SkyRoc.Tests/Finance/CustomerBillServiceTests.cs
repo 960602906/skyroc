@@ -1,4 +1,4 @@
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Services;
 using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;

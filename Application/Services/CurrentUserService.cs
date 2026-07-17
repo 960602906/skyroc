@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Application.interfaces;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Shared.Constants;
 

@@ -1,5 +1,5 @@
 using Application.DTOs.AfterSales;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters.AfterSales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

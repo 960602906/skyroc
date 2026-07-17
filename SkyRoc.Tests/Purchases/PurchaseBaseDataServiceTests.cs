@@ -1,6 +1,6 @@
 using Application.DTOs.Purchases;
 using Application.DTOs.Storage;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Mappers;
 using Application.Services;
 using Application.Validator;

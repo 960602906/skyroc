@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Application.DTOs.Printing;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using Domain.Entities.Finance;
 using Domain.Entities.Orders;

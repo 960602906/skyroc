@@ -1,7 +1,7 @@
 ﻿using Application.DTOs.Auth;
 using Application.Exceptions;
-using Application.interfaces;
-using Application.interfaces.System;
+using Application.Interfaces;
+using Application.Interfaces.System;
 using AutoMapper;
 using Domain.Interfaces;
 using Microsoft.Extensions.Options;

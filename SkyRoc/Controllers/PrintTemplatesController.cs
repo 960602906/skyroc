@@ -1,5 +1,5 @@
 using Application.DTOs.Printing;
-using Application.interfaces;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;

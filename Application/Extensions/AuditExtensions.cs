@@ -1,4 +1,4 @@
-using Application.interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 
 namespace Application.Extensions;

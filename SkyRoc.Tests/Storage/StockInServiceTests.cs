@@ -1,6 +1,6 @@
 using Application.DTOs.Storage;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Mappers;
 using Application.QueryParameters;
 using Application.Services;

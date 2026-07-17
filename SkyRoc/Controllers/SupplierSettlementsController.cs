@@ -1,5 +1,5 @@
 using Application.DTOs.Finance;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters.Finance;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

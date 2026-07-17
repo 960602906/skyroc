@@ -1,5 +1,5 @@
 using Application.DTOs.Files;
-using Application.interfaces;
+using Application.Interfaces;
 using Domain.Entities.Files;
 using Domain.Entities.Goods;
 using Infrastructure.Data;

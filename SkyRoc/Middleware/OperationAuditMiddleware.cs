@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Application.DTOs.System;
-using Application.interfaces.System;
+using Application.Interfaces.System;
 
 namespace SkyRoc.Middleware;
 

@@ -1,6 +1,6 @@
 ﻿using Application.DTOs.MenuButton;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;

@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using Application.DTOs.Delivery;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using AutoMapper;
 using Domain.Entities.Delivery;

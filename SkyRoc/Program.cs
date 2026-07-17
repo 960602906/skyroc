@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 builder.Services.Configure<DevSeedOptions>(configuration.GetSection(DevSeedOptions.SectionName));
-builder.Services.AddScoped<Application.interfaces.System.IAuditRequestSourceAccessor, HttpAuditRequestSourceAccessor>();
+builder.Services.AddScoped<Application.Interfaces.System.IAuditRequestSourceAccessor, HttpAuditRequestSourceAccessor>();
 
 // ========================================
 // 1️⃣ 添加服务到容器

@@ -1,5 +1,5 @@
 using Application.DTOs.Auth;
-using Application.interfaces;
+using Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Common;

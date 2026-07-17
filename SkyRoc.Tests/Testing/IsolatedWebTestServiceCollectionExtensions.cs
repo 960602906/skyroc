@@ -1,5 +1,5 @@
 using Application.DTOs.System;
-using Application.interfaces.System;
+using Application.Interfaces.System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;

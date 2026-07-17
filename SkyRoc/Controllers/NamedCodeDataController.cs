@@ -1,5 +1,5 @@
 using Application.DTOs;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;

@@ -1,6 +1,6 @@
 using Application.DTOs.Customers;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Mappers;
 using Application.Services;
 using Application.Validator;

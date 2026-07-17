@@ -1,5 +1,5 @@
 using Application.DTOs.Customers;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Mappers;
 using Application.QueryParameters;
 using Application.Services;

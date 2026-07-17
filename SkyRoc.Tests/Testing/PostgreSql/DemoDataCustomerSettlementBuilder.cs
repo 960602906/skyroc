@@ -1,5 +1,5 @@
 using Application.DTOs.Finance;
-using Application.interfaces;
+using Application.Interfaces;
 using Domain.Entities.Finance;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

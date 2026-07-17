@@ -1,5 +1,5 @@
 using Application.DTOs.System;
-using Application.interfaces.System;
+using Application.Interfaces.System;
 using Domain.Entities.System;
 using Domain.Interfaces;
 using Domain.Interfaces.System;

@@ -1,7 +1,7 @@
 using Application.DTOs.Finance;
 using Application.Exceptions;
 using Application.Extensions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters.Finance;
 using AutoMapper;
 using Domain.Entities;

@@ -1,5 +1,5 @@
 using Application.DTOs.Traceability;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters.Traceability;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

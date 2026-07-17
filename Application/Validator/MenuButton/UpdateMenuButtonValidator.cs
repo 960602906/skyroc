@@ -1,5 +1,5 @@
 ﻿using Application.DTOs.MenuButton;
-using Application.interfaces;
+using Application.Interfaces;
 using FluentValidation;
 
 namespace Application.Validator.MenuButton;

@@ -1,6 +1,6 @@
 using Application.DTOs.Files;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities.Files;
 using Domain.Interfaces;

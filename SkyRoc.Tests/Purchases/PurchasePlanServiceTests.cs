@@ -1,7 +1,7 @@
 using Application.DTOs.Orders;
 using Application.DTOs.Purchases;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Mappers;
 using Application.QueryParameters;
 using Application.Services;

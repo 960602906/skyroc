@@ -4,7 +4,7 @@ using Application.DTOs.System;
 using Application.Exceptions;
 using Application.Services.System;
 using Application.Mappers;
-using Application.interfaces.System;
+using Application.Interfaces.System;
 using Domain.Entities;
 using Domain.Entities.System;
 using Infrastructure.Data;
@@ -323,7 +323,7 @@ public class SystemSupportContractTests
         new TestCurrentUserService(),
         new MapperConfiguration(config => config.AddProfile<SystemSupportMappingProfile>()).CreateMapper());
 
-    private sealed class TestCurrentUserService : Application.interfaces.ICurrentUserService
+    private sealed class TestCurrentUserService : Application.Interfaces.ICurrentUserService
     {
         public Guid? GetUserId() => Guid.Parse("11111111-1111-1111-1111-111111111111");
         public string? GetUserName() => "system-test";

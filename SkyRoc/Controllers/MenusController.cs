@@ -1,5 +1,5 @@
 ﻿using Application.DTOs.Menu;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

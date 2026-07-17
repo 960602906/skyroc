@@ -1,5 +1,5 @@
 using Application.DTOs.Reports;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters.Reports;
 using Domain.Interfaces;
 using Domain.ReadModels.Reports;

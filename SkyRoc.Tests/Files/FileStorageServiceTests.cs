@@ -275,7 +275,7 @@ public class FileStorageServiceTests
             objectStorage);
     }
 
-    private sealed class TestCurrentUserService(Guid userId) : Application.interfaces.ICurrentUserService
+    private sealed class TestCurrentUserService(Guid userId) : Application.Interfaces.ICurrentUserService
     {
         public static readonly Guid OwnerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         public static readonly TestCurrentUserService Owner = new(OwnerId);

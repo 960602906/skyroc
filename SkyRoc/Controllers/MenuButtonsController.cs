@@ -1,5 +1,5 @@
 using Application.DTOs.MenuButton;
-using Application.interfaces;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Common;

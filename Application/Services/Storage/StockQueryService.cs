@@ -1,6 +1,6 @@
 using Application.DTOs.Storage;
 using Application.Extensions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using AutoMapper;
 using Domain.Entities.Storage;

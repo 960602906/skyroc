@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Application.DTOs.Purchases;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using Domain.Entities.Purchases;
 using Infrastructure.Data;

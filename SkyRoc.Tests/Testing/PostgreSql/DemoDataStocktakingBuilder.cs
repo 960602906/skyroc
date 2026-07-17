@@ -1,5 +1,5 @@
 using Application.DTOs.Storage;
-using Application.interfaces;
+using Application.Interfaces;
 using Domain.Entities.Storage;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

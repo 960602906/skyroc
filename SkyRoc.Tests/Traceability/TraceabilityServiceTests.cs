@@ -1,5 +1,5 @@
 using Application.DTOs.Traceability;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Services;
 using Application.Validator.Traceability;
 using Domain.Entities.Goods;

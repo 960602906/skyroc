@@ -1,6 +1,6 @@
 using Application.DTOs.System;
-using Application.interfaces;
-using Application.interfaces.System;
+using Application.Interfaces;
+using Application.Interfaces.System;
 using Domain.Entities;
 using Domain.Interfaces;
 using Shared.Constants;

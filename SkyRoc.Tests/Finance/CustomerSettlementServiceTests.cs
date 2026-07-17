@@ -1,5 +1,5 @@
 using Application.DTOs.Finance;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.Mappers;
 using Application.Services;
 using Application.Validator.Finance;

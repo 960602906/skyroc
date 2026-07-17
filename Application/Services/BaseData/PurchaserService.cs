@@ -5,7 +5,7 @@ using Application.DTOs.Pricing;
 using Application.DTOs.Purchases;
 using Application.DTOs.Storage;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using AutoMapper;
 using Domain.Entities.Customers;

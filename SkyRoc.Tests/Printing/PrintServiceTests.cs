@@ -340,7 +340,7 @@ public class PrintServiceTests
             new TestCurrentUserService());
     }
 
-    private sealed class TestCurrentUserService : Application.interfaces.ICurrentUserService
+    private sealed class TestCurrentUserService : Application.Interfaces.ICurrentUserService
     {
         public Guid? GetUserId() => Guid.Parse("11111111-1111-1111-1111-111111111111");
         public string? GetUserName() => "print-test";

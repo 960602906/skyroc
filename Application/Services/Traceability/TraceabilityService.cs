@@ -1,6 +1,6 @@
 using Application.DTOs.Traceability;
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters;
 using Application.QueryParameters.Traceability;
 using Domain.Entities;

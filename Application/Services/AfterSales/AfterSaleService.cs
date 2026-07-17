@@ -1,7 +1,7 @@
 using Application.DTOs.AfterSales;
 using Application.Exceptions;
 using Application.Extensions;
-using Application.interfaces;
+using Application.Interfaces;
 using Application.QueryParameters.AfterSales;
 using AutoMapper;
 using Domain.Entities;

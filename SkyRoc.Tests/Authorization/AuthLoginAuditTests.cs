@@ -1,7 +1,7 @@
 using Application.DTOs.Auth;
 using Application.Services;
-using Application.interfaces;
-using Application.interfaces.System;
+using Application.Interfaces;
+using Application.Interfaces.System;
 using AutoMapper;
 using Domain.Entities;
 using Infrastructure.Data;

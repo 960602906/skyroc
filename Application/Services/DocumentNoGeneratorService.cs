@@ -1,5 +1,5 @@
 using Application.Exceptions;
-using Application.interfaces;
+using Application.Interfaces;
 using Shared.Constants;
 
 namespace Application.Services;

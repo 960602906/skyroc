@@ -1,5 +1,5 @@
 using Application.DTOs.System;
-using Application.interfaces.System;
+using Application.Interfaces.System;
 
 namespace SkyRoc.Services;
 
