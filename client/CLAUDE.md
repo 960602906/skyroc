@@ -18,10 +18,10 @@ pnpm preview            # preview built output on :9725
 pnpm typecheck          # tsc --noEmit --skipLibCheck (strict)
 pnpm lint               # eslint . --fix
 pnpm gen-route          # regenerate file-system route declarations from src/pages
-pnpm commit             # Conventional Commits helper (sa git-commit)
+pnpm commit             # optional Conventional Commits helper (sa git-commit)
 ```
 
-There is no unit-test runner configured. Verification = `pnpm typecheck` + `pnpm lint`. The pre-commit hook runs `pnpm typecheck && pnpm lint-staged`, and commit messages are validated against Conventional Commits — do not bypass these.
+There is no unit-test runner configured. Verification = `pnpm typecheck` + `pnpm lint`. The pre-commit hook runs `pnpm typecheck && pnpm lint-staged`. Commit messages are not enforced.
 
 ## Architecture
 

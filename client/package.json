@@ -126,7 +126,6 @@
     "vite-plugin-svg-icons": "2.0.1"
   },
   "simple-git-hooks": {
-    "commit-msg": "cd client && pnpm sa git-commit-verify",
     "pre-commit": "cd client && pnpm typecheck && pnpm lint-staged"
   },
   "lint-staged": {

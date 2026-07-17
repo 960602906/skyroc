@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SkyRoc is a .NET 9 ASP.NET Core Web API for a fresh-produce supply-chain backend, built with Clean Architecture. Most documentation and code comments are in Chinese; keep comments in Chinese to match.
 
+The React 19 admin frontend lives in `client/` (SkyrocAdmin, pnpm/Vite/Ant Design). It has its own `client/CLAUDE.md` — read that before working on frontend code. This file covers the backend.
+
 ## Commands
 
 Run from the repository root (`C:/Users/mrqin/RiderProjects/skyroc`, one level above the `SkyRoc/` API project):
