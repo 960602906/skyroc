@@ -41,8 +41,10 @@ public sealed class SwaggerAuthorizationOperationFilter : IOperationFilter
                 }] = []
             }
         ];
-        operation.Responses.TryAdd("401", new OpenApiResponse { Description = "未认证或 AccessToken 已失效" });
-        operation.Responses.TryAdd("403", new OpenApiResponse { Description = "缺少接口所需权限" });
+        // 业务约定：HTTP 始终 200；未认证/无权限分别体现在 body.code = 401/403
+        operation.Description = string.IsNullOrWhiteSpace(operation.Description)
+            ? "HTTP 200；未认证时 body.code=401，无权限时 body.code=403"
+            : $"{operation.Description}\n\nHTTP 200；未认证时 body.code=401，无权限时 body.code=403";
 
         var permissionCode = ResolvePermissionCode(actionDescriptor, authorizeData);
         if (permissionCode is null)

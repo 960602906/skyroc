@@ -383,8 +383,8 @@ public class SwaggerResponseSchemaTests
         foreach (var operation in new[] { templateOperation, importOperation, exportOperation, statusOperation })
         {
             Assert.Contains("导入导出", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+            Assert.Contains("body.code=401", operation.GetProperty("description").GetString());
+            Assert.Contains("body.code=403", operation.GetProperty("description").GetString());
         }
         Assert.Contains(PermissionCodes.Business.ImportExport.Create, templateOperation.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.ImportExport.Create, importOperation.GetProperty("description").GetString());
@@ -419,8 +419,8 @@ public class SwaggerResponseSchemaTests
         foreach (var operation in new[] { upload, download })
         {
             Assert.Contains("文件上传", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+            Assert.Contains("body.code=401", operation.GetProperty("description").GetString());
+            Assert.Contains("body.code=403", operation.GetProperty("description").GetString());
         }
         Assert.Contains(PermissionCodes.Business.Files.Create, upload.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.Files.Read, download.GetProperty("description").GetString());
@@ -456,8 +456,8 @@ public class SwaggerResponseSchemaTests
         foreach (var operation in new[] { list, create, data, confirm })
         {
             Assert.Contains("打印", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+            Assert.Contains("body.code=401", operation.GetProperty("description").GetString());
+            Assert.Contains("body.code=403", operation.GetProperty("description").GetString());
             Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
         }
 
@@ -499,8 +499,8 @@ public class SwaggerResponseSchemaTests
         foreach (var operation in new[] { settings, notices, operations })
         {
             Assert.Contains("系统支撑", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+            Assert.Contains("body.code=401", operation.GetProperty("description").GetString());
+            Assert.Contains("body.code=403", operation.GetProperty("description").GetString());
             Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
         }
         Assert.Contains(PermissionCodes.System.Operations.Create, settings.GetProperty("description").GetString());

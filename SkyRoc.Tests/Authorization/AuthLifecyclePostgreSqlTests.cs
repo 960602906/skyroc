@@ -8,6 +8,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -96,7 +97,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
             // 未认证访问受保护接口
             using (var anonymousResponse = await client.GetAsync("/api/auth/getUserInfo"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousResponse, ResponseCode.Unauthorized);
             }
 
             // 错误密码
@@ -106,7 +107,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
                 Password = "WrongPassword!999"
             }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, wrongPasswordResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(wrongPasswordResponse, ResponseCode.DatabaseError);
                 var wrongBody = await wrongPasswordResponse.Content.ReadAsStringAsync();
                 Assert.DoesNotContain(password, wrongBody, StringComparison.Ordinal);
                 Assert.DoesNotContain("WrongPassword!999", wrongBody, StringComparison.Ordinal);
@@ -119,7 +120,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
                 Password = password
             }))
             {
-                Assert.Equal(HttpStatusCode.NotFound, missingUserResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(missingUserResponse, ResponseCode.NotFound);
             }
 
             // 禁用用户即使密码正确也不得登录
@@ -129,7 +130,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
                 Password = password
             }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, disabledLoginResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(disabledLoginResponse, ResponseCode.DatabaseError);
                 var disabledBody = await disabledLoginResponse.Content.ReadAsStringAsync();
                 var disabledPayload = JsonSerializer.Deserialize<ApiResponse<object?>>(disabledBody, JsonOptions);
                 Assert.NotNull(disabledPayload);
@@ -223,7 +224,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
 
             using (var afterLogoutInfo = await refreshedClient.GetAsync("/api/auth/getUserInfo"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, afterLogoutInfo.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(afterLogoutInfo, ResponseCode.Unauthorized);
             }
 
             using (var afterLogoutRefresh = await client.PostAsJsonAsync(
@@ -240,7 +241,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
                        "/api/auth/logout",
                        new RefreshTokenReqDto { RefreshToken = refreshed.RefreshToken }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, secondLogout.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(secondLogout, ResponseCode.Unauthorized);
             }
 
             // 数据库审计与密码哈希副作用

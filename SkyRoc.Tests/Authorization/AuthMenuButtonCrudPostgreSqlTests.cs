@@ -11,6 +11,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -187,7 +188,7 @@ public class AuthMenuButtonCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
             // 未认证访问菜单/按钮接口
             using (var anonymousMenus = await anonymousClient.GetAsync("/api/menus"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousMenus.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousMenus, ResponseCode.Unauthorized);
             }
 
             using (var anonymousCreateMenu = await anonymousClient.PostAsJsonAsync(
@@ -202,7 +203,7 @@ public class AuthMenuButtonCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousCreateMenu.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousCreateMenu, ResponseCode.Unauthorized);
             }
 
             using (var anonymousCreateButton = await anonymousClient.PostAsJsonAsync(
@@ -214,7 +215,7 @@ public class AuthMenuButtonCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            MenuId = seedMenuId
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousCreateButton.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousCreateButton, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -465,7 +466,7 @@ public class AuthMenuButtonCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreateMenu.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreateMenu, ResponseCode.Forbidden);
             }
 
             using (var deniedUpdateMenu = await limitedClient.PutAsJsonAsync(
@@ -481,12 +482,12 @@ public class AuthMenuButtonCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedUpdateMenu.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedUpdateMenu, ResponseCode.Forbidden);
             }
 
             using (var deniedDeleteMenu = await limitedClient.DeleteAsync($"/api/menus/{createdMenu.Id}"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDeleteMenu.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDeleteMenu, ResponseCode.Forbidden);
             }
 
             using (var deniedCreateButton = await limitedClient.PostAsJsonAsync(
@@ -498,7 +499,7 @@ public class AuthMenuButtonCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            MenuId = createdMenu.Id
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreateButton.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreateButton, ResponseCode.Forbidden);
             }
 
             using (var deniedUpdateButton = await limitedClient.PutAsJsonAsync(
@@ -511,12 +512,12 @@ public class AuthMenuButtonCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            MenuId = createdMenu.Id
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedUpdateButton.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedUpdateButton, ResponseCode.Forbidden);
             }
 
             using (var deniedDeleteButton = await limitedClient.DeleteAsync($"/api/menu-buttons/{linkedButton.Id}"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDeleteButton.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDeleteButton, ResponseCode.Forbidden);
             }
 
             // 缩权：移除联动菜单后重新登录，部门读权限与菜单路径应消失
@@ -567,7 +568,7 @@ public class AuthMenuButtonCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
 
             using (var deniedDepartments = await limitedReloginClient.GetAsync("/api/departments/tree"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDepartments.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDepartments, ResponseCode.Forbidden);
             }
 
             // 操作员删除联动菜单（级联清理按钮）

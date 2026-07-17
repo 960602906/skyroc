@@ -43,11 +43,11 @@ public class ImportExportJobsController(IImportExportJobService service) : Contr
         var file = upload.File;
         if (file.Length == 0 || file.Length > 2 * 1024 * 1024)
         {
-            return BadRequest(ApiResponse<ImportExportJobDto>.Fail("CSV 文件必须大于 0 且不超过 2 MiB"));
+            return Ok(ApiResponse<ImportExportJobDto>.BadRequest("CSV 文件必须大于 0 且不超过 2 MiB"));
         }
         if (!Path.GetExtension(file.FileName).Equals(".csv", StringComparison.OrdinalIgnoreCase))
         {
-            return BadRequest(ApiResponse<ImportExportJobDto>.Fail("仅支持 CSV 文件"));
+            return Ok(ApiResponse<ImportExportJobDto>.BadRequest("仅支持 CSV 文件"));
         }
         await using var stream = file.OpenReadStream();
         var result = await service.ImportAsync(jobType, file.FileName, stream);

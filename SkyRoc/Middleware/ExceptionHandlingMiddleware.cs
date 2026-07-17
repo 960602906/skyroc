@@ -7,7 +7,7 @@ using Shared.Constants;
 namespace SkyRoc.Middleware;
 
 /// <summary>
-///     全局异常处理中间件
+///     全局异常处理中间件：HTTP 固定 200，业务结果写入响应体 code。
 /// </summary>
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
@@ -34,14 +34,15 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         {
             logger.LogWarning(
                 "The response has already started, the exception middleware will not be executed.");
-            return; // ✅ 改成 return，而不是 throw
+            return;
         }
 
-        context.Response.Clear();
-        context.Response.StatusCode = ExceptionHttpStatusMapper.GetStatusCode(exception);
-        context.Response.ContentType = "application/json; charset=utf-8";
         var response = CreateErrorResponse(exception);
-        // 返回JSON响应
+        context.Response.Clear();
+        context.Response.StatusCode = StatusCodes.Status200OK;
+        context.Response.ContentType = "application/json; charset=utf-8";
+        ApiResponseHttp.MarkBusinessCode(context, response.Code);
+
         var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

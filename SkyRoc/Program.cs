@@ -4,8 +4,11 @@ using Application;
 using Infrastructure;
 using Infrastructure.Data;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc;
 using Shared.Common;
+using Shared.Constants;
 using SkyRoc.Extensions;
+using SkyRoc.Filters;
 using SkyRoc.Middleware;
 using SkyRoc.Services;
 
@@ -34,8 +37,30 @@ builder.Services.AddApplicationServices(configuration);
 //添加鉴权服务
 builder.Services.AddAuthenticationServices(configuration);
 
-// 添加控制器
-builder.Services.AddControllers()
+// 添加控制器：业务接口受理后 HTTP 固定 200，结果码写在 body.code
+builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<ApiBusinessCodeResultFilter>();
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(entry => entry.Value is { Errors.Count: > 0 })
+                .ToDictionary(
+                    entry => entry.Key,
+                    entry => entry.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
+            var payload = new ApiResponse<object>
+            {
+                Code = ResponseCode.BadRequest,
+                Msg = "请求参数错误",
+                Data = errors
+            };
+            ApiResponseHttp.MarkBusinessCode(context.HttpContext, payload.Code);
+            return new OkObjectResult(payload);
+        };
+    })
     .AddJsonOptions(options =>
     {
         var jsonOptions = options.JsonSerializerOptions;

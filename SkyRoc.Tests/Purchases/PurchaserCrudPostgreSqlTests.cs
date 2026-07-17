@@ -11,6 +11,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -270,7 +271,7 @@ public class PurchaserCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
             // 未认证访问采购员接口
             using (var anonymousList = await anonymousClient.GetAsync("/api/purchasers"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousList.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousList, ResponseCode.Unauthorized);
             }
 
             using (var anonymousCreate = await anonymousClient.PostAsJsonAsync(
@@ -282,7 +283,7 @@ public class PurchaserCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousCreate, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -530,7 +531,7 @@ public class PurchaserCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreate, ResponseCode.Forbidden);
             }
 
             using (var deniedUpdate = await limitedClient.PutAsJsonAsync(
@@ -543,19 +544,19 @@ public class PurchaserCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedUpdate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedUpdate, ResponseCode.Forbidden);
             }
 
             using (var deniedStatus = await limitedClient.PatchAsync(
                        $"/api/purchasers/{targetPurchaser.Id}/status?status={(int)Status.Disable}",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedStatus.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedStatus, ResponseCode.Forbidden);
             }
 
             using (var deniedDelete = await limitedClient.DeleteAsync($"/api/purchasers/{targetPurchaser.Id}"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDelete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDelete, ResponseCode.Forbidden);
             }
 
             // 扩权：分配写权限菜单后重新登录
@@ -702,7 +703,7 @@ public class PurchaserCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreateAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreateAfterShrink, ResponseCode.Forbidden);
             }
 
             // 删除目标采购员

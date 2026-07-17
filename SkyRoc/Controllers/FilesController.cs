@@ -33,7 +33,7 @@ public class FilesController(IFileStorageService service) : ControllerBase
         var file = upload.File;
         if (file is null)
         {
-            return BadRequest(ApiResponse<StoredFileDto>.Fail("必须提供 multipart 字段 file"));
+            return Ok(ApiResponse<StoredFileDto>.BadRequest("必须提供 multipart 字段 file"));
         }
 
         await using var content = file.OpenReadStream();

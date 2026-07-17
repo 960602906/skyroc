@@ -37,8 +37,10 @@ public class SwaggerAuthorizationOperationFilterTests
         var securityRequirement = Assert.Single(operation.Security);
         var securityScheme = Assert.Single(securityRequirement.Keys);
         Assert.Equal("Bearer", securityScheme.Reference.Id);
-        Assert.Contains("401", operation.Responses.Keys);
-        Assert.Contains("403", operation.Responses.Keys);
+        Assert.Contains("body.code=401", operation.Description);
+        Assert.Contains("body.code=403", operation.Description);
+        Assert.DoesNotContain("401", operation.Responses.Keys);
+        Assert.DoesNotContain("403", operation.Responses.Keys);
         Assert.Contains(PermissionCodes.Business.Goods.Create, operation.Description);
     }
 

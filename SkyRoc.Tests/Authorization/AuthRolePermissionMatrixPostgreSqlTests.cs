@@ -10,6 +10,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -191,19 +192,19 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
                        "/api/roles/assignMenus",
                        new AssignMenusDto { RoleId = limitedRoleId, MenuIds = [readMenuId] }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousAssignMenus.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousAssignMenus, ResponseCode.Unauthorized);
             }
 
             using (var anonymousAssignRoles = await anonymousClient.PostAsJsonAsync(
                        "/api/users/assignRoles",
                        new AssignRolesDto { UserId = limitedUserId, RoleIds = [limitedRoleId] }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousAssignRoles.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousAssignRoles, ResponseCode.Unauthorized);
             }
 
             using (var anonymousUsers = await anonymousClient.GetAsync("/api/users"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousUsers.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousUsers, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -376,11 +377,14 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
                            Status = Status.Enable
                        }))
             {
-                Assert.NotEqual(HttpStatusCode.Forbidden, allowedCreate.StatusCode);
-                Assert.NotEqual(HttpStatusCode.Unauthorized, allowedCreate.StatusCode);
-                if (allowedCreate.StatusCode == HttpStatusCode.OK)
+                Assert.Equal(HttpStatusCode.OK, allowedCreate.StatusCode);
+                var createdPayload = await ReadApiResponseAsync<UserDto>(allowedCreate);
+                Assert.NotEqual(ResponseCode.Forbidden, createdPayload.Code);
+                Assert.NotEqual(ResponseCode.Unauthorized, createdPayload.Code);
+                if (createdPayload.Code == ResponseCode.Success)
                 {
-                    var created = await ReadApiDataAsync<UserDto>(allowedCreate);
+                    Assert.NotNull(createdPayload.Data);
+                    var created = createdPayload.Data;
                     Assert.Equal(extraUsername, created.Username);
                     registry.Register<User>(created.Id, nameof(User.Username), created.Username!);
                 }
@@ -389,7 +393,7 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
             // 无角色读权限 → 403
             using (var deniedRoles = await limitedClient.GetAsync("/api/roles"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedRoles.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedRoles, ResponseCode.Forbidden);
             }
 
             // 无分配菜单权限 → 403
@@ -401,7 +405,7 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
                            MenuIds = [readMenuId]
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedAssignMenus.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedAssignMenus, ResponseCode.Forbidden);
             }
 
             // 无分配角色权限 → 403
@@ -413,7 +417,7 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
                            RoleIds = [limitedRoleId]
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedAssignRoles.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedAssignRoles, ResponseCode.Forbidden);
             }
 
             // 将最小角色缩回仅读菜单，重新登录后写权限应消失
@@ -475,7 +479,7 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, createAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(createAfterShrink, ResponseCode.Forbidden);
             }
 
             // 移除用户角色后，再登录权限应为空且受保护接口 403
@@ -525,7 +529,7 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
 
             using (var noRoleUsers = await noRoleClient.GetAsync("/api/users"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, noRoleUsers.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(noRoleUsers, ResponseCode.Forbidden);
             }
 
             // 无效角色/菜单分配应失败
@@ -537,12 +541,13 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
                            RoleIds = [Guid.NewGuid()]
                        }))
             {
+                var invalidRoleCode = await ApiHttpAssert.ReadBusinessCodeAsync(invalidRoleAssign);
                 Assert.True(
-                    invalidRoleAssign.StatusCode is HttpStatusCode.BadGateway
-                        or HttpStatusCode.BadRequest
-                        or HttpStatusCode.InternalServerError
-                        or HttpStatusCode.UnprocessableEntity,
-                    $"Unexpected status for invalid role assign: {invalidRoleAssign.StatusCode}");
+                    invalidRoleCode is ResponseCode.DatabaseError
+                        or ResponseCode.BadRequest
+                        or ResponseCode.InternalError
+                        or ResponseCode.ValidationError,
+                    $"Unexpected business code for invalid role assign: {invalidRoleCode}");
             }
 
             using (var invalidMenuAssign = await adminClient.PostAsJsonAsync(
@@ -553,12 +558,13 @@ public class AuthRolePermissionMatrixPostgreSqlTests(PostgreSqlTestFixture fixtu
                            MenuIds = [Guid.NewGuid()]
                        }))
             {
+                var invalidMenuCode = await ApiHttpAssert.ReadBusinessCodeAsync(invalidMenuAssign);
                 Assert.True(
-                    invalidMenuAssign.StatusCode is HttpStatusCode.BadGateway
-                        or HttpStatusCode.BadRequest
-                        or HttpStatusCode.InternalServerError
-                        or HttpStatusCode.UnprocessableEntity,
-                    $"Unexpected status for invalid menu assign: {invalidMenuAssign.StatusCode}");
+                    invalidMenuCode is ResponseCode.DatabaseError
+                        or ResponseCode.BadRequest
+                        or ResponseCode.InternalError
+                        or ResponseCode.ValidationError,
+                    $"Unexpected business code for invalid menu assign: {invalidMenuCode}");
             }
 
             await using var auditContext = fixture.CreateDbContext();

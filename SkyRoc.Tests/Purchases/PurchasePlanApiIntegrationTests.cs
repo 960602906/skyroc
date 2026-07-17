@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using SkyRoc.Tests.Testing;
 using Xunit;
 
@@ -46,7 +47,7 @@ public class PurchasePlanApiIntegrationTests
 
         var anonymousResponse = await anonymousClient.GetAsync("/api/purchase-plans/list?current=1&size=10");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
+        await ApiHttpAssert.AssertBusinessCodeAsync(anonymousResponse, ResponseCode.Unauthorized);
 
         using var readOnlyClient = factory.CreateClient();
         readOnlyClient.DefaultRequestHeaders.Add(TestAuthHandler.PermissionsHeader, PermissionCodes.Business.Purchases.Read);
@@ -58,8 +59,8 @@ public class PurchasePlanApiIntegrationTests
             new AssignPurchasePlanSupplierDto { PlanIds = [Guid.NewGuid()] });
 
         Assert.Equal(HttpStatusCode.OK, readResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, updateResponse.StatusCode);
+        await ApiHttpAssert.AssertBusinessCodeAsync(createResponse, ResponseCode.Forbidden);
+        await ApiHttpAssert.AssertBusinessCodeAsync(updateResponse, ResponseCode.Forbidden);
     }
 
     [Fact]
@@ -126,10 +127,10 @@ public class PurchasePlanApiIntegrationTests
         Assert.Contains(PermissionCodes.Business.Purchases.Delete, purchaseOrderDeleteOperation.GetProperty("description").GetString());
         Assert.Equal("Bearer", listOperation.GetProperty("security")[0].EnumerateObject().Single().Name);
         Assert.Equal("Bearer", purchaseOrderListOperation.GetProperty("security")[0].EnumerateObject().Single().Name);
-        Assert.True(listOperation.GetProperty("responses").TryGetProperty("401", out _));
-        Assert.True(listOperation.GetProperty("responses").TryGetProperty("403", out _));
-        Assert.True(purchaseOrderListOperation.GetProperty("responses").TryGetProperty("401", out _));
-        Assert.True(purchaseOrderListOperation.GetProperty("responses").TryGetProperty("403", out _));
+        Assert.Contains("body.code=401", listOperation.GetProperty("description").GetString());
+        Assert.Contains("body.code=403", listOperation.GetProperty("description").GetString());
+        Assert.Contains("body.code=401", purchaseOrderListOperation.GetProperty("description").GetString());
+        Assert.Contains("body.code=403", purchaseOrderListOperation.GetProperty("description").GetString());
     }
 
     private static CreatePurchasePlanDto CreateRequest()

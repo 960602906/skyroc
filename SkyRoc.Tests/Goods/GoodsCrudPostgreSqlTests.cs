@@ -11,6 +11,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -262,7 +263,7 @@ public class GoodsCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
             // 未认证访问商品接口
             using (var anonymousList = await anonymousClient.GetAsync("/api/goods"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousList.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousList, ResponseCode.Unauthorized);
             }
 
             using (var anonymousCreate = await anonymousClient.PostAsJsonAsync(
@@ -275,7 +276,7 @@ public class GoodsCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousCreate, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -603,7 +604,7 @@ public class GoodsCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreate, ResponseCode.Forbidden);
             }
 
             using (var deniedUpdate = await limitedClient.PutAsJsonAsync(
@@ -617,19 +618,19 @@ public class GoodsCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedUpdate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedUpdate, ResponseCode.Forbidden);
             }
 
             using (var deniedSale = await limitedClient.PatchAsync(
                        $"/api/goods/{targetGoods.Id}/sale-status?isOnSale=false",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedSale.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedSale, ResponseCode.Forbidden);
             }
 
             using (var deniedDelete = await limitedClient.DeleteAsync($"/api/goods/{targetGoods.Id}"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDelete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDelete, ResponseCode.Forbidden);
             }
 
             using (var deniedUnitCreate = await limitedClient.PostAsJsonAsync(
@@ -645,7 +646,7 @@ public class GoodsCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedUnitCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedUnitCreate, ResponseCode.Forbidden);
             }
 
             // 扩权：分配写权限菜单后重新登录
@@ -807,7 +808,7 @@ public class GoodsCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreateAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreateAfterShrink, ResponseCode.Forbidden);
             }
 
             // 先删包装单位，再删基础单位（商品 BaseUnitId 置空），最后删商品

@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using SkyRoc.Tests.Testing;
 using Xunit;
 using GoodsEntity = Domain.Entities.Goods.Goods;
@@ -75,14 +76,14 @@ public class StockInApiIntegrationTests
         using var anonymousClient = factory.CreateClient();
 
         var anonymousResponse = await anonymousClient.GetAsync("/api/stock/overview?current=1&size=10");
-        Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
+        await ApiHttpAssert.AssertBusinessCodeAsync(anonymousResponse, ResponseCode.Unauthorized);
 
         using var forbiddenClient = factory.CreateClient();
         forbiddenClient.DefaultRequestHeaders.Add(
             TestAuthHandler.PermissionsHeader,
             PermissionCodes.Business.Goods.Read);
         var forbiddenResponse = await forbiddenClient.GetAsync("/api/stock/batches?current=1&size=10");
-        Assert.Equal(HttpStatusCode.Forbidden, forbiddenResponse.StatusCode);
+        await ApiHttpAssert.AssertBusinessCodeAsync(forbiddenResponse, ResponseCode.Forbidden);
 
         using var allowedClient = factory.CreateClient();
         allowedClient.DefaultRequestHeaders.Add(
@@ -109,8 +110,8 @@ public class StockInApiIntegrationTests
                 PermissionCodes.Business.Storage.Read,
                 operation.GetProperty("description").GetString());
             Assert.Equal("Bearer", operation.GetProperty("security")[0].EnumerateObject().Single().Name);
-            Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
-            Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+            Assert.Contains("body.code=401", operation.GetProperty("description").GetString());
+            Assert.Contains("body.code=403", operation.GetProperty("description").GetString());
         }
     }
 
@@ -193,7 +194,7 @@ public class StockInApiIntegrationTests
             Details = []
         });
 
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        await ApiHttpAssert.AssertBusinessCodeAsync(response, ResponseCode.Forbidden);
     }
 
     [Fact]

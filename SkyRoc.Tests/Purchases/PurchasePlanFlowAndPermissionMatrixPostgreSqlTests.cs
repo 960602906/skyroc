@@ -13,6 +13,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -294,19 +295,19 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
             // 未认证访问采购计划/采购单接口
             using (var anonymousPlanList = await anonymousClient.GetAsync("/api/purchase-plans/list?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousPlanList.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousPlanList, ResponseCode.Unauthorized);
             }
 
             using (var anonymousOrderList = await anonymousClient.GetAsync("/api/purchase-orders/list?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousOrderList.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousOrderList, ResponseCode.Unauthorized);
             }
 
             using (var anonymousGenerate = await anonymousClient.PostAsJsonAsync(
                        "/api/purchase-plans/generate",
                        new GeneratePurchasePlanFromOrdersDto { OrderIds = [Guid.NewGuid()] }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousGenerate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousGenerate, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -397,7 +398,7 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                            Remark = planGenerateRemark
                        }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, illegalUnapproved.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(illegalUnapproved, ResponseCode.DatabaseError);
             }
 
             // 从两张已审核订单生成采购计划
@@ -463,7 +464,7 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                            Remark = planGenerateRemark
                        }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, illegalDuplicate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(illegalDuplicate, ResponseCode.DatabaseError);
             }
 
             // 分页筛选 + 详情
@@ -656,7 +657,7 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                            remark = poCompleteRemark
                        }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, illegalRegen.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(illegalRegen, ResponseCode.DatabaseError);
             }
 
             // 非法：已生成采购单后不可再分配
@@ -668,7 +669,7 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                            SupplierId = managedSupplierId
                        }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, illegalAssign.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(illegalAssign, ResponseCode.DatabaseError);
             }
 
             // 完成采购单
@@ -687,20 +688,20 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                        $"/api/purchase-orders/{completePo.Id}/complete",
                        null))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, doubleComplete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(doubleComplete, ResponseCode.DatabaseError);
             }
 
             using (var cancelAfterComplete = await adminClient.PostAsync(
                        $"/api/purchase-orders/{completePo.Id}/cancel",
                        null))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, cancelAfterComplete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(cancelAfterComplete, ResponseCode.DatabaseError);
             }
 
             using (var deleteAfterComplete = await adminClient.DeleteAsync(
                        $"/api/purchase-orders/{completePo.Id}"))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, deleteAfterComplete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deleteAfterComplete, ResponseCode.DatabaseError);
             }
 
             // 剩余计划生成采购单后取消，回写计划为未发布
@@ -839,7 +840,7 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                            Remark = $"{batch.Id}DX"
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedGenerate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedGenerate, ResponseCode.Forbidden);
             }
 
             using (var deniedCreatePlan = await limitedClient.PostAsJsonAsync(
@@ -860,7 +861,7 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                            }
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreatePlan.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreatePlan, ResponseCode.Forbidden);
             }
 
             using (var deniedAssign = await limitedClient.PutAsJsonAsync(
@@ -871,19 +872,19 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                            SupplierId = managedSupplierId
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedAssign.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedAssign, ResponseCode.Forbidden);
             }
 
             using (var deniedComplete = await limitedClient.PostAsync(
                        $"/api/purchase-orders/{completePo.Id}/complete",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedComplete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedComplete, ResponseCode.Forbidden);
             }
 
             using (var deniedDelete = await limitedClient.DeleteAsync($"/api/purchase-orders/{cancelPo.Id}"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDelete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDelete, ResponseCode.Forbidden);
             }
 
             // 扩权写：分配写菜单后重新登录
@@ -1068,7 +1069,7 @@ public class PurchasePlanFlowAndPermissionMatrixPostgreSqlTests(PostgreSqlTestFi
                            }
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreateAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreateAfterShrink, ResponseCode.Forbidden);
             }
 
             // 操作员清理业务临时单据：已完成采购单无法删除，保留至 finally 精确清理

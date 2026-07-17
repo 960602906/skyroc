@@ -34,9 +34,9 @@ public class OperationAuditMiddleware(RequestDelegate next, ILogger<OperationAud
             try
             {
                 var request = context.Request;
-                var statusCode = exception is null
-                    ? context.Response.StatusCode
-                    : ExceptionHttpStatusMapper.GetStatusCode(exception);
+                var businessCode = exception is null
+                    ? ApiResponseHttp.GetBusinessCode(context) ?? Shared.Constants.ResponseCode.Success
+                    : ExceptionHttpStatusMapper.GetResponseCode(exception);
                 await using var auditScope = context.RequestServices.GetRequiredService<IServiceScopeFactory>().CreateAsyncScope();
                 await auditScope.ServiceProvider.GetRequiredService<IOperationAuditService>().RecordAsync(new OperationAuditEntry
                 {
@@ -46,12 +46,14 @@ public class OperationAuditMiddleware(RequestDelegate next, ILogger<OperationAud
                     Method = request.Method,
                     Url = request.Path,
                     RequestSummary = RedactQuery(request.Query),
-                    ResponseSummary = $"HTTP {statusCode}",
+                    ResponseSummary = $"code {(int)businessCode}",
                     IpAddress = context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                     UserAgent = request.Headers.UserAgent.ToString(),
                     ExecutionDuration = watch.ElapsedMilliseconds,
-                    IsSuccess = exception is null && statusCode < StatusCodes.Status400BadRequest,
-                    ErrorMessage = exception is null ? null : "请求执行失败"
+                    IsSuccess = exception is null && businessCode == Shared.Constants.ResponseCode.Success,
+                    ErrorMessage = exception is null && businessCode == Shared.Constants.ResponseCode.Success
+                        ? null
+                        : "请求执行失败"
                 });
             }
             catch (Exception auditException)

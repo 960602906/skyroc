@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using SkyRoc.Tests.Testing;
 using Xunit;
 
@@ -47,7 +48,7 @@ public class OrderApiIntegrationTests
 
         var anonymousResponse = await anonymousClient.GetAsync("/api/orders/list?current=1&size=10");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
+        await ApiHttpAssert.AssertBusinessCodeAsync(anonymousResponse, ResponseCode.Unauthorized);
 
         using var readOnlyClient = factory.CreateClient();
         readOnlyClient.DefaultRequestHeaders.Add(TestAuthHandler.PermissionsHeader, PermissionCodes.Business.Orders.Read);
@@ -56,7 +57,7 @@ public class OrderApiIntegrationTests
         var createResponse = await readOnlyClient.PostAsJsonAsync("/api/orders", CreateRequest());
 
         Assert.Equal(HttpStatusCode.OK, readResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
+        await ApiHttpAssert.AssertBusinessCodeAsync(createResponse, ResponseCode.Forbidden);
     }
 
     [Fact]
@@ -132,8 +133,8 @@ public class OrderApiIntegrationTests
         Assert.Contains(PermissionCodes.Business.Orders.Read, listOperation.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.Orders.Audit, approveOperation.GetProperty("description").GetString());
         Assert.Equal("Bearer", listOperation.GetProperty("security")[0].EnumerateObject().Single().Name);
-        Assert.True(listOperation.GetProperty("responses").TryGetProperty("401", out _));
-        Assert.True(listOperation.GetProperty("responses").TryGetProperty("403", out _));
+        Assert.Contains("body.code=401", listOperation.GetProperty("description").GetString());
+        Assert.Contains("body.code=403", listOperation.GetProperty("description").GetString());
     }
 
     private static CreateSaleOrderDto CreateRequest()

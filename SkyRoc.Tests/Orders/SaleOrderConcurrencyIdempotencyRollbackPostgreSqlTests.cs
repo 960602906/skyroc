@@ -10,6 +10,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -195,15 +196,17 @@ public class SaleOrderConcurrencyIdempotencyRollbackPostgreSqlTests(PostgreSqlTe
 
             using var approveResponse = await approveTask;
             using var rejectResponse = await rejectTask;
-            var approveOk = approveResponse.StatusCode == HttpStatusCode.OK;
-            var rejectOk = rejectResponse.StatusCode == HttpStatusCode.OK;
-            var approveRejected = approveResponse.StatusCode == HttpStatusCode.BadGateway;
-            var rejectRejected = rejectResponse.StatusCode == HttpStatusCode.BadGateway;
+            var approvePayload = await ReadApiResponseAsync<SaleOrderDto>(approveResponse);
+            var rejectPayload = await ReadApiResponseAsync<SaleOrderDto>(rejectResponse);
+            var approveOk = approvePayload.Code == ResponseCode.Success;
+            var rejectOk = rejectPayload.Code == ResponseCode.Success;
+            var approveRejected = approvePayload.Code == ResponseCode.DatabaseError;
+            var rejectRejected = rejectPayload.Code == ResponseCode.DatabaseError;
 
             Assert.True(approveOk ^ rejectOk, "并发通过与驳回必须恰好一个成功");
             Assert.True(
                 (approveOk && rejectRejected) || (rejectOk && approveRejected),
-                "失败方必须返回业务拒绝 502，不允许双方成功或双方失败");
+                "失败方必须返回业务拒绝 code=502，不允许双方成功或双方失败");
 
             SaleOrderStatus expectedConcurrentStatus;
             OrderAuditAction expectedWinningAction;
@@ -211,15 +214,15 @@ public class SaleOrderConcurrencyIdempotencyRollbackPostgreSqlTests(PostgreSqlTe
             {
                 expectedConcurrentStatus = SaleOrderStatus.SortingPending;
                 expectedWinningAction = OrderAuditAction.Approve;
-                var approved = await ReadApiDataAsync<SaleOrderDto>(approveResponse);
-                Assert.Equal(SaleOrderStatus.SortingPending, approved.OrderStatus);
+                Assert.NotNull(approvePayload.Data);
+                Assert.Equal(SaleOrderStatus.SortingPending, approvePayload.Data.OrderStatus);
             }
             else
             {
                 expectedConcurrentStatus = SaleOrderStatus.Rejected;
                 expectedWinningAction = OrderAuditAction.Reject;
-                var rejected = await ReadApiDataAsync<SaleOrderDto>(rejectResponse);
-                Assert.Equal(SaleOrderStatus.Rejected, rejected.OrderStatus);
+                Assert.NotNull(rejectPayload.Data);
+                Assert.Equal(SaleOrderStatus.Rejected, rejectPayload.Data.OrderStatus);
             }
 
             await using (var afterConcurrent = fixture.CreateDbContext())
@@ -251,21 +254,21 @@ public class SaleOrderConcurrencyIdempotencyRollbackPostgreSqlTests(PostgreSqlTe
                        $"/api/orders/{concurrentOrder.Id}/approve",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-重复通过" }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, reApprove.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(reApprove, ResponseCode.DatabaseError);
             }
 
             using (var reReject = await adminClient.PostAsJsonAsync(
                        $"/api/orders/{concurrentOrder.Id}/reject",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-重复驳回" }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, reReject.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(reReject, ResponseCode.DatabaseError);
             }
 
             using (var illegalResubmit = await adminClient.PostAsJsonAsync(
                        $"/api/orders/{concurrentOrder.Id}/resubmit",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-非法重提" }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, illegalResubmit.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(illegalResubmit, ResponseCode.DatabaseError);
             }
 
             await using (var afterIdempotent = fixture.CreateDbContext())
@@ -317,10 +320,10 @@ public class SaleOrderConcurrencyIdempotencyRollbackPostgreSqlTests(PostgreSqlTe
 
             using var firstApproveResponse = await firstApproveTask;
             using var secondApproveResponse = await secondApproveTask;
-            var successCount = new[] { firstApproveResponse.StatusCode, secondApproveResponse.StatusCode }
-                .Count(code => code == HttpStatusCode.OK);
-            var failureCount = new[] { firstApproveResponse.StatusCode, secondApproveResponse.StatusCode }
-                .Count(code => code == HttpStatusCode.BadGateway);
+            var firstCode = await ApiHttpAssert.ReadBusinessCodeAsync(firstApproveResponse);
+            var secondCode = await ApiHttpAssert.ReadBusinessCodeAsync(secondApproveResponse);
+            var successCount = new[] { firstCode, secondCode }.Count(code => code == ResponseCode.Success);
+            var failureCount = new[] { firstCode, secondCode }.Count(code => code == ResponseCode.DatabaseError);
             Assert.Equal(1, successCount);
             Assert.Equal(1, failureCount);
 
@@ -362,7 +365,7 @@ public class SaleOrderConcurrencyIdempotencyRollbackPostgreSqlTests(PostgreSqlTe
                        $"/api/orders/{rollbackOrder.Id}/resubmit",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-待审核非法重提" }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, illegalResubmitPending.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(illegalResubmitPending, ResponseCode.DatabaseError);
             }
 
             await using (var afterIllegal = fixture.CreateDbContext())
@@ -427,7 +430,7 @@ public class SaleOrderConcurrencyIdempotencyRollbackPostgreSqlTests(PostgreSqlTe
                            }
                        }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, failedUpdate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(failedUpdate, ResponseCode.DatabaseError);
             }
 
             await using (var afterFailedUpdate = fixture.CreateDbContext())

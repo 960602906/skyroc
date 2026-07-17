@@ -11,6 +11,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -323,19 +324,19 @@ public class QuotationAuditAndProtocolPricePriorityPostgreSqlTests(PostgreSqlTes
             // 未认证访问报价/协议价/审核接口
             using (var anonymousList = await anonymousClient.GetAsync("/api/quotations"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousList.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousList, ResponseCode.Unauthorized);
             }
 
             using (var anonymousProtocolList = await anonymousClient.GetAsync("/api/customer-protocols"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousProtocolList.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousProtocolList, ResponseCode.Unauthorized);
             }
 
             using (var anonymousAudit = await anonymousClient.PatchAsync(
                        $"/api/quotations/{managedQuotationId}/audit?isAudited=true",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousAudit.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousAudit, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -593,14 +594,14 @@ public class QuotationAuditAndProtocolPricePriorityPostgreSqlTests(PostgreSqlTes
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreate, ResponseCode.Forbidden);
             }
 
             using (var deniedAudit = await limitedClient.PatchAsync(
                        $"/api/quotations/{targetQuotation.Id}/audit?isAudited=true",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedAudit.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedAudit, ResponseCode.Forbidden);
             }
 
             // 扩权：分配写权限菜单后可创建，但仍无审核权限
@@ -664,7 +665,7 @@ public class QuotationAuditAndProtocolPricePriorityPostgreSqlTests(PostgreSqlTes
                        $"/api/quotations/{expandedQuotation.Id}/audit?isAudited=true",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedAuditWithoutPermission.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedAuditWithoutPermission, ResponseCode.Forbidden);
             }
 
             // 再扩权：分配审核菜单后可审核
@@ -785,7 +786,7 @@ public class QuotationAuditAndProtocolPricePriorityPostgreSqlTests(PostgreSqlTes
                        $"/api/quotations/{targetQuotation.Id}/audit?isAudited=true",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedAuditAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedAuditAfterShrink, ResponseCode.Forbidden);
             }
 
             // 操作员按依赖逆序删除临时协议价与报价

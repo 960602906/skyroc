@@ -9,6 +9,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -107,7 +108,7 @@ public class AuthProfilePasswordPostgreSqlTests(PostgreSqlTestFixture fixture)
             // 未认证访问个人中心
             using (var anonymousGet = await anonymousClient.GetAsync("/api/system/user/profile"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousGet.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousGet, ResponseCode.Unauthorized);
             }
 
             using (var anonymousUpdate = await anonymousClient.PutAsJsonAsync(
@@ -120,7 +121,7 @@ public class AuthProfilePasswordPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Email = updatedEmail
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousUpdate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousUpdate, ResponseCode.Unauthorized);
             }
 
             using (var anonymousPassword = await anonymousClient.PutAsJsonAsync(
@@ -131,7 +132,7 @@ public class AuthProfilePasswordPostgreSqlTests(PostgreSqlTestFixture fixture)
                            NewPassword = newPassword
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousPassword.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousPassword, ResponseCode.Unauthorized);
             }
 
             // 本人登录
@@ -176,7 +177,7 @@ public class AuthProfilePasswordPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Email = "not-an-email"
                        }))
             {
-                Assert.Equal(HttpStatusCode.UnprocessableEntity, invalidProfileResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(invalidProfileResponse, ResponseCode.ValidationError);
                 var invalidBody = await invalidProfileResponse.Content.ReadAsStringAsync();
                 Assert.DoesNotContain(originalPassword, invalidBody, StringComparison.Ordinal);
             }
@@ -249,7 +250,7 @@ public class AuthProfilePasswordPostgreSqlTests(PostgreSqlTestFixture fixture)
                            NewPassword = newPassword
                        }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, wrongOldPasswordResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(wrongOldPasswordResponse, ResponseCode.DatabaseError);
                 var wrongBody = await wrongOldPasswordResponse.Content.ReadAsStringAsync();
                 var wrongPayload = JsonSerializer.Deserialize<ApiResponse<object>>(wrongBody, JsonOptions);
                 Assert.NotNull(wrongPayload);
@@ -268,7 +269,7 @@ public class AuthProfilePasswordPostgreSqlTests(PostgreSqlTestFixture fixture)
                            NewPassword = originalPassword
                        }))
             {
-                Assert.Equal(HttpStatusCode.UnprocessableEntity, samePasswordResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(samePasswordResponse, ResponseCode.ValidationError);
             }
 
             // 正确旧密码可改密（同上，成功消息在 Msg）
@@ -307,7 +308,7 @@ public class AuthProfilePasswordPostgreSqlTests(PostgreSqlTestFixture fixture)
                 Password = originalPassword
             }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, oldPasswordLogin.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(oldPasswordLogin, ResponseCode.DatabaseError);
             }
 
             LoginResDto relogin;

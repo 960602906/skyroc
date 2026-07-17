@@ -283,9 +283,9 @@ public class SystemSupportContractTests
 
         await exceptionMiddleware.InvokeAsync(context);
 
-        Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
         var entry = Assert.Single(sink.Entries);
-        Assert.Equal("HTTP 404", entry.ResponseSummary);
+        Assert.Equal("code 404", entry.ResponseSummary);
         Assert.False(entry.IsSuccess);
     }
 

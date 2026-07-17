@@ -10,6 +10,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -189,12 +190,12 @@ public class AuthLogsReadPermissionMatrixPostgreSqlTests(PostgreSqlTestFixture f
             // 未认证访问日志接口
             using (var anonymousOperations = await anonymousClient.GetAsync("/api/logs/operations?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousOperations.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousOperations, ResponseCode.Unauthorized);
             }
 
             using (var anonymousLogins = await anonymousClient.GetAsync("/api/logs/logins?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousLogins.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousLogins, ResponseCode.Unauthorized);
             }
 
             // 错误密码登录：写入失败审计，供后续脱敏断言
@@ -204,7 +205,7 @@ public class AuthLogsReadPermissionMatrixPostgreSqlTests(PostgreSqlTestFixture f
                 Password = "Definitely-Wrong-Password!"
             }))
             {
-                Assert.NotEqual(HttpStatusCode.OK, badLogin.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(badLogin, ResponseCode.DatabaseError);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -372,12 +373,12 @@ public class AuthLogsReadPermissionMatrixPostgreSqlTests(PostgreSqlTestFixture f
 
             using (var deniedOps = await limitedClient.GetAsync("/api/logs/operations?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedOps.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedOps, ResponseCode.Forbidden);
             }
 
             using (var deniedLogins = await limitedClient.GetAsync("/api/logs/logins?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedLogins.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedLogins, ResponseCode.Forbidden);
             }
 
             // 扩权：分配日志只读菜单后重新登录
@@ -500,12 +501,12 @@ public class AuthLogsReadPermissionMatrixPostgreSqlTests(PostgreSqlTestFixture f
 
             using (var deniedOpsAfterShrink = await limitedReloginClient.GetAsync("/api/logs/operations?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedOpsAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedOpsAfterShrink, ResponseCode.Forbidden);
             }
 
             using (var deniedLoginsAfterShrink = await limitedReloginClient.GetAsync("/api/logs/logins?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedLoginsAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedLoginsAfterShrink, ResponseCode.Forbidden);
             }
 
             await using var auditContext = fixture.CreateDbContext();

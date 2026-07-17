@@ -11,6 +11,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -309,7 +310,7 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
             // 未认证访问订单接口
             using (var anonymousList = await anonymousClient.GetAsync("/api/orders/list?current=1&size=10"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousList.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousList, ResponseCode.Unauthorized);
             }
 
             using (var anonymousCreate = await anonymousClient.PostAsJsonAsync(
@@ -331,7 +332,7 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
                            ]
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousCreate, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -512,7 +513,7 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
                        $"/api/orders/{targetOrder.Id}/resubmit",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-非法重提" }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, illegalResubmit.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(illegalResubmit, ResponseCode.DatabaseError);
             }
 
             // 驳回
@@ -536,7 +537,7 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
                        $"/api/orders/{targetOrder.Id}/approve",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-非法通过" }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, illegalApprove.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(illegalApprove, ResponseCode.DatabaseError);
             }
 
             // 重提
@@ -579,14 +580,14 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
                        $"/api/orders/{targetOrder.Id}/approve",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-重复通过" }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, doubleApprove.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(doubleApprove, ResponseCode.DatabaseError);
             }
 
             using (var rejectAfterApprove = await adminClient.PostAsJsonAsync(
                        $"/api/orders/{targetOrder.Id}/reject",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-通过后驳回" }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, rejectAfterApprove.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(rejectAfterApprove, ResponseCode.DatabaseError);
             }
 
             await using (var afterStateMachine = fixture.CreateDbContext())
@@ -733,7 +734,7 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
                            }
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreate, ResponseCode.Forbidden);
             }
 
             using (var deniedUpdate = await limitedClient.PutAsJsonAsync(
@@ -758,19 +759,19 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
                            }
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedUpdate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedUpdate, ResponseCode.Forbidden);
             }
 
             using (var deniedDelete = await limitedClient.DeleteAsync($"/api/orders/{targetOrder.Id}"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDelete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDelete, ResponseCode.Forbidden);
             }
 
             using (var deniedReject = await limitedClient.PostAsJsonAsync(
                        $"/api/orders/{targetOrder.Id}/reject",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-无审核权限" }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedReject.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedReject, ResponseCode.Forbidden);
             }
 
             // 扩权写：分配写菜单后重新登录
@@ -817,7 +818,7 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
                        $"/api/orders/{targetOrder.Id}/approve",
                        new SaleOrderAuditDto { Remark = $"{batch.Id}-有写无审核" }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedAuditAfterWrite.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedAuditAfterWrite, ResponseCode.Forbidden);
             }
 
             SaleOrderDto expandedOrder;
@@ -1019,7 +1020,7 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
                            }
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreateAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreateAfterShrink, ResponseCode.Forbidden);
             }
 
             // 删除目标订单（明细与审核日志级联清理）

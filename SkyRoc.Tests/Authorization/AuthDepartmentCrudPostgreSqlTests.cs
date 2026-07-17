@@ -10,6 +10,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -218,7 +219,7 @@ public class AuthDepartmentCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
             // 未认证访问部门接口
             using (var anonymousTree = await anonymousClient.GetAsync("/api/departments/tree"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousTree.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousTree, ResponseCode.Unauthorized);
             }
 
             using (var anonymousCreate = await anonymousClient.PostAsJsonAsync(
@@ -230,7 +231,7 @@ public class AuthDepartmentCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousCreate, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -364,7 +365,7 @@ public class AuthDepartmentCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
             // 有子部门时删除根部门应业务失败（BusinessException → 502）
             using (var deleteRootWithChild = await adminClient.DeleteAsync($"/api/departments/{rootDept.Id}"))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, deleteRootWithChild.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deleteRootWithChild, ResponseCode.DatabaseError);
             }
 
             await using (var afterFailedDelete = fixture.CreateDbContext())
@@ -438,7 +439,7 @@ public class AuthDepartmentCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreate, ResponseCode.Forbidden);
             }
 
             using (var deniedUpdate = await limitedClient.PutAsJsonAsync(
@@ -452,19 +453,19 @@ public class AuthDepartmentCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedUpdate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedUpdate, ResponseCode.Forbidden);
             }
 
             using (var deniedToggle = await limitedClient.PatchAsync(
                        $"/api/departments/{childDept.Id}/status?status={(int)Status.Disable}",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedToggle.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedToggle, ResponseCode.Forbidden);
             }
 
             using (var deniedDelete = await limitedClient.DeleteAsync($"/api/departments/{childDept.Id}"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDelete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDelete, ResponseCode.Forbidden);
             }
 
             using (var deniedBatchDelete = await limitedClient.SendAsync(
@@ -473,7 +474,7 @@ public class AuthDepartmentCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Content = JsonContent.Create(new List<Guid> { childDept.Id })
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedBatchDelete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedBatchDelete, ResponseCode.Forbidden);
             }
 
             // 扩权：分配写权限菜单后重新登录，应允许创建/更新/删除
@@ -618,7 +619,7 @@ public class AuthDepartmentCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreateAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreateAfterShrink, ResponseCode.Forbidden);
             }
 
             // 操作员先删子部门再删根部门

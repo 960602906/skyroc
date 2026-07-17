@@ -1,14 +1,18 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Application.interfaces;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Common;
 using Shared.Constants;
 using SkyRoc.Authorization;
+using SkyRoc.Middleware;
+
 
 namespace SkyRoc.Extensions;
 
@@ -91,6 +95,7 @@ public static class AuthExtensions
         });
         services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddSingleton<IAuthorizationHandler, ResourcePermissionAuthorizationHandler>();
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, ApiAuthorizationMiddlewareResultHandler>();
 
         return services;
     }
@@ -132,17 +137,14 @@ public static class AuthExtensions
             return;
         }
 
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         var authHeader = context.Request.Headers.Authorization.ToString();
         if (string.IsNullOrEmpty(authHeader))
         {
-            await context.Response.WriteAsJsonAsync(
-                ApiResponse<string>.Unauthorized("认证失败,未提供认证令牌"));
+            await WriteUnauthorizedChallengeAsync(context, "认证失败,未提供认证令牌");
             return;
         }
 
-        await context.Response.WriteAsJsonAsync(
-            ApiResponse<string>.Unauthorized("认证失败，令牌格式错误或无效"));
+        await WriteUnauthorizedChallengeAsync(context, "认证失败，令牌格式错误或无效");
     }
 
     /// <summary>
@@ -169,7 +171,6 @@ public static class AuthExtensions
             // 8. 其他未知异常
             _ => WriteChallengeAsync(
                 context,
-                StatusCodes.Status500InternalServerError,
                 new ApiResponse<string>
                 {
                     Code = ResponseCode.InternalError,
@@ -179,35 +180,31 @@ public static class AuthExtensions
     }
 
     /// <summary>
-    ///     权限不足处理
+    ///     权限不足处理：HTTP 固定 200，业务码 403 写在响应体。
     /// </summary>
     /// <param name="context"></param>
     private static async Task OnForbidden(ForbiddenContext context)
     {
         if (!context.Response.HasStarted)
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            context.Response.ContentType = "application/json; charset=utf-8";
             var result = ApiResponse<string>.Forbidden();
+            context.Response.StatusCode = StatusCodes.Status200OK;
+            context.Response.ContentType = "application/json; charset=utf-8";
+            ApiResponseHttp.MarkBusinessCode(context.HttpContext, result.Code);
             await context.Response.WriteAsJsonAsync(result);
         }
     }
 
     private static Task WriteUnauthorizedChallengeAsync(JwtBearerChallengeContext context, string message)
     {
-        return WriteChallengeAsync(
-            context,
-            StatusCodes.Status401Unauthorized,
-            ApiResponse<string>.Unauthorized(message));
+        return WriteChallengeAsync(context, ApiResponse<string>.Unauthorized(message));
     }
 
-    private static Task WriteChallengeAsync(
-        JwtBearerChallengeContext context,
-        int statusCode,
-        ApiResponse<string> payload)
+    private static Task WriteChallengeAsync(JwtBearerChallengeContext context, ApiResponse<string> payload)
     {
-        context.Response.StatusCode = statusCode;
+        context.Response.StatusCode = StatusCodes.Status200OK;
         context.Response.ContentType = "application/json; charset=utf-8";
+        ApiResponseHttp.MarkBusinessCode(context.HttpContext, payload.Code);
         return context.Response.WriteAsJsonAsync(payload);
     }
 

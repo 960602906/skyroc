@@ -8,6 +8,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -100,7 +101,7 @@ public class AuthDisabledUserLoginPostgreSqlTests(PostgreSqlTestFixture fixture)
                 Password = password
             }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, disabledLoginResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(disabledLoginResponse, ResponseCode.DatabaseError);
                 var disabledBody = await disabledLoginResponse.Content.ReadAsStringAsync();
                 var disabledPayload = JsonSerializer.Deserialize<ApiResponse<object?>>(disabledBody, JsonOptions);
                 Assert.NotNull(disabledPayload);
@@ -157,7 +158,7 @@ public class AuthDisabledUserLoginPostgreSqlTests(PostgreSqlTestFixture fixture)
                 Password = password
             }))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, reloginResponse.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(reloginResponse, ResponseCode.DatabaseError);
             }
 
             await using var verifyContext = fixture.CreateDbContext();

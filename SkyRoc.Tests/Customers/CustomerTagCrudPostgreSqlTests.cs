@@ -11,6 +11,7 @@ using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
 using Shared.Common;
 using Shared.Constants;
+using SkyRoc.Tests.Common;
 using Shared.Utils;
 using SkyRoc.Tests.Testing.PostgreSql;
 using Xunit;
@@ -236,12 +237,12 @@ public class CustomerTagCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
             // 未认证访问客户标签接口
             using (var anonymousList = await anonymousClient.GetAsync("/api/customer-tags"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousList.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousList, ResponseCode.Unauthorized);
             }
 
             using (var anonymousTree = await anonymousClient.GetAsync("/api/customer-tags/tree"))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousTree.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousTree, ResponseCode.Unauthorized);
             }
 
             using (var anonymousCreate = await anonymousClient.PostAsJsonAsync(
@@ -253,7 +254,7 @@ public class CustomerTagCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, anonymousCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(anonymousCreate, ResponseCode.Unauthorized);
             }
 
             // 操作员登录（Admin → *:*:*）
@@ -454,7 +455,7 @@ public class CustomerTagCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
             // 有子标签时删除根标签应业务失败（BusinessException → 502）
             using (var deleteRootWithChild = await adminClient.DeleteAsync($"/api/customer-tags/{rootTag.Id}"))
             {
-                Assert.Equal(HttpStatusCode.BadGateway, deleteRootWithChild.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deleteRootWithChild, ResponseCode.DatabaseError);
             }
 
             await using (var afterFailedDelete = fixture.CreateDbContext())
@@ -543,7 +544,7 @@ public class CustomerTagCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreate, ResponseCode.Forbidden);
             }
 
             using (var deniedUpdate = await limitedClient.PutAsJsonAsync(
@@ -556,19 +557,19 @@ public class CustomerTagCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedUpdate.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedUpdate, ResponseCode.Forbidden);
             }
 
             using (var deniedStatus = await limitedClient.PatchAsync(
                        $"/api/customer-tags/{childTag.Id}/status?status={(int)Status.Disable}",
                        null))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedStatus.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedStatus, ResponseCode.Forbidden);
             }
 
             using (var deniedDelete = await limitedClient.DeleteAsync($"/api/customer-tags/{childTag.Id}"))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedDelete.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedDelete, ResponseCode.Forbidden);
             }
 
             // 扩权：分配写权限菜单后重新登录
@@ -711,7 +712,7 @@ public class CustomerTagCrudPostgreSqlTests(PostgreSqlTestFixture fixture)
                            Status = Status.Enable
                        }))
             {
-                Assert.Equal(HttpStatusCode.Forbidden, deniedCreateAfterShrink.StatusCode);
+                await ApiHttpAssert.AssertBusinessCodeAsync(deniedCreateAfterShrink, ResponseCode.Forbidden);
             }
 
             // 先删子后删根
