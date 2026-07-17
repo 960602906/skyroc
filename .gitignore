@@ -52,8 +52,6 @@ artifacts/
 #------------------------------------------
 *.nupkg
 *.snupkg
-**/packages/*
-!**/packages/build/
 *.nuget.props
 *.nuget.targets
 
