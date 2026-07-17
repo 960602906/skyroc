@@ -1,4 +1,6 @@
 using Application.DTOs.Storage;
+using Application.Events;
+using Application.Events.Finance;
 using Application.Exceptions;
 using Application.Extensions;
 using Application.Interfaces;
@@ -31,7 +33,7 @@ public class StockOutService(
     IDepartmentRepository departmentRepository,
     ISaleOrderRepository saleOrderRepository,
     IDeliveryTaskRepository deliveryTaskRepository,
-    ISupplierBillService supplierBillService,
+    IApplicationEventPublisher eventPublisher,
     IGoodsUnitRepository goodsUnitRepository,
     IUnitOfWork unitOfWork,
     IMapper mapper,
@@ -258,7 +260,7 @@ public class StockOutService(
 
             if (orderType == StockOutOrderType.PurchaseReturn)
             {
-                await supplierBillService.SyncPurchaseReturnOutAsync(order);
+                await eventPublisher.PublishAsync(new PurchaseReturnStockOutAudited(order));
             }
 
             auditedOrder = order;
@@ -297,7 +299,7 @@ public class StockOutService(
 
             if (orderType == StockOutOrderType.PurchaseReturn)
             {
-                await supplierBillService.EnsureCanReverseSourceDocumentAsync(null, order.Id);
+                await eventPublisher.PublishAsync(new PurchaseReturnStockOutReversalRequested(order.Id));
             }
 
             var activeLedgers = await stockLedgerRepository.GetActiveBySourceOrderAsync(order.Id);
@@ -344,7 +346,7 @@ public class StockOutService(
 
             if (orderType == StockOutOrderType.PurchaseReturn)
             {
-                await supplierBillService.RemoveBySourceDocumentAsync(null, order.Id);
+                await eventPublisher.PublishAsync(new PurchaseReturnStockOutReversed(order.Id));
             }
 
             reversedOrder = order;

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Application.Events;
 using Application.Mappers;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,21 @@ public static class DependencyInjection
             .AsImplementedInterfaces()
             .WithScopedLifetime());
 
+        return services;
+    }
+
+    /// <summary>
+    ///     注册进程内应用事件发布器与全部 handler。
+    /// </summary>
+    private static IServiceCollection AddApplicationEvents(this IServiceCollection services)
+    {
+        services.AddScoped<IApplicationEventPublisher, ApplicationEventPublisher>();
+        var assembly = Assembly.GetExecutingAssembly();
+        services.Scan(scan => scan
+            .FromAssemblies(assembly)
+            .AddClasses(classes => classes.AssignableTo(typeof(IApplicationEventHandler<>)))
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
         return services;
     }
 
@@ -51,6 +67,7 @@ public static class DependencyInjection
     {
         ArgumentNullException.ThrowIfNull(configuration);
         services.AddAutoServiceConfiguration();
+        services.AddApplicationEvents();
         services.AddAutoMapperConfiguration();
         services.AddAuthFluentValidationConfiguration();
         return services;

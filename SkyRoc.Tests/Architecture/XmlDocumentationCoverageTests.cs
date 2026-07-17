@@ -14,7 +14,7 @@ public class XmlDocumentationCoverageTests
     private static readonly (Assembly Assembly, string[] NamespacePrefixes)[] Targets =
     [
         (typeof(BaseEntity).Assembly, ["Domain.Entities", "Domain.Interfaces"]),
-        (typeof(IAuthService).Assembly, ["Application.Interfaces", "Application.Services"]),
+        (typeof(IAuthService).Assembly, ["Application.Interfaces", "Application.Services", "Application.Events"]),
         (typeof(UnitOfWork).Assembly, ["Infrastructure.Repositories"]),
         (typeof(AuthController).Assembly, ["SkyRoc.Controllers"])
     ];

@@ -464,9 +464,11 @@ public class StockInServiceTests
         IStockBatchRepository? stockBatchRepository = null)
     {
         var mapper = new MapperConfiguration(config => config.AddProfile<StockInMappingProfile>()).CreateMapper();
+        var currentUser = new FakeCurrentUserService();
+        var batchRepository = stockBatchRepository ?? new StockBatchRepository(context);
         return new StockInService(
             stockInOrderRepository ?? new StockInOrderRepository(context),
-            stockBatchRepository ?? new StockBatchRepository(context),
+            batchRepository,
             new StockLedgerRepository(context),
             new WareRepository(context),
             new SupplierRepository(context),
@@ -476,16 +478,13 @@ public class StockInServiceTests
             new PurchaseOrderRepository(context),
             new PickupTaskRepository(context),
             new AfterSaleRepository(context),
-            new SupplierBillService(
-                new SupplierBillRepository(context),
-                new SupplierSettlementRepository(context),
-                new FakeCurrentUserService(),
-                DocumentNoGeneratorTestDouble.Instance),
+            new InventoryCostingService(batchRepository, new GoodsRepository(context), currentUser),
+            TestApplicationEventPublisherFactory.Create(context, currentUser),
             new GoodsRepository(context),
             new GoodsUnitRepository(context),
             unitOfWork,
             mapper,
-            new FakeCurrentUserService(),
+            currentUser,
             DocumentNoGeneratorTestDouble.Instance,
             new CreatePurchaseStockInValidator(),
             new UpdatePurchaseStockInValidator(),

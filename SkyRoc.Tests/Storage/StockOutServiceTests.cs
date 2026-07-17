@@ -436,6 +436,7 @@ public class StockOutServiceTests
         ISaleOrderRepository? saleOrderRepository = null)
     {
         var mapper = new MapperConfiguration(config => config.AddProfile<StockOutMappingProfile>()).CreateMapper();
+        var currentUser = new FakeCurrentUserService();
         return new StockOutService(
             orderRepository ?? new StockOutOrderRepository(context),
             batchRepository ?? new StockBatchRepository(context),
@@ -446,15 +447,11 @@ public class StockOutServiceTests
             new DepartmentRepository(context),
             saleOrderRepository ?? new SaleOrderRepository(context),
             new DeliveryTaskRepository(context),
-            new SupplierBillService(
-                new SupplierBillRepository(context),
-                new SupplierSettlementRepository(context),
-                new FakeCurrentUserService(),
-                DocumentNoGeneratorTestDouble.Instance),
+            TestApplicationEventPublisherFactory.Create(context, currentUser),
             new GoodsUnitRepository(context),
             unitOfWork,
             mapper,
-            new FakeCurrentUserService(),
+            currentUser,
             DocumentNoGeneratorTestDouble.Instance,
             new CreateSaleStockOutValidator(),
             new UpdateSaleStockOutValidator(),

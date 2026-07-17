@@ -287,9 +287,11 @@ public class AfterSaleStockIntegrationTests
         IUnitOfWork unitOfWork,
         IMapper mapper)
     {
+        var currentUser = new FakeCurrentUserService();
+        var batchRepository = new StockBatchRepository(context);
         return new StockInService(
             new StockInOrderRepository(context),
-            new StockBatchRepository(context),
+            batchRepository,
             new StockLedgerRepository(context),
             new WareRepository(context),
             new SupplierRepository(context),
@@ -299,16 +301,13 @@ public class AfterSaleStockIntegrationTests
             new PurchaseOrderRepository(context),
             new PickupTaskRepository(context),
             new AfterSaleRepository(context),
-            new SupplierBillService(
-                new SupplierBillRepository(context),
-                new SupplierSettlementRepository(context),
-                new FakeCurrentUserService(),
-                DocumentNoGeneratorTestDouble.Instance),
+            new InventoryCostingService(batchRepository, new GoodsRepository(context), currentUser),
+            TestApplicationEventPublisherFactory.Create(context, currentUser),
             new GoodsRepository(context),
             new GoodsUnitRepository(context),
             unitOfWork,
             mapper,
-            new FakeCurrentUserService(),
+            currentUser,
             DocumentNoGeneratorTestDouble.Instance,
             new CreatePurchaseStockInValidator(),
             new UpdatePurchaseStockInValidator(),
