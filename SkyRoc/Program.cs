@@ -9,9 +9,10 @@ using SkyRoc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // 📋 获取配置
 var configuration = builder.Configuration;
+
+builder.AddSkyRocObservability();
 
 builder.Services.Configure<DevSeedOptions>(configuration.GetSection(DevSeedOptions.SectionName));
 builder.Services.AddScoped<Application.Interfaces.System.IAuditRequestSourceAccessor, HttpAuditRequestSourceAccessor>();
@@ -73,6 +74,7 @@ if (app.Environment.IsDevelopment())
 // ========================================
 // 1. 使用全局异常处理（必须在最前面）
 app.UseExceptionHandling();
+app.UseSkyRocObservability();
 // 2. HTTPS 重定向（开发环境常用 http profile，跳过以免无法解析 https 端口的警告）
 if (!app.Environment.IsDevelopment())
 {
