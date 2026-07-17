@@ -95,25 +95,29 @@ public class PurchaseOrderService(
     public async Task<PurchaseOrderDto> UpdateAsync(UpdatePurchaseOrderDto dto)
     {
         await ValidateAsync(updateValidator, dto);
-        var order = await GetRequiredOrderAsync(dto.Id);
-        EnsureDraft(order, "编辑");
-        ValidateDetailOwnership(order, dto.Details);
 
-        var originalAllocations = GetAllocationTotals(order.Details.SelectMany(x => x.PlanRelations));
+        // 商品/单位与计划占用准备可在事务外 fail-fast；状态与占用变更必须在事务内锁定后重新校验。
         var preparedDetails = new List<PreparedDetail>(dto.Details.Count);
         foreach (var detailDto in dto.Details)
         {
             preparedDetails.Add(await PrepareDetailAsync(detailDto));
         }
 
-        var requestedAllocations = preparedDetails
-            .SelectMany(x => x.Allocations)
-            .GroupBy(x => x.PlanDetail.Id)
-            .ToDictionary(x => x.Key, x => RoundQuantity(x.Sum(item => item.Quantity)));
-        ValidatePlanAvailability(originalAllocations, requestedAllocations, preparedDetails);
-
+        PurchaseOrder order = null!;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
+            order = await purchaseOrderRepository.GetByIdForUpdateAsync(dto.Id)
+                    ?? throw new NotFoundException("采购单不存在");
+            EnsureDraft(order, "编辑");
+            ValidateDetailOwnership(order, dto.Details);
+
+            var originalAllocations = GetAllocationTotals(order.Details.SelectMany(x => x.PlanRelations));
+            var requestedAllocations = preparedDetails
+                .SelectMany(x => x.Allocations)
+                .GroupBy(x => x.PlanDetail.Id)
+                .ToDictionary(x => x.Key, x => RoundQuantity(x.Sum(item => item.Quantity)));
+            ValidatePlanAvailability(originalAllocations, requestedAllocations, preparedDetails);
+
             await ApplyPartiesAsync(
                 order,
                 dto.SupplierId,
@@ -137,10 +141,13 @@ public class PurchaseOrderService(
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var order = await GetRequiredOrderAsync(id);
-        EnsureDraft(order, "删除");
+        PurchaseOrder order = null!;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
+            // 事务内 FOR UPDATE 锁定并重新校验草稿，避免与完成/取消交错删除已终结单据。
+            order = await purchaseOrderRepository.GetByIdForUpdateAsync(id)
+                    ?? throw new NotFoundException("采购单不存在");
+            EnsureDraft(order, "删除");
             ReleasePlanAllocations(order);
             await purchaseOrderRepository.DeleteAsync(order);
         });
@@ -208,26 +215,32 @@ public class PurchaseOrderService(
     /// <inheritdoc />
     public async Task<PurchaseOrderDto> CompleteAsync(Guid id)
     {
-        var order = await GetRequiredOrderAsync(id);
-        EnsureDraft(order, "完成");
-        if (!order.PurchaserId.HasValue)
+        // 事务内 FOR UPDATE 锁定并重新校验草稿，避免并发完成/取消出现双重流转或计划占用不一致。
+        PurchaseOrder order = null!;
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
-            throw new BusinessException("采购单完成前必须分配采购员");
-        }
+            order = await purchaseOrderRepository.GetByIdForUpdateAsync(id)
+                    ?? throw new NotFoundException("采购单不存在");
+            EnsureDraft(order, "完成");
+            if (!order.PurchaserId.HasValue)
+            {
+                throw new BusinessException("采购单完成前必须分配采购员");
+            }
 
-        if (order.PurchasePattern == PurchasePattern.SupplierDirect && !order.SupplierId.HasValue)
-        {
-            throw new BusinessException("供应商直供采购单完成前必须选择供应商");
-        }
+            if (order.PurchasePattern == PurchasePattern.SupplierDirect && !order.SupplierId.HasValue)
+            {
+                throw new BusinessException("供应商直供采购单完成前必须选择供应商");
+            }
 
-        if (order.Details.Count == 0 || order.Details.Any(x => x.PurchaseQuantity <= 0m))
-        {
-            throw new BusinessException("采购单必须包含有效采购商品才能完成");
-        }
+            if (order.Details.Count == 0 || order.Details.Any(x => x.PurchaseQuantity <= 0m))
+            {
+                throw new BusinessException("采购单必须包含有效采购商品才能完成");
+            }
 
-        order.BusinessStatus = PurchaseOrderStatus.Completed;
-        ApplyUpdateAudit(order);
-        await unitOfWork.ExecuteInTransactionAsync(async () => await purchaseOrderRepository.UpdateAsync(order));
+            order.BusinessStatus = PurchaseOrderStatus.Completed;
+            ApplyUpdateAudit(order);
+            await purchaseOrderRepository.UpdateAsync(order);
+        });
         logger.LogInformation("采购单完成: {PurchaseOrderId}, {PurchaseNo}", order.Id, order.PurchaseNo);
         return mapper.Map<PurchaseOrderDto>(await GetRequiredOrderAsync(order.Id));
     }
@@ -235,10 +248,13 @@ public class PurchaseOrderService(
     /// <inheritdoc />
     public async Task<PurchaseOrderDto> CancelAsync(Guid id)
     {
-        var order = await GetRequiredOrderAsync(id);
-        EnsureDraft(order, "取消");
+        // 事务内 FOR UPDATE 锁定并重新校验草稿，避免并发完成/取消双重终结或重复释放计划占用。
+        PurchaseOrder order = null!;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
+            order = await purchaseOrderRepository.GetByIdForUpdateAsync(id)
+                    ?? throw new NotFoundException("采购单不存在");
+            EnsureDraft(order, "取消");
             ReleasePlanAllocations(order);
             order.BusinessStatus = PurchaseOrderStatus.Cancelled;
             ApplyUpdateAudit(order);

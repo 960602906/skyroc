@@ -8,7 +8,8 @@ namespace Domain.Interfaces;
 public interface IPurchaseOrderRepository : IRepository<PurchaseOrder>
 {
     /// <summary>
-    /// 在当前数据库事务内锁定并读取采购单聚合，用于串行校验采购入库数量。
+    /// 在当前数据库事务内锁定并读取采购单聚合，用于完成/取消/编辑/删除状态流转
+    /// 以及串行校验采购入库数量，避免并发双重终结或计划占用不一致。
     /// </summary>
     /// <param name="id">待锁定的采购单主键。</param>
     /// <returns>包含商品明细的采购单；不存在时返回 <c>null</c>。</returns>
