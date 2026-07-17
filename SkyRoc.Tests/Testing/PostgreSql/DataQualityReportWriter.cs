@@ -9,6 +9,11 @@ namespace SkyRoc.Tests.Testing.PostgreSql;
 /// </summary>
 public static class DataQualityReportWriter
 {
+    /// <summary>
+    ///     无 BOM 的 UTF-8，避免 Python/部分工具按严格 utf-8 解析时因 EF BB BF 失败。
+    /// </summary>
+    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -35,12 +40,12 @@ public static class DataQualityReportWriter
         await File.WriteAllTextAsync(
             jsonPath,
             JsonSerializer.Serialize(report, JsonOptions),
-            Encoding.UTF8,
+            Utf8NoBom,
             cancellationToken);
         await File.WriteAllTextAsync(
             markdownPath,
             BuildMarkdown(report),
-            Encoding.UTF8,
+            Utf8NoBom,
             cancellationToken);
 
         return new DataQualityReportPaths(jsonPath, markdownPath);

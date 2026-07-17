@@ -43,6 +43,9 @@ public class DataQualityReportWriterTests
 
             Assert.True(File.Exists(paths.JsonPath));
             Assert.True(File.Exists(paths.MarkdownPath));
+            AssertNoUtf8Bom(paths.JsonPath);
+            AssertNoUtf8Bom(paths.MarkdownPath);
+
             using var document = JsonDocument.Parse(await File.ReadAllTextAsync(paths.JsonPath));
             var root = document.RootElement;
             Assert.True(root.TryGetProperty("tableCounts", out _));
@@ -75,5 +78,19 @@ public class DataQualityReportWriterTests
             if (Directory.Exists(outputDirectory))
                 Directory.Delete(outputDirectory, true);
         }
+    }
+
+    /// <summary>
+    ///     JSON/Markdown 报告必须以无 BOM 的 UTF-8 落盘，避免严格 utf-8 解析器（如 Python json）失败。
+    /// </summary>
+    private static void AssertNoUtf8Bom(string path)
+    {
+        var header = new byte[3];
+        using var stream = File.OpenRead(path);
+        var read = stream.Read(header, 0, header.Length);
+        Assert.True(read >= 1, $"报告文件为空: {path}");
+        Assert.False(
+            read >= 3 && header[0] == 0xEF && header[1] == 0xBB && header[2] == 0xBF,
+            $"报告不应包含 UTF-8 BOM: {path}");
     }
 }

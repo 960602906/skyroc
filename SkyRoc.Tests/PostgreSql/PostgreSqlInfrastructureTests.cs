@@ -190,6 +190,22 @@ public class PostgreSqlInfrastructureTests(PostgreSqlTestFixture fixture)
         Assert.True(result.Report.BusinessConsistencyChecks["temporaryBatchResidueIsZero"]);
         Assert.True(File.Exists(result.Paths.JsonPath));
         Assert.True(File.Exists(result.Paths.MarkdownPath));
+        AssertNoUtf8Bom(result.Paths.JsonPath);
+        AssertNoUtf8Bom(result.Paths.MarkdownPath);
+    }
+
+    /// <summary>
+    ///     质量报告落盘不得带 UTF-8 BOM，便于严格 utf-8 解析器读取。
+    /// </summary>
+    private static void AssertNoUtf8Bom(string path)
+    {
+        var header = new byte[3];
+        using var stream = File.OpenRead(path);
+        var read = stream.Read(header, 0, header.Length);
+        Assert.True(read >= 1, $"报告文件为空: {path}");
+        Assert.False(
+            read >= 3 && header[0] == 0xEF && header[1] == 0xBB && header[2] == 0xBF,
+            $"报告不应包含 UTF-8 BOM: {path}");
     }
 
     private async Task<IReadOnlyList<string>> CaptureGoodsBaselineAsync()
