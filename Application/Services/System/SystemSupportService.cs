@@ -11,6 +11,7 @@ using Domain.Entities.System;
 using Domain.Interfaces;
 using Domain.Interfaces.System;
 using Shared.Constants;
+using Application.Extensions;
 
 namespace Application.Services.System;
 
@@ -84,7 +85,7 @@ public class SystemSupportService(
         period.EndTime = snapshot.EndTime;
         period.SortOrder = snapshot.SortOrder;
         period.Status = snapshot.IsEnabled ? Status.Enable : Status.Disable;
-        ApplyUpdateAudit(period);
+        period.ApplyUpdateAudit(currentUserService);
         await servicePeriodRepository.UpdateAsync(period);
         await SaveWithUniqueConstraintAsync("服务时段名称已存在");
         return mapper.Map<ServicePeriodDto>(period);
@@ -165,7 +166,7 @@ public class SystemSupportService(
         var entity = await GetNoticeEntityAsync(id);
         entity.Title = snapshot.Title;
         entity.Content = snapshot.Content;
-        ApplyUpdateAudit(entity);
+        entity.ApplyUpdateAudit(currentUserService);
         await noticeRepository.UpdateAsync(entity);
         await unitOfWork.SaveChangesAsync();
         return mapper.Map<NoticeDto>(entity);
@@ -178,7 +179,7 @@ public class SystemSupportService(
         var entity = await GetNoticeEntityAsync(id);
         entity.NoticeStatus = dto.NoticeStatus;
         entity.PublishedTime = dto.NoticeStatus == NoticeStatus.Published ? DateTime.UtcNow : null;
-        ApplyUpdateAudit(entity);
+        entity.ApplyUpdateAudit(currentUserService);
         await noticeRepository.UpdateAsync(entity);
         await unitOfWork.SaveChangesAsync();
         return mapper.Map<NoticeDto>(entity);
@@ -251,7 +252,7 @@ public class SystemSupportService(
         else
         {
             setting.SettingValue = json;
-            ApplyUpdateAudit(setting);
+            setting.ApplyUpdateAudit(currentUserService);
             await systemSettingRepository.UpdateAsync(setting);
         }
         await SaveWithUniqueConstraintAsync("系统设置已被其他操作更新，请重试");
@@ -287,7 +288,6 @@ public class SystemSupportService(
         return new NoticeSnapshot(title, content);
     }
     private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    private void ApplyUpdateAudit(BaseEntity entity) { entity.UpdateBy = currentUserService.GetUserId(); entity.UpdateName = currentUserService.GetUserName(); }
     private async Task SaveWithUniqueConstraintAsync(string message)
     {
         try { await unitOfWork.SaveChangesAsync(); }

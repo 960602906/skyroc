@@ -63,7 +63,7 @@ public class CustomerSettlementService(
     /// <inheritdoc />
     public async Task<CustomerSettlementDto> CreateAsync(CreateCustomerSettlementDto dto)
     {
-        await ValidateAsync(createValidator, dto);
+        await createValidator.ValidateOrThrowAsync(dto);
         var settlementId = Guid.NewGuid();
 
         await unitOfWork.ExecuteInTransactionAsync(async () =>
@@ -113,7 +113,7 @@ public class CustomerSettlementService(
                 var previousSettledAmount = NumericPrecision.RoundMoney(bill.SettledAmount);
                 bill.SettledAmount = NumericPrecision.RoundMoney(previousSettledAmount + appliedAmount);
                 RecalculateBillStatus(bill);
-                ApplyUpdateAudit(bill);
+                bill.ApplyUpdateAudit(currentUserService);
 
                 var detail = new CustomerSettlementDetail
                 {
@@ -132,7 +132,7 @@ public class CustomerSettlementService(
                     RemainingAmount = GetPendingAmount(bill),
                     Remark = Normalize(input.Remark)
                 };
-                ApplyCreateAudit(detail);
+                detail.ApplyCreateAudit(currentUserService);
                 details.Add(detail);
             }
 
@@ -164,7 +164,7 @@ public class CustomerSettlementService(
                 Remark = Normalize(dto.Remark),
                 Details = details
             };
-            ApplyCreateAudit(settlement);
+            settlement.ApplyCreateAudit(currentUserService);
             await customerSettlementRepository.AddAsync(settlement);
         });
 
@@ -175,7 +175,7 @@ public class CustomerSettlementService(
     /// <inheritdoc />
     public async Task<CustomerSettlementDto> VoidAsync(Guid id, VoidCustomerSettlementDto dto)
     {
-        await ValidateAsync(voidValidator, dto);
+        await voidValidator.ValidateOrThrowAsync(dto);
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var settlement = await customerSettlementRepository.GetByIdForUpdateAsync(id)
@@ -203,7 +203,7 @@ public class CustomerSettlementService(
 
                 bill.SettledAmount = NumericPrecision.RoundMoney(bill.SettledAmount - detail.AppliedAmount);
                 RecalculateBillStatus(bill);
-                ApplyUpdateAudit(bill);
+                bill.ApplyUpdateAudit(currentUserService);
             }
 
             settlement.SettlementStatus = CustomerSettlementStatus.Voided;
@@ -211,7 +211,7 @@ public class CustomerSettlementService(
             settlement.VoidedBy = currentUserService.GetUserId();
             settlement.VoidedByNameSnapshot = currentUserService.GetUserName();
             settlement.Remark = Normalize(dto.Remark);
-            ApplyUpdateAudit(settlement);
+            settlement.ApplyUpdateAudit(currentUserService);
         });
 
         logger.LogInformation("客户结款凭证作废成功: {SettlementId}", id);
@@ -242,26 +242,8 @@ public class CustomerSettlementService(
         }
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string? Normalize(string? value)
     {

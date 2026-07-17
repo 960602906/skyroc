@@ -70,7 +70,7 @@ public class StockOutService(
     /// <inheritdoc />
     public async Task<StockOutOrderDto> CreateSaleAsync(CreateSaleStockOutDto dto)
     {
-        await ValidateAsync(createSaleValidator, dto);
+        await createSaleValidator.ValidateOrThrowAsync(dto);
         var order = await BuildBaseOrderAsync(StockOutOrderType.Sale, dto.WareId, dto.OutTime, dto.Remark);
         await ApplySaleOrderSourceAsync(order, dto.SaleOrderId);
         await ApplyCustomerAsync(order, dto.CustomerId);
@@ -83,7 +83,7 @@ public class StockOutService(
     /// <inheritdoc />
     public async Task<StockOutOrderDto> UpdateSaleAsync(UpdateSaleStockOutDto dto)
     {
-        await ValidateAsync(updateSaleValidator, dto);
+        await updateSaleValidator.ValidateOrThrowAsync(dto);
         StockOutOrder? updatedOrder = null;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
@@ -98,7 +98,7 @@ public class StockOutService(
             await ApplyDepartmentAsync(order, dto.DepartmentId);
             SynchronizeDetails(order, details);
             await ValidateSourceRelationshipsAsync(order, lockSaleOrder: false);
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockOutOrderRepository.UpdateAsync(order);
             updatedOrder = order;
         });
@@ -112,7 +112,7 @@ public class StockOutService(
     /// <inheritdoc />
     public async Task<StockOutOrderDto> CreatePurchaseReturnAsync(CreatePurchaseReturnStockOutDto dto)
     {
-        await ValidateAsync(createPurchaseReturnValidator, dto);
+        await createPurchaseReturnValidator.ValidateOrThrowAsync(dto);
         var order = await BuildBaseOrderAsync(
             StockOutOrderType.PurchaseReturn,
             dto.WareId,
@@ -128,7 +128,7 @@ public class StockOutService(
     /// <inheritdoc />
     public async Task<StockOutOrderDto> UpdatePurchaseReturnAsync(UpdatePurchaseReturnStockOutDto dto)
     {
-        await ValidateAsync(updatePurchaseReturnValidator, dto);
+        await updatePurchaseReturnValidator.ValidateOrThrowAsync(dto);
         StockOutOrder? updatedOrder = null;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
@@ -142,7 +142,7 @@ public class StockOutService(
             await ApplyDepartmentAsync(order, dto.DepartmentId);
             SynchronizeDetails(order, details);
             await ValidateSourceRelationshipsAsync(order, lockSaleOrder: false);
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockOutOrderRepository.UpdateAsync(order);
             updatedOrder = order;
         });
@@ -159,7 +159,7 @@ public class StockOutService(
     /// <inheritdoc />
     public async Task<StockOutOrderDto> CreateOtherAsync(CreateOtherStockOutDto dto)
     {
-        await ValidateAsync(createOtherValidator, dto);
+        await createOtherValidator.ValidateOrThrowAsync(dto);
         var order = await BuildBaseOrderAsync(StockOutOrderType.Other, dto.WareId, dto.OutTime, dto.Remark);
         await ApplyDepartmentAsync(order, dto.DepartmentId);
         await BuildDetailsAsync(order, dto.Details);
@@ -170,7 +170,7 @@ public class StockOutService(
     /// <inheritdoc />
     public async Task<StockOutOrderDto> UpdateOtherAsync(UpdateOtherStockOutDto dto)
     {
-        await ValidateAsync(updateOtherValidator, dto);
+        await updateOtherValidator.ValidateOrThrowAsync(dto);
         StockOutOrder? updatedOrder = null;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
@@ -183,7 +183,7 @@ public class StockOutService(
             await ApplyDepartmentAsync(order, dto.DepartmentId);
             SynchronizeDetails(order, details);
             await ValidateSourceRelationshipsAsync(order, lockSaleOrder: false);
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockOutOrderRepository.UpdateAsync(order);
             updatedOrder = order;
         });
@@ -238,7 +238,7 @@ public class StockOutService(
             {
                 var batch = await ResolveBatchForOutboundAsync(order, detail, batchCache);
                 ApplyOutboundToBatch(batch, detail, auditTime);
-                ApplyUpdateAudit(detail);
+                detail.ApplyUpdateAudit(currentUserService);
                 await stockBatchRepository.UpdateAsync(batch);
                 await stockLedgerRepository.AddAsync(
                     CreateOutboundLedger(order, detail, batch, auditTime, normalizedRemark));
@@ -248,7 +248,7 @@ public class StockOutService(
             order.AuditUserId = currentUserService.GetUserId();
             order.AuditUserNameSnapshot = currentUserService.GetUserName();
             order.AuditTime = auditTime;
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockOutOrderRepository.UpdateAsync(order);
 
             if (saleOrder is not null)
@@ -334,7 +334,7 @@ public class StockOutService(
             order.ReverseUserId = currentUserService.GetUserId();
             order.ReverseUserNameSnapshot = currentUserService.GetUserName();
             order.ReverseTime = reverseTime;
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockOutOrderRepository.UpdateAsync(order);
 
             if (saleOrder is not null)
@@ -373,7 +373,7 @@ public class StockOutService(
             Remark = Normalize(remark)
         };
         await ApplyWareAsync(order, wareId);
-        ApplyCreateAudit(order);
+        order.ApplyCreateAudit(currentUserService);
         return order;
     }
 
@@ -390,7 +390,7 @@ public class StockOutService(
         {
             var prepared = await PrepareDetailAsync(detailDto, order.WareId);
             var detail = CreateDetail(order.Id, prepared);
-            ApplyCreateAudit(detail);
+            detail.ApplyCreateAudit(currentUserService);
             order.Details.Add(detail);
         }
 
@@ -497,12 +497,12 @@ public class StockOutService(
             {
                 var detail = existingById[prepared.ExistingId.Value];
                 ApplyDetailValues(detail, prepared);
-                ApplyUpdateAudit(detail);
+                detail.ApplyUpdateAudit(currentUserService);
             }
             else
             {
                 var detail = CreateDetail(order.Id, prepared);
-                ApplyCreateAudit(detail);
+                detail.ApplyCreateAudit(currentUserService);
                 order.Details.Add(detail);
             }
         }
@@ -550,7 +550,7 @@ public class StockOutService(
         batch.CurrentQuantity = RoundQuantity(batch.CurrentQuantity - detail.BaseQuantity);
         batch.AvailableQuantity = RoundQuantity(batch.AvailableQuantity - detail.BaseQuantity);
         batch.LastMovementTime = auditTime;
-        ApplyUpdateAudit(batch);
+        batch.ApplyUpdateAudit(currentUserService);
     }
 
     private void ApplyReversalToBatch(StockBatch batch, StockLedger source, DateTime reverseTime)
@@ -558,7 +558,7 @@ public class StockOutService(
         batch.CurrentQuantity = RoundQuantity(batch.CurrentQuantity + source.ChangeQuantity);
         batch.AvailableQuantity = RoundQuantity(batch.AvailableQuantity + source.ChangeQuantity);
         batch.LastMovementTime = reverseTime;
-        ApplyUpdateAudit(batch);
+        batch.ApplyUpdateAudit(currentUserService);
     }
 
     private StockLedger CreateOutboundLedger(
@@ -590,7 +590,7 @@ public class StockOutService(
             OccurredTime = auditTime,
             Remark = remark
         };
-        ApplyCreateAudit(ledger);
+        ledger.ApplyCreateAudit(currentUserService);
         return ledger;
     }
 
@@ -623,7 +623,7 @@ public class StockOutService(
             ReversedFromLedgerId = source.Id,
             Remark = remark
         };
-        ApplyCreateAudit(ledger);
+        ledger.ApplyCreateAudit(currentUserService);
         return ledger;
     }
 
@@ -768,7 +768,7 @@ public class StockOutService(
                 ? OrderOutStorageStatus.Generated
                 : OrderOutStorageStatus.PartiallyGenerated;
         saleOrder.OutDate = hasOutbound ? latestOutTime : null;
-        ApplyUpdateAudit(saleOrder);
+        saleOrder.ApplyUpdateAudit(currentUserService);
         await saleOrderRepository.UpdateAsync(saleOrder);
     }
 
@@ -860,26 +860,8 @@ public class StockOutService(
         return order;
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string? Normalize(string? value)
     {

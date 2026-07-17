@@ -68,7 +68,7 @@ public class PickupTaskService(
             task.AssignedTime = DateTime.UtcNow;
             task.PickupStatus = PickupTaskStatus.PendingPickup;
             task.Remark = Normalize(dto.Remark);
-            ApplyUpdateAudit(task);
+            task.ApplyUpdateAudit(currentUserService);
             await pickupTaskRepository.UpdateAsync(task);
         });
 
@@ -89,7 +89,7 @@ public class PickupTaskService(
 
             task.PickupStatus = PickupTaskStatus.PickingUp;
             task.StartedTime = DateTime.UtcNow;
-            ApplyUpdateAudit(task);
+            task.ApplyUpdateAudit(currentUserService);
             await pickupTaskRepository.UpdateAsync(task);
         });
 
@@ -110,7 +110,7 @@ public class PickupTaskService(
 
             task.PickupStatus = PickupTaskStatus.Completed;
             task.CompletedTime = DateTime.UtcNow;
-            ApplyUpdateAudit(task);
+            task.ApplyUpdateAudit(currentUserService);
             await pickupTaskRepository.UpdateAsync(task);
         });
 
@@ -130,11 +130,6 @@ public class PickupTaskService(
                ?? throw new NotFoundException("取货任务不存在");
     }
 
-    private void ApplyUpdateAudit(PickupTask task)
-    {
-        task.UpdateBy = currentUserService.GetUserId();
-        task.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string? Normalize(string? value)
     {

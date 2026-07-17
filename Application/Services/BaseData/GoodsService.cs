@@ -17,6 +17,7 @@ using Domain.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using GoodsEntity = Domain.Entities.Goods.Goods;
+using Application.Extensions;
 
 namespace Application.Services;
 
@@ -81,7 +82,7 @@ public class GoodsService(
         }
 
         entity.IsOnSale = isOnSale;
-        ApplyUpdateAudit(entity);
+        entity.ApplyUpdateAudit(CurrentUserService);
         await repository.UpdateAsync(entity);
         await UnitOfWork.SaveChangesAsync();
         return Mapper.Map<GoodsDto>(entity);

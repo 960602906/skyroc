@@ -51,7 +51,7 @@ public class StocktakingService(
     /// <inheritdoc />
     public async Task<StocktakingOrderDto> CreateAsync(CreateStocktakingDto dto)
     {
-        await ValidateAsync(createValidator, dto);
+        await createValidator.ValidateOrThrowAsync(dto);
         var ware = await wareRepository.GetByIdAsync(dto.WareId)
                    ?? throw new BusinessException("盘点仓库不存在");
         var snapshotTime = DateTime.UtcNow;
@@ -67,7 +67,7 @@ public class StocktakingService(
             StocktakingTime = snapshotTime,
             Remark = Normalize(dto.Remark)
         };
-        ApplyCreateAudit(order);
+        order.ApplyCreateAudit(currentUserService);
 
         var requestedBatchIds = dto.Details.Select(detail => detail.StockBatchId).ToArray();
         var batchesById = (await stockBatchRepository.GetByIdsAsync(requestedBatchIds))
@@ -105,7 +105,7 @@ public class StocktakingService(
                 DifferenceAmount = RoundMoney(differenceQuantity * batch.UnitCost),
                 Remark = Normalize(request.Remark)
             };
-            ApplyCreateAudit(detail);
+            detail.ApplyCreateAudit(currentUserService);
             order.Details.Add(detail);
         }
 
@@ -163,7 +163,7 @@ public class StocktakingService(
                 var differenceQuantity = RoundQuantity(detail.ActualQuantity - detail.BookQuantity);
                 detail.DifferenceQuantity = differenceQuantity;
                 detail.DifferenceAmount = RoundMoney(differenceQuantity * detail.UnitCost);
-                ApplyUpdateAudit(detail);
+                detail.ApplyUpdateAudit(currentUserService);
                 if (differenceQuantity == 0m)
                 {
                     continue;
@@ -182,7 +182,7 @@ public class StocktakingService(
             order.AuditUserId = currentUserService.GetUserId();
             order.AuditUserNameSnapshot = currentUserService.GetUserName();
             order.AuditTime = auditTime;
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stocktakingOrderRepository.UpdateAsync(order);
             auditedOrder = order;
         });
@@ -222,7 +222,7 @@ public class StocktakingService(
         batch.CurrentQuantity = adjustedCurrentQuantity;
         batch.AvailableQuantity = adjustedAvailableQuantity;
         batch.LastMovementTime = auditTime;
-        ApplyUpdateAudit(batch);
+        batch.ApplyUpdateAudit(currentUserService);
     }
 
     private StockLedger CreateAdjustmentLedger(
@@ -257,7 +257,7 @@ public class StocktakingService(
             OccurredTime = auditTime,
             Remark = remark ?? order.Remark
         };
-        ApplyCreateAudit(ledger);
+        ledger.ApplyCreateAudit(currentUserService);
         return ledger;
     }
 
@@ -274,26 +274,8 @@ public class StocktakingService(
                ?? throw new NotFoundException("库存盘点单不存在");
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string? Normalize(string? value)
     {

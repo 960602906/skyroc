@@ -56,7 +56,7 @@ public class PurchasePlanService(
     /// <inheritdoc />
     public async Task<PurchasePlanDto> CreateAsync(CreatePurchasePlanDto dto)
     {
-        await ValidateAsync(createValidator, dto);
+        await createValidator.ValidateOrThrowAsync(dto);
 
         var plan = new PurchasePlan
         {
@@ -69,12 +69,12 @@ public class PurchasePlanService(
         };
         await ApplySupplierAsync(plan, dto.SupplierId);
         await ApplyPurchaserAsync(plan, dto.PurchaserId);
-        ApplyCreateAudit(plan);
+        plan.ApplyCreateAudit(currentUserService);
 
         foreach (var detailDto in dto.Details)
         {
             var detail = await BuildManualDetailAsync(plan.Id, detailDto);
-            ApplyCreateAudit(detail);
+            detail.ApplyCreateAudit(currentUserService);
             plan.Details.Add(detail);
         }
 
@@ -87,7 +87,7 @@ public class PurchasePlanService(
     /// <inheritdoc />
     public async Task<List<PurchasePlanDto>> GenerateFromOrdersAsync(GeneratePurchasePlanFromOrdersDto dto)
     {
-        await ValidateAsync(generateValidator, dto);
+        await generateValidator.ValidateOrThrowAsync(dto);
 
         var remark = NormalizeRemark(dto.Remark);
         var orderIds = dto.OrderIds.Distinct().ToList();
@@ -125,7 +125,7 @@ public class PurchasePlanService(
 
                 // 订单经 GetByIdAsync 加载后处于跟踪状态，直接改写标记即可随事务保存。
                 order.HasPurchasePlan = true;
-                ApplyUpdateAudit(order);
+                order.ApplyUpdateAudit(currentUserService);
                 foreach (var orderDetail in order.Details)
                 {
                     orderDetail.HasPurchasePlan = true;
@@ -164,7 +164,7 @@ public class PurchasePlanService(
             {
                 plan.SupplierId = supplier?.Id;
                 plan.SupplierNameSnapshot = supplier?.Name;
-                ApplyUpdateAudit(plan);
+                plan.ApplyUpdateAudit(currentUserService);
                 await purchasePlanRepository.UpdateAsync(plan);
             }
         });
@@ -190,7 +190,7 @@ public class PurchasePlanService(
             {
                 plan.PurchaserId = purchaser?.Id;
                 plan.PurchaserNameSnapshot = purchaser?.Name;
-                ApplyUpdateAudit(plan);
+                plan.ApplyUpdateAudit(currentUserService);
                 await purchasePlanRepository.UpdateAsync(plan);
             }
         });
@@ -339,12 +339,12 @@ public class PurchasePlanService(
 
             value.Detail.RequiredQuantity = RoundQuantity(value.Detail.RequiredQuantity - value.RequiredQuantity);
             value.Detail.PlannedQuantity = RoundQuantity(value.Detail.PlannedQuantity - value.PlannedQuantity);
-            ApplyUpdateAudit(value.Detail);
+            value.Detail.ApplyUpdateAudit(currentUserService);
             splitPlan.Details.Add(splitDetail);
         }
 
         RemoveEmptyDetails(sourcePlan);
-        ApplyUpdateAudit(sourcePlan);
+        sourcePlan.ApplyUpdateAudit(currentUserService);
         await PersistSplitAsync(sourcePlan, splitPlan);
 
         logger.LogInformation(
@@ -428,18 +428,18 @@ public class PurchasePlanService(
                 }
                 else
                 {
-                    ApplyUpdateAudit(relation);
+                    relation.ApplyUpdateAudit(currentUserService);
                 }
             }
 
             sourceDetail.RequiredQuantity = RoundQuantity(sourceDetail.RequiredQuantity - splitRequiredQuantity);
             sourceDetail.PlannedQuantity = RoundQuantity(sourceDetail.PlannedQuantity - item.Quantity);
-            ApplyUpdateAudit(sourceDetail);
+            sourceDetail.ApplyUpdateAudit(currentUserService);
             splitPlan.Details.Add(splitDetail);
         }
 
         RemoveEmptyDetails(sourcePlan);
-        ApplyUpdateAudit(sourcePlan);
+        sourcePlan.ApplyUpdateAudit(currentUserService);
         await PersistSplitAsync(sourcePlan, splitPlan);
 
         logger.LogInformation(
@@ -480,7 +480,7 @@ public class PurchasePlanService(
             PurchaserNameSnapshot = source.PurchaserNameSnapshot,
             Remark = NormalizeRemark(remark)
         };
-        ApplyCreateAudit(plan);
+        plan.ApplyCreateAudit(currentUserService);
         return plan;
     }
 
@@ -507,7 +507,7 @@ public class PurchasePlanService(
             PurchasedQuantity = 0m,
             Remark = source.Remark
         };
-        ApplyCreateAudit(detail);
+        detail.ApplyCreateAudit(currentUserService);
         return detail;
     }
 
@@ -527,7 +527,7 @@ public class PurchasePlanService(
             SaleOrderDetailId = source.SaleOrderDetailId,
             RequiredQuantity = RoundQuantity(requiredQuantity)
         };
-        ApplyCreateAudit(relation);
+        relation.ApplyCreateAudit(currentUserService);
         return relation;
     }
 
@@ -623,7 +623,7 @@ public class PurchasePlanService(
             PurchaseStatus = PurchasePlanStatus.Unpublished,
             Remark = remark
         };
-        ApplyCreateAudit(plan);
+        plan.ApplyCreateAudit(currentUserService);
 
         // 同一商品的多条订单明细合并为一条采购计划明细，采购单位取商品基础单位。
         var goodsGroups = order.Details
@@ -646,7 +646,7 @@ public class PurchasePlanService(
                 PlannedQuantity = group.Sum(GetPurchaseQuantity),
                 PurchasedQuantity = 0m
             };
-            ApplyCreateAudit(detail);
+            detail.ApplyCreateAudit(currentUserService);
 
             foreach (var orderDetail in group)
             {
@@ -658,7 +658,7 @@ public class PurchasePlanService(
                     SaleOrderDetailId = orderDetail.Id,
                     RequiredQuantity = GetPurchaseQuantity(orderDetail)
                 };
-                ApplyCreateAudit(relation);
+                relation.ApplyCreateAudit(currentUserService);
                 detail.OrderRelations.Add(relation);
             }
 
@@ -767,14 +767,6 @@ public class PurchasePlanService(
                ?? throw new NotFoundException("采购计划不存在");
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
     private Task<string> NextPlanNoAsync()
     {
@@ -788,15 +780,5 @@ public class PurchasePlanService(
         return string.IsNullOrWhiteSpace(remark) ? null : remark.Trim();
     }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 }

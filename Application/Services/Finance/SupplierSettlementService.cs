@@ -63,7 +63,7 @@ public class SupplierSettlementService(
     /// <inheritdoc />
     public async Task<SupplierSettlementDto> CreateAsync(CreateSupplierSettlementDto dto)
     {
-        await ValidateAsync(createValidator, dto);
+        await createValidator.ValidateOrThrowAsync(dto);
         var settlementId = Guid.NewGuid();
 
         await unitOfWork.ExecuteInTransactionAsync(async () =>
@@ -113,7 +113,7 @@ public class SupplierSettlementService(
                 var previousSettledAmount = NumericPrecision.RoundMoney(bill.SettledAmount);
                 bill.SettledAmount = NumericPrecision.RoundMoney(previousSettledAmount + appliedAmount);
                 RecalculateBillStatus(bill);
-                ApplyUpdateAudit(bill);
+                bill.ApplyUpdateAudit(currentUserService);
 
                 var detail = new SupplierSettlementDetail
                 {
@@ -134,7 +134,7 @@ public class SupplierSettlementService(
                     RemainingAmount = GetPendingAmount(bill),
                     Remark = Normalize(input.Remark)
                 };
-                ApplyCreateAudit(detail);
+                detail.ApplyCreateAudit(currentUserService);
                 details.Add(detail);
             }
 
@@ -166,7 +166,7 @@ public class SupplierSettlementService(
                 Remark = Normalize(dto.Remark),
                 Details = details
             };
-            ApplyCreateAudit(settlement);
+            settlement.ApplyCreateAudit(currentUserService);
             await supplierSettlementRepository.AddAsync(settlement);
         });
 
@@ -177,7 +177,7 @@ public class SupplierSettlementService(
     /// <inheritdoc />
     public async Task<SupplierSettlementDto> VoidAsync(Guid id, VoidSupplierSettlementDto dto)
     {
-        await ValidateAsync(voidValidator, dto);
+        await voidValidator.ValidateOrThrowAsync(dto);
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var settlement = await supplierSettlementRepository.GetByIdForUpdateAsync(id)
@@ -205,7 +205,7 @@ public class SupplierSettlementService(
 
                 bill.SettledAmount = NumericPrecision.RoundMoney(bill.SettledAmount - detail.AppliedAmount);
                 RecalculateBillStatus(bill);
-                ApplyUpdateAudit(bill);
+                bill.ApplyUpdateAudit(currentUserService);
             }
 
             settlement.SettlementStatus = SupplierSettlementStatus.Voided;
@@ -213,7 +213,7 @@ public class SupplierSettlementService(
             settlement.VoidedBy = currentUserService.GetUserId();
             settlement.VoidedByNameSnapshot = currentUserService.GetUserName();
             settlement.Remark = Normalize(dto.Remark);
-            ApplyUpdateAudit(settlement);
+            settlement.ApplyUpdateAudit(currentUserService);
         });
 
         logger.LogInformation("供应商结算单作废成功: {SettlementId}", id);
@@ -244,26 +244,8 @@ public class SupplierSettlementService(
         }
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string? Normalize(string? value)
     {

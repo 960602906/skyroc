@@ -113,7 +113,7 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
             entity.Id = Guid.NewGuid();
         }
 
-        ApplyCreateAudit(entity);
+        entity.ApplyCreateAudit(CurrentUserService);
         await Repository.AddAsync(entity);
         await AfterCreateAsync(entity, dto);
         await UnitOfWork.SaveChangesAsync();
@@ -143,7 +143,7 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         }
 
         Mapper.Map(dto, entity);
-        ApplyUpdateAudit(entity);
+        entity.ApplyUpdateAudit(CurrentUserService);
         await Repository.UpdateAsync(entity);
         await AfterUpdateAsync(entity, dto);
         await UnitOfWork.SaveChangesAsync();
@@ -196,7 +196,7 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         }
 
         entity.Status = status;
-        ApplyUpdateAudit(entity);
+        entity.ApplyUpdateAudit(CurrentUserService);
         await Repository.UpdateAsync(entity);
         await UnitOfWork.SaveChangesAsync();
         return Mapper.Map<TDto>(entity);
@@ -242,21 +242,5 @@ public abstract class BaseDataService<TEntity, TDto, TCreateDto, TUpdateDto, TQu
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// 将当前用户和 UTC 时间写入实体创建审计字段。
-    /// </summary>
-    protected void ApplyCreateAudit(TEntity entity)
-    {
-        entity.CreateBy = CurrentUserService.GetUserId();
-        entity.CreateName = CurrentUserService.GetUserName();
-    }
 
-    /// <summary>
-    /// 将当前用户和 UTC 时间写入实体更新审计字段。
-    /// </summary>
-    protected void ApplyUpdateAudit(TEntity entity)
-    {
-        entity.UpdateBy = CurrentUserService.GetUserId();
-        entity.UpdateName = CurrentUserService.GetUserName();
-    }
 }

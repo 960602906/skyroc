@@ -57,7 +57,7 @@ public class SaleOrderService(
     /// <inheritdoc />
     public async Task<SaleOrderDto> CreateAsync(CreateSaleOrderDto dto)
     {
-        await ValidateAsync(createValidator, dto);
+        await createValidator.ValidateOrThrowAsync(dto);
         var customer = await GetRequiredCustomerAsync(dto.CustomerId);
         await ValidateOrderReferencesAsync(dto.QuotationId, dto.WareId);
 
@@ -67,7 +67,7 @@ public class SaleOrderService(
             DocumentNoKind.SaleOrder,
             no => saleOrderRepository.ExistsOrderNoAsync(no));
         ApplyCustomerSnapshot(order, customer);
-        ApplyCreateAudit(order);
+        order.ApplyCreateAudit(currentUserService);
 
         order.Details.Clear();
         foreach (var detailDto in dto.Details)
@@ -81,7 +81,7 @@ public class SaleOrderService(
                 detailDto.FixedGoodsUnitId,
                 detailDto.Remark,
                 detailDto.InnerRemark);
-            ApplyCreateAudit(detail);
+            detail.ApplyCreateAudit(currentUserService);
             order.Details.Add(detail);
         }
 
@@ -104,7 +104,7 @@ public class SaleOrderService(
     /// <inheritdoc />
     public async Task<SaleOrderDto> UpdateAsync(UpdateSaleOrderDto dto)
     {
-        await ValidateAsync(updateValidator, dto);
+        await updateValidator.ValidateOrThrowAsync(dto);
         var order = await GetRequiredOrderAsync(dto.Id);
         var customer = await GetRequiredCustomerAsync(dto.CustomerId);
         await ValidateOrderReferencesAsync(dto.QuotationId, dto.WareId);
@@ -144,7 +144,7 @@ public class SaleOrderService(
         {
             ApplyEditableFields(order, dto);
             ApplyCustomerSnapshot(order, customer);
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             order.UpdateStatus = true;
 
             var removedDetails = order.Details.Where(x => !requestedIds.Contains(x.Id)).ToList();
@@ -163,12 +163,12 @@ public class SaleOrderService(
                 {
                     var existingDetail = existingDetails[input.Id.Value];
                     ApplyEditableFields(existingDetail, preparedDetail);
-                    ApplyUpdateAudit(existingDetail);
+                    existingDetail.ApplyUpdateAudit(currentUserService);
                     await saleOrderDetailRepository.UpdateAsync(existingDetail);
                 }
                 else
                 {
-                    ApplyCreateAudit(preparedDetail);
+                    preparedDetail.ApplyCreateAudit(currentUserService);
                     order.Details.Add(preparedDetail);
                     await saleOrderDetailRepository.AddAsync(preparedDetail);
                 }
@@ -246,7 +246,7 @@ public class SaleOrderService(
 
             previousStatus = order.OrderStatus;
             order.OrderStatus = targetStatus;
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await orderAuditLogRepository.AddAsync(CreateAuditLog(
                 order.Id,
                 action,
@@ -264,14 +264,6 @@ public class SaleOrderService(
         return mapper.Map<SaleOrderDto>(await GetRequiredOrderAsync(order.Id));
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
     private async Task<SaleOrder> GetRequiredOrderAsync(Guid id)
     {
@@ -367,17 +359,7 @@ public class SaleOrderService(
         };
     }
 
-    private void ApplyCreateAudit(Domain.Entities.BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(Domain.Entities.BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private OrderAuditLog CreateAuditLog(
         Guid orderId,
@@ -398,7 +380,7 @@ public class SaleOrderService(
             AuditTime = DateTime.UtcNow,
             Remark = string.IsNullOrWhiteSpace(remark) ? null : remark.Trim()
         };
-        ApplyCreateAudit(auditLog);
+        auditLog.ApplyCreateAudit(currentUserService);
         return auditLog;
     }
 

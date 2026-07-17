@@ -6,6 +6,7 @@ using Domain.Entities.Finance;
 using Domain.Entities.Orders;
 using Domain.Interfaces;
 using Shared.Constants;
+using Application.Extensions;
 
 namespace Application.Services;
 
@@ -36,7 +37,7 @@ public class CustomerBillService(
         {
             bill.CustomerNameSnapshot = saleOrder.CustomerNameSnapshot;
             bill.SaleOrderNoSnapshot = saleOrder.OrderNo;
-            ApplyUpdateAudit(bill);
+            bill.ApplyUpdateAudit(currentUserService);
         }
 
         var currentOrderDetails = BuildOrderAcceptanceDetails(bill.Id, saleOrder);
@@ -55,7 +56,7 @@ public class CustomerBillService(
             if (existingBySourceDetailId.TryGetValue(detail.SourceDetailId, out var existing))
             {
                 UpdateDetail(existing, detail);
-                ApplyUpdateAudit(existing);
+                existing.ApplyUpdateAudit(currentUserService);
             }
             else
             {
@@ -99,7 +100,7 @@ public class CustomerBillService(
             bill = await CreateBillAsync(saleOrder);
             foreach (var detail in BuildOrderAcceptanceDetails(bill.Id, saleOrder))
             {
-                ApplyCreateAudit(detail);
+                detail.ApplyCreateAudit(currentUserService);
                 bill.Details.Add(detail);
             }
 
@@ -108,7 +109,7 @@ public class CustomerBillService(
 
         await AddMissingAfterSaleAdjustmentsAsync(bill, afterSale);
         Recalculate(bill);
-        ApplyUpdateAudit(bill);
+        bill.ApplyUpdateAudit(currentUserService);
         return bill;
     }
 
@@ -127,7 +128,7 @@ public class CustomerBillService(
             BillDate = DateTime.UtcNow,
             BillStatus = CustomerBillStatus.Pending
         };
-        ApplyCreateAudit(bill);
+        bill.ApplyCreateAudit(currentUserService);
         return bill;
     }
 
@@ -257,7 +258,7 @@ public class CustomerBillService(
 
     private async Task AddNewDetailAsync(CustomerBill bill, CustomerBillDetail detail)
     {
-        ApplyCreateAudit(detail);
+        detail.ApplyCreateAudit(currentUserService);
         bill.Details.Add(detail);
         await customerBillRepository.AddDetailAsync(detail);
     }
@@ -285,17 +286,7 @@ public class CustomerBillService(
         target.Remark = source.Remark;
     }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static decimal EnsureConversionRate(decimal conversionRate, string goodsName)
     {

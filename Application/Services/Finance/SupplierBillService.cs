@@ -5,6 +5,7 @@ using Domain.Entities.Finance;
 using Domain.Entities.Storage;
 using Domain.Interfaces;
 using Shared.Constants;
+using Application.Extensions;
 
 namespace Application.Services;
 
@@ -52,7 +53,7 @@ public class SupplierBillService(
         {
             bill.SupplierNameSnapshot = stockInOrder.SupplierNameSnapshot ?? bill.SupplierNameSnapshot;
             bill.SourceDocumentNoSnapshot = stockInOrder.InNo;
-            ApplyUpdateAudit(bill);
+            bill.ApplyUpdateAudit(currentUserService);
         }
 
         await RebuildDetailsAsync(
@@ -103,7 +104,7 @@ public class SupplierBillService(
         {
             bill.SupplierNameSnapshot = stockOutOrder.SupplierNameSnapshot ?? bill.SupplierNameSnapshot;
             bill.SourceDocumentNoSnapshot = stockOutOrder.OutNo;
-            ApplyUpdateAudit(bill);
+            bill.ApplyUpdateAudit(currentUserService);
         }
 
         await RebuildDetailsAsync(
@@ -203,7 +204,7 @@ public class SupplierBillService(
             BillDate = billDate,
             BillStatus = SupplierBillStatus.Pending
         };
-        ApplyCreateAudit(bill);
+        bill.ApplyCreateAudit(currentUserService);
         return bill;
     }
 
@@ -229,7 +230,7 @@ public class SupplierBillService(
             if (existingBySourceDetailId.TryGetValue(detail.SourceDetailId, out var existing))
             {
                 UpdateDetail(existing, detail);
-                ApplyUpdateAudit(existing);
+                existing.ApplyUpdateAudit(currentUserService);
             }
             else
             {
@@ -318,7 +319,7 @@ public class SupplierBillService(
 
     private async Task AddNewDetailAsync(SupplierBill bill, SupplierBillDetail detail)
     {
-        ApplyCreateAudit(detail);
+        detail.ApplyCreateAudit(currentUserService);
         bill.Details.Add(detail);
         await supplierBillRepository.AddDetailAsync(detail);
     }
@@ -347,17 +348,7 @@ public class SupplierBillService(
         target.Remark = source.Remark;
     }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static decimal EnsureConversionRate(decimal conversionRate, string goodsName)
     {

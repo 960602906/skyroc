@@ -112,7 +112,7 @@ public class DeliveryTaskService(
                 OutTime = stockOut.OutTime,
                 Remark = Normalize(stockOut.Remark)
             };
-            ApplyCreateAudit(task);
+            task.ApplyCreateAudit(currentUserService);
             await deliveryTaskRepository.AddAsync(task);
             taskId = task.Id;
             created = true;
@@ -128,7 +128,7 @@ public class DeliveryTaskService(
     /// <inheritdoc />
     public async Task<List<DeliveryTaskDto>> AssignDriverAsync(AssignDeliveryDriverDto dto)
     {
-        await ValidateAsync(assignDriverValidator, dto);
+        await assignDriverValidator.ValidateOrThrowAsync(dto);
         var taskIds = dto.TaskIds.OrderBy(x => x).ToList();
         Driver? assignedDriver = null;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
@@ -152,7 +152,7 @@ public class DeliveryTaskService(
                 task.CarrierNameSnapshot = driver.Carrier?.Name;
                 task.AssignedTime = DateTime.UtcNow;
                 task.DeliveryStatus = DeliveryTaskStatus.Assigned;
-                ApplyUpdateAudit(task);
+                task.ApplyUpdateAudit(currentUserService);
                 await deliveryTaskRepository.UpdateAsync(task);
             }
         });
@@ -164,7 +164,7 @@ public class DeliveryTaskService(
     /// <inheritdoc />
     public async Task<List<DeliveryTaskDto>> IntelligentPlanAsync(IntelligentPlanDeliveryTasksDto dto)
     {
-        await ValidateAsync(intelligentPlanValidator, dto);
+        await intelligentPlanValidator.ValidateOrThrowAsync(dto);
         var taskIds = dto.TaskIds.OrderBy(x => x).ToList();
         var tasks = new List<DeliveryTask>(taskIds.Count);
         await unitOfWork.ExecuteInTransactionAsync(async () =>
@@ -199,7 +199,7 @@ public class DeliveryTaskService(
                 task.RouteNameSnapshot = relation.Route!.Name;
                 task.RouteSequence = relation.Sort;
                 task.PlannedTime = plannedTime;
-                ApplyUpdateAudit(task);
+                task.ApplyUpdateAudit(currentUserService);
                 await deliveryTaskRepository.UpdateAsync(task);
             }
         });
@@ -229,11 +229,11 @@ public class DeliveryTaskService(
 
             task.DeliveryStatus = DeliveryTaskStatus.Delivering;
             task.StartedTime = DateTime.UtcNow;
-            ApplyUpdateAudit(task);
+            task.ApplyUpdateAudit(currentUserService);
             await deliveryTaskRepository.UpdateAsync(task);
 
             saleOrder.OrderStatus = SaleOrderStatus.Delivering;
-            ApplyUpdateAudit(saleOrder);
+            saleOrder.ApplyUpdateAudit(currentUserService);
             await saleOrderRepository.UpdateAsync(saleOrder);
             saleOrderId = saleOrder.Id;
         });
@@ -245,7 +245,7 @@ public class DeliveryTaskService(
     /// <inheritdoc />
     public async Task<OrderReceiptDto> SignAsync(Guid id, SignDeliveryTaskDto dto)
     {
-        await ValidateAsync(signValidator, dto);
+        await signValidator.ValidateOrThrowAsync(dto);
         Guid receiptId = Guid.Empty;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
@@ -278,17 +278,17 @@ public class DeliveryTaskService(
                 SignRemark = Normalize(dto.Remark),
                 CheckDetails = checkDetails
             };
-            ApplyCreateAudit(receipt);
+            receipt.ApplyCreateAudit(currentUserService);
             foreach (var detail in checkDetails)
             {
                 detail.OrderReceiptId = receipt.Id;
-                ApplyCreateAudit(detail);
+                detail.ApplyCreateAudit(currentUserService);
             }
 
             await orderReceiptRepository.AddAsync(receipt);
             task.DeliveryStatus = DeliveryTaskStatus.Signed;
             task.SignedTime = signedTime;
-            ApplyUpdateAudit(task);
+            task.ApplyUpdateAudit(currentUserService);
             await deliveryTaskRepository.UpdateAsync(task);
 
             var hasIncompleteDeliveries = await deliveryTaskRepository.HasIncompleteDeliveriesAsync(
@@ -310,7 +310,7 @@ public class DeliveryTaskService(
     /// <inheritdoc />
     public async Task<OrderReceiptDto> ReturnReceiptAsync(Guid id, ReturnOrderReceiptDto dto)
     {
-        await ValidateAsync(returnReceiptValidator, dto);
+        await returnReceiptValidator.ValidateOrThrowAsync(dto);
         Guid receiptId = Guid.Empty;
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
@@ -332,7 +332,7 @@ public class DeliveryTaskService(
             receipt.ReceiptImageUrl = dto.ReceiptImageUrl.Trim();
             receipt.ReturnedTime = DateTime.UtcNow;
             receipt.ReturnRemark = Normalize(dto.Remark);
-            ApplyUpdateAudit(receipt);
+            receipt.ApplyUpdateAudit(currentUserService);
             await orderReceiptRepository.UpdateAsync(receipt);
 
             var hasIncompleteDeliveries = await deliveryTaskRepository.HasIncompleteDeliveriesAsync(
@@ -346,7 +346,7 @@ public class DeliveryTaskService(
                 && saleOrder.OrderStatus == SaleOrderStatus.Signed)
             {
                 saleOrder.ReturnStatus = OrderReturnStatus.Returned;
-                ApplyUpdateAudit(saleOrder);
+                saleOrder.ApplyUpdateAudit(currentUserService);
                 await saleOrderRepository.UpdateAsync(saleOrder);
             }
 
@@ -488,13 +488,13 @@ public class DeliveryTaskService(
                                               && accepted is { HasRejected: false }
                 ? OrderCustomerCheckStatus.Accepted
                 : OrderCustomerCheckStatus.Rejected;
-            ApplyUpdateAudit(orderDetail);
+            orderDetail.ApplyUpdateAudit(currentUserService);
         }
 
         saleOrder.SettlementPrice = NumericPrecision.RoundMoney(
             saleOrder.Details.Sum(x => x.CustomerCheckPrice ?? 0m));
         saleOrder.OrderStatus = SaleOrderStatus.Signed;
-        ApplyUpdateAudit(saleOrder);
+        saleOrder.ApplyUpdateAudit(currentUserService);
         await saleOrderRepository.UpdateAsync(saleOrder);
     }
 
@@ -506,26 +506,8 @@ public class DeliveryTaskService(
         }
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string? Normalize(string? value)
     {

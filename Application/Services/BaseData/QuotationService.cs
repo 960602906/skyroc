@@ -10,6 +10,7 @@ using Domain.Entities.Purchases;
 using Domain.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Application.Extensions;
 
 namespace Application.Services;
 
@@ -72,7 +73,7 @@ public class QuotationService(
         }
 
         entity.IsAudited = isAudited;
-        ApplyUpdateAudit(entity);
+        entity.ApplyUpdateAudit(CurrentUserService);
         await repository.UpdateAsync(entity);
         await UnitOfWork.SaveChangesAsync();
         return Mapper.Map<QuotationDto>(entity);

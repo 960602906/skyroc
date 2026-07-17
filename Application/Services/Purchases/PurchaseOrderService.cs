@@ -59,7 +59,7 @@ public class PurchaseOrderService(
     /// <inheritdoc />
     public async Task<PurchaseOrderDto> CreateAsync(CreatePurchaseOrderDto dto)
     {
-        await ValidateAsync(createValidator, dto);
+        await createValidator.ValidateOrThrowAsync(dto);
         var order = new PurchaseOrder
         {
             Id = Guid.NewGuid(),
@@ -77,12 +77,12 @@ public class PurchaseOrderService(
             dto.PurchaserId,
             dto.SupplierContactName,
             dto.SupplierContactPhone);
-        ApplyCreateAudit(order);
+        order.ApplyCreateAudit(currentUserService);
 
         foreach (var detailDto in dto.Details)
         {
             var detail = await BuildManualDetailAsync(order.Id, detailDto);
-            ApplyCreateAudit(detail);
+            detail.ApplyCreateAudit(currentUserService);
             order.Details.Add(detail);
         }
 
@@ -94,7 +94,7 @@ public class PurchaseOrderService(
     /// <inheritdoc />
     public async Task<PurchaseOrderDto> UpdateAsync(UpdatePurchaseOrderDto dto)
     {
-        await ValidateAsync(updateValidator, dto);
+        await updateValidator.ValidateOrThrowAsync(dto);
 
         // 商品/单位与计划占用准备可在事务外 fail-fast；状态与占用变更必须在事务内锁定后重新校验。
         var preparedDetails = new List<PreparedDetail>(dto.Details.Count);
@@ -127,7 +127,7 @@ public class PurchaseOrderService(
             order.PurchasePattern = dto.PurchasePattern;
             order.ReceiveTime = dto.ReceiveTime;
             order.Remark = Normalize(dto.Remark);
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
 
             ApplyAllocationDeltas(originalAllocations, requestedAllocations, preparedDetails, order);
             SynchronizeDetails(order, preparedDetails);
@@ -158,7 +158,7 @@ public class PurchaseOrderService(
     /// <inheritdoc />
     public async Task<List<PurchaseOrderDto>> GenerateFromPlansAsync(GeneratePurchaseOrdersFromPlansDto dto)
     {
-        await ValidateAsync(generateValidator, dto);
+        await generateValidator.ValidateOrThrowAsync(dto);
         var plans = new List<PurchasePlan>();
         foreach (var planId in dto.PlanIds.Distinct())
         {
@@ -192,12 +192,12 @@ public class PurchaseOrderService(
                     if (detail.PlannedQuantity > detail.PurchasedQuantity)
                     {
                         detail.PurchasedQuantity = detail.PlannedQuantity;
-                        ApplyUpdateAudit(detail);
+                        detail.ApplyUpdateAudit(currentUserService);
                     }
                 }
 
                 RefreshPlanStatus(plan);
-                ApplyUpdateAudit(plan);
+                plan.ApplyUpdateAudit(currentUserService);
                 await purchasePlanRepository.UpdateAsync(plan);
             }
         });
@@ -238,7 +238,7 @@ public class PurchaseOrderService(
             }
 
             order.BusinessStatus = PurchaseOrderStatus.Completed;
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await purchaseOrderRepository.UpdateAsync(order);
         });
         logger.LogInformation("采购单完成: {PurchaseOrderId}, {PurchaseNo}", order.Id, order.PurchaseNo);
@@ -257,7 +257,7 @@ public class PurchaseOrderService(
             EnsureDraft(order, "取消");
             ReleasePlanAllocations(order);
             order.BusinessStatus = PurchaseOrderStatus.Cancelled;
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await purchaseOrderRepository.UpdateAsync(order);
         });
         logger.LogInformation("采购单取消: {PurchaseOrderId}, {PurchaseNo}", order.Id, order.PurchaseNo);
@@ -281,7 +281,7 @@ public class PurchaseOrderService(
             Remark = Normalize(dto.Remark)
         };
         await ApplyPartiesAsync(order, firstPlan.SupplierId, firstPlan.PurchaserId, null, null);
-        ApplyCreateAudit(order);
+        order.ApplyCreateAudit(currentUserService);
 
         var remainingDetails = plans
             .SelectMany(x => x.Details)
@@ -306,7 +306,7 @@ public class PurchaseOrderService(
                 PurchaseTotalPrice = 0m,
                 Remark = Normalize(firstDetail.Remark)
             };
-            ApplyCreateAudit(orderDetail);
+            orderDetail.ApplyCreateAudit(currentUserService);
 
             foreach (var planDetail in detailGroup)
             {
@@ -319,7 +319,7 @@ public class PurchaseOrderService(
                     AllocatedQuantity = allocatedQuantity,
                     PurchasePlanDetail = planDetail
                 };
-                ApplyCreateAudit(relation);
+                relation.ApplyCreateAudit(currentUserService);
                 orderDetail.PlanRelations.Add(relation);
             }
 
@@ -421,11 +421,11 @@ public class PurchaseOrderService(
             if (Math.Abs(delta) > QuantityTolerance)
             {
                 planDetail.PurchasedQuantity = RoundQuantity(planDetail.PurchasedQuantity + delta);
-                ApplyUpdateAudit(planDetail);
+                planDetail.ApplyUpdateAudit(currentUserService);
             }
 
             RefreshPlanStatus(planDetail.PurchasePlan);
-            ApplyUpdateAudit(planDetail.PurchasePlan);
+            planDetail.PurchasePlan.ApplyUpdateAudit(currentUserService);
         }
     }
 
@@ -450,12 +450,12 @@ public class PurchaseOrderService(
             SynchronizeRelations(detail, prepared.Allocations);
             if (!prepared.Dto.Id.HasValue)
             {
-                ApplyCreateAudit(detail);
+                detail.ApplyCreateAudit(currentUserService);
                 order.Details.Add(detail);
             }
             else
             {
-                ApplyUpdateAudit(detail);
+                detail.ApplyUpdateAudit(currentUserService);
             }
         }
     }
@@ -478,7 +478,7 @@ public class PurchaseOrderService(
             if (existingByPlanDetail.TryGetValue(allocation.PlanDetail.Id, out var relation))
             {
                 relation.AllocatedQuantity = allocation.Quantity;
-                ApplyUpdateAudit(relation);
+                relation.ApplyUpdateAudit(currentUserService);
                 continue;
             }
 
@@ -490,7 +490,7 @@ public class PurchaseOrderService(
                 PurchasePlanDetail = allocation.PlanDetail,
                 AllocatedQuantity = allocation.Quantity
             };
-            ApplyCreateAudit(relation);
+            relation.ApplyCreateAudit(currentUserService);
             detail.PlanRelations.Add(relation);
         }
     }
@@ -611,14 +611,14 @@ public class PurchaseOrderService(
             var planDetail = relation.PurchasePlanDetail;
             planDetail.PurchasedQuantity = RoundQuantity(
                 Math.Max(0m, planDetail.PurchasedQuantity - relation.AllocatedQuantity));
-            ApplyUpdateAudit(planDetail);
+            planDetail.ApplyUpdateAudit(currentUserService);
             affectedPlans[planDetail.PurchasePlanId] = planDetail.PurchasePlan;
         }
 
         foreach (var plan in affectedPlans.Values)
         {
             RefreshPlanStatus(plan);
-            ApplyUpdateAudit(plan);
+            plan.ApplyUpdateAudit(currentUserService);
         }
     }
 
@@ -675,26 +675,8 @@ public class PurchaseOrderService(
                ?? throw new NotFoundException("采购单不存在");
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string SerializeGoodsInfo(Goods goods)
     {

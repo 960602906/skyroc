@@ -76,7 +76,7 @@ public class StockInService(
     /// <inheritdoc />
     public async Task<StockInOrderDto> CreatePurchaseAsync(CreatePurchaseStockInDto dto)
     {
-        await ValidateAsync(createPurchaseValidator, dto);
+        await createPurchaseValidator.ValidateOrThrowAsync(dto);
         var order = await BuildBaseOrderAsync(StockInOrderType.Purchase, dto.WareId, dto.InTime, dto.Remark);
         order.ExpectedArrivalTime = dto.ExpectedArrivalTime;
         order.PurchasePattern = dto.PurchasePattern;
@@ -92,7 +92,7 @@ public class StockInService(
     /// <inheritdoc />
     public async Task<StockInOrderDto> UpdatePurchaseAsync(UpdatePurchaseStockInDto dto)
     {
-        await ValidateAsync(updatePurchaseValidator, dto);
+        await updatePurchaseValidator.ValidateOrThrowAsync(dto);
         var order = await GetRequiredOrderAsync(StockInOrderType.Purchase, dto.Id);
         EnsureEditable(order, "编辑");
         var details = await PrepareDetailsAsync(order, dto.Details);
@@ -110,7 +110,7 @@ public class StockInService(
             await ApplyDepartmentAsync(order, dto.DepartmentId);
             SynchronizeDetails(order, details);
             await ValidateSourceRelationshipsAsync(order, lockPurchaseOrder: false);
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockInOrderRepository.UpdateAsync(order);
         });
 
@@ -121,7 +121,7 @@ public class StockInService(
     /// <inheritdoc />
     public async Task<StockInOrderDto> CreateOtherAsync(CreateOtherStockInDto dto)
     {
-        await ValidateAsync(createOtherValidator, dto);
+        await createOtherValidator.ValidateOrThrowAsync(dto);
         var order = await BuildBaseOrderAsync(StockInOrderType.Other, dto.WareId, dto.InTime, dto.Remark);
         await ApplyDepartmentAsync(order, dto.DepartmentId);
         await BuildDetailsAsync(order, dto.Details);
@@ -132,7 +132,7 @@ public class StockInService(
     /// <inheritdoc />
     public async Task<StockInOrderDto> UpdateOtherAsync(UpdateOtherStockInDto dto)
     {
-        await ValidateAsync(updateOtherValidator, dto);
+        await updateOtherValidator.ValidateOrThrowAsync(dto);
         var order = await GetRequiredOrderAsync(StockInOrderType.Other, dto.Id);
         EnsureEditable(order, "编辑");
         var details = await PrepareDetailsAsync(order, dto.Details);
@@ -145,7 +145,7 @@ public class StockInService(
             await ApplyDepartmentAsync(order, dto.DepartmentId);
             SynchronizeDetails(order, details);
             await ValidateSourceRelationshipsAsync(order, lockPurchaseOrder: false);
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockInOrderRepository.UpdateAsync(order);
         });
 
@@ -156,7 +156,7 @@ public class StockInService(
     /// <inheritdoc />
     public async Task<StockInOrderDto> CreateSalesReturnAsync(CreateSalesReturnStockInDto dto)
     {
-        await ValidateAsync(createSalesReturnValidator, dto);
+        await createSalesReturnValidator.ValidateOrThrowAsync(dto);
         var pickupTaskIds = dto.Details
             .Where(x => x.PickupTaskId.HasValue)
             .Select(x => x.PickupTaskId!.Value)
@@ -216,7 +216,7 @@ public class StockInService(
     /// <inheritdoc />
     public async Task<StockInOrderDto> UpdateSalesReturnAsync(UpdateSalesReturnStockInDto dto)
     {
-        await ValidateAsync(updateSalesReturnValidator, dto);
+        await updateSalesReturnValidator.ValidateOrThrowAsync(dto);
         var order = await GetRequiredOrderAsync(StockInOrderType.SalesReturn, dto.Id);
         EnsureEditable(order, "编辑");
         if (dto.AfterSaleId != order.AfterSaleId)
@@ -248,7 +248,7 @@ public class StockInService(
             await ApplyDepartmentAsync(order, dto.DepartmentId);
             SynchronizeDetails(order, details);
             await ValidateSourceRelationshipsAsync(order, lockPurchaseOrder: false, lockPickupTasks: true);
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockInOrderRepository.UpdateAsync(order);
         });
 
@@ -294,7 +294,7 @@ public class StockInService(
                 var batch = await ResolveBatchForInboundAsync(order, detail, auditTime, batchCache);
                 ApplyInboundToBatch(batch, detail, auditTime);
                 detail.StockBatchId = batch.Id;
-                ApplyUpdateAudit(detail);
+                detail.ApplyUpdateAudit(currentUserService);
                 await stockLedgerRepository.AddAsync(
                     CreateInboundLedger(order, detail, batch, auditTime, normalizedRemark));
             }
@@ -303,7 +303,7 @@ public class StockInService(
             order.AuditUserId = currentUserService.GetUserId();
             order.AuditUserNameSnapshot = currentUserService.GetUserName();
             order.AuditTime = auditTime;
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockInOrderRepository.UpdateAsync(order);
 
             if (orderType == StockInOrderType.Purchase)
@@ -392,7 +392,7 @@ public class StockInService(
             order.ReverseUserId = currentUserService.GetUserId();
             order.ReverseUserNameSnapshot = currentUserService.GetUserName();
             order.ReverseTime = reverseTime;
-            ApplyUpdateAudit(order);
+            order.ApplyUpdateAudit(currentUserService);
             await stockInOrderRepository.UpdateAsync(order);
 
             if (orderType == StockInOrderType.Purchase)
@@ -426,7 +426,7 @@ public class StockInService(
             Remark = Normalize(remark)
         };
         await ApplyWareAsync(order, wareId);
-        ApplyCreateAudit(order);
+        order.ApplyCreateAudit(currentUserService);
         return order;
     }
 
@@ -443,7 +443,7 @@ public class StockInService(
         {
             var prepared = await PrepareDetailAsync(detailDto);
             var detail = CreateDetail(order.Id, prepared);
-            ApplyCreateAudit(detail);
+            detail.ApplyCreateAudit(currentUserService);
             order.Details.Add(detail);
         }
 
@@ -549,12 +549,12 @@ public class StockInService(
             {
                 var detail = existingById[prepared.ExistingId.Value];
                 ApplyDetailValues(detail, prepared);
-                ApplyUpdateAudit(detail);
+                detail.ApplyUpdateAudit(currentUserService);
             }
             else
             {
                 var detail = CreateDetail(order.Id, prepared);
-                ApplyCreateAudit(detail);
+                detail.ApplyCreateAudit(currentUserService);
                 order.Details.Add(detail);
             }
         }
@@ -605,7 +605,7 @@ public class StockInService(
             ExpireDate = detail.ExpireDate,
             LastMovementTime = auditTime
         };
-        ApplyCreateAudit(batch);
+        batch.ApplyCreateAudit(currentUserService);
         await stockBatchRepository.AddAsync(batch);
         cache[key] = batch;
         return batch;
@@ -635,7 +635,7 @@ public class StockInService(
         }
 
         batch.LastMovementTime = auditTime;
-        ApplyUpdateAudit(batch);
+        batch.ApplyUpdateAudit(currentUserService);
     }
 
     private void ApplyReversalToBatch(StockBatch batch, StockLedger source, DateTime reverseTime)
@@ -656,7 +656,7 @@ public class StockInService(
             ? 0m
             : RoundMoney(Math.Max(remainingInventoryCost, 0m) / remainingQuantity);
         batch.LastMovementTime = reverseTime;
-        ApplyUpdateAudit(batch);
+        batch.ApplyUpdateAudit(currentUserService);
     }
 
     private StockLedger CreateInboundLedger(
@@ -689,7 +689,7 @@ public class StockInService(
             OccurredTime = auditTime,
             Remark = remark
         };
-        ApplyCreateAudit(ledger);
+        ledger.ApplyCreateAudit(currentUserService);
         return ledger;
     }
 
@@ -722,7 +722,7 @@ public class StockInService(
             ReversedFromLedgerId = source.Id,
             Remark = remark
         };
-        ApplyCreateAudit(ledger);
+        ledger.ApplyCreateAudit(currentUserService);
         return ledger;
     }
 
@@ -1076,26 +1076,8 @@ public class StockInService(
         return order;
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string? Normalize(string? value)
     {

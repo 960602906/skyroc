@@ -10,6 +10,7 @@ using Domain.Interfaces;
 using FluentValidation;
 using Shared.Constants;
 using ValidationException = Application.Exceptions.ValidationException;
+using Application.Extensions;
 
 namespace Application.Services;
 
@@ -43,7 +44,7 @@ public class TraceabilityService(
     /// <inheritdoc />
     public async Task<InspectionReportDto> CreateInspectionReportAsync(SaveInspectionReportDto dto)
     {
-        await ValidateAsync(dto);
+        await reportValidator.ValidateOrThrowAsync(dto);
         var reportId = Guid.NewGuid();
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
@@ -68,9 +69,9 @@ public class TraceabilityService(
                 Goods = BuildGoods(dto.Goods, stockInOrder),
                 Attachments = BuildAttachments(dto.Attachments)
             };
-            ApplyCreateAudit(report);
-            foreach (var goods in report.Goods) ApplyCreateAudit(goods);
-            foreach (var attachment in report.Attachments) ApplyCreateAudit(attachment);
+            report.ApplyCreateAudit(currentUserService);
+            foreach (var goods in report.Goods) goods.ApplyCreateAudit(currentUserService);
+            foreach (var attachment in report.Attachments) attachment.ApplyCreateAudit(currentUserService);
             await inspectionReportRepository.AddAsync(report);
         });
         return await GetInspectionReportByIdAsync(reportId);
@@ -79,7 +80,7 @@ public class TraceabilityService(
     /// <inheritdoc />
     public async Task<InspectionReportDto> UpdateInspectionReportAsync(Guid id, SaveInspectionReportDto dto)
     {
-        await ValidateAsync(dto);
+        await reportValidator.ValidateOrThrowAsync(dto);
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var report = await inspectionReportRepository.GetDetailByIdForUpdateAsync(id)
@@ -103,15 +104,15 @@ public class TraceabilityService(
             report.Attachments.Clear();
             foreach (var goods in BuildGoods(dto.Goods, stockInOrder))
             {
-                ApplyCreateAudit(goods);
+                goods.ApplyCreateAudit(currentUserService);
                 report.Goods.Add(goods);
             }
             foreach (var attachment in BuildAttachments(dto.Attachments))
             {
-                ApplyCreateAudit(attachment);
+                attachment.ApplyCreateAudit(currentUserService);
                 report.Attachments.Add(attachment);
             }
-            ApplyUpdateAudit(report);
+            report.ApplyUpdateAudit(currentUserService);
         });
         return await GetInspectionReportByIdAsync(id);
     }
@@ -238,7 +239,7 @@ public class TraceabilityService(
                     BatchNoSnapshot = source.BatchNo,
                     InspectionReportId = source.InspectionReportId
                 };
-                ApplyCreateAudit(trace);
+                trace.ApplyCreateAudit(currentUserService);
                 await traceRecordRepository.AddAsync(trace);
             }
         });
@@ -380,23 +381,8 @@ public class TraceabilityService(
         }).ToList();
     }
 
-    private async Task ValidateAsync(SaveInspectionReportDto dto)
-    {
-        var result = await reportValidator.ValidateAsync(dto);
-        if (!result.IsValid) throw new ValidationException(result.Errors);
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static PagedResult<T> ToPaged<T>(IEnumerable<T> records, int total, PagedQueryParameters parameters) => new()
     {

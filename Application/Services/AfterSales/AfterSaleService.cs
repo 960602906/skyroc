@@ -67,7 +67,7 @@ public class AfterSaleService(
     /// <inheritdoc />
     public async Task<AfterSaleDto> CreateAsync(CreateAfterSaleDto dto)
     {
-        await ValidateAsync(createValidator, dto);
+        await createValidator.ValidateOrThrowAsync(dto);
         var afterSaleId = Guid.NewGuid();
 
         await unitOfWork.ExecuteInTransactionAsync(async () =>
@@ -95,10 +95,10 @@ public class AfterSaleService(
                 Goods = goods
             };
             entity.SettlementPrice = CalculateSettlementPrice(entity.OrderPrice, goods, saleOrder is not null);
-            ApplyCreateAudit(entity);
+            entity.ApplyCreateAudit(currentUserService);
             foreach (var item in goods)
             {
-                ApplyCreateAudit(item);
+                item.ApplyCreateAudit(currentUserService);
             }
 
             await afterSaleRepository.AddAsync(entity);
@@ -111,7 +111,7 @@ public class AfterSaleService(
     /// <inheritdoc />
     public async Task<AfterSaleDto> UpdateAsync(UpdateAfterSaleDto dto)
     {
-        await ValidateAsync(updateValidator, dto);
+        await updateValidator.ValidateOrThrowAsync(dto);
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             var entity = await GetRequiredForUpdateAsync(dto.Id);
@@ -124,7 +124,7 @@ public class AfterSaleService(
             await unitOfWork.SaveChangesAsync();
             foreach (var item in replacement)
             {
-                ApplyCreateAudit(item);
+                item.ApplyCreateAudit(currentUserService);
             }
             await afterSaleGoodsRepository.AddRangeAsync(replacement);
 
@@ -133,7 +133,7 @@ public class AfterSaleService(
             entity.PickupAddressSnapshot = Normalize(dto.PickupAddress);
             entity.Remark = Normalize(dto.Remark);
             entity.SettlementPrice = CalculateSettlementPrice(entity.OrderPrice, replacement, saleOrder is not null);
-            ApplyUpdateAudit(entity);
+            entity.ApplyUpdateAudit(currentUserService);
         });
 
         logger.LogInformation("售后单更新成功: {AfterSaleId}", dto.Id);
@@ -196,7 +196,7 @@ public class AfterSaleService(
                 ? AfterSaleStatus.ReturnPending
                 : AfterSaleStatus.RefundPending;
             entity.AfterStatus = targetStatus;
-            ApplyUpdateAudit(entity);
+            entity.ApplyUpdateAudit(currentUserService);
             await GeneratePickupTasksAsync(entity);
             await auditLogRepository.AddAsync(CreateAuditLog(
                 entity.Id,
@@ -304,7 +304,7 @@ public class AfterSaleService(
             }
 
             entity.AfterStatus = AfterSaleStatus.Completed;
-            ApplyUpdateAudit(entity);
+            entity.ApplyUpdateAudit(currentUserService);
             if (entity.SaleOrderId.HasValue)
             {
                 entity.SaleOrder = await saleOrderRepository.GetByIdForUpdateAsync(entity.SaleOrderId.Value)
@@ -331,7 +331,7 @@ public class AfterSaleService(
             var previousStatus = entity.AfterStatus;
             var targetStatus = resolveTarget(entity);
             entity.AfterStatus = targetStatus;
-            ApplyUpdateAudit(entity);
+            entity.ApplyUpdateAudit(currentUserService);
             await auditLogRepository.AddAsync(CreateAuditLog(
                 entity.Id,
                 action,
@@ -619,7 +619,7 @@ public class AfterSaleService(
                 PickupAddressSnapshot = entity.PickupAddressSnapshot.Trim(),
                 PickupStatus = PickupTaskStatus.PendingAssign
             };
-            ApplyCreateAudit(task);
+            task.ApplyCreateAudit(currentUserService);
             tasks.Add(task);
             entity.PickupTasks.Add(task);
         }
@@ -649,7 +649,7 @@ public class AfterSaleService(
             AuditTime = DateTime.UtcNow,
             Remark = Normalize(remark)
         };
-        ApplyCreateAudit(log);
+        log.ApplyCreateAudit(currentUserService);
         return log;
     }
 
@@ -755,26 +755,8 @@ public class AfterSaleService(
         }
     }
 
-    private static async Task ValidateAsync<T>(IValidator<T> validator, T dto)
-    {
-        var result = await validator.ValidateAsync(dto);
-        if (!result.IsValid)
-        {
-            throw new ValidationException(result.Errors);
-        }
-    }
 
-    private void ApplyCreateAudit(BaseEntity entity)
-    {
-        entity.CreateBy = currentUserService.GetUserId();
-        entity.CreateName = currentUserService.GetUserName();
-    }
 
-    private void ApplyUpdateAudit(BaseEntity entity)
-    {
-        entity.UpdateBy = currentUserService.GetUserId();
-        entity.UpdateName = currentUserService.GetUserName();
-    }
 
     private static string? Normalize(string? value)
     {

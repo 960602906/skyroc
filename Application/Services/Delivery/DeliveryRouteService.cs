@@ -8,6 +8,7 @@ using Domain.Entities.Delivery;
 using Domain.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Application.Extensions;
 
 namespace Application.Services;
 
@@ -73,7 +74,7 @@ public class DeliveryRouteService(
         var normalizedIds = NormalizeCustomerIds(customerIds);
         await ValidateCustomersAsync(normalizedIds);
         await repository.ReplaceCustomerRelationsAsync(routeId, normalizedIds);
-        ApplyUpdateAudit(route);
+        route.ApplyUpdateAudit(CurrentUserService);
         await Repository.UpdateAsync(route);
         await UnitOfWork.SaveChangesAsync();
         Logger.LogInformation("{DisplayName}客户分配成功: {Id}", DisplayName, routeId);
