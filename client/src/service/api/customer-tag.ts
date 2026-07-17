@@ -70,10 +70,12 @@ export function fetchToggleCustomerTagStatus(params: Api.Base.ToggleStatusParams
   });
 }
 
-/** 获取客户标签树。 */
-export function fetchGetCustomerTagTree() {
-  return request<Api.CustomerTag.Entity[]>({
+/** 获取客户标签树（后端以分页结构返回，取 records 为树根列表）。 */
+export async function fetchGetCustomerTagTree() {
+  const page = await request<Api.CustomerTag.List>({
     method: 'get',
     url: CUSTOMER_TAG_URLS.TREE
   });
+
+  return page?.records ?? [];
 }

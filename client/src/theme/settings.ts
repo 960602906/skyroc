@@ -6,7 +6,7 @@ export const themeSettings: App.Theme.ThemeSetting = {
     fixed: false,
     height: 48,
     right: true,
-    visible: true
+    visible: false
   },
   grayscale: false,
   header: {

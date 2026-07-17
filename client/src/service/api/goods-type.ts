@@ -70,10 +70,12 @@ export function fetchToggleGoodsTypeStatus(params: Api.Base.ToggleStatusParams) 
   });
 }
 
-/** 获取商品分类树。 */
-export function fetchGetGoodsTypeTree() {
-  return request<Api.GoodsType.Entity[]>({
+/** 获取商品分类树（后端以分页结构返回，取 records 为树根列表）。 */
+export async function fetchGetGoodsTypeTree() {
+  const page = await request<Api.GoodsType.List>({
     method: 'get',
     url: GOODS_TYPE_URLS.TREE
   });
+
+  return page?.records ?? [];
 }

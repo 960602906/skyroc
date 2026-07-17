@@ -204,15 +204,13 @@ export function useTableOperate<T extends TableData = TableData>(
 
   function handleEdit(idOrData: T['id'] | T) {
     if (typeof idOrData === 'object') {
-      form.setFieldsValue(idOrData);
-
       setEditingData(idOrData);
+      form.setFieldsValue(idOrData);
     } else {
       const findItem = data.find(item => item.id === idOrData);
       if (findItem) {
-        form.setFieldsValue(findItem);
-
         setEditingData(findItem);
+        form.setFieldsValue(findItem);
       }
     }
 

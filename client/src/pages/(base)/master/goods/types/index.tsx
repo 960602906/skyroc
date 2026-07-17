@@ -22,7 +22,7 @@ import {
 
 import GoodsTypeSearch from './modules/GoodsTypeSearch';
 
-const GoodsTypeOperateModal = lazy(() => import('./modules/GoodsTypeOperateModal'));
+const GoodsTypeOperateDrawer = lazy(() => import('./modules/GoodsTypeOperateDrawer'));
 
 const GoodsTypeManage = () => {
   const { t } = useTranslation();
@@ -50,6 +50,13 @@ const GoodsTypeManage = () => {
         key: 'code',
         minWidth: 120,
         title: t('page.goods.type.code')
+      },
+      {
+        align: 'center',
+        dataIndex: 'invoiceGoodsShortName',
+        key: 'invoiceGoodsShortName',
+        minWidth: 120,
+        title: t('page.goods.type.invoiceGoodsShortName')
       },
       {
         align: 'center',
@@ -180,7 +187,7 @@ const GoodsTypeManage = () => {
             {...tableProps}
           />
           <Suspense>
-            <GoodsTypeOperateModal {...generalPopupOperation} />
+            <GoodsTypeOperateDrawer {...generalPopupOperation} />
           </Suspense>
         </>
       }

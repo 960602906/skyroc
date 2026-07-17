@@ -1,6 +1,7 @@
 declare namespace Api {
   namespace GoodsType {
     type Entity = Common.CommonRecord<{
+      children?: Entity[];
       code: string;
       defaultTaxRate: number | null;
       imageUrl: string | null;
