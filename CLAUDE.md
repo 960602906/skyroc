@@ -32,7 +32,7 @@ dotnet ef migrations add <Name> --project Infrastructure --startup-project SkyRo
 dotnet ef database update --project Infrastructure --startup-project SkyRoc
 ```
 
-The app auto-runs migrations and dev seeding on startup. A valid `ConnectionStrings:DefaultConnection` (PostgreSQL) is required or startup throws; Redis is optional and falls back to in-memory.
+The app does **not** auto-run migrations or development seeding on startup (aligned with `README.md`). Run `dotnet ef database update` explicitly; call `DbSeeder` only from a controlled init path with `DevSeed:Enabled` (default false). A valid `ConnectionStrings:DefaultConnection` (PostgreSQL) is required or startup throws; Redis is optional and falls back to in-memory.
 
 ## Architecture
 
