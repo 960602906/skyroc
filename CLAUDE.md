@@ -94,3 +94,7 @@ xUnit + EF Core InMemory + coverlet + `Microsoft.AspNetCore.Mvc.Testing` (integr
 ## Swagger / OpenAPI
 
 See **Swagger / OpenAPI** section in `AGENTS.md`. Controllers must return `ActionResult<ApiResponse<T>>` (not `IActionResult`). DTO XML lives in Application/Domain/Shared assemblies and is loaded via `SwaggerExtensions`. New controllers need Tag mapping and Documentation tests when response contracts change.
+
+### HTTP status vs business code
+
+**业务接口受理后 HTTP 一律 `200`；业务结果只放在 body.`code`（`ResponseCode`）。** 禁止 `BadRequest`/`NotFound`/`StatusCode(4xx|5xx)` 等改写 HTTP 状态。详情与对照表见 `AGENTS.md` 的 **HTTP status vs business code (required)**。

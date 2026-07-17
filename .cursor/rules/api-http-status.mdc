@@ -1,0 +1,36 @@
+---
+description: 业务 API 的 HTTP 状态与 body.code 约定——受理后一律 HTTP 200
+globs: SkyRoc/Controllers/**/*.cs,SkyRoc/Middleware/**/*.cs,SkyRoc/Extensions/**/*.cs,SkyRoc/Authorization/**/*.cs,SkyRoc/Filters/**/*.cs,SkyRoc/Program.cs,Application/Services/**/*.cs,Shared/Common/ApiResponse.cs,Shared/Constants/ResponseCode.cs,SkyRoc.Tests/**/*.cs
+alwaysApply: false
+---
+
+# API HTTP 状态码约定
+
+业务接口一旦进入受理，**HTTP 状态码一律为 `200`**。业务成败只看响应体 `code`（`Shared.Constants.ResponseCode`）。
+
+## 必须
+
+- Controller：`return Ok(ApiResponse<T>.Ok(...))` 或 `Ok(ApiResponse<T>.BadRequest/Fail/...)`
+- 业务失败：抛 `NotFoundException` / `ValidationException` / `BusinessException`，由异常中间件写成 HTTP 200 + body.`code`
+- 测试：用 `ApiHttpAssert.AssertBusinessCodeAsync` 或断言 body.`code`，不要断言 `HttpStatusCode.Unauthorized` 等
+
+## 禁止
+
+- `return BadRequest(...)` / `NotFound(...)` / `Unauthorized(...)` / `Forbid()` / `StatusCode(4xx|5xx, ...)`
+- 用 HTTP 4xx/5xx 表达业务错误、鉴权失败或校验失败
+- 在 Swagger 中把业务错误文档成独立的 HTTP 401/403 response（应在 description 说明 `body.code`）
+
+## 对照（HTTP 均为 200）
+
+| body.code | 含义 |
+| --- | --- |
+| 200 | 成功 |
+| 400 | 参数/模型错误 |
+| 401 | 未认证 |
+| 403 | 无权限 |
+| 404 | 不存在 |
+| 422 | 校验失败 |
+| 502 | 业务异常 |
+| 500 | 未处理异常 |
+
+完整说明见仓库根目录 `AGENTS.md` → **HTTP status vs business code (required)**。

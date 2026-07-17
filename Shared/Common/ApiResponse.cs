@@ -3,7 +3,8 @@
 namespace Shared.Common;
 
 /// <summary>
-///     API 统一响应模型
+///     API 统一响应模型。
+///     HTTP 状态码固定为 200；业务结果放在 <see cref="Code"/>（见 <see cref="Shared.Constants.ResponseCode"/>）。
 /// </summary>
 public class ApiResponse<T>
 {

@@ -1,7 +1,8 @@
 ﻿namespace Shared.Constants;
 
 /// <summary>
-///     API 响应状态码
+///     API 响应业务状态码（写入响应体 <c>code</c>）。
+///     约定：业务接口受理后 HTTP 始终为 200，成败只看本枚举；勿用 HTTP 4xx/5xx 表达业务结果。
 /// </summary>
 public enum ResponseCode
 {
