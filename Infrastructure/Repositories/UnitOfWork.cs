@@ -56,7 +56,7 @@ public sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
     public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction is null)
-            throw new InvalidCastException("当前没有活动事务可提交");
+            throw new InvalidOperationException("当前没有活动事务可提交");
         try
         {
             await SaveChangesAsync(cancellationToken);
@@ -86,7 +86,7 @@ public sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
     public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction is null)
-            throw new InvalidCastException("当前没有活动事务可提交");
+            throw new InvalidOperationException("当前没有活动事务可回滚");
         try
         {
             await _transaction.RollbackAsync(cancellationToken);
@@ -200,10 +200,7 @@ public sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
             return;
 
         if (disposing)
-        {
             _transaction?.Dispose();
-            _dbContext?.Dispose();
-        }
 
         _disposed = true;
     }
@@ -218,8 +215,6 @@ public sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
 
         if (_transaction is not null)
             await _transaction.DisposeAsync();
-
-        await _dbContext.DisposeAsync();
 
         _disposed = true;
     }

@@ -107,7 +107,6 @@ public class UserRepository(ApplicationDbContext context) : Repository<User>(con
         bool isDescending = false, Expression<Func<User, TEntity>>? selector = null)
     {
         var query = DbSet.AsNoTracking();
-        // 不需要手动过滤 IsDeleted，全局过滤器已处理 ✅
         if (predicate != null)
             query = query.Where(predicate);
         var total = await query.CountAsync();
