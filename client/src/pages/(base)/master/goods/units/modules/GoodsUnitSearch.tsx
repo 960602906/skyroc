@@ -1,7 +1,5 @@
-import { enableStatusOptions } from '@/constants/business';
-import { SearchActions } from '@/features/crud';
+import { EnableStatusSelect, SearchActions } from '@/features/crud';
 import { toOptions, useGoodsOptions } from '@/service/hooks/useBaseDataOptions';
-import { translateOptions } from '@/utils/common';
 
 const GoodsUnitSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -58,11 +56,7 @@ const GoodsUnitSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searc
             label={t('page.goods.unit.status')}
             name="status"
           >
-            <ASelect
-              allowClear
-              options={translateOptions(enableStatusOptions)}
-              placeholder={t('page.goods.unit.form.status')}
-            />
+            <EnableStatusSelect placeholder={t('page.goods.unit.form.status')} />
           </AForm.Item>
         </ACol>
         <ACol

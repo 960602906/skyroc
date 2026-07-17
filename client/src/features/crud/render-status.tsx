@@ -1,16 +1,34 @@
-import { enableStatusRecord } from '@/constants/business';
-import { ATG_MAP } from '@/constants/common';
+import EnableStatusBadge from './EnableStatusBadge';
+import MenuTypeBadge from './MenuTypeBadge';
+import UserGenderBadge from './UserGenderBadge';
+import YesOrNoBadge from './YesOrNoBadge';
 
-export function renderEnableStatus(status: Api.Common.EnableStatus | null, t: App.I18n.$T) {
-  if (status === null) {
-    return null;
-  }
-
-  const label = t(enableStatusRecord[status]);
-
-  return <ATag color={ATG_MAP[status]}>{label}</ATag>;
+/** 表格列等场景的启用/禁用状态渲染 */
+export function renderEnableStatus(status: Api.Common.EnableStatus | null | undefined) {
+  return <EnableStatusBadge status={status} />;
 }
 
+/** 表格列等场景的用户性别渲染 */
+export function renderUserGender(gender: Api.SystemManage.UserGender | null | undefined) {
+  return <UserGenderBadge gender={gender} />;
+}
+
+/** 表格列等场景的菜单类型渲染 */
+export function renderMenuType(menuType: Api.SystemManage.MenuType | null | undefined) {
+  return <MenuTypeBadge menuType={menuType} />;
+}
+
+/** 表格列等场景的是否渲染 */
+export function renderYesOrNo(value: CommonType.YesOrNo | null | undefined) {
+  return <YesOrNoBadge value={value} />;
+}
+
+/** 布尔值徽标（自定义文案，非标准 YesOrNo 枚举时使用） */
 export function renderBooleanTag(value: boolean, trueText: string, falseText: string) {
-  return <ATag color={value ? 'success' : 'default'}>{value ? trueText : falseText}</ATag>;
+  return (
+    <ABadge
+      status={value ? 'success' : 'default'}
+      text={value ? trueText : falseText}
+    />
+  );
 }

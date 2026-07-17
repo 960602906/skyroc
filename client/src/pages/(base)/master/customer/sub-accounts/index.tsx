@@ -74,7 +74,7 @@ const SubAccountManage = () => {
         align: 'center',
         dataIndex: 'status',
         key: 'status',
-        render: (_, record) => renderEnableStatus(record.status, t),
+        render: (_, record) => renderEnableStatus(record.status),
         title: t('page.customer.subAccount.status'),
         width: 90
       },

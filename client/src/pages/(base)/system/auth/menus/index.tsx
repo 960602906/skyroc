@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 
-import { enableStatusRecord, menuTypeRecord } from '@/constants/business';
-import { ATG_MAP, YesOrNo_Map, yesOrNoRecord } from '@/constants/common';
+import { renderEnableStatus, renderMenuType, renderYesOrNo } from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
 import { pages } from '@/router/elegant/imports';
 import {
@@ -37,19 +36,7 @@ const Menu = () => {
       {
         align: 'center',
         key: 'menuType',
-        render: (_, record) => {
-          if (record.status === null) {
-            return null;
-          }
-
-          const tagMap: Record<Api.SystemManage.MenuType, string> = {
-            1: 'default',
-            2: 'processing'
-          };
-
-          const label = t(menuTypeRecord[record.menuType]);
-          return <ATag color={tagMap[record.menuType]}>{label}</ATag>;
-        },
+        render: (_, record) => renderMenuType(record.menuType),
         title: t('page.manage.menu.menuType'),
         width: 80
       },
@@ -105,15 +92,7 @@ const Menu = () => {
         align: 'center',
         dataIndex: 'status',
         key: 'status',
-        render: (_, record) => {
-          if (record.status === null) {
-            return null;
-          }
-
-          const label = t(enableStatusRecord[record.status]);
-
-          return <ATag color={ATG_MAP[record.status]}>{label}</ATag>;
-        },
+        render: (_, record) => renderEnableStatus(record.status),
         title: t('page.manage.menu.menuStatus'),
         width: 80
       },
@@ -121,13 +100,7 @@ const Menu = () => {
         align: 'center',
         dataIndex: 'hideInMenu',
         key: 'hideInMenu',
-        render: (_, record) => {
-          const hide: CommonType.YesOrNo = record.hideInMenu ? 'Y' : 'N';
-
-          const label = t(yesOrNoRecord[hide]);
-
-          return <ATag color={YesOrNo_Map[hide]}>{label}</ATag>;
-        },
+        render: (_, record) => renderYesOrNo(record.hideInMenu ? 'Y' : 'N'),
         title: t('page.manage.menu.hideInMenu'),
         width: 80
       },
@@ -248,7 +221,7 @@ const Menu = () => {
   return (
     <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
       <ACard
-        className="flex-col-stretch sm:flex-1-hidden card-wrapper"
+        className="flex-col-stretch card-wrapper sm:flex-1-hidden"
         ref={tableWrapperRef}
         title={t('page.manage.role.title')}
         variant="borderless"

@@ -1,5 +1,4 @@
-import { enableStatusOptions } from '@/constants/business';
-import { SearchActions } from '@/features/crud';
+import { EnableStatusSelect, SearchActions } from '@/features/crud';
 import { translateOptions } from '@/utils/common';
 
 const purchasePatternOptions = [
@@ -79,11 +78,7 @@ const RuleSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPara
             label={t('page.purchase.rule.status')}
             name="status"
           >
-            <ASelect
-              allowClear
-              options={translateOptions(enableStatusOptions)}
-              placeholder={t('page.purchase.rule.form.status')}
-            />
+            <EnableStatusSelect placeholder={t('page.purchase.rule.form.status')} />
           </AForm.Item>
         </ACol>
 

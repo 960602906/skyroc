@@ -1,8 +1,7 @@
-import { Button, Col, Flex, Form, Input, Row, Select } from 'antd';
+import { Button, Col, Flex, Form, Input, Row } from 'antd';
 
-import { enableStatusOptions, userGenderOptions } from '@/constants/business';
+import { EnableStatusSelect, UserGenderSelect } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { translateOptions } from '@/utils/common';
 
 const UserSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -47,11 +46,7 @@ const UserSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPara
             label={t('page.manage.user.userGender')}
             name="gender"
           >
-            <Select
-              allowClear
-              options={translateOptions(userGenderOptions)}
-              placeholder={t('page.manage.user.form.userGender')}
-            />
+            <UserGenderSelect placeholder={t('page.manage.user.form.userGender')} />
           </Form.Item>
         </Col>
 
@@ -109,11 +104,7 @@ const UserSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPara
             label={t('page.manage.user.userStatus')}
             name="status"
           >
-            <Select
-              allowClear
-              options={translateOptions(enableStatusOptions)}
-              placeholder={t('page.manage.user.form.userStatus')}
-            />
+            <EnableStatusSelect placeholder={t('page.manage.user.form.userStatus')} />
           </Form.Item>
         </Col>
 

@@ -1,7 +1,6 @@
 import { Suspense, lazy } from 'react';
 
-import { enableStatusRecord, userGenderRecord } from '@/constants/business';
-import { ATG_MAP } from '@/constants/common';
+import { renderEnableStatus, renderUserGender } from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
 import {
   fetchAddUser,
@@ -15,11 +14,6 @@ import {
 import UserSearch from './modules/UserSearch';
 
 const UserOperateDrawer = lazy(() => import('./modules/UserOperateDrawer'));
-
-const tagUserGenderMap: Record<Api.SystemManage.UserGender, string> = {
-  1: 'processing',
-  2: 'error'
-};
 
 const UserManage = () => {
   const { t } = useTranslation();
@@ -63,15 +57,7 @@ const UserManage = () => {
         align: 'center',
         dataIndex: 'gender',
         key: 'gender',
-        render: (_, record) => {
-          if (record?.gender === null) {
-            return null;
-          }
-
-          const label = t(userGenderRecord[record.gender]);
-
-          return <ATag color={tagUserGenderMap[record.gender]}>{label}</ATag>;
-        },
+        render: (_, record) => renderUserGender(record.gender),
         title: t('page.manage.user.userGender'),
         width: 100
       },
@@ -100,13 +86,7 @@ const UserManage = () => {
         align: 'center',
         dataIndex: 'status',
         key: 'status',
-        render: (_, record) => {
-          if (record.status === null) {
-            return null;
-          }
-          const label = t(enableStatusRecord[record.status]);
-          return <ATag color={ATG_MAP[record.status]}>{label}</ATag>;
-        },
+        render: (_, record) => renderEnableStatus(record.status),
         title: t('page.manage.user.userStatus'),
         width: 100
       },
@@ -195,7 +175,7 @@ const UserManage = () => {
       />
 
       <ACard
-        className="flex-col-stretch sm:flex-1-hidden card-wrapper"
+        className="flex-col-stretch card-wrapper sm:flex-1-hidden"
         ref={tableWrapperRef}
         title={t('page.manage.user.title')}
         variant="borderless"

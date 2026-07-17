@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 
-import { enableStatusRecord } from '@/constants/business';
-import { ATG_MAP } from '@/constants/common';
+import { renderEnableStatus } from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
 import { fetchAddRole, fetchBatchDeleteRole, fetchDeleteRole, fetchGetRoleList, fetchUpdateRole } from '@/service/api';
 
@@ -59,13 +58,7 @@ const Role = () => {
         align: 'center',
         dataIndex: 'status',
         key: 'status',
-        render: (_, record) => {
-          if (record.status === null) {
-            return null;
-          }
-          const label = t(enableStatusRecord[record.status]);
-          return <ATag color={ATG_MAP[record.status]}>{label}</ATag>;
-        },
+        render: (_, record) => renderEnableStatus(record.status),
         title: t('page.manage.role.roleStatus'),
         width: 100
       },
@@ -159,7 +152,7 @@ const Role = () => {
       />
 
       <ACard
-        className="flex-col-stretch sm:flex-1-hidden card-wrapper"
+        className="flex-col-stretch card-wrapper sm:flex-1-hidden"
         ref={tableWrapperRef}
         title={t('page.manage.role.title')}
         variant="borderless"

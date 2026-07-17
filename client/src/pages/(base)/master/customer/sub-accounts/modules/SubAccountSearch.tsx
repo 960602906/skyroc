@@ -1,7 +1,5 @@
-import { enableStatusOptions } from '@/constants/business';
-import { SearchActions } from '@/features/crud';
+import { EnableStatusSelect, SearchActions } from '@/features/crud';
 import { toOptions, useCompanyOptions, useCustomerOptions } from '@/service/hooks/useBaseDataOptions';
-import { translateOptions } from '@/utils/common';
 
 const SubAccountSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -82,11 +80,7 @@ const SubAccountSearch: FC<Page.SearchProps> = memo(({ form, reset, search, sear
             label={t('page.customer.subAccount.status')}
             name="status"
           >
-            <ASelect
-              allowClear
-              options={translateOptions(enableStatusOptions)}
-              placeholder={t('page.customer.subAccount.form.status')}
-            />
+            <EnableStatusSelect placeholder={t('page.customer.subAccount.form.status')} />
           </AForm.Item>
         </ACol>
 

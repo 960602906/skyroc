@@ -78,7 +78,7 @@ const QuotationManage = () => {
         align: 'center',
         dataIndex: 'status',
         key: 'status',
-        render: (_, record) => renderEnableStatus(record.status, t),
+        render: (_, record) => renderEnableStatus(record.status),
         title: t('page.goods.quotation.status'),
         width: 90
       },

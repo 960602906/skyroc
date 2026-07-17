@@ -1,5 +1,4 @@
-import { enableStatusOptions } from '@/constants/business';
-import { translateOptions } from '@/utils/common';
+import { EnableStatusSelect } from '@/features/crud';
 
 const RoleSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -54,11 +53,7 @@ const RoleSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPara
             label={t('page.manage.role.roleStatus')}
             name="status"
           >
-            <ASelect
-              allowClear
-              options={translateOptions(enableStatusOptions)}
-              placeholder={t('page.manage.user.form.userGender')}
-            />
+            <EnableStatusSelect placeholder={t('page.manage.role.form.roleStatus')} />
           </AForm.Item>
         </ACol>
 

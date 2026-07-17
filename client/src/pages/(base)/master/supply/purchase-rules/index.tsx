@@ -134,7 +134,7 @@ const RuleManage = () => {
         align: 'center',
         dataIndex: 'status',
         key: 'status',
-        render: (_, record) => renderEnableStatus(record.status, t),
+        render: (_, record) => renderEnableStatus(record.status),
         title: t('page.purchase.rule.status'),
         width: 90
       },

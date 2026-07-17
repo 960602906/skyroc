@@ -1,6 +1,4 @@
-import { enableStatusOptions } from '@/constants/business';
-import { SearchActions } from '@/features/crud';
-import { translateOptions } from '@/utils/common';
+import { EnableStatusSelect, SearchActions } from '@/features/crud';
 
 const CompanySearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -56,11 +54,7 @@ const CompanySearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchP
             label={t('page.customer.company.status')}
             name="status"
           >
-            <ASelect
-              allowClear
-              options={translateOptions(enableStatusOptions)}
-              placeholder={t('page.customer.company.form.status')}
-            />
+            <EnableStatusSelect placeholder={t('page.customer.company.form.status')} />
           </AForm.Item>
         </ACol>
 

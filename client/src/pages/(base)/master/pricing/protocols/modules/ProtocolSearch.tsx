@@ -1,7 +1,5 @@
-import { enableStatusOptions } from '@/constants/business';
-import { SearchActions } from '@/features/crud';
+import { EnableStatusSelect, SearchActions } from '@/features/crud';
 import { useQuotationOptions } from '@/service/hooks/useBaseDataOptions';
-import { translateOptions } from '@/utils/common';
 
 const ProtocolSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -77,11 +75,7 @@ const ProtocolSearch: FC<Page.SearchProps> = memo(({ form, reset, search, search
             label={t('page.customer.protocol.status')}
             name="status"
           >
-            <ASelect
-              allowClear
-              options={translateOptions(enableStatusOptions)}
-              placeholder={t('page.customer.protocol.form.status')}
-            />
+            <EnableStatusSelect placeholder={t('page.customer.protocol.form.status')} />
           </AForm.Item>
         </ACol>
 

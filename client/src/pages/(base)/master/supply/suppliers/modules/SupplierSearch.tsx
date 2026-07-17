@@ -1,5 +1,4 @@
-import { enableStatusOptions } from '@/constants/business';
-import { translateOptions } from '@/utils/common';
+import { EnableStatusSelect } from '@/features/crud';
 
 const SupplierSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -55,11 +54,7 @@ const SupplierSearch: FC<Page.SearchProps> = memo(({ form, reset, search, search
             label={t('page.purchase.supplier.status')}
             name="status"
           >
-            <ASelect
-              allowClear
-              options={translateOptions(enableStatusOptions)}
-              placeholder={t('page.purchase.supplier.form.status')}
-            />
+            <EnableStatusSelect placeholder={t('page.purchase.supplier.form.status')} />
           </AForm.Item>
         </ACol>
 
