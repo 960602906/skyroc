@@ -1,38 +1,45 @@
+import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
+
 import { fetchGetGoodsDetail, fetchUpdateGoods } from '@/service/api';
 
 import GoodsOperateForm from './modules/GoodsOperateForm';
 
+export async function loader({ params }: LoaderFunctionArgs) {
+  const { id } = params;
+  if (!id) {
+    return redirect('/master/goods/list');
+  }
+
+  try {
+    const detail = await fetchGetGoodsDetail(id);
+    if (!detail) {
+      return redirect('/master/goods/list');
+    }
+    return detail;
+  } catch {
+    return redirect('/master/goods/list');
+  }
+}
+
 const GoodsEdit = () => {
   const { t } = useTranslation();
-  const { id } = useParams<{ id: string }>();
+  const detail = useLoaderData() as Api.Goods.Entity;
   const nav = useNavigate();
   const [form] = AForm.useForm<Api.Goods.UpdateParams>();
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!id) {
-      return;
-    }
-
-    setLoading(true);
-    fetchGetGoodsDetail(id)
-      .then(detail => {
-        if (detail) {
-          form.setFieldsValue({
-            ...detail,
-            supplierIds: detail.supplierIds ?? undefined
-          });
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [form, id]);
+    form.setFieldsValue({
+      ...detail,
+      supplierIds: detail.supplierIds ?? undefined
+    });
+  }, [detail, form]);
 
   async function handleSubmit() {
     const values = await form.validateFields();
     setSubmitting(true);
     try {
-      await fetchUpdateGoods({ ...values, id: id! });
+      await fetchUpdateGoods({ ...values, id: detail.id });
       window.$message?.success(t('common.updateSuccess'));
       nav('/master/goods/list');
     } finally {
@@ -57,9 +64,7 @@ const GoodsEdit = () => {
         </ASpace>
       }
     >
-      <ASpin spinning={loading}>
-        <GoodsOperateForm form={form} />
-      </ASpin>
+      <GoodsOperateForm form={form} />
     </ACard>
   );
 };
