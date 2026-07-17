@@ -71,22 +71,14 @@ public class PickupTaskRepository(ApplicationDbContext context)
         int pageSize,
         Expression<Func<PickupTask, object>>? orderBy = null,
         bool isDescending = false)
-    {
-        var filtered = DbSet.AsNoTracking().Where(predicate ?? (_ => true));
-        var total = await filtered.CountAsync();
-        var query = BuildDetailQuery().AsNoTracking();
-        if (predicate is not null)
         {
-            query = query.Where(predicate);
-        }
-
-        if (orderBy is not null)
-        {
-            query = isDescending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
-        }
-
-        var data = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-        return (data, total);
+        return await PagedFromQueryAsync(
+            BuildDetailQuery().AsNoTracking(),
+            predicate,
+            pageNumber,
+            pageSize,
+            orderBy,
+            isDescending);
     }
 
     /// <summary>

@@ -94,13 +94,35 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
         Expression<Func<T, object>>? orderBy = null,
         bool isDescending = false)
     {
-        var query = DbSet.AsNoTracking();
+        return await PagedFromQueryAsync(
+            DbSet.AsNoTracking(),
+            predicate,
+            pageNumber,
+            pageSize,
+            orderBy,
+            isDescending);
+    }
+
+    /// <summary>
+    ///     在指定查询源上执行过滤、计数、排序与分页（聚合仓储可传入带 Include 的查询）。
+    /// </summary>
+    protected async Task<(IEnumerable<T> Data, int Total)> PagedFromQueryAsync(
+        IQueryable<T> source,
+        Expression<Func<T, bool>>? predicate,
+        int pageNumber,
+        int pageSize,
+        Expression<Func<T, object>>? orderBy = null,
+        bool isDescending = false)
+    {
+        var query = source;
         if (predicate != null)
             query = query.Where(predicate);
+
         var total = await query.CountAsync();
-        if (orderBy != null) query = isDescending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
+        if (orderBy != null)
+            query = isDescending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
+
         var data = await query
-            .AsNoTracking()
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

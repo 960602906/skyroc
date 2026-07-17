@@ -38,25 +38,14 @@ public class SaleOrderRepository(ApplicationDbContext context)
         int pageSize,
         Expression<Func<SaleOrder, object>>? orderBy = null,
         bool isDescending = false)
-    {
-        var filteredQuery = DbSet.AsNoTracking().Where(predicate ?? (_ => true));
-        var total = await filteredQuery.CountAsync();
-        var query = BuildDetailQuery().AsNoTracking();
-        if (predicate != null)
         {
-            query = query.Where(predicate);
-        }
-
-        if (orderBy != null)
-        {
-            query = isDescending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
-        }
-
-        var data = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-        return (data, total);
+        return await PagedFromQueryAsync(
+            BuildDetailQuery().AsNoTracking(),
+            predicate,
+            pageNumber,
+            pageSize,
+            orderBy,
+            isDescending);
     }
 
     /// <inheritdoc />
