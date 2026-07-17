@@ -12,4 +12,4 @@ namespace Application.interfaces;
 /// <summary>
 /// 定义客户协议价及适用客户关系的维护用例。
 /// </summary>
-public interface ICustomerProtocolService : IBaseDataService<CustomerProtocolDto, CreateCustomerProtocolDto, UpdateCustomerProtocolDto, CustomerProtocolQueryParameters>;
+public interface ICustomerProtocolService : INamedCodeBaseDataService<CustomerProtocolDto, CreateCustomerProtocolDto, UpdateCustomerProtocolDto, CustomerProtocolQueryParameters>;

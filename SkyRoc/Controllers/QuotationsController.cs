@@ -16,7 +16,7 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Pricing.Resource)]
 public class QuotationsController(IQuotationService service)
-    : BaseDataController<QuotationDto, CreateQuotationDto, UpdateQuotationDto, QuotationQueryParameters>(service)
+    : NamedCodeDataController<QuotationDto, CreateQuotationDto, UpdateQuotationDto, QuotationQueryParameters>(service)
 {
     /// <summary>
     ///     审核或反审核报价单。

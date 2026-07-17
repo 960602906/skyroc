@@ -32,7 +32,8 @@ public abstract class NamedCodeBaseDataService<TEntity, TDto, TCreateDto, TUpdat
         mapper,
         currentUserService,
         createValidator,
-        updateValidator)
+        updateValidator),
+        INamedCodeBaseDataService<TDto, TCreateDto, TUpdateDto, TQuery>
     where TEntity : BaseEntity
     where TDto : class
     where TCreateDto : INamedCodeInput
@@ -41,6 +42,13 @@ public abstract class NamedCodeBaseDataService<TEntity, TDto, TCreateDto, TUpdat
 {
     /// <inheritdoc />
     protected INamedCodeRepository<TEntity> NamedCodeRepository { get; } = repository;
+
+    /// <inheritdoc />
+    public async Task<List<NamedCodeOptionDto>> GetOptionsAsync()
+    {
+        var options = await NamedCodeRepository.GetOptionsAsync();
+        return Mapper.Map<List<NamedCodeOptionDto>>(options);
+    }
 
     /// <inheritdoc />
     protected override async Task ValidateCreateAsync(TCreateDto dto)

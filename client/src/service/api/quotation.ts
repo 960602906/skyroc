@@ -18,6 +18,14 @@ export function fetchGetAllQuotations() {
   });
 }
 
+/** 查询全部下拉选项（仅 id/name/code，不含明细）。 */
+export function fetchGetQuotationOptions() {
+  return request<Api.Quotation.AllEntity[]>({
+    method: 'get',
+    url: QUOTATION_URLS.OPTIONS
+  });
+}
+
 /** 根据 ID 查询。 */
 export function fetchGetQuotationDetail(id: string) {
   return request<Api.Quotation.Entity>({

@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.DTOs.Customers;
 using Application.DTOs.Delivery;
 using Application.DTOs.Goods;
@@ -11,6 +12,7 @@ using Domain.Entities.Goods;
 using Domain.Entities.Pricing;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
+using Domain.ReadModels.BaseData;
 using GoodsEntity = Domain.Entities.Goods.Goods;
 
 namespace Application.Mappers;
@@ -22,6 +24,9 @@ public class BaseDataMappingProfile : Profile
 {
     public BaseDataMappingProfile()
     {
+        CreateMap<NamedCodeOption, NamedCodeOptionDto>();
+
+
         CreateMap<GoodsType, GoodsTypeDto>()
             .ForMember(x => x.Children, opt => opt.Ignore());
         CreateMap<CreateGoodsTypeDto, GoodsType>();

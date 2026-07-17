@@ -8,9 +8,9 @@ import {
   fetchGetAllPurchasers,
   fetchGetAllSuppliers,
   fetchGetAllWares,
-  fetchGetCustomerProtocolList,
+  fetchGetCustomerProtocolOptions,
   fetchGetGoodsUnitsByGoods,
-  fetchGetQuotationList
+  fetchGetQuotationOptions
 } from '@/service/api';
 import { QUERY_KEYS } from '@/service/keys';
 
@@ -74,18 +74,18 @@ export function usePurchaserOptions() {
 
 export function useQuotationOptions() {
   return useQuery({
-    queryFn: () => fetchGetQuotationList({ current: 1, size: 999 }),
+    queryFn: () => fetchGetQuotationOptions(),
     queryKey: QUERY_KEYS.BASE.QUOTATIONS,
-    select: res => toOptions(res?.records),
+    select: data => toOptions(data),
     staleTime: 60_000
   });
 }
 
 export function useProtocolOptions() {
   return useQuery({
-    queryFn: () => fetchGetCustomerProtocolList({ current: 1, size: 999 }),
+    queryFn: () => fetchGetCustomerProtocolOptions(),
     queryKey: QUERY_KEYS.BASE.PROTOCOLS,
-    select: res => toOptions(res?.records),
+    select: data => toOptions(data),
     staleTime: 60_000
   });
 }

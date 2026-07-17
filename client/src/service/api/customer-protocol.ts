@@ -18,6 +18,14 @@ export function fetchGetAllCustomerProtocols() {
   });
 }
 
+/** 查询全部下拉选项（仅 id/name/code，不含明细）。 */
+export function fetchGetCustomerProtocolOptions() {
+  return request<Api.CustomerProtocol.AllEntity[]>({
+    method: 'get',
+    url: CUSTOMER_PROTOCOL_URLS.OPTIONS
+  });
+}
+
 /** 根据 ID 查询。 */
 export function fetchGetCustomerProtocolDetail(id: string) {
   return request<Api.CustomerProtocol.Entity>({

@@ -12,7 +12,7 @@ namespace Application.interfaces;
 /// <summary>
 /// 定义销售报价单及审核状态的维护用例。
 /// </summary>
-public interface IQuotationService : IBaseDataService<QuotationDto, CreateQuotationDto, UpdateQuotationDto, QuotationQueryParameters>
+public interface IQuotationService : INamedCodeBaseDataService<QuotationDto, CreateQuotationDto, UpdateQuotationDto, QuotationQueryParameters>
 {
     /// <summary>
     ///     审核或反审核报价单。
