@@ -1,4 +1,6 @@
 using Application.DTOs.Storage;
+using Application.Events;
+using Application.Events.Finance;
 using Application.Exceptions;
 using Application.Extensions;
 using Application.Interfaces;
@@ -15,7 +17,6 @@ using Microsoft.Extensions.Logging;
 using Shared.Constants;
 using static Shared.Constants.NumericPrecision;
 using GoodsEntity = Domain.Entities.Goods.Goods;
-using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services;
 
@@ -35,7 +36,8 @@ public class StockInService(
     IPurchaseOrderRepository purchaseOrderRepository,
     IPickupTaskRepository pickupTaskRepository,
     IAfterSaleRepository afterSaleRepository,
-    ISupplierBillService supplierBillService,
+    IInventoryCostingService inventoryCostingService,
+    IApplicationEventPublisher eventPublisher,
     IGoodsRepository goodsRepository,
     IGoodsUnitRepository goodsUnitRepository,
     IUnitOfWork unitOfWork,
@@ -51,7 +53,6 @@ public class StockInService(
     ILogger<StockInService> logger) : IStockInService
 {
     private const decimal QuantityTolerance = 0.000001m;
-    private const decimal MoneyTolerance = 0.0001m;
 
     /// <inheritdoc />
     public async Task<PagedResult<StockInOrderDto>> GetPagedAsync(
@@ -291,12 +292,13 @@ public class StockInService(
                          .OrderBy(detail => detail.GoodsId)
                          .ThenBy(detail => detail.BatchNo, StringComparer.Ordinal))
             {
-                var batch = await ResolveBatchForInboundAsync(order, detail, auditTime, batchCache);
-                ApplyInboundToBatch(batch, detail, auditTime);
+                var batch = await inventoryCostingService.ResolveOrCreateBatchForInboundAsync(
+                    order, detail, auditTime, batchCache);
+                inventoryCostingService.ApplyInboundToBatch(batch, detail, auditTime);
                 detail.StockBatchId = batch.Id;
                 detail.ApplyUpdateAudit(currentUserService);
                 await stockLedgerRepository.AddAsync(
-                    CreateInboundLedger(order, detail, batch, auditTime, normalizedRemark));
+                    inventoryCostingService.CreateInboundLedger(order, detail, batch, auditTime, normalizedRemark));
             }
 
             order.BusinessStatus = StockDocumentStatus.Audited;
@@ -308,7 +310,7 @@ public class StockInService(
 
             if (orderType == StockInOrderType.Purchase)
             {
-                await supplierBillService.SyncPurchaseStockInAsync(order);
+                await eventPublisher.PublishAsync(new PurchaseStockInAudited(order));
             }
 
             auditedOrder = order;
@@ -353,7 +355,7 @@ public class StockInService(
 
             if (orderType == StockInOrderType.Purchase)
             {
-                await supplierBillService.EnsureCanReverseSourceDocumentAsync(order.Id, null);
+                await eventPublisher.PublishAsync(new PurchaseStockInReversalRequested(order.Id));
             }
 
             var activeLedgers = await stockLedgerRepository.GetActiveBySourceOrderAsync(order.Id);
@@ -382,10 +384,10 @@ public class StockInService(
                         $"批次 {batch.BatchNo} 可用库存不足，入库数量已被出库或占用，无法反审核");
                 }
 
-                ApplyReversalToBatch(batch, ledger, reverseTime);
+                inventoryCostingService.ApplyReversalToBatch(batch, ledger, reverseTime);
                 await stockBatchRepository.UpdateAsync(batch);
                 await stockLedgerRepository.AddAsync(
-                    CreateReversalLedger(ledger, batch, reverseTime, normalizedRemark));
+                    inventoryCostingService.CreateReversalLedger(ledger, batch, reverseTime, normalizedRemark));
             }
 
             order.BusinessStatus = StockDocumentStatus.Reversed;
@@ -397,7 +399,7 @@ public class StockInService(
 
             if (orderType == StockInOrderType.Purchase)
             {
-                await supplierBillService.RemoveBySourceDocumentAsync(order.Id, null);
+                await eventPublisher.PublishAsync(new PurchaseStockInReversed(order.Id));
             }
 
             reversedOrder = order;
@@ -562,185 +564,6 @@ public class StockInService(
         RecalculateTotals(order);
     }
 
-    private async Task<StockBatch> ResolveBatchForInboundAsync(
-        StockInOrder order,
-        StockInDetail detail,
-        DateTime auditTime,
-        IDictionary<(Guid GoodsId, string BatchNo), StockBatch> cache)
-    {
-        var key = (detail.GoodsId, detail.BatchNo);
-        if (cache.TryGetValue(key, out var cached))
-        {
-            return cached;
-        }
-
-        var existing = await stockBatchRepository.GetByIdentityForUpdateAsync(
-            order.WareId,
-            detail.GoodsId,
-            detail.BatchNo);
-        if (existing is not null)
-        {
-            cache[key] = existing;
-            return existing;
-        }
-
-        var goods = detail.Goods ?? await goodsRepository.GetByIdAsync(detail.GoodsId)
-            ?? throw new BusinessException("商品不存在");
-        var baseUnit = goods.BaseUnit
-                       ?? throw new BusinessException($"商品 {goods.Name} 未配置基础单位");
-        var batch = new StockBatch
-        {
-            Id = Guid.NewGuid(),
-            WareId = order.WareId,
-            GoodsId = detail.GoodsId,
-            GoodsNameSnapshot = detail.GoodsNameSnapshot,
-            GoodsCodeSnapshot = detail.GoodsCodeSnapshot,
-            BatchNo = detail.BatchNo,
-            BaseUnitId = baseUnit.Id,
-            BaseUnitNameSnapshot = baseUnit.Name,
-            CurrentQuantity = 0m,
-            AvailableQuantity = 0m,
-            UnitCost = 0m,
-            ProductDate = detail.ProductDate,
-            ExpireDate = detail.ExpireDate,
-            LastMovementTime = auditTime
-        };
-        batch.ApplyCreateAudit(currentUserService);
-        await stockBatchRepository.AddAsync(batch);
-        cache[key] = batch;
-        return batch;
-    }
-
-    private void ApplyInboundToBatch(StockBatch batch, StockInDetail detail, DateTime auditTime)
-    {
-        var inboundQuantity = detail.BaseQuantity;
-        var inboundUnitCost = UnitCostPerBase(detail);
-        var newQuantity = RoundQuantity(batch.CurrentQuantity + inboundQuantity);
-        if (newQuantity > QuantityTolerance)
-        {
-            var totalCost = batch.CurrentQuantity * batch.UnitCost + inboundQuantity * inboundUnitCost;
-            batch.UnitCost = RoundMoney(totalCost / newQuantity);
-        }
-
-        batch.CurrentQuantity = newQuantity;
-        batch.AvailableQuantity = RoundQuantity(batch.AvailableQuantity + inboundQuantity);
-        if (batch.ProductDate is null && detail.ProductDate is not null)
-        {
-            batch.ProductDate = detail.ProductDate;
-        }
-
-        if (batch.ExpireDate is null && detail.ExpireDate is not null)
-        {
-            batch.ExpireDate = detail.ExpireDate;
-        }
-
-        batch.LastMovementTime = auditTime;
-        batch.ApplyUpdateAudit(currentUserService);
-    }
-
-    private void ApplyReversalToBatch(StockBatch batch, StockLedger source, DateTime reverseTime)
-    {
-        var remainingQuantity = RoundQuantity(batch.CurrentQuantity - source.ChangeQuantity);
-        var remainingAvailableQuantity = RoundQuantity(batch.AvailableQuantity - source.ChangeQuantity);
-        var remainingInventoryCost = RoundMoney(
-            batch.CurrentQuantity * batch.UnitCost - source.TotalCost);
-        if (remainingInventoryCost < -MoneyTolerance)
-        {
-            throw new BusinessException(
-                $"批次 {batch.BatchNo} 剩余库存成本不足，入库成本已被后续业务消耗，无法反审核");
-        }
-
-        batch.CurrentQuantity = remainingQuantity;
-        batch.AvailableQuantity = remainingAvailableQuantity;
-        batch.UnitCost = remainingQuantity <= QuantityTolerance
-            ? 0m
-            : RoundMoney(Math.Max(remainingInventoryCost, 0m) / remainingQuantity);
-        batch.LastMovementTime = reverseTime;
-        batch.ApplyUpdateAudit(currentUserService);
-    }
-
-    private StockLedger CreateInboundLedger(
-        StockInOrder order,
-        StockInDetail detail,
-        StockBatch batch,
-        DateTime auditTime,
-        string? remark)
-    {
-        var unitCost = UnitCostPerBase(detail);
-        var ledger = new StockLedger
-        {
-            Id = Guid.NewGuid(),
-            StockBatchId = batch.Id,
-            WareId = order.WareId,
-            WareNameSnapshot = order.WareNameSnapshot,
-            GoodsId = detail.GoodsId,
-            GoodsNameSnapshot = detail.GoodsNameSnapshot,
-            GoodsCodeSnapshot = detail.GoodsCodeSnapshot,
-            BatchNoSnapshot = batch.BatchNo,
-            BaseUnitNameSnapshot = batch.BaseUnitNameSnapshot,
-            Direction = StockLedgerDirection.Increase,
-            SourceType = ResolveSourceType(order.OrderType),
-            SourceOrderId = order.Id,
-            SourceDetailId = detail.Id,
-            ChangeQuantity = detail.BaseQuantity,
-            BalanceQuantity = batch.CurrentQuantity,
-            UnitCost = unitCost,
-            TotalCost = RoundMoney(detail.BaseQuantity * unitCost),
-            OccurredTime = auditTime,
-            Remark = remark
-        };
-        ledger.ApplyCreateAudit(currentUserService);
-        return ledger;
-    }
-
-    private StockLedger CreateReversalLedger(
-        StockLedger source,
-        StockBatch batch,
-        DateTime reverseTime,
-        string? remark)
-    {
-        var ledger = new StockLedger
-        {
-            Id = Guid.NewGuid(),
-            StockBatchId = batch.Id,
-            WareId = source.WareId,
-            WareNameSnapshot = source.WareNameSnapshot,
-            GoodsId = source.GoodsId,
-            GoodsNameSnapshot = source.GoodsNameSnapshot,
-            GoodsCodeSnapshot = source.GoodsCodeSnapshot,
-            BatchNoSnapshot = source.BatchNoSnapshot,
-            BaseUnitNameSnapshot = source.BaseUnitNameSnapshot,
-            Direction = StockLedgerDirection.Decrease,
-            SourceType = source.SourceType,
-            SourceOrderId = source.SourceOrderId,
-            SourceDetailId = source.SourceDetailId,
-            ChangeQuantity = source.ChangeQuantity,
-            BalanceQuantity = batch.CurrentQuantity,
-            UnitCost = source.UnitCost,
-            TotalCost = source.TotalCost,
-            OccurredTime = reverseTime,
-            ReversedFromLedgerId = source.Id,
-            Remark = remark
-        };
-        ledger.ApplyCreateAudit(currentUserService);
-        return ledger;
-    }
-
-    private static decimal UnitCostPerBase(StockInDetail detail)
-    {
-        return RoundMoney(detail.UnitPrice / detail.ConversionRate);
-    }
-
-    private static StockLedgerSourceType ResolveSourceType(StockInOrderType orderType)
-    {
-        return orderType switch
-        {
-            StockInOrderType.Purchase => StockLedgerSourceType.PurchaseInbound,
-            StockInOrderType.Other => StockLedgerSourceType.OtherInbound,
-            StockInOrderType.SalesReturn => StockLedgerSourceType.SalesReturnInbound,
-            _ => throw new BusinessException("未知的入库业务类型")
-        };
-    }
 
     private static void RecalculateTotals(StockInOrder order)
     {
