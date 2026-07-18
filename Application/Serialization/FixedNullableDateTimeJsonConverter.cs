@@ -24,7 +24,7 @@ public sealed class FixedNullableDateTimeJsonConverter : JsonConverter<DateTime?
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.RoundtripKind,
                 out var date))
-            return date;
+            return DateTimeJsonFormats.NormalizeToUtc(date);
 
         throw new JsonException($"无法解析日期时间: {dateString}");
     }

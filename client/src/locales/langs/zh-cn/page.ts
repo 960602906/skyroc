@@ -130,6 +130,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       code: '协议编码',
       createTime: '创建时间',
       customerIds: '关联客户',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '协议详情',
+        updateTime: '更新时间'
+      },
       editProtocol: '编辑协议',
       effectiveEnd: '失效日期',
       effectiveStart: '生效日期',
@@ -141,13 +147,18 @@ const page: App.I18n.Schema['translation']['page'] = {
         remark: '请输入备注',
         status: '请选择状态'
       },
+      manageGoods: '维护商品',
       name: '协议名称',
       quotationId: '报价单',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionGoods: '协议商品',
+      sectionStatus: '状态与备注',
       status: '状态',
       title: '客户协议'
     },
     protocolGoods: {
+      add: '新增协议商品',
       addProtocolGoods: '新增协议商品',
       createTime: '创建时间',
       customerProtocolId: '客户协议',
@@ -155,7 +166,7 @@ const page: App.I18n.Schema['translation']['page'] = {
       form: {
         customerProtocolId: '请选择客户协议',
         goodsId: '请选择商品',
-        goodsUnitId: '请输入商品单位 ID',
+        goodsUnitId: '请选择商品单位',
         minOrderQuantity: '请输入最小起订量',
         protocolPrice: '请输入协议价',
         remark: '请输入备注'

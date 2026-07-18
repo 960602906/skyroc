@@ -49,6 +49,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_pricing': '定价管理',
   '(base)_master_pricing_protocol-goods': '协议商品',
   '(base)_master_pricing_protocols': '客户协议价',
+  '(base)_master_pricing_protocols_detail': '协议详情',
+  '(base)_master_pricing_protocols_detail_[id]': '协议详情',
   '(base)_master_pricing_quotation-goods': '报价商品',
   '(base)_master_pricing_quotations': '报价单',
   '(base)_master_pricing_quotations_detail': '报价单详情',

@@ -24,12 +24,17 @@ import ProtocolSearch from './modules/ProtocolSearch';
 
 const ProtocolOperateDrawer = lazy(() => import('./modules/ProtocolOperateDrawer'));
 
+/** 后端 FixedDateTime 支持 yyyy-MM-dd / yyyy-MM-dd HH:mm:ss；表单统一提交日期部分 */
 function formatDateValue(value: unknown) {
   if (!value) return null;
   if (dayjs.isDayjs(value)) {
     return value.format('YYYY-MM-DD');
   }
-  return String(value);
+  const text = String(value).trim();
+  if (!text) return null;
+  // 接口回显可能带时间，提交只保留日期，避免 dayjs 无效对象被 toString
+  const parsed = dayjs(text);
+  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : text;
 }
 
 const protocolSearchParams = {
@@ -39,6 +44,7 @@ const protocolSearchParams = {
 
 const ProtocolManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetCustomerProtocolList,
@@ -48,42 +54,55 @@ const ProtocolManage = () => {
       {
         align: 'center',
         dataIndex: 'name',
+        ellipsis: true,
+        fixed: 'left',
         key: 'name',
-        minWidth: 140,
+        render: (name: string, record) => (
+          <AButton
+            className="h-auto p-0 leading-normal"
+            size="small"
+            type="link"
+            onClick={() => nav(`/master/pricing/protocols/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.customer.protocol.name')
       },
       {
         align: 'center',
         dataIndex: 'code',
+        ellipsis: true,
         key: 'code',
-        minWidth: 120,
         title: t('page.customer.protocol.code')
       },
       {
         align: 'center',
         dataIndex: 'effectiveStart',
+        ellipsis: true,
         key: 'effectiveStart',
         title: t('page.customer.protocol.effectiveStart'),
-        width: 120
+        width: 170
       },
       {
         align: 'center',
         dataIndex: 'effectiveEnd',
+        ellipsis: true,
         key: 'effectiveEnd',
         title: t('page.customer.protocol.effectiveEnd'),
-        width: 120
+        width: 170
       },
       {
         align: 'center',
         dataIndex: 'status',
         key: 'status',
         render: (_, record) => renderEnableStatus(record.status),
-        title: t('page.customer.protocol.status'),
-        width: 90
+        title: t('page.customer.protocol.status')
       },
       {
         align: 'center',
         dataIndex: 'createTime',
+        ellipsis: true,
         key: 'createTime',
         title: t('page.customer.protocol.createTime'),
         width: 170
@@ -101,6 +120,12 @@ const ProtocolManage = () => {
               onClick={() => edit(record.id)}
             >
               {t('common.edit')}
+            </AButton>
+            <AButton
+              size="small"
+              onClick={() => nav(`/master/pricing/protocols/detail/${record.id}`)}
+            >
+              {t('page.customer.protocol.manageGoods')}
             </AButton>
             <AButton
               size="small"
@@ -122,7 +147,7 @@ const ProtocolManage = () => {
           </div>
         ),
         title: t('common.operate'),
-        width: 210
+        width: 280
       }
     ],
     pagination: createDefaultPagination()
@@ -157,8 +182,9 @@ const ProtocolManage = () => {
     const detail = await fetchGetCustomerProtocolDetail(id);
     handleEdit({
       ...(detail ?? {}),
-      effectiveEnd: detail?.effectiveEnd ? dayjs(detail.effectiveEnd) : null,
-      effectiveStart: detail?.effectiveStart ? dayjs(detail.effectiveStart) : null,
+      // DatePicker 通过 getValueProps 转 dayjs，表单值保持字符串
+      effectiveEnd: detail?.effectiveEnd || null,
+      effectiveStart: detail?.effectiveStart || null,
       index: 0
     } as never);
   }

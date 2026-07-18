@@ -1,16 +1,40 @@
 import { useFormRules } from '@/features/form';
-import { toOptions, useGoodsOptions, useProtocolOptions } from '@/service/hooks';
+import { toOptions, useGoodsOptions, useGoodsUnitsByGoodsOptions, useProtocolOptions } from '@/service/hooks';
 
 type RuleKey = 'customerProtocolId' | 'goodsId' | 'goodsUnitId' | 'protocolPrice';
 
-const ProtocolGoodsOperateModal: FC<Page.OperateDrawerProps> = memo(
-  ({ form, handleSubmit, onClose, open, operateType }) => {
+type ProtocolGoodsOperateModalProps = Page.OperateDrawerProps & {
+  /** 固定客户协议时隐藏协议选择，由表单 customerProtocolId 字段承载 */
+  lockCustomerProtocolId?: boolean;
+};
+
+const ProtocolGoodsOperateModal: FC<ProtocolGoodsOperateModalProps> = memo(
+  ({ form, handleSubmit, lockCustomerProtocolId = false, onClose, open, operateType }) => {
     const { t } = useTranslation();
 
     const { defaultRequiredRule } = useFormRules();
 
     const { data: protocolOptions } = useProtocolOptions();
     const { data: goods } = useGoodsOptions();
+    const goodsOptions = toOptions(goods);
+
+    const goodsId = AForm.useWatch('goodsId', form);
+    const { data: goodsUnitOptions = [] } = useGoodsUnitsByGoodsOptions(goodsId);
+    const prevGoodsIdRef = useRef<string | undefined>(undefined);
+
+    // 仅在用户切换商品时清空单位，避免编辑回填被冲掉
+    useEffect(() => {
+      if (!open) {
+        prevGoodsIdRef.current = undefined;
+        return;
+      }
+
+      if (prevGoodsIdRef.current !== undefined && prevGoodsIdRef.current !== goodsId) {
+        form.setFieldValue('goodsUnitId', undefined);
+      }
+
+      prevGoodsIdRef.current = goodsId;
+    }, [form, goodsId, open]);
 
     const rules: Record<RuleKey, App.Global.FormRule> = {
       customerProtocolId: defaultRequiredRule,
@@ -41,17 +65,25 @@ const ProtocolGoodsOperateModal: FC<Page.OperateDrawerProps> = memo(
             name="id"
           />
 
-          <AForm.Item
-            label={t('page.customer.protocolGoods.customerProtocolId')}
-            name="customerProtocolId"
-            rules={[rules.customerProtocolId]}
-          >
-            <ASelect
-              allowClear
-              options={protocolOptions}
-              placeholder={t('page.customer.protocolGoods.form.customerProtocolId')}
+          {lockCustomerProtocolId ? (
+            <AForm.Item
+              hidden
+              name="customerProtocolId"
+              rules={[rules.customerProtocolId]}
             />
-          </AForm.Item>
+          ) : (
+            <AForm.Item
+              label={t('page.customer.protocolGoods.customerProtocolId')}
+              name="customerProtocolId"
+              rules={[rules.customerProtocolId]}
+            >
+              <ASelect
+                allowClear
+                options={protocolOptions}
+                placeholder={t('page.customer.protocolGoods.form.customerProtocolId')}
+              />
+            </AForm.Item>
+          )}
 
           <AForm.Item
             label={t('page.customer.protocolGoods.goodsId')}
@@ -60,7 +92,7 @@ const ProtocolGoodsOperateModal: FC<Page.OperateDrawerProps> = memo(
           >
             <ASelect
               allowClear
-              options={toOptions(goods)}
+              options={goodsOptions}
               placeholder={t('page.customer.protocolGoods.form.goodsId')}
             />
           </AForm.Item>
@@ -70,7 +102,12 @@ const ProtocolGoodsOperateModal: FC<Page.OperateDrawerProps> = memo(
             name="goodsUnitId"
             rules={[rules.goodsUnitId]}
           >
-            <AInput placeholder={t('page.customer.protocolGoods.form.goodsUnitId')} />
+            <ASelect
+              allowClear
+              disabled={!goodsId}
+              options={goodsUnitOptions}
+              placeholder={t('page.customer.protocolGoods.form.goodsUnitId')}
+            />
           </AForm.Item>
 
           <AForm.Item

@@ -5,8 +5,12 @@ declare namespace Api {
       customerIds: string[] | null;
       effectiveEnd: string | null;
       effectiveStart: string;
+      /** 协议价商品明细（详情接口返回） */
+      goods?: Api.CustomerProtocolGoods.Entity[] | null;
       name: string;
       quotationId: string | null;
+      /** 关联报价单名称（详情/关联查询时回填） */
+      quotationName?: string | null;
       remark: string | null;
     }>;
 

@@ -49,6 +49,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_pricing': 'Pricing',
   '(base)_master_pricing_protocol-goods': 'Protocol Goods',
   '(base)_master_pricing_protocols': 'Customer Protocols',
+  '(base)_master_pricing_protocols_detail': 'Protocol Detail',
+  '(base)_master_pricing_protocols_detail_[id]': 'Protocol Detail',
   '(base)_master_pricing_quotation-goods': 'Quotation Goods',
   '(base)_master_pricing_quotations': 'Quotations',
   '(base)_master_pricing_quotations_detail': 'Quotation Detail',

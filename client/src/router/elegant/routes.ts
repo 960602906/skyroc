@@ -621,7 +621,38 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_pricing_protocols',
                       icon: 'mdi:file-sign',
                       order: 2
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/pricing/protocols/detail/index.tsx', null, null],
+                        name: '(base)_master_pricing_protocols_detail',
+                        path: '/master/pricing/protocols/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_pricing_protocols_detail',
+                          title: '(base)_master_pricing_protocols_detail',
+                          activeMenu: '/master/pricing/protocols',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/master/pricing/protocols/detail/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_master_pricing_protocols_detail_[id]',
+                            path: '/master/pricing/protocols/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_pricing_protocols_detail_[id]',
+                              title: '(base)_master_pricing_protocols_detail_[id]',
+                              activeMenu: '/master/pricing/protocols',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/master/pricing/quotation-goods/index.tsx', null, null],

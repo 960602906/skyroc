@@ -130,6 +130,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       code: 'Protocol Code',
       createTime: 'Created At',
       customerIds: 'Customers',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Protocol Detail',
+        updateTime: 'Updated At'
+      },
       editProtocol: 'Edit Protocol',
       effectiveEnd: 'Effective End',
       effectiveStart: 'Effective Start',
@@ -141,13 +147,18 @@ const page: App.I18n.Schema['translation']['page'] = {
         remark: 'Please enter remark',
         status: 'Please select status'
       },
+      manageGoods: 'Manage Goods',
       name: 'Protocol Name',
       quotationId: 'Quotation',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionGoods: 'Protocol Goods',
+      sectionStatus: 'Status & Remark',
       status: 'Status',
       title: 'Customer Protocol'
     },
     protocolGoods: {
+      add: 'Add Protocol Goods',
       addProtocolGoods: 'Add Protocol Goods',
       createTime: 'Created At',
       customerProtocolId: 'Customer Protocol',
@@ -155,7 +166,7 @@ const page: App.I18n.Schema['translation']['page'] = {
       form: {
         customerProtocolId: 'Please select customer protocol',
         goodsId: 'Please select goods',
-        goodsUnitId: 'Please enter goods unit ID',
+        goodsUnitId: 'Please select goods unit',
         minOrderQuantity: 'Please enter min order quantity',
         protocolPrice: 'Please enter protocol price',
         remark: 'Please enter remark'

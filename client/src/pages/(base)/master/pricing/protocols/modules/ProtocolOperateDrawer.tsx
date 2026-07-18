@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { toOptions, useCustomerOptions, useQuotationOptions } from '@/service/hooks';
@@ -78,19 +80,33 @@ const ProtocolOperateDrawer: FC<Page.OperateDrawerProps> = memo(
           <ARow gutter={16}>
             <ACol span={12}>
               <AForm.Item
+                getValueFromEvent={(_, dateString) => dateString || null}
                 label={t('page.customer.protocol.effectiveStart')}
                 name="effectiveStart"
                 rules={[rules.effectiveStart]}
+                getValueProps={value => ({
+                  value: value ? dayjs(value) : undefined
+                })}
               >
-                <ADatePicker className="w-full" />
+                <ADatePicker
+                  className="w-full"
+                  format="YYYY-MM-DD"
+                />
               </AForm.Item>
             </ACol>
             <ACol span={12}>
               <AForm.Item
+                getValueFromEvent={(_, dateString) => dateString || null}
                 label={t('page.customer.protocol.effectiveEnd')}
                 name="effectiveEnd"
+                getValueProps={value => ({
+                  value: value ? dayjs(value) : undefined
+                })}
               >
-                <ADatePicker className="w-full" />
+                <ADatePicker
+                  className="w-full"
+                  format="YYYY-MM-DD"
+                />
               </AForm.Item>
             </ACol>
           </ARow>

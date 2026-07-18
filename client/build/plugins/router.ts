@@ -74,6 +74,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master_pricing_protocol-goods': { activeMenu: '/master/pricing/protocols', hideInMenu: true },
 
   '(base)_master_pricing_protocols': { icon: 'mdi:file-sign', order: 2 },
+  '(base)_master_pricing_protocols_detail': { activeMenu: '/master/pricing/protocols', hideInMenu: true },
+  '(base)_master_pricing_protocols_detail_[id]': { activeMenu: '/master/pricing/protocols', hideInMenu: true },
   '(base)_master_pricing_quotation-goods': { activeMenu: '/master/pricing/quotations', hideInMenu: true },
   '(base)_master_pricing_quotations': { icon: 'mdi:file-document-outline', order: 1 },
   '(base)_master_pricing_quotations_detail': { activeMenu: '/master/pricing/quotations', hideInMenu: true },

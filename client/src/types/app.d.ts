@@ -491,6 +491,12 @@ declare namespace App {
               code: string;
               createTime: string;
               customerIds: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               editProtocol: string;
               effectiveEnd: string;
               effectiveStart: string;
@@ -502,13 +508,18 @@ declare namespace App {
                 remark: string;
                 status: string;
               };
+              manageGoods: string;
               name: string;
               quotationId: string;
               remark: string;
+              sectionBasic: string;
+              sectionGoods: string;
+              sectionStatus: string;
               status: string;
               title: string;
             };
             protocolGoods: {
+              add: string;
               addProtocolGoods: string;
               createTime: string;
               customerProtocolId: string;

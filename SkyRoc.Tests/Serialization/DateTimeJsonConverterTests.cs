@@ -47,8 +47,10 @@ public class DateTimeJsonConverterTests
         var dto = JsonSerializer.Deserialize<TestDto>(json, JsonOptions);
 
         Assert.NotNull(dto);
-        Assert.Equal(new DateTime(2026, 5, 23, 14, 30, 45), dto!.CreateTime);
-        Assert.Equal(new DateTime(2026, 5, 24, 8, 15, 0), dto.UpdateTime);
+        Assert.Equal(new DateTime(2026, 5, 23, 14, 30, 45, DateTimeKind.Utc), dto!.CreateTime);
+        Assert.Equal(DateTimeKind.Utc, dto.CreateTime!.Value.Kind);
+        Assert.Equal(new DateTime(2026, 5, 24, 8, 15, 0, DateTimeKind.Utc), dto.UpdateTime);
+        Assert.Equal(DateTimeKind.Utc, dto.UpdateTime!.Value.Kind);
     }
 
     [Fact]
@@ -64,5 +66,47 @@ public class DateTimeJsonConverterTests
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<TestDto>(json, JsonOptions));
     }
 
+    [Fact]
+    public void BaseDto_ShouldDeserialize_NullableDateTimeFields_FromDateOnlyFormat_AsUtc()
+    {
+        const string json = """
+                            {
+                              "id":"11111111-1111-1111-1111-111111111111",
+                              "createTime":"2026-07-01",
+                              "updateTime":"2026-07-31"
+                            }
+                            """;
+
+        var dto = JsonSerializer.Deserialize<TestDto>(json, JsonOptions);
+
+        Assert.NotNull(dto);
+        Assert.Equal(new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc), dto!.CreateTime);
+        Assert.Equal(DateTimeKind.Utc, dto.CreateTime!.Value.Kind);
+        Assert.Equal(new DateTime(2026, 7, 31, 0, 0, 0, DateTimeKind.Utc), dto.UpdateTime);
+        Assert.Equal(DateTimeKind.Utc, dto.UpdateTime!.Value.Kind);
+    }
+
+    [Fact]
+    public void RequiredDateTime_ShouldDeserialize_DateOnlyFormat_AsUtc()
+    {
+        const string json = """
+                            {
+                              "effectiveStart":"2026-07-01"
+                            }
+                            """;
+
+        var dto = JsonSerializer.Deserialize<RequiredDateDto>(json, JsonOptions);
+
+        Assert.NotNull(dto);
+        Assert.Equal(new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc), dto!.EffectiveStart);
+        Assert.Equal(DateTimeKind.Utc, dto.EffectiveStart.Kind);
+    }
+
     private sealed class TestDto : BaseDto;
+
+    private sealed class RequiredDateDto
+    {
+        [System.Text.Json.Serialization.JsonConverter(typeof(Application.Serialization.FixedDateTimeJsonConverter))]
+        public DateTime EffectiveStart { get; set; }
+    }
 }
