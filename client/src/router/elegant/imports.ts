@@ -49,6 +49,8 @@ export const pages: Record<string, () => Promise<any>> = {
 "(base)_master_goods_list": () => import("@/pages/(base)/master/goods/list/index.tsx"),
 "(base)_master_goods_operate_[id]": () => import("@/pages/(base)/master/goods/operate/[id].tsx"),
 "(base)_master_goods_operate": () => import("@/pages/(base)/master/goods/operate/index.tsx"),
+"(base)_master_goods_types_detail_[id]": () => import("@/pages/(base)/master/goods/types/detail/[id].tsx"),
+"(base)_master_goods_types_detail": () => import("@/pages/(base)/master/goods/types/detail/index.tsx"),
 "(base)_master_goods_types": () => import("@/pages/(base)/master/goods/types/index.tsx"),
 "(base)_master_goods_units": () => import("@/pages/(base)/master/goods/units/index.tsx"),
 "(base)_master": () => import("@/pages/(base)/master/index.tsx"),

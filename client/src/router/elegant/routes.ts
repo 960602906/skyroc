@@ -401,7 +401,33 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_goods_types',
                       icon: 'mdi:shape-outline',
                       order: 1
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/goods/types/detail/index.tsx', null, null],
+                        name: '(base)_master_goods_types_detail',
+                        path: '/master/goods/types/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_goods_types_detail',
+                          title: '(base)_master_goods_types_detail',
+                          activeMenu: '/master/goods/types',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [null, '/src/pages/(base)/master/goods/types/detail/[id].tsx', null, null],
+                            name: '(base)_master_goods_types_detail_[id]',
+                            path: '/master/goods/types/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_goods_types_detail_[id]',
+                              title: '(base)_master_goods_types_detail_[id]',
+                              activeMenu: '/master/goods/types',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/master/goods/units/index.tsx', null, null],

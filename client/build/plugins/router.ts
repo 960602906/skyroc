@@ -56,6 +56,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master_goods_operate': { activeMenu: '/master/goods/list', hideInMenu: true },
   '(base)_master_goods_operate_[id]': { activeMenu: '/master/goods/list', hideInMenu: true },
   '(base)_master_goods_types': { icon: 'mdi:shape-outline', order: 1 },
+  '(base)_master_goods_types_detail': { activeMenu: '/master/goods/types', hideInMenu: true },
+  '(base)_master_goods_types_detail_[id]': { activeMenu: '/master/goods/types', hideInMenu: true },
   '(base)_master_goods_units': { icon: 'mdi:ruler', order: 3 },
   '(base)_master_pricing': { icon: 'mdi:tag-outline', order: 3 },
   '(base)_master_pricing_protocol-goods': { activeMenu: '/master/pricing/protocols', hideInMenu: true },

@@ -358,6 +358,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       add: 'Add Goods Type',
       code: 'Type Code',
       defaultTaxRate: 'Default Tax Rate',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Type Detail',
+        updateTime: 'Updated At'
+      },
       edit: 'Edit Goods Type',
       form: {
         code: 'Please enter type code',
@@ -377,6 +383,9 @@ const page: App.I18n.Schema['translation']['page'] = {
       name: 'Type Name',
       parentId: 'Parent Type',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionStatus: 'Status & Remark',
+      sectionTax: 'Tax Info',
       sort: 'Sort',
       status: 'Status',
       taxCategoryCode: 'Tax Category Code',

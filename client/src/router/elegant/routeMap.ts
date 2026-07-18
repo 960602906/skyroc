@@ -62,6 +62,8 @@ export const routeMap: RouteMap = {
  "(base)_master_goods_operate": "/master/goods/operate",
  "(base)_master_goods_operate_[id]": "/master/goods/operate/:id",
  "(base)_master_goods_types": "/master/goods/types",
+ "(base)_master_goods_types_detail": "/master/goods/types/detail",
+ "(base)_master_goods_types_detail_[id]": "/master/goods/types/detail/:id",
  "(base)_master_goods_units": "/master/goods/units",
  "(base)_master_pricing": "/master/pricing",
  "(base)_master_pricing_protocol-goods": "/master/pricing/protocol-goods",

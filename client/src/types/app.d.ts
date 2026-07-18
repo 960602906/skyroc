@@ -719,6 +719,12 @@ declare namespace App {
               add: string;
               code: string;
               defaultTaxRate: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               edit: string;
               form: {
                 code: string;
@@ -738,6 +744,9 @@ declare namespace App {
               name: string;
               parentId: string;
               remark: string;
+              sectionBasic: string;
+              sectionStatus: string;
+              sectionTax: string;
               sort: string;
               status: string;
               taxCategoryCode: string;

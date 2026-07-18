@@ -33,6 +33,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_goods_operate': 'Add Goods',
   '(base)_master_goods_operate_[id]': 'Edit Goods',
   '(base)_master_goods_types': 'Goods Types',
+  '(base)_master_goods_types_detail': 'Type Detail',
+  '(base)_master_goods_types_detail_[id]': 'Type Detail',
   '(base)_master_goods_units': 'Goods Units',
   '(base)_master_pricing': 'Pricing',
   '(base)_master_pricing_protocol-goods': 'Protocol Goods',

@@ -358,6 +358,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       add: '新增商品分类',
       code: '分类编码',
       defaultTaxRate: '默认税率',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '分类详情',
+        updateTime: '更新时间'
+      },
       edit: '编辑商品分类',
       form: {
         code: '请输入分类编码',
@@ -377,6 +383,9 @@ const page: App.I18n.Schema['translation']['page'] = {
       name: '分类名称',
       parentId: '上级分类',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionStatus: '状态与备注',
+      sectionTax: '税务信息',
       sort: '排序',
       status: '状态',
       taxCategoryCode: '税收分类编码',

@@ -26,6 +26,7 @@ const GoodsTypeOperateDrawer = lazy(() => import('./modules/GoodsTypeOperateDraw
 
 const GoodsTypeManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
   const { scrollConfig, tableWrapperRef } = useTableScroll();
 
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
@@ -42,6 +43,15 @@ const GoodsTypeManage = () => {
         dataIndex: 'name',
         key: 'name',
         minWidth: 140,
+        render: (name: string, record) => (
+          <AButton
+            className="p-0"
+            type="link"
+            onClick={() => nav(`/master/goods/types/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.goods.type.name')
       },
       {
