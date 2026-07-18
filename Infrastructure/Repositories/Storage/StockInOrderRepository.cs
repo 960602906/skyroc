@@ -179,6 +179,9 @@ public class StockInOrderRepository(ApplicationDbContext context)
                 .ThenInclude(x => x.Goods)
                     .ThenInclude(x => x.GoodsType)
             .Include(x => x.Details)
+                .ThenInclude(x => x.Goods)
+                    .ThenInclude(x => x.BaseUnit)
+            .Include(x => x.Details)
                 .ThenInclude(x => x.GoodsUnit)
             .AsSplitQuery();
     }

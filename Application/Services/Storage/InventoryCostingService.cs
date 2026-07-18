@@ -41,8 +41,12 @@ public class InventoryCostingService(
             return existing;
         }
 
-        var goods = detail.Goods ?? await goodsRepository.GetByIdAsync(detail.GoodsId)
-            ?? throw new BusinessException("商品不存在");
+        // 入库单明细预加载的 Goods 可能未带 BaseUnit（仅 Include 了 GoodsType），
+        // 新建批次时必须以完整商品档案为准，避免误判“未配置基础单位”。
+        var goods = detail.Goods is { BaseUnit: not null }
+            ? detail.Goods
+            : await goodsRepository.GetByIdAsync(detail.GoodsId)
+              ?? throw new BusinessException("商品不存在");
         var baseUnit = goods.BaseUnit
                        ?? throw new BusinessException($"商品 {goods.Name} 未配置基础单位");
         var batch = new StockBatch
