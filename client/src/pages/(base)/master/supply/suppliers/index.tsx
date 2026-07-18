@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react';
 
-import { renderEnableStatus } from '@/features/crud';
+import { createIndexColumn, renderEnableStatus } from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddSupplier,
@@ -32,13 +32,7 @@ const SupplierManage = () => {
       status: null
     },
     columns: () => [
-      {
-        align: 'center',
-        dataIndex: 'index',
-        key: 'index',
-        title: t('common.index'),
-        width: 64
-      },
+      createIndexColumn(t),
       {
         align: 'center',
         dataIndex: 'name',
@@ -52,14 +46,12 @@ const SupplierManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.purchase.supplier.name'),
-        width: 240
+        title: t('page.purchase.supplier.name')
       },
       {
         align: 'center',
         dataIndex: 'code',
         key: 'code',
-        minWidth: 120,
         title: t('page.purchase.supplier.code')
       },
       {
@@ -137,7 +129,8 @@ const SupplierManage = () => {
     ],
     pagination: {
       showQuickJumper: true
-    }
+    },
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =

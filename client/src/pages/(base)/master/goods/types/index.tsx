@@ -134,7 +134,8 @@ const GoodsTypeManage = () => {
         width: 210
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =

@@ -29,12 +29,18 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 const RuleDetail = () => {
   const { t } = useTranslation();
+  // KeepAlive 离开详情时可能残留一帧旧组件树，此时 loader 数据已被卸载（运行时为 undefined），
+  // 下方空值兜底避免访问属性抛错触发 ErrorBoundary 闪错误页
   const detail = useLoaderData() as Api.PurchaseRule.Entity;
   const closeTabAndNavigate = useCloseTabAndNavigate();
   const revalidator = useRevalidator();
   const [form] = AForm.useForm<Api.PurchaseRule.UpdateParams>();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  if (!detail) {
+    return null;
+  }
 
   function openEdit() {
     form.setFieldsValue({

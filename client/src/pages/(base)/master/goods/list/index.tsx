@@ -47,21 +47,18 @@ const GoodsList = () => {
         align: 'center',
         dataIndex: 'code',
         key: 'code',
-        minWidth: 120,
         title: t('page.goods.list.code')
       },
       {
         align: 'center',
         dataIndex: 'spec',
         key: 'spec',
-        minWidth: 100,
         title: t('page.goods.list.spec')
       },
       {
         align: 'center',
         dataIndex: 'brand',
         key: 'brand',
-        minWidth: 100,
         title: t('page.goods.list.brand')
       },
       {
@@ -125,7 +122,8 @@ const GoodsList = () => {
         width: 210
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const [checkedRowKeys, setCheckedRowKeys] = useState<React.Key[]>([]);

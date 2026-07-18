@@ -67,7 +67,6 @@ const GoodsUnitManage = () => {
         align: 'center',
         dataIndex: 'goodsCode',
         key: 'goodsCode',
-        minWidth: 120,
         title: t('page.goods.unit.goodsCode')
       },
       {
@@ -85,13 +84,12 @@ const GoodsUnitManage = () => {
           </AButton>
         ),
         title: t('page.goods.unit.name'),
-        width: 240
+        width: 140
       },
       {
         align: 'center',
         dataIndex: 'code',
         key: 'code',
-        minWidth: 100,
         title: t('page.goods.unit.code')
       },
       {
@@ -161,7 +159,8 @@ const GoodsUnitManage = () => {
         width: 210
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =

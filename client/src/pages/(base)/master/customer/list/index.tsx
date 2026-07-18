@@ -65,14 +65,12 @@ const CustomerListManage = () => {
         align: 'center',
         dataIndex: 'code',
         key: 'code',
-        minWidth: 120,
         title: t('page.customer.list.code')
       },
       {
         align: 'center',
         dataIndex: 'companyId',
         key: 'companyId',
-        minWidth: 140,
         render: (_, record) => (record.companyId ? companyNameMap.get(record.companyId) : null),
         title: t('page.customer.list.companyId')
       },
@@ -142,7 +140,8 @@ const CustomerListManage = () => {
         width: 210
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const rowSelection = {

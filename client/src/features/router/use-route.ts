@@ -42,7 +42,8 @@ export function useRoute<
 >() {
   const matches = useMatches();
 
-  const routes = matches.at(-1) as Router.Route<T>;
+  // 路由过渡帧里 matches 可能为空，兜底成空对象避免访问 routes.params / routes.id 抛错
+  const routes = (matches.at(-1) ?? {}) as Router.Route<T>;
 
   const { hash, pathname, search } = useLocation();
 

@@ -89,7 +89,8 @@ const RootLayout = () => {
 
   const location = useRef<string | { path: string; replace: boolean } | null>(null);
 
-  const { i18nKey, title } = handle;
+  // 过渡帧里 handle 可能为 null，兜底避免解构抛错
+  const { i18nKey, title } = handle ?? {};
 
   const { data: userInfo } = useUserInfo();
 
@@ -100,7 +101,11 @@ const RootLayout = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = i18nKey ? t(i18nKey) : title;
+    if (i18nKey) {
+      document.title = t(i18nKey);
+    } else if (title) {
+      document.title = title;
+    }
   }, [i18nKey, title, t]);
 
   useEffect(() => {

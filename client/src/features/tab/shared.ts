@@ -51,7 +51,8 @@ export function getRouteIcons(route: Router.Route) {
 export function getTabByRoute(route: Router.Route) {
   const { fullPath, handle, id, pathname } = route;
 
-  const { fixedIndexInTab, i18nKey, keepAlive = false, title } = handle;
+  // 路由过渡帧里最深匹配可能是布局/分组节点，其 handle 为 null，做空值兜底避免解构抛错
+  const { fixedIndexInTab, i18nKey, keepAlive = false, title } = handle ?? {};
 
   let fixedIndex = fixedIndexInTab;
 
@@ -67,12 +68,12 @@ export function getTabByRoute(route: Router.Route) {
     fullPath,
     i18nKey,
     icon,
-    id: handle.multiTab ? fullPath : pathname,
+    id: handle?.multiTab ? fullPath : pathname,
     keepAlive,
-    label: title,
+    label: title ?? '',
     localIcon,
     newLabel: '',
-    oldLabel: i18nKey || title,
+    oldLabel: i18nKey || title || '',
     routeKey: id as LastLevelRouteKey,
     routePath: pathname as RouteMap[LastLevelRouteKey]
   };

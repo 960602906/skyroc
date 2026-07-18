@@ -56,28 +56,24 @@ const SubAccountManage = () => {
             {username}
           </AButton>
         ),
-        title: t('page.customer.subAccount.username'),
-        width: 380
+        title: t('page.customer.subAccount.username')
       },
       {
         align: 'center',
         dataIndex: 'nickName',
         key: 'nickName',
-        minWidth: 120,
         title: t('page.customer.subAccount.nickName')
       },
       {
         align: 'center',
         dataIndex: 'phone',
         key: 'phone',
-        title: t('page.customer.subAccount.phone'),
-        width: 130
+        title: t('page.customer.subAccount.phone')
       },
       {
         align: 'center',
         dataIndex: 'email',
         key: 'email',
-        minWidth: 160,
         title: t('page.customer.subAccount.email')
       },
       {
@@ -132,7 +128,8 @@ const SubAccountManage = () => {
         width: 210
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =

@@ -53,16 +53,14 @@ const QuotationManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.goods.quotation.name'),
-        width: 240
+        title: t('page.goods.quotation.name')
       },
       {
         align: 'center',
         dataIndex: 'code',
         ellipsis: true,
         key: 'code',
-        title: t('page.goods.quotation.code'),
-        width: 140
+        title: t('page.goods.quotation.code')
       },
       {
         align: 'center',
@@ -148,7 +146,8 @@ const QuotationManage = () => {
         width: 340
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =
