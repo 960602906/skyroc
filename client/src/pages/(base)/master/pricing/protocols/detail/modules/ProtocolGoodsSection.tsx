@@ -8,7 +8,7 @@ import {
   fetchUpdateCustomerProtocolGoods
 } from '@/service/api';
 
-const ProtocolGoodsOperateModal = lazy(() => import('../../../protocol-goods/modules/ProtocolGoodsOperateModal'));
+const ProtocolGoodsOperateModal = lazy(() => import('./ProtocolGoodsOperateModal'));
 
 interface ProtocolGoodsSectionProps {
   customerProtocolId: string;

@@ -4,7 +4,7 @@ import { Suspense, lazy } from 'react';
 import { DETAIL_EMPTY, displayText, renderBooleanTag } from '@/features/crud';
 import { fetchAddQuotationGoods, fetchDeleteQuotationGoods, fetchUpdateQuotationGoods } from '@/service/api';
 
-const QuotationGoodsOperateModal = lazy(() => import('../../../quotation-goods/modules/QuotationGoodsOperateModal'));
+const QuotationGoodsOperateModal = lazy(() => import('./QuotationGoodsOperateModal'));
 
 interface QuotationGoodsSectionProps {
   goods: Api.QuotationGoods.Entity[];

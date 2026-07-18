@@ -71,12 +71,9 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master_goods_units_detail': { activeMenu: '/master/goods/units', hideInMenu: true },
   '(base)_master_goods_units_detail_[id]': { activeMenu: '/master/goods/units', hideInMenu: true },
   '(base)_master_pricing': { icon: 'mdi:tag-outline', order: 3 },
-  '(base)_master_pricing_protocol-goods': { activeMenu: '/master/pricing/protocols', hideInMenu: true },
-
   '(base)_master_pricing_protocols': { icon: 'mdi:file-sign', order: 2 },
   '(base)_master_pricing_protocols_detail': { activeMenu: '/master/pricing/protocols', hideInMenu: true },
   '(base)_master_pricing_protocols_detail_[id]': { activeMenu: '/master/pricing/protocols', hideInMenu: true },
-  '(base)_master_pricing_quotation-goods': { activeMenu: '/master/pricing/quotations', hideInMenu: true },
   '(base)_master_pricing_quotations': { icon: 'mdi:file-document-outline', order: 1 },
   '(base)_master_pricing_quotations_detail': { activeMenu: '/master/pricing/quotations', hideInMenu: true },
   '(base)_master_pricing_quotations_detail_[id]': { activeMenu: '/master/pricing/quotations', hideInMenu: true },
@@ -84,6 +81,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master_supply_purchase-rules': { icon: 'mdi:clipboard-list-outline', order: 3 },
   '(base)_master_supply_purchasers': { icon: 'mdi:account-tie-outline', order: 2 },
   '(base)_master_supply_suppliers': { icon: 'mdi:truck-delivery-outline', order: 1 },
+  '(base)_master_supply_suppliers_detail': { activeMenu: '/master/supply/suppliers', hideInMenu: true },
+  '(base)_master_supply_suppliers_detail_[id]': { activeMenu: '/master/supply/suppliers', hideInMenu: true },
 
   '(base)_master_supply_wares': { icon: 'mdi:archive-outline', order: 4 },
   '(base)_multi-menu': { hideInMenu: true },

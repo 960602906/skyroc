@@ -77,11 +77,9 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_master_goods_units_detail": "/master/goods/units/detail";
     "(base)_master_goods_units_detail_[id]": "/master/goods/units/detail/:id";
     "(base)_master_pricing": "/master/pricing";
-    "(base)_master_pricing_protocol-goods": "/master/pricing/protocol-goods";
     "(base)_master_pricing_protocols": "/master/pricing/protocols";
     "(base)_master_pricing_protocols_detail": "/master/pricing/protocols/detail";
     "(base)_master_pricing_protocols_detail_[id]": "/master/pricing/protocols/detail/:id";
-    "(base)_master_pricing_quotation-goods": "/master/pricing/quotation-goods";
     "(base)_master_pricing_quotations": "/master/pricing/quotations";
     "(base)_master_pricing_quotations_detail": "/master/pricing/quotations/detail";
     "(base)_master_pricing_quotations_detail_[id]": "/master/pricing/quotations/detail/:id";
@@ -89,6 +87,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_master_supply_purchase-rules": "/master/supply/purchase-rules";
     "(base)_master_supply_purchasers": "/master/supply/purchasers";
     "(base)_master_supply_suppliers": "/master/supply/suppliers";
+    "(base)_master_supply_suppliers_detail": "/master/supply/suppliers/detail";
+    "(base)_master_supply_suppliers_detail_[id]": "/master/supply/suppliers/detail/:id";
     "(base)_master_supply_wares": "/master/supply/wares";
     "(base)_orders": "/orders";
     "(base)_orders_after-sales": "/orders/after-sales";
@@ -275,17 +275,17 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_master_goods_units"
     | "(base)_master"
     | "(base)_master_pricing"
-    | "(base)_master_pricing_protocol-goods"
     | "(base)_master_pricing_protocols_detail_[id]"
     | "(base)_master_pricing_protocols_detail"
     | "(base)_master_pricing_protocols"
-    | "(base)_master_pricing_quotation-goods"
     | "(base)_master_pricing_quotations_detail_[id]"
     | "(base)_master_pricing_quotations_detail"
     | "(base)_master_pricing_quotations"
     | "(base)_master_supply"
     | "(base)_master_supply_purchase-rules"
     | "(base)_master_supply_purchasers"
+    | "(base)_master_supply_suppliers_detail_[id]"
+    | "(base)_master_supply_suppliers_detail"
     | "(base)_master_supply_suppliers"
     | "(base)_master_supply_wares"
     | "(base)_orders_after-sales"

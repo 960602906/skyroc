@@ -18,6 +18,7 @@ const SupplierOperateDrawer = lazy(() => import('./modules/SupplierOperateDrawer
 
 const SupplierManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const isMobile = useMobile();
 
@@ -43,6 +44,15 @@ const SupplierManage = () => {
         dataIndex: 'name',
         key: 'name',
         minWidth: 140,
+        render: (name: string, record) => (
+          <AButton
+            className="p-0"
+            type="link"
+            onClick={() => nav(`/master/supply/suppliers/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.purchase.supplier.name')
       },
       {

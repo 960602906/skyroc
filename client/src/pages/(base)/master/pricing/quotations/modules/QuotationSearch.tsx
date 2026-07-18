@@ -53,8 +53,24 @@ const QuotationSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searc
               allowClear
               placeholder={t('page.goods.quotation.form.isAudited')}
               options={[
-                { label: t('page.goods.quotation.audited'), value: true },
-                { label: t('page.goods.quotation.unaudited'), value: false }
+                {
+                  label: (
+                    <ABadge
+                      status="success"
+                      text={t('page.goods.quotation.audited')}
+                    />
+                  ),
+                  value: true
+                },
+                {
+                  label: (
+                    <ABadge
+                      status="default"
+                      text={t('page.goods.quotation.unaudited')}
+                    />
+                  ),
+                  value: false
+                }
               ]}
             />
           </AForm.Item>

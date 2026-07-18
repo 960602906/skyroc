@@ -1097,6 +1097,12 @@ declare namespace App {
               contactName: string;
               contactPhone: string;
               createTime: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               editSupplier: string;
               form: {
                 address: string;
@@ -1112,6 +1118,9 @@ declare namespace App {
               };
               name: string;
               remark: string;
+              sectionBasic: string;
+              sectionFinance: string;
+              sectionStatus: string;
               status: string;
               taxNo: string;
               title: string;

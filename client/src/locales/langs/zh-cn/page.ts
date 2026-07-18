@@ -741,6 +741,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       contactName: '联系人',
       contactPhone: '联系电话',
       createTime: '创建时间',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '供应商详情',
+        updateTime: '更新时间'
+      },
       editSupplier: '编辑供应商',
       form: {
         address: '请输入地址',
@@ -756,6 +762,9 @@ const page: App.I18n.Schema['translation']['page'] = {
       },
       name: '供应商名称',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionFinance: '财务信息',
+      sectionStatus: '状态与备注',
       status: '状态',
       taxNo: '税号',
       title: '供应商列表'

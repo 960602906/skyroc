@@ -737,6 +737,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       contactName: 'Contact Name',
       contactPhone: 'Contact Phone',
       createTime: 'Created At',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Supplier Detail',
+        updateTime: 'Updated At'
+      },
       editSupplier: 'Edit Supplier',
       form: {
         address: 'Please enter address',
@@ -752,6 +758,9 @@ const page: App.I18n.Schema['translation']['page'] = {
       },
       name: 'Supplier Name',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionFinance: 'Finance Info',
+      sectionStatus: 'Status & Remark',
       status: 'Status',
       taxNo: 'Tax No.',
       title: 'Supplier List'

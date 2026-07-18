@@ -602,17 +602,6 @@ export const generatedRoutes: ElegantConstRoute[] = [
                 },
                 children: [
                   {
-                    matchedFiles: [null, '/src/pages/(base)/master/pricing/protocol-goods/index.tsx', null, null],
-                    name: '(base)_master_pricing_protocol-goods',
-                    path: '/master/pricing/protocol-goods',
-                    handle: {
-                      i18nKey: 'route.(base)_master_pricing_protocol-goods',
-                      title: '(base)_master_pricing_protocol-goods',
-                      activeMenu: '/master/pricing/protocols',
-                      hideInMenu: true
-                    }
-                  },
-                  {
                     matchedFiles: [null, '/src/pages/(base)/master/pricing/protocols/index.tsx', null, null],
                     name: '(base)_master_pricing_protocols',
                     path: '/master/pricing/protocols',
@@ -653,17 +642,6 @@ export const generatedRoutes: ElegantConstRoute[] = [
                         ]
                       }
                     ]
-                  },
-                  {
-                    matchedFiles: [null, '/src/pages/(base)/master/pricing/quotation-goods/index.tsx', null, null],
-                    name: '(base)_master_pricing_quotation-goods',
-                    path: '/master/pricing/quotation-goods',
-                    handle: {
-                      i18nKey: 'route.(base)_master_pricing_quotation-goods',
-                      title: '(base)_master_pricing_quotation-goods',
-                      activeMenu: '/master/pricing/quotations',
-                      hideInMenu: true
-                    }
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/master/pricing/quotations/index.tsx', null, null],
@@ -756,7 +734,38 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_supply_suppliers',
                       icon: 'mdi:truck-delivery-outline',
                       order: 1
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/supply/suppliers/detail/index.tsx', null, null],
+                        name: '(base)_master_supply_suppliers_detail',
+                        path: '/master/supply/suppliers/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_supply_suppliers_detail',
+                          title: '(base)_master_supply_suppliers_detail',
+                          activeMenu: '/master/supply/suppliers',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/master/supply/suppliers/detail/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_master_supply_suppliers_detail_[id]',
+                            path: '/master/supply/suppliers/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_supply_suppliers_detail_[id]',
+                              title: '(base)_master_supply_suppliers_detail_[id]',
+                              activeMenu: '/master/supply/suppliers',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/master/supply/wares/index.tsx', null, null],
