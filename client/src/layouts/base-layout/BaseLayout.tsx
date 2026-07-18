@@ -11,7 +11,7 @@ import {
   LAYOUT_MODE_VERTICAL_MIX
 } from '@/constants/common';
 import { useMixMenuContext } from '@/features/menu';
-import GlobalTab from '@/features/tab/GlobalTab';
+import { GlobalTab } from '@/features/tab';
 import { getThemeSettings, setLayoutMode } from '@/features/theme';
 
 import { getFullContent, getMixSiderFixed, getSiderCollapse, setIsMobile, setSiderCollapse } from '../appStore';

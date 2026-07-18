@@ -5,11 +5,11 @@ import { globalConfig } from '@/config';
 import { initCacheRoutes, routes } from '@/router';
 import { store } from '@/store';
 
-import { getIsLogin } from '../auth/authStore';
+import { getIsLogin } from '../auth';
 
 import { initAuthRoutes } from './initRouter';
 import { type LocationQueryRaw, stringifyQuery } from './query';
-import { setCacheRoutes } from './routeStore';
+import { setCacheRoutes } from './route-store';
 
 /**
  * 根据配置创建路由实例

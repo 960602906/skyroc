@@ -2,19 +2,19 @@ import type { PropsWithChildren } from 'react';
 
 import { globalConfig } from '@/config';
 import { info } from '@/constants/app';
-import { themeColors } from '@/features/theme';
 import {
   getAntdTheme,
   setupThemeVarsToHtml,
+  themeColors,
   toggleAuxiliaryColorModes,
-  toggleGrayscaleMode
-} from '@/features/theme/shared';
-import { useThemeSettings } from '@/features/theme/themeHook';
+  toggleGrayscaleMode,
+  useTheme,
+  useThemeSettings
+} from '@/features/theme';
 import { antdLocales } from '@/locales/antd';
 import { localStg } from '@/utils/storage';
 
 import { useLang } from '../lang';
-import { useTheme } from '../theme';
 
 function useAntdTheme() {
   const themeSettings = useThemeSettings();

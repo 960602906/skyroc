@@ -60,8 +60,8 @@ class GlobalConfig {
   /** - 空函数 */
   private _noop = () => {};
 
-  /** - 水印文本 */
-  private _watermarkText = 'Skyroc';
+  /** - 水印文本（默认取应用标题） */
+  private _watermarkText = import.meta.env.VITE_APP_TITLE;
 
   /** - 水印配置 */
   private _watermarkConfig = {

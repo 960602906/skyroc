@@ -4,6 +4,7 @@ import { TreeSelect } from 'antd';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { fetchGetDepartmentTree } from '@/service/api';
+import { QUERY_KEYS } from '@/service/keys';
 
 type RuleKey = 'code' | 'name';
 
@@ -27,7 +28,7 @@ const PurchaserOperateDrawer: FC<Page.OperateDrawerProps> = memo(
 
     const { data: departmentTree } = useQuery({
       queryFn: fetchGetDepartmentTree,
-      queryKey: ['base', 'departmentTree']
+      queryKey: QUERY_KEYS.BASE.DEPARTMENT_TREE
     });
 
     const departmentOptions = useMemo(() => flattenDepartmentTree(departmentTree ?? []), [departmentTree]);

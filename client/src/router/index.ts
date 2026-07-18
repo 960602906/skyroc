@@ -22,7 +22,7 @@ function initRoutes() {
 
   const cacheRoutes: string[] = [];
 
-  const allRoutes = { ...customRoutes };
+  const allRoutes = customRoutes;
 
   const constantRoutes = filterRoutes(customRoutes, null, authRoutes, cacheRoutes);
 

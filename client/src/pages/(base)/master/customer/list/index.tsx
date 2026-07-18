@@ -15,7 +15,7 @@ import {
   fetchGetCustomerList,
   fetchToggleCustomerStatus
 } from '@/service/api';
-import { toOptions, useCompanyOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useCompanyOptions } from '@/service/hooks';
 
 import CustomerListSearch from './modules/CustomerListSearch';
 

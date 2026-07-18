@@ -1,5 +1,5 @@
 import { SearchActions } from '@/features/crud';
-import { toOptions, useGoodsOptions, useQuotationOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useGoodsOptions, useQuotationOptions } from '@/service/hooks';
 
 const QuotationGoodsSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();

@@ -8,18 +8,10 @@ declare namespace Api {
     /** 优雅常量路由类型 */
     type ElegantConstRoute = import('@soybean-react/vite-plugin-react-router').ElegantConstRoute;
 
-    /** 菜单路由 */
+    /** 常量菜单路由（前端静态路由列表） */
     interface MenuRoute extends ElegantConstRoute {
       /** 路由 ID */
       id: string;
-    }
-
-    /** 用户路由 */
-    interface UserRoute {
-      /** 用户首页路由键 */
-      home: import('@soybean-react/vite-plugin-react-router').LastLevelRouteKey;
-      /** 用户可访问的路由列表 */
-      routes: string[];
     }
 
     /** 后端返回的完整路由结构 */

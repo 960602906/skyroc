@@ -28,6 +28,7 @@ There is no unit-test runner configured. Verification = `pnpm typecheck` + `pnpm
 pnpm monorepo: the root is the app shell (`src/`), `packages/` holds reusable workspace packages. Prefer changing the relevant `@sa/*` package for shared logic, then consume it from `src/`.
 
 - `@sa/axios` — HTTP client wrapper (interceptors, backend-success detection, error handling)
+- `@sa/fetch` — ofetch wrapper（目录名 `packages/ofetch`）
 - `@sa/hooks` `@sa/utils` `@sa/color` — shared hooks / utilities / color tools
 - `@sa/materials` — shared layout & UI components (AdminLayout, PageTab, etc.)
 - `@sa/scripts` — the `sa` CLI (route gen, git-commit, release, cleanup)
@@ -41,7 +42,7 @@ pnpm monorepo: the root is the app shell (`src/`), `packages/` holds reusable wo
 - `components/` — cross-feature reusable components.
 - `router/` — route initialization, auth guards, keep-alive cache; merges generated routes with permissions.
 - `service/` — API layer (see below).
-- `store/` — Redux store (`combineSlices`) and `createAppSlice`.
+- `store/` — Redux store (`combineSlices`)。
 - `theme/`, `styles/` — theme tokens, CSS/SCSS, UnoCSS vars.
 - `config.ts` — central config sourced from `import.meta.env`.
 
@@ -54,14 +55,16 @@ Strict layering — when adding an endpoint, touch each layer in order:
 1. `types/*.d.ts` — declare request/response types under the `Api.<Module>` namespace **first**.
 2. `urls/` — add the path constant (`<MODULE>_URLS`, e.g. `AUTH_URLS`).
 3. `api/*.ts` — one file per backend module; functions prefixed `fetch` (e.g. `fetchGetUserInfo`). Call the shared `request` from `src/service/request`; return `Promise<业务类型>` — never destructure `response.data` in business code (`transformBackendResponse` already returns `response.data.data`).
-4. `hooks/` — TanStack Query hooks named `useResource`; combine `fetch` fns with `keys/` `QUERY_KEYS`.
+4. **数据消费（两条路径，勿混用）：**
+   - **CRUD 列表/分页页**：用 `features/table` 的 `useTable` / `useTableOperate`（ahooks）。mutation 后用 ahooks 的 `run` / `refresh` 刷新列表，不要求 TanStack `invalidateQueries`。
+   - **非分页缓存场景**（auth、route、下拉选项、树等）：在 `hooks/` 写 TanStack Query hooks（`useResource`），并用 `keys/` 的 `QUERY_KEYS`。页面内联 `useQuery` 时 key 也必须引用 `QUERY_KEYS`，禁止硬编码。
 
-`request` (from `@sa/axios`) auto-injects the `Authorization` header from `localStg`, treats `VITE_SERVICE_SUCCESS_CODE` as success, and calls `backEndFail` otherwise. `scripts/generate-service-layer.mjs` scaffolds CRUD modules across all these layers.
+`request` (from `@sa/axios`) auto-injects the `Authorization` header from `localStg`, treats `VITE_SERVICE_SUCCESS_CODE` as success, and calls `backEndFail` otherwise. `scripts/generate-service-layer.mjs` scaffolds CRUD modules across layers 1–3.
 
 ### State management
 
-- **Redux Toolkit** for local/global UI state: create slices with `createAppSlice`, place them under the owning feature, register in `src/store/index.ts`. Access via `useAppDispatch`/`useAppSelector` (`src/hooks/business/useStore.ts`) — never call `store.dispatch` directly. `RootState` is inferred, don't hand-write it.
-- **TanStack Query** for server data (lists, cached requests). Combine the two by invalidating queries after mutations that change Redux state (e.g. re-fetch user info after login).
+- **Redux Toolkit** for local/global UI state: create slices with RTK `createSlice`，放在 owning feature 下，并在 `src/store/index.ts` 注册。组件内用 `useAppDispatch`/`useAppSelector`（`src/hooks/business/useStore.ts`）。**例外：** 非组件模块（axios 错误处理、路由 bootstrap）可直接 `store.dispatch`。`RootState` 由 `ReturnType` 推断，勿手写。
+- **TanStack Query** 仅用于上述非分页缓存场景；CRUD 列表以 ahooks `useTable` 为主。
 - Persist via `localStg`/`sessionStg` (`src/utils/storage.ts`), never raw `localStorage`.
 
 ### Routing
@@ -84,4 +87,4 @@ Segments: `(base)` = main layout at `/`, `(blank)` = minimal layout (login), `_b
 
 ## Backend integration
 
-The dev proxy is driven by `.env` (`VITE_SERVICE_BASE_URL`, `VITE_OTHER_SERVICE_BASE_URL`) via `build/config/proxy.ts` + `src/utils/service.ts`; toggle with `VITE_HTTP_PROXY=Y`. Backend response codes are configured in `.env`: `VITE_SERVICE_SUCCESS_CODE` (success), `VITE_SERVICE_LOGOUT_CODES` / `VITE_SERVICE_MODAL_LOGOUT_CODES` (force logout), `VITE_SERVICE_EXPIRED_TOKEN_CODES` (trigger token refresh). Env files: `.env` (shared/test), `.env.test`, `.env.prod`. Do not commit real API tokens (note: `.cursor/mcp.json` currently contains an Apifox token — treat such values as secrets).
+The dev proxy is driven by `.env` (`VITE_SERVICE_BASE_URL`, `VITE_OTHER_SERVICE_BASE_URL`) via `build/config/proxy.ts` + `src/utils/service.ts`; toggle with `VITE_HTTP_PROXY=Y`. Backend response codes are configured in `.env`: `VITE_SERVICE_SUCCESS_CODE` (success), `VITE_SERVICE_LOGOUT_CODES` / `VITE_SERVICE_MODAL_LOGOUT_CODES` (force logout), `VITE_SERVICE_EXPIRED_TOKEN_CODES` (trigger token refresh). Env files: `.env` (shared/test), `.env.test`, `.env.prod`. Do not commit real API tokens — copy `client/.cursor/mcp.json.example` to the gitignored `client/.cursor/mcp.json` and fill locally.

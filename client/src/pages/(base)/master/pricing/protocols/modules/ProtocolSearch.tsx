@@ -1,5 +1,5 @@
 import { EnableStatusSelect, SearchActions } from '@/features/crud';
-import { useQuotationOptions } from '@/service/hooks/useBaseDataOptions';
+import { useQuotationOptions } from '@/service/hooks';
 
 const ProtocolSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();

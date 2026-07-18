@@ -24,7 +24,6 @@ declare namespace Env {
     readonly VITE_AUTOMATICALLY_DETECT_UPDATE?: CommonType.YesOrNo;
     /** The base url of the application */
     readonly VITE_BASE_URL: string;
-    readonly VITE_CONSTANT_ROUTE_MODE: 'dynamic' | 'static';
     /**
      * Whether to enable the http proxy
      *

@@ -1,6 +1,6 @@
 import type { FC, PropsWithChildren } from 'react';
 
-import { selectActiveFirstLevelMenuKey, setActiveFirstLevelMenuKey } from '@/features/tab/tabStore';
+import { selectActiveFirstLevelMenuKey, setActiveFirstLevelMenuKey } from '@/features/tab';
 
 import { useLang } from '../lang';
 import { useRoute, useRouter } from '../router';

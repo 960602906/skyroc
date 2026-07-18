@@ -93,7 +93,7 @@ const NumberTicker = ({
 
   return (
     <span
-      className={clsx('inline-block tabular-nums tracking-wider text-white dark:text-dark', className)}
+      className={clsx('inline-block text-white tracking-wider tabular-nums dark:text-dark', className)}
       ref={ref}
       {...props}
     >

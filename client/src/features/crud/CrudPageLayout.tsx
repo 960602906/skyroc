@@ -28,7 +28,7 @@ const CrudPageLayout = ({ extra, search, table, tableWrapperRef, title }: CrudPa
       />
 
       <ACard
-        className="flex-col-stretch sm:flex-1-hidden card-wrapper"
+        className="flex-col-stretch card-wrapper sm:flex-1-hidden"
         extra={extra}
         ref={tableWrapperRef}
         title={title}

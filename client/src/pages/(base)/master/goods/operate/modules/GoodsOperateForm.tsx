@@ -1,6 +1,6 @@
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useGoodsTypeOptions, useSupplierOptions, useWareOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useGoodsTypeOptions, useSupplierOptions, useWareOptions } from '@/service/hooks';
 
 interface GoodsOperateFormProps {
   form: Page.FormInstance;

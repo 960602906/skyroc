@@ -1,5 +1,5 @@
 import { loginModuleRecord } from '@/constants/app';
-import { useInitAuth } from '@/features/auth/auth';
+import { useInitAuth } from '@/features/auth';
 import { useFormRules } from '@/features/form';
 
 type AccountKey = 'admin' | 'super' | 'user';

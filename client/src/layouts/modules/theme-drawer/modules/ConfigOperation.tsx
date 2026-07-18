@@ -1,5 +1,4 @@
-import { resetTheme, settingsJson } from '@/features/theme';
-import { useTheme } from '@/features/theme/themeContext';
+import { resetTheme, settingsJson, useTheme } from '@/features/theme';
 
 const ConfigOperation = () => {
   const { t } = useTranslation();

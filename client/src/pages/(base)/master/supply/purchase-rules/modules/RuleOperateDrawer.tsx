@@ -6,7 +6,7 @@ import {
   usePurchaserOptions,
   useSupplierOptions,
   useWareOptions
-} from '@/service/hooks/useBaseDataOptions';
+} from '@/service/hooks';
 
 type RuleKey = 'code' | 'name' | 'purchasePattern';
 

@@ -2,7 +2,7 @@ import { SimpleScrollbar } from '@sa/materials';
 
 import { flattenLeafRoutes, getBaseChildrenRoutes, getFlatBaseRoutes } from '@/features/router/routes';
 import { allRoutes } from '@/router';
-import { fetchAssignMenu, fetchGetDetailRole } from '@/service/api';
+import { fetchAssignMenu, fetchGetRoleDetail } from '@/service/api';
 import { useMenuList } from '@/service/hooks';
 
 import type { ModulesProps, SimpleRoute } from './type';
@@ -113,7 +113,7 @@ const MenuAuthModal: FC<ModulesProps> = memo(({ onClose, open, roleId }) => {
 
   async function getChecks() {
     // request
-    const res = await fetchGetDetailRole(roleId);
+    const res = await fetchGetRoleDetail(roleId);
     const menuIds = res?.menu?.map(item => item.id) || [];
 
     // 回显的时候，如果有父节点和所有子节点都被选中，则过滤掉父节点，只保留子节点

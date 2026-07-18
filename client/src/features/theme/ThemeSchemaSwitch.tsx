@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 
 import ButtonIcon from '@/components/ButtonIcon';
 
-import { ThemeContext, icons } from './themeContext';
+import { ThemeContext, icons } from './theme-context';
 
 interface Props {
   className?: string;

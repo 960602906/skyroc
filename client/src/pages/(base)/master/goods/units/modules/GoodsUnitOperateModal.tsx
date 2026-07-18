@@ -1,6 +1,6 @@
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useGoodsOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useGoodsOptions } from '@/service/hooks';
 
 type RuleKey = 'conversionRate' | 'goodsId' | 'status';
 

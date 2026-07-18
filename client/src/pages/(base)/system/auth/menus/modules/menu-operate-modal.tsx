@@ -419,42 +419,6 @@ const MenuOperateModal = ({ allPages, form, handleSubmit, menuList, onClose, ope
                   />
                 </AForm.Item>
               </ACol>
-              {/* 
-              <ACol span={24}>
-                <AForm.Item
-                  label={t('page.manage.menu.query')}
-                  labelCol={{ span: 4 }}
-                >
-                  <AForm.List name="query">
-                    {(subFields, { add, remove }) => {
-                      return (
-                        <>
-                          {subFields.map(item => (
-                            <QueryForm
-                              add={add}
-                              index={subFields.findIndex(field => field.key === item.key)}
-                              item={item}
-                              key={item.key}
-                              remove={remove}
-                            />
-                          ))}
-
-                          {subFields.length === 0 && (
-                            <AButton
-                              block
-                              icon={<IconCarbonAdd className="align-sub text-icon" />}
-                              type="dashed"
-                              onClick={() => add('', 0)}
-                            >
-                              <span className="ml-8px">{t('common.add')}</span>
-                            </AButton>
-                          )}
-                        </>
-                      );
-                    }}
-                  </AForm.List>
-                </AForm.Item>
-              </ACol> */}
 
               <ACol span={24}>
                 <AForm.Item

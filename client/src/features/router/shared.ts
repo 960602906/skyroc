@@ -1,7 +1,10 @@
-import type { RouteObject } from 'react-router-dom';
+import type { LazyRouteFunction, RouteObject } from 'react-router-dom';
 import { Outlet, replace } from 'react-router-dom';
 
 import { layouts, pages } from '@/router/elegant/imports';
+
+/** React Router lazy 返回值；空对象时官方联合类型过严，用断言保持运行时行为 */
+type LazyRouteResult = Awaited<ReturnType<LazyRouteFunction<RouteObject>>>;
 
 /**
  * 将后端路由结构转换为 React Router 的路由结构
@@ -53,8 +56,16 @@ function transformBackendRouteToReactRoute(
   // 判断是否为页面组件：如果有 component 字段并且能在 pages 中找到匹配
   const isPage = componentKey ? pages[componentKey] !== undefined : false;
 
+  type RouteLazyConfig = {
+    action?: RouteObject['action'];
+    Component: NonNullable<RouteObject['Component']>;
+    isLayout: boolean;
+    loader?: RouteObject['loader'];
+    shouldRevalidate?: RouteObject['shouldRevalidate'];
+  };
+
   // 获取组件配置
-  async function getConfig() {
+  async function getConfig(): Promise<RouteLazyConfig | null> {
     // 如果是布局组件
     if (isLayout && layoutKey && layouts[layoutKey]) {
       const module = await layouts[layoutKey]!();
@@ -96,10 +107,7 @@ function transformBackendRouteToReactRoute(
         };
       }
       const config = await getConfig();
-      const result: any = {
-        ...config
-      };
-      return result;
+      return (config ?? {}) as LazyRouteResult;
     },
     path
   };
@@ -122,14 +130,13 @@ function transformBackendRouteToReactRoute(
         index: true,
         lazy: async () => {
           const config = await getConfig();
-
-          const result: any = {
-            ...config
-          };
-          if (redirect) {
-            result.loader = () => replace(redirect);
+          if (!config) {
+            return (redirect ? { loader: () => replace(redirect) } : {}) as LazyRouteResult;
           }
-          return result;
+          return {
+            ...config,
+            ...(redirect ? { loader: () => replace(redirect) } : {})
+          } as LazyRouteResult;
         }
       };
       // 如果 index 路由有 keepAlive，使用父路由的 path 添加到缓存路由
@@ -205,26 +212,6 @@ export function filterAuthRoutesByRoles(routes: { parent: string | null; route: 
         const hasPermission = routeRoles.some(role => roles.includes(role));
 
         return hasPermission || isEmptyRoles;
-      });
-
-      // 返回结构与原始一致，但 route 已经过滤过
-      return {
-        parent: item.parent,
-        route: filteredRoute
-      };
-    })
-    .filter(item => item.route.length >= 1);
-}
-
-export function filterAuthRoutesByDynamic(routes: Router.AuthRoute[], hasRoutes: string[]) {
-  return routes
-    .map(item => {
-      // 过滤 route 数组
-      const filteredRoute = item.route.filter(routeObj => {
-        if (routeObj?.index && hasRoutes.includes(item?.parentPath || '')) {
-          return true;
-        }
-        return hasRoutes.includes(routeObj.path || '');
       });
 
       // 返回结构与原始一致，但 route 已经过滤过

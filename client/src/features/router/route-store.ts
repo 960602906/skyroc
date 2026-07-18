@@ -1,6 +1,5 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
-
-import { createAppSlice } from '../../store/createAppSlice';
+import { createSlice } from '@reduxjs/toolkit';
 
 interface InitialStateType {
   cacheRoutes: string[];
@@ -17,24 +16,24 @@ const initialState: InitialStateType = {
   routeHomePath: import.meta.env.VITE_ROUTE_HOME
 };
 
-export const routeSlice = createAppSlice({
+export const routeSlice = createSlice({
   initialState,
   name: 'route',
-  reducers: create => ({
-    addCacheRoutes: create.reducer((state, { payload }: PayloadAction<string>) => {
+  reducers: {
+    addCacheRoutes: (state, { payload }: PayloadAction<string>) => {
       state.cacheRoutes.push(payload);
-    }),
-    resetRouteStore: create.reducer(() => initialState),
-    setCacheRoutes: create.reducer((state, { payload }: PayloadAction<string[]>) => {
+    },
+    resetRouteStore: () => initialState,
+    setCacheRoutes: (state, { payload }: PayloadAction<string[]>) => {
       state.cacheRoutes = payload;
-    }),
-    setHomePath: create.reducer((state, { payload }: PayloadAction<string>) => {
+    },
+    setHomePath: (state, { payload }: PayloadAction<string>) => {
       state.routeHomePath = payload;
-    }),
-    setRemoveCacheKey: create.reducer((state, { payload }: PayloadAction<InitialStateType['removeCacheKey']>) => {
+    },
+    setRemoveCacheKey: (state, { payload }: PayloadAction<InitialStateType['removeCacheKey']>) => {
       state.removeCacheKey = payload;
-    })
-  }),
+    }
+  },
   selectors: {
     selectCacheRoutes: route => route.cacheRoutes,
     selectRemoveCacheKey: route => route.removeCacheKey,

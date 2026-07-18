@@ -1,6 +1,6 @@
 import type { MenuProps } from 'antd';
 
-import { selectToken } from '@/features/auth/authStore';
+import { selectToken } from '@/features/auth';
 import { useRoute, useRouter } from '@/features/router';
 import { useUserInfo } from '@/service/hooks';
 

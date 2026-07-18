@@ -1,4 +1,4 @@
-import { getThemeSettings } from '@/features/theme';
+import { getThemeSettings } from './theme-settings-store';
 
 export function useThemeSettings() {
   const themeSettings = useAppSelector(getThemeSettings);

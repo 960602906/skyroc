@@ -1,8 +1,7 @@
 import clsx from 'clsx';
 import KeepAlive, { useKeepAliveRef } from 'keepalive-for-react';
 
-import { usePreviousRoute } from '@/features/router';
-import { selectCacheRoutes, selectRemoveCacheKey, setRemoveCacheKey } from '@/features/router/routeStore';
+import { selectCacheRoutes, selectRemoveCacheKey, setRemoveCacheKey, usePreviousRoute } from '@/features/router';
 import { useThemeSettings } from '@/features/theme';
 import { getReloadFlag } from '@/layouts/appStore';
 import './transition.css';

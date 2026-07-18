@@ -54,7 +54,7 @@ export function fetchGetAllRoles() {
 }
 
 /** 根据id获取角色 */
-export function fetchGetDetailRole(id: string) {
+export function fetchGetRoleDetail(id: string) {
   return request<Api.SystemManage.Role>({
     method: 'get',
     url: `${SYSTEM_MANAGE_URLS.BASE_ROLE_URL}/${id}`
@@ -130,7 +130,7 @@ export function fetchBatchDeleteUser(ids: string[]) {
 }
 
 /** 根据id获取用户 */
-export function fetchGetDetailUser(id: string) {
+export function fetchGetUserDetail(id: string) {
   return request<Api.SystemManage.User>({
     method: 'get',
     url: `${SYSTEM_MANAGE_URLS.BASE_USER_URL}/${id}`

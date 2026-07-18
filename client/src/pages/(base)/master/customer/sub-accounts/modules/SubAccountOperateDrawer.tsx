@@ -1,6 +1,6 @@
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useCompanyOptions, useCustomerOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useCompanyOptions, useCustomerOptions } from '@/service/hooks';
 
 type RuleKey = 'companyId' | 'username';
 

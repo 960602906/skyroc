@@ -18,7 +18,7 @@ const CustomerTagOperateModal: FC<Page.OperateDrawerProps> = memo(
     const { data: tagTree } = useQuery({
       enabled: open,
       queryFn: () => fetchGetCustomerTagTree(),
-      queryKey: QUERY_KEYS.CUSTOMER_TAG.TREE
+      queryKey: QUERY_KEYS.BASE.CUSTOMER_TAGS
     });
 
     const rules: Record<RuleKey, App.Global.FormRule> = {

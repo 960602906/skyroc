@@ -1,6 +1,6 @@
 import type { MenuProps } from 'antd';
 
-import { useTabController } from './tabHooks';
+import { useTabController } from './use-tab';
 
 interface ContextMenuProps {
   active: boolean;

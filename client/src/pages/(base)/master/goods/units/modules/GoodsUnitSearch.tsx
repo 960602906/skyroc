@@ -1,5 +1,5 @@
 import { EnableStatusSelect, SearchActions } from '@/features/crud';
-import { toOptions, useGoodsOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useGoodsOptions } from '@/service/hooks';
 
 const GoodsUnitSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();

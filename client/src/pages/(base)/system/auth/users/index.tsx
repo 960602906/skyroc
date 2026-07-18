@@ -6,7 +6,7 @@ import {
   fetchAddUser,
   fetchBatchDeleteUser,
   fetchDeleteUser,
-  fetchGetDetailUser,
+  fetchGetUserDetail,
   fetchGetUserList,
   fetchUpdateUser
 } from '@/service/api';
@@ -156,7 +156,7 @@ const UserManage = () => {
   }
 
   async function edit(id: string) {
-    const userDetail = await fetchGetDetailUser(id);
+    const userDetail = await fetchGetUserDetail(id);
     handleEdit({ ...(userDetail ?? {}), index: 0 });
   }
   return (

@@ -1,5 +1,5 @@
 import { EnableStatusSelect, SearchActions } from '@/features/crud';
-import { toOptions, useCompanyOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useCompanyOptions } from '@/service/hooks';
 
 const CustomerListSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();

@@ -5,13 +5,13 @@ import BetterScroll from '@/components/BetterScroll';
 import { getFullContent, toggleFullContent } from '@/layouts/appStore';
 import { isPC } from '@/utils/agent';
 
-import { setRemoveCacheKey } from '../router/routeStore';
+import { setRemoveCacheKey } from '../router';
 import { useTheme, useThemeSettings } from '../theme';
 
 import ContextMenu from './TabContextMenu';
 import TabReloadButton from './TabReloadButton';
-import { useTabActions, useTabManager } from './tabHooks';
-import { useTabScroll } from './useTabScroll';
+import { useTabActions, useTabManager } from './use-tab';
+import { useTabScroll } from './use-tab-scroll';
 
 const GlobalTab = () => {
   const { t } = useTranslation();

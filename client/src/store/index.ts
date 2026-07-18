@@ -1,9 +1,9 @@
 import { combineSlices, configureStore } from '@reduxjs/toolkit';
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
 
-import { authSlice } from '../features/auth/authStore';
-import { routeSlice } from '../features/router/routeStore';
-import { tabSlice } from '../features/tab/tabStore';
+import { authSlice } from '../features/auth';
+import { routeSlice } from '../features/router';
+import { tabSlice } from '../features/tab';
 import { themeSlice } from '../features/theme';
 import { appSlice } from '../layouts/appStore';
 

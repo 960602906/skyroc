@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useCustomerOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useCustomerOptions } from '@/service/hooks';
 
 type RuleKey = 'code' | 'name' | 'status';
 

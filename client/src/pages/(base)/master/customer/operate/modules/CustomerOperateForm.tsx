@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { fetchGetAllCustomerTags } from '@/service/api';
-import { toOptions, useCompanyOptions, useQuotationOptions, useWareOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useCompanyOptions, useQuotationOptions, useWareOptions } from '@/service/hooks';
+import { QUERY_KEYS } from '@/service/keys';
 
 type RuleKey = 'code' | 'name';
 
@@ -22,7 +23,7 @@ function CustomerOperateForm({ form }: CustomerOperateFormProps) {
 
   const { data: tags } = useQuery({
     queryFn: () => fetchGetAllCustomerTags(),
-    queryKey: ['base', 'customerTags'],
+    queryKey: QUERY_KEYS.BASE.CUSTOMER_TAGS,
     staleTime: 60_000
   });
 

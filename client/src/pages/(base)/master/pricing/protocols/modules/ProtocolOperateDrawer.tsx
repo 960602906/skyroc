@@ -1,6 +1,6 @@
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useCustomerOptions, useQuotationOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useCustomerOptions, useQuotationOptions } from '@/service/hooks';
 
 type RuleKey = 'code' | 'effectiveStart' | 'name';
 

@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import {
   fetchGetAllRoles,
-  fetchGetDetailRole,
   fetchGetMenuList,
   fetchGetMenuTree,
+  fetchGetRoleDetail,
   fetchGetRoleList,
   fetchGetUserList
 } from '../api';
@@ -80,10 +80,10 @@ export function useMenuTree() {
   });
 }
 
-/** details role hook */
-export function useDetailsRole(id: string) {
+/** 角色详情 hook */
+export function useRoleDetail(id: string) {
   return useQuery({
-    queryFn: () => fetchGetDetailRole(id),
-    queryKey: QUERY_KEYS.SYSTEM_MANAGE.DETAILS_ROLE(id)
+    queryFn: () => fetchGetRoleDetail(id),
+    queryKey: QUERY_KEYS.SYSTEM_MANAGE.ROLE_DETAIL(id)
   });
 }

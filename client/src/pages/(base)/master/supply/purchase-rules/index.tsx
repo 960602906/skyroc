@@ -18,12 +18,7 @@ import {
   fetchTogglePurchaseRuleStatus,
   fetchUpdatePurchaseRule
 } from '@/service/api';
-import {
-  useGoodsTypeOptions,
-  usePurchaserOptions,
-  useSupplierOptions,
-  useWareOptions
-} from '@/service/hooks/useBaseDataOptions';
+import { useGoodsTypeOptions, usePurchaserOptions, useSupplierOptions, useWareOptions } from '@/service/hooks';
 
 import RuleSearch from './modules/RuleSearch';
 

@@ -1,10 +1,5 @@
 import { useFormRules } from '@/features/form';
-import {
-  toOptions,
-  useGoodsOptions,
-  useGoodsUnitsByGoodsOptions,
-  useQuotationOptions
-} from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useGoodsOptions, useGoodsUnitsByGoodsOptions, useQuotationOptions } from '@/service/hooks';
 
 type RuleKey = 'goodsId' | 'goodsUnitId' | 'quotationId' | 'unitPrice';
 

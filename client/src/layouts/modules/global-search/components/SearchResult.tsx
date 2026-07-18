@@ -15,7 +15,7 @@ const SearchResult: FC<Props> = memo(({ active, enter, menu, setActiveRouteName 
   return (
     <div
       className={clsx(
-        'mt-8px h-56px flex-y-center cursor-pointer justify-between rounded-4px bg-#e5e7eb  px-14px dark:bg-dark',
+        'mt-8px h-56px flex-y-center cursor-pointer justify-between rounded-4px bg-#e5e7eb px-14px dark:bg-dark',
         { 'bg-primary': active },
         { 'text-#fff': active }
       )}

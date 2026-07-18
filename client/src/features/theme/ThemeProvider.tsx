@@ -4,7 +4,7 @@ import type { FC, PropsWithChildren } from 'react';
 import { themeSettings } from '@/theme/settings';
 import { localStg } from '@/utils/storage';
 
-import { ThemeContext, toggleCssDarkMode } from './themeContext';
+import { ThemeContext, toggleCssDarkMode } from './theme-context';
 
 const DARK_MODE_MEDIA_QUERY = '(prefers-color-scheme: dark)';
 

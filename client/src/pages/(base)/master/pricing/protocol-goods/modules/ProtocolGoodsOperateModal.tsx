@@ -1,5 +1,5 @@
 import { useFormRules } from '@/features/form';
-import { toOptions, useGoodsOptions, useProtocolOptions } from '@/service/hooks/useBaseDataOptions';
+import { toOptions, useGoodsOptions, useProtocolOptions } from '@/service/hooks';
 
 type RuleKey = 'customerProtocolId' | 'goodsId' | 'goodsUnitId' | 'protocolPrice';
 

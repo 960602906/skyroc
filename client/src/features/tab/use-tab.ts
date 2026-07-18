@@ -1,6 +1,14 @@
 import { useEmit, useOn } from '@sa/hooks';
 
 import { useRoute, useRouter } from '@/features/router';
+import { localStg } from '@/utils/storage';
+
+import { getActiveFirstLevelMenuKey } from '../menu/MenuUtil';
+import { setRemoveCacheKey } from '../router';
+import { useThemeSettings } from '../theme';
+
+import { getFixedTabs, getTabByRoute, isTabInTabs } from './shared';
+import { TabEvent } from './tab-enum';
 import {
   addTab,
   changeTabLabel,
@@ -10,15 +18,7 @@ import {
   setActiveTabId,
   setTabs,
   updateTab
-} from '@/features/tab/tabStore';
-import { localStg } from '@/utils/storage';
-
-import { getActiveFirstLevelMenuKey } from '../menu/MenuUtil';
-import { setRemoveCacheKey } from '../router/routeStore';
-import { useThemeSettings } from '../theme';
-
-import { getFixedTabs, getTabByRoute, isTabInTabs } from './shared';
-import { TabEvent } from './tabEnum';
+} from './tab-store';
 
 export function useUpdateTabs() {
   const dispatch = useAppDispatch();

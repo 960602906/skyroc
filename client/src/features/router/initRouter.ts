@@ -6,7 +6,7 @@ import { QUERY_KEYS } from '@/service/keys';
 import { queryClient } from '@/service/queryClient';
 import { store } from '@/store';
 
-import { setCacheRoutes, setHomePath } from './routeStore';
+import { setCacheRoutes, setHomePath } from './route-store';
 import { filterAuthRoutesByRoles, mergeValuesByParent, transformBackendRoutesToReactRoutes } from './shared';
 
 export async function initAuthRoutes(addRoutes: (parent: string | null, route: RouteObject[]) => void) {

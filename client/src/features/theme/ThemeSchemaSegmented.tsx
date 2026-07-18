@@ -3,7 +3,7 @@ import type { ThemeModeType } from 'ahooks/lib/useTheme';
 import type { SegmentedOptions } from 'antd/es/segmented';
 import { useContext } from 'react';
 
-import { ThemeContext, icons } from './themeContext';
+import { ThemeContext, icons } from './theme-context';
 
 const OPTIONS = Object.values(ThemeMode).map(item => {
   const key = item as ThemeModeType;

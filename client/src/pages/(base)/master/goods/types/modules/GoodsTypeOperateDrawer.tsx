@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { fetchGetGoodsTypeTree } from '@/service/api';
+import { QUERY_KEYS } from '@/service/keys';
 
 import { mapGoodsTypeTree } from '../../utils/tree';
 
@@ -16,7 +17,7 @@ const GoodsTypeOperateDrawer: FC<Page.OperateDrawerProps> = memo(
     const { data: treeData } = useQuery({
       enabled: open,
       queryFn: fetchGetGoodsTypeTree,
-      queryKey: ['goods', 'typeTree'],
+      queryKey: QUERY_KEYS.BASE.GOODS_TYPE_TREE,
       staleTime: 60_000
     });
 
