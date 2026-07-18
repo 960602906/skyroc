@@ -43,6 +43,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master': { icon: 'mdi:database-outline', order: 9 },
   '(base)_master_customer': { icon: 'mdi:account-group-outline', order: 2 },
   '(base)_master_customer_companies': { icon: 'mdi:office-building-outline', order: 1 },
+  '(base)_master_customer_companies_detail': { activeMenu: '/master/customer/companies', hideInMenu: true },
+  '(base)_master_customer_companies_detail_[id]': { activeMenu: '/master/customer/companies', hideInMenu: true },
   '(base)_master_customer_list': { icon: 'mdi:format-list-bulleted', order: 2 },
   '(base)_master_customer_operate': { activeMenu: '/master/customer/list', hideInMenu: true },
   '(base)_master_customer_operate_[id]': { activeMenu: '/master/customer/list', hideInMenu: true },

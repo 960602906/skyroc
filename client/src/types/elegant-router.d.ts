@@ -51,6 +51,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_master": "/master";
     "(base)_master_customer": "/master/customer";
     "(base)_master_customer_companies": "/master/customer/companies";
+    "(base)_master_customer_companies_detail": "/master/customer/companies/detail";
+    "(base)_master_customer_companies_detail_[id]": "/master/customer/companies/detail/:id";
     "(base)_master_customer_list": "/master/customer/list";
     "(base)_master_customer_operate": "/master/customer/operate";
     "(base)_master_customer_operate_[id]": "/master/customer/operate/:id";
@@ -234,6 +236,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_finance_supplier"
     | "(base)_finance_supplier_settlements"
     | "(base)"
+    | "(base)_master_customer_companies_detail_[id]"
+    | "(base)_master_customer_companies_detail"
     | "(base)_master_customer_companies"
     | "(base)_master_customer"
     | "(base)_master_customer_list"

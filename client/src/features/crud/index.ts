@@ -1,4 +1,5 @@
 export { default as CrudPageLayout } from './CrudPageLayout';
+export { DETAIL_EMPTY, displayText } from './display-text';
 export { default as EnableStatusBadge } from './EnableStatusBadge';
 export { default as EnableStatusFormItem } from './EnableStatusFormItem';
 export { default as EnableStatusSelect } from './EnableStatusSelect';

@@ -36,6 +36,8 @@ export const pages: Record<string, () => Promise<any>> = {
 "(base)_finance_supplier_bills": () => import("@/pages/(base)/finance/supplier/bills/index.tsx"),
 "(base)_finance_supplier": () => import("@/pages/(base)/finance/supplier/index.tsx"),
 "(base)_finance_supplier_settlements": () => import("@/pages/(base)/finance/supplier/settlements/index.tsx"),
+"(base)_master_customer_companies_detail_[id]": () => import("@/pages/(base)/master/customer/companies/detail/[id].tsx"),
+"(base)_master_customer_companies_detail": () => import("@/pages/(base)/master/customer/companies/detail/index.tsx"),
 "(base)_master_customer_companies": () => import("@/pages/(base)/master/customer/companies/index.tsx"),
 "(base)_master_customer": () => import("@/pages/(base)/master/customer/index.tsx"),
 "(base)_master_customer_list": () => import("@/pages/(base)/master/customer/list/index.tsx"),

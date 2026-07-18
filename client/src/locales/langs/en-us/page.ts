@@ -20,6 +20,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       contactName: 'Contact Name',
       contactPhone: 'Contact Phone',
       createTime: 'Created At',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Company Detail',
+        updateTime: 'Updated At'
+      },
       editCompany: 'Edit Company',
       form: {
         address: 'Please enter address',
@@ -32,6 +38,8 @@ const page: App.I18n.Schema['translation']['page'] = {
       },
       name: 'Company Name',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionStatus: 'Status & Remark',
       status: 'Status',
       title: 'Company Profile'
     },

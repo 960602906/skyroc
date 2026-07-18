@@ -1,6 +1,6 @@
 import type { DescriptionsProps } from 'antd';
 
-import { renderBooleanTag, renderEnableStatus } from '@/features/crud';
+import { DETAIL_EMPTY, displayText, renderBooleanTag, renderEnableStatus } from '@/features/crud';
 import {
   toOptions,
   useGoodsTypeTreeOptions,
@@ -13,15 +13,6 @@ import { findGoodsTypeName } from '../../utils/tree';
 
 interface GoodsDetailViewProps {
   detail: Api.Goods.Entity;
-}
-
-const EMPTY = '-';
-
-function displayText(value: string | number | null | undefined) {
-  if (value === null || value === undefined || value === '') {
-    return EMPTY;
-  }
-  return String(value);
 }
 
 function GoodsDetailView({ detail }: GoodsDetailViewProps) {
@@ -42,7 +33,7 @@ function GoodsDetailView({ detail }: GoodsDetailViewProps) {
     detail.supplierIds
       ?.map(id => supplierOptions.find(item => item.value === id)?.label)
       .filter(Boolean)
-      .join('、') || EMPTY;
+      .join('、') || DETAIL_EMPTY;
 
   const basicItems: DescriptionsProps['items'] = [
     { children: displayText(detail.name), key: 'name', label: t('page.goods.operate.name') },
@@ -85,7 +76,7 @@ function GoodsDetailView({ detail }: GoodsDetailViewProps) {
       label: t('page.goods.operate.supplierIds')
     },
     {
-      children: detail.taxRate === null || detail.taxRate === undefined ? EMPTY : `${detail.taxRate}%`,
+      children: detail.taxRate === null || detail.taxRate === undefined ? DETAIL_EMPTY : `${detail.taxRate}%`,
       key: 'taxRate',
       label: t('page.goods.operate.taxRate')
     }

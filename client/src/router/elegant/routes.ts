@@ -261,7 +261,43 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_customer_companies',
                       icon: 'mdi:office-building-outline',
                       order: 1
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [
+                          null,
+                          '/src/pages/(base)/master/customer/companies/detail/index.tsx',
+                          null,
+                          null
+                        ],
+                        name: '(base)_master_customer_companies_detail',
+                        path: '/master/customer/companies/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_customer_companies_detail',
+                          title: '(base)_master_customer_companies_detail',
+                          activeMenu: '/master/customer/companies',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/master/customer/companies/detail/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_master_customer_companies_detail_[id]',
+                            path: '/master/customer/companies/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_customer_companies_detail_[id]',
+                              title: '(base)_master_customer_companies_detail_[id]',
+                              activeMenu: '/master/customer/companies',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/master/customer/list/index.tsx', null, null],

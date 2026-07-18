@@ -20,6 +20,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       contactName: '联系人',
       contactPhone: '联系电话',
       createTime: '创建时间',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '公司详情',
+        updateTime: '更新时间'
+      },
       editCompany: '编辑公司',
       form: {
         address: '请输入地址',
@@ -32,6 +38,8 @@ const page: App.I18n.Schema['translation']['page'] = {
       },
       name: '公司名称',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionStatus: '状态与备注',
       status: '状态',
       title: '公司资料'
     },

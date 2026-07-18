@@ -1,18 +1,9 @@
 import type { DescriptionsProps } from 'antd';
 
-import { renderBooleanTag, renderEnableStatus } from '@/features/crud';
+import { DETAIL_EMPTY, displayText, renderBooleanTag, renderEnableStatus } from '@/features/crud';
 
 interface GoodsUnitDetailViewProps {
   detail: Api.GoodsUnit.Entity;
-}
-
-const EMPTY = '-';
-
-function displayText(value: string | number | boolean | null | undefined) {
-  if (value === null || value === undefined || value === '') {
-    return EMPTY;
-  }
-  return String(value);
 }
 
 function GoodsUnitDetailView({ detail }: GoodsUnitDetailViewProps) {
@@ -33,7 +24,7 @@ function GoodsUnitDetailView({ detail }: GoodsUnitDetailViewProps) {
           {goodsLabel}
         </AButton>
       ) : (
-        EMPTY
+        DETAIL_EMPTY
       ),
       key: 'goodsName',
       label: t('page.goods.unit.goodsId')

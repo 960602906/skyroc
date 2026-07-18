@@ -1,21 +1,12 @@
 import type { DescriptionsProps } from 'antd';
 
-import { renderBooleanTag, renderEnableStatus } from '@/features/crud';
+import { DETAIL_EMPTY, displayText, renderBooleanTag, renderEnableStatus } from '@/features/crud';
 import { useGoodsTypeTreeOptions } from '@/service/hooks';
 
 import { findGoodsTypeName } from '../../../utils/tree';
 
 interface GoodsTypeDetailViewProps {
   detail: Api.GoodsType.Entity;
-}
-
-const EMPTY = '-';
-
-function displayText(value: string | number | null | undefined) {
-  if (value === null || value === undefined || value === '') {
-    return EMPTY;
-  }
-  return String(value);
 }
 
 function GoodsTypeDetailView({ detail }: GoodsTypeDetailViewProps) {
@@ -38,7 +29,9 @@ function GoodsTypeDetailView({ detail }: GoodsTypeDetailViewProps) {
   const taxItems: DescriptionsProps['items'] = [
     {
       children:
-        detail.defaultTaxRate === null || detail.defaultTaxRate === undefined ? EMPTY : `${detail.defaultTaxRate}%`,
+        detail.defaultTaxRate === null || detail.defaultTaxRate === undefined
+          ? DETAIL_EMPTY
+          : `${detail.defaultTaxRate}%`,
       key: 'defaultTaxRate',
       label: t('page.goods.type.defaultTaxRate')
     },

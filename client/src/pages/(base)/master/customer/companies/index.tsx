@@ -25,6 +25,7 @@ const CompanyOperateDrawer = lazy(() => import('./modules/CompanyOperateDrawer')
 
 const CompanyManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const { scrollConfig, tableWrapperRef } = useTableScroll();
 
@@ -38,6 +39,16 @@ const CompanyManage = () => {
         dataIndex: 'name',
         key: 'name',
         minWidth: 140,
+        render: (name: string, record) => (
+          <AButton
+            className="h-auto p-0 leading-normal"
+            size="small"
+            type="link"
+            onClick={() => nav(`/master/customer/companies/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.customer.company.name')
       },
       {
