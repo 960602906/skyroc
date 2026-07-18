@@ -17,6 +17,7 @@ export const QUERY_KEYS = {
     GOODS: ['base', 'goods'] as const,
     GOODS_TYPE_TREE: ['base', 'goodsTypeTree'] as const,
     GOODS_TYPES: ['base', 'goodsTypes'] as const,
+    GOODS_UNITS: ['base', 'allGoodsUnits'] as const,
     GOODS_UNITS_BY_GOODS: (goodsId: string) => ['base', 'goodsUnits', goodsId] as const,
     PROTOCOLS: ['base', 'protocols'] as const,
     PURCHASERS: ['base', 'purchasers'] as const,

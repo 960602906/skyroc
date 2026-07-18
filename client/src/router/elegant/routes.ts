@@ -334,6 +334,30 @@ export const generatedRoutes: ElegantConstRoute[] = [
                 },
                 children: [
                   {
+                    matchedFiles: [null, '/src/pages/(base)/master/goods/detail/index.tsx', null, null],
+                    name: '(base)_master_goods_detail',
+                    path: '/master/goods/detail',
+                    handle: {
+                      i18nKey: 'route.(base)_master_goods_detail',
+                      title: '(base)_master_goods_detail',
+                      activeMenu: '/master/goods/list',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/goods/detail/[id].tsx', null, null],
+                        name: '(base)_master_goods_detail_[id]',
+                        path: '/master/goods/detail/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_master_goods_detail_[id]',
+                          title: '(base)_master_goods_detail_[id]',
+                          activeMenu: '/master/goods/list',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
+                  },
+                  {
                     matchedFiles: [null, '/src/pages/(base)/master/goods/list/index.tsx', null, null],
                     name: '(base)_master_goods_list',
                     path: '/master/goods/list',

@@ -56,6 +56,8 @@ export const routeMap: RouteMap = {
  "(base)_master_customer_sub-accounts": "/master/customer/sub-accounts",
  "(base)_master_customer_tags": "/master/customer/tags",
  "(base)_master_goods": "/master/goods",
+ "(base)_master_goods_detail": "/master/goods/detail",
+ "(base)_master_goods_detail_[id]": "/master/goods/detail/:id",
  "(base)_master_goods_list": "/master/goods/list",
  "(base)_master_goods_operate": "/master/goods/operate",
  "(base)_master_goods_operate_[id]": "/master/goods/operate/:id",

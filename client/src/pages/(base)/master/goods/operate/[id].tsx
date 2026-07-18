@@ -48,24 +48,27 @@ const GoodsEdit = () => {
   }
 
   return (
-    <ACard
-      className="card-wrapper"
-      title={t('page.goods.operate.editTitle')}
-      extra={
-        <ASpace>
-          <AButton onClick={() => nav('/master/goods/list')}>{t('common.cancel')}</AButton>
-          <AButton
-            loading={submitting}
-            type="primary"
-            onClick={handleSubmit}
-          >
-            {t('common.confirm')}
-          </AButton>
-        </ASpace>
-      }
-    >
+    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
+      <ACard
+        className="card-wrapper"
+        styles={{ body: { display: 'none' } }}
+        title={t('page.goods.operate.editTitle')}
+        variant="borderless"
+        extra={
+          <ASpace>
+            <AButton onClick={() => nav('/master/goods/list')}>{t('common.cancel')}</AButton>
+            <AButton
+              loading={submitting}
+              type="primary"
+              onClick={handleSubmit}
+            >
+              {t('common.confirm')}
+            </AButton>
+          </ASpace>
+        }
+      />
       <GoodsOperateForm form={form} />
-    </ACard>
+    </div>
   );
 };
 

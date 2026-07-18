@@ -240,6 +240,11 @@ const page: App.I18n.Schema['translation']['page'] = {
     }
   },
   goods: {
+    detail: {
+      back: 'Back to List',
+      title: 'Goods Detail',
+      updateTime: 'Updated At'
+    },
     list: {
       brand: 'Brand',
       code: 'Goods Code',
@@ -274,7 +279,7 @@ const page: App.I18n.Schema['translation']['page'] = {
       description: 'Description',
       editTitle: 'Edit Goods',
       form: {
-        baseUnitId: 'Please enter base unit ID',
+        baseUnitId: 'Please select base unit',
         brand: 'Please enter brand',
         code: 'Please enter goods code',
         defaultSupplierId: 'Please select default supplier',
@@ -293,11 +298,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       name: 'Goods Name',
       origin: 'Origin',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionSale: 'Sale & Status',
+      sectionSupply: 'Unit & Supply',
       spec: 'Spec',
       status: 'Status',
       supplierIds: 'Suppliers',
-      tabBasic: 'Basic Info',
-      tabRelation: 'Relations',
       taxRate: 'Tax Rate'
     },
     quotation: {

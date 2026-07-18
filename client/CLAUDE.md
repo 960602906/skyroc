@@ -82,6 +82,7 @@ Segments: `(base)` = main layout at `/`, `(blank)` = minimal layout (login), `_b
 - **TypeScript:** `strict` + `isolatedModules` are on — no `any` (use `unknown`/generics), explicit exported types, `Promise<具体类型>`, generic-constrained Query hooks (`useQuery<Api.SystemManage.RoleList>`), `satisfies` for typed constants. Don't edit generated `.d.ts` (`auto-imports.d.ts`).
 - **Naming:** directories kebab-case; component files PascalCase; hooks/utils `use-xxx.ts`/camelCase; constants SCREAMING_SNAKE_CASE; API types under `Api.*`, app-global types under `App.*`.
 - **Styling:** UnoCSS-first (config in `uno.config.ts`, reuse defined shortcuts like `card-wrapper`); theme tokens in `src/theme/vars.ts`/`settings.ts`; Ant Design theme via `ConfigProvider`. Avoid inline magic numbers — extend `App.Theme.ThemeToken`. Icons via `@iconify/react` `Icon` or local svg (`vite-plugin-svg-icons`).
+- **Operate / detail layout:** 档案类新增、编辑、详情用分区卡片（一区一卡，对齐商品档案）；见 `.cursor/rules/operate-detail-layout.mdc`。
 - **Components:** function components + hooks; single default export per component, named exports for groups; import order React/libs → third-party hooks → `@sa/*` → `@/` → relative → styles. Wrap error-prone pages in `ErrorBoundary`.
 - **i18n always on:** new UI text goes in `src/locales` language packs (`route.*`, `page.*`, `common.*`), updated across all languages.
 

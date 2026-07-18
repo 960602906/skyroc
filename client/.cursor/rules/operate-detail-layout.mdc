@@ -1,0 +1,62 @@
+---
+description: 档案类新增/编辑/详情页的分区卡片布局（对齐商品档案）
+globs:
+  - "**/pages/**/operate/**/*.{tsx,ts}"
+  - "**/pages/**/detail/**/*.{tsx,ts}"
+alwaysApply: false
+---
+
+# 新增 / 编辑 / 详情页布局
+
+档案类全页表单与纯展示详情，统一采用**列表同款分区卡片**：一区一卡、`card-wrapper` + `variant="borderless"`，禁止外层再套一张大卡包住所有分区。
+
+权威样板：
+
+- 新增/编辑：`src/pages/(base)/master/goods/operate/`
+- 详情：`src/pages/(base)/master/goods/detail/`
+
+## 页面外壳
+
+```tsx
+<div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
+  <ACard className="card-wrapper" title={...} extra={操作区} variant="borderless" />
+  {/* 下方为分区卡片，彼此 gap-16px */}
+</div>
+```
+
+| 页面 | 顶栏卡 | 下方分区 |
+| --- | --- | --- |
+| 新增/编辑 | 标题 + 取消/确认；无正文时可用 `styles={{ body: { display: 'none' } }}` | 表单内多张分区卡 |
+| 详情 | 主标题（如名称）+ 返回列表/编辑；正文可放编码等摘要 | `ADescriptions` 分区卡 |
+
+## 分区卡片（必守）
+
+- 按业务拆分，常见三块：`基础信息` / `计量与供应`（或关联信息）/ `销售与状态`（或状态备注）
+- 每块独立 `ACard`：`className="card-wrapper"`、`variant="borderless"`、`title` 用 i18n（如 `sectionBasic`）
+- 分区之间用父级 `flex-col-stretch gap-16px`，不要用嵌套小卡或 Tab 充当主分区
+- 大屏两列（`ACol lg={12}`），描述/备注等通栏；分区内最后一项可加 `className="mb-0"`
+
+## 新增 / 编辑
+
+- 单 `AForm` 包住所有分区卡，一次 `validateFields`
+- 树形分类用 `ATreeSelect`；主数据 ID 用 `ASelect` + `service/hooks` 选项，禁止手输 GUID
+- 有关联约束时做软联动（例：默认供应商变更时自动并入可供货列表）
+- 编辑/详情首屏数据走路由 `loader` + `useLoaderData`（见 route-loader-data 技能），勿 `useEffect` 再拉详情
+
+## 详情（纯展示）
+
+- 路由建议：`.../detail/[id]`；列表点名称进详情，详情再进编辑
+- 分区字段与编辑页对齐；空值显示 `-`；状态用现有 badge/tag 渲染
+- ID 解析为名称后再展示（分类树 / 单位 / 仓库 / 供应商等）
+
+## 反例
+
+```tsx
+// ❌ 外层大卡再嵌 size="small" 分区卡
+<ACard className="card-wrapper" title="编辑">
+  <ACard size="small" title="基础信息">...</ACard>
+</ACard>
+
+// ❌ 用 Tab 当主信息架构（字段不多时）
+<ATabs items={[...]} />
+```

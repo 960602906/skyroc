@@ -1,6 +1,7 @@
 import { fetchAddGoods } from '@/service/api';
 
-import GoodsOperateForm, { createDefaultGoodsFormValues } from './modules/GoodsOperateForm';
+import GoodsOperateForm from './modules/GoodsOperateForm';
+import { createDefaultGoodsFormValues } from './modules/create-default-goods-form-values';
 
 const GoodsCreate = () => {
   const { t } = useTranslation();
@@ -17,7 +18,7 @@ const GoodsCreate = () => {
     setSubmitting(true);
     try {
       await fetchAddGoods(values);
-      window.$message?.success(t('common.updateSuccess'));
+      window.$message?.success(t('common.addSuccess'));
       nav('/master/goods/list');
     } finally {
       setSubmitting(false);
@@ -25,24 +26,27 @@ const GoodsCreate = () => {
   }
 
   return (
-    <ACard
-      className="card-wrapper"
-      title={t('page.goods.operate.addTitle')}
-      extra={
-        <ASpace>
-          <AButton onClick={() => nav('/master/goods/list')}>{t('common.cancel')}</AButton>
-          <AButton
-            loading={submitting}
-            type="primary"
-            onClick={handleSubmit}
-          >
-            {t('common.confirm')}
-          </AButton>
-        </ASpace>
-      }
-    >
+    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
+      <ACard
+        className="card-wrapper"
+        styles={{ body: { display: 'none' } }}
+        title={t('page.goods.operate.addTitle')}
+        variant="borderless"
+        extra={
+          <ASpace>
+            <AButton onClick={() => nav('/master/goods/list')}>{t('common.cancel')}</AButton>
+            <AButton
+              loading={submitting}
+              type="primary"
+              onClick={handleSubmit}
+            >
+              {t('common.confirm')}
+            </AButton>
+          </ASpace>
+        }
+      />
       <GoodsOperateForm form={form} />
-    </ACard>
+    </div>
   );
 };
 

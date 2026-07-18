@@ -27,6 +27,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_customer_sub-accounts': '客户子账号',
   '(base)_master_customer_tags': '客户标签',
   '(base)_master_goods': '商品资料',
+  '(base)_master_goods_detail': '商品详情',
+  '(base)_master_goods_detail_[id]': '商品详情',
   '(base)_master_goods_list': '商品档案',
   '(base)_master_goods_operate': '新增商品',
   '(base)_master_goods_operate_[id]': '编辑商品',

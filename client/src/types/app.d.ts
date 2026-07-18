@@ -601,6 +601,11 @@ declare namespace App {
             };
           };
           goods: {
+            detail: {
+              back: string;
+              title: string;
+              updateTime: string;
+            };
             list: {
               brand: string;
               code: string;
@@ -654,11 +659,12 @@ declare namespace App {
               name: string;
               origin: string;
               remark: string;
+              sectionBasic: string;
+              sectionSale: string;
+              sectionSupply: string;
               spec: string;
               status: string;
               supplierIds: string;
-              tabBasic: string;
-              tabRelation: string;
               taxRate: string;
             };
             quotation: {

@@ -17,3 +17,26 @@ export function mapGoodsTypeTree(nodes?: GoodsTypeTreeNode[]): GoodsTypeTreeOpti
     value: node.id
   }));
 }
+
+/** 在分类树中按 id 查找名称，未找到返回 null */
+export function findGoodsTypeName(
+  nodes: GoodsTypeTreeNode[] | undefined,
+  id: string | null | undefined
+): string | null {
+  if (!nodes?.length || !id) {
+    return null;
+  }
+
+  for (const node of nodes) {
+    if (node.id === id) {
+      return node.name;
+    }
+
+    const childName = findGoodsTypeName(node.children, id);
+    if (childName) {
+      return childName;
+    }
+  }
+
+  return null;
+}

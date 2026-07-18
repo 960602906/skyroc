@@ -50,6 +50,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master_customer_tags': { icon: 'mdi:tag-multiple-outline', order: 3 },
 
   '(base)_master_goods': { icon: 'mdi:shopping-outline', order: 1 },
+  '(base)_master_goods_detail': { activeMenu: '/master/goods/list', hideInMenu: true },
+  '(base)_master_goods_detail_[id]': { activeMenu: '/master/goods/list', hideInMenu: true },
   '(base)_master_goods_list': { icon: 'mdi:format-list-bulleted', order: 2 },
   '(base)_master_goods_operate': { activeMenu: '/master/goods/list', hideInMenu: true },
   '(base)_master_goods_operate_[id]': { activeMenu: '/master/goods/list', hideInMenu: true },

@@ -240,6 +240,11 @@ const page: App.I18n.Schema['translation']['page'] = {
     }
   },
   goods: {
+    detail: {
+      back: '返回列表',
+      title: '商品详情',
+      updateTime: '更新时间'
+    },
     list: {
       brand: '品牌',
       code: '商品编码',
@@ -274,7 +279,7 @@ const page: App.I18n.Schema['translation']['page'] = {
       description: '描述',
       editTitle: '编辑商品',
       form: {
-        baseUnitId: '请输入基本单位 ID',
+        baseUnitId: '请选择基本单位',
         brand: '请输入品牌',
         code: '请输入商品编码',
         defaultSupplierId: '请选择默认供应商',
@@ -293,11 +298,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       name: '商品名称',
       origin: '产地',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionSale: '销售与状态',
+      sectionSupply: '计量与供应',
       spec: '规格',
       status: '状态',
       supplierIds: '关联供应商',
-      tabBasic: '基本信息',
-      tabRelation: '关联设置',
       taxRate: '税率'
     },
     quotation: {

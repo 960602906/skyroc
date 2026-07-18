@@ -5,10 +5,12 @@ import {
   fetchGetAllCustomers,
   fetchGetAllGoods,
   fetchGetAllGoodsTypes,
+  fetchGetAllGoodsUnits,
   fetchGetAllPurchasers,
   fetchGetAllSuppliers,
   fetchGetAllWares,
   fetchGetCustomerProtocolOptions,
+  fetchGetGoodsTypeTree,
   fetchGetGoodsUnitsByGoods,
   fetchGetQuotationOptions
 } from '@/service/api';
@@ -46,6 +48,27 @@ export function useGoodsTypeOptions() {
   return useQuery({
     queryFn: () => fetchGetAllGoodsTypes(),
     queryKey: QUERY_KEYS.BASE.GOODS_TYPES,
+    staleTime: 60_000
+  });
+}
+
+export function useGoodsTypeTreeOptions() {
+  return useQuery({
+    queryFn: fetchGetGoodsTypeTree,
+    queryKey: QUERY_KEYS.BASE.GOODS_TYPE_TREE,
+    staleTime: 60_000
+  });
+}
+
+export function useGoodsUnitOptions() {
+  return useQuery({
+    queryFn: () => fetchGetAllGoodsUnits(),
+    queryKey: QUERY_KEYS.BASE.GOODS_UNITS,
+    select: data =>
+      data?.map(item => ({
+        label: item.name ?? item.id,
+        value: item.id
+      })) ?? [],
     staleTime: 60_000
   });
 }

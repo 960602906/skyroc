@@ -27,6 +27,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_customer_sub-accounts': 'Sub Accounts',
   '(base)_master_customer_tags': 'Customer Tags',
   '(base)_master_goods': 'Goods',
+  '(base)_master_goods_detail': 'Goods Detail',
+  '(base)_master_goods_detail_[id]': 'Goods Detail',
   '(base)_master_goods_list': 'Goods List',
   '(base)_master_goods_operate': 'Add Goods',
   '(base)_master_goods_operate_[id]': 'Edit Goods',
