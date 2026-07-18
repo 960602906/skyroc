@@ -44,8 +44,8 @@ const SubAccountManage = () => {
       {
         align: 'center',
         dataIndex: 'username',
+        fixed: 'left',
         key: 'username',
-        minWidth: 120,
         render: (username: string, record) => (
           <AButton
             className="h-auto p-0 leading-normal"
@@ -56,7 +56,8 @@ const SubAccountManage = () => {
             {username}
           </AButton>
         ),
-        title: t('page.customer.subAccount.username')
+        title: t('page.customer.subAccount.username'),
+        width: 380
       },
       {
         align: 'center',

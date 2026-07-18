@@ -25,6 +25,7 @@ const PurchaserOperateDrawer = lazy(() => import('./modules/PurchaserOperateDraw
 
 const PurchaserManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetPurchaserList,
@@ -35,6 +36,15 @@ const PurchaserManage = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
+        render: (name: string, record) => (
+          <AButton
+            className="p-0"
+            type="link"
+            onClick={() => nav(`/master/supply/purchasers/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.purchase.purchaser.name'),
         width: 240
       },
@@ -54,9 +64,9 @@ const PurchaserManage = () => {
       },
       {
         align: 'center',
-        dataIndex: 'departmentId',
+        dataIndex: 'departmentName',
         ellipsis: true,
-        key: 'departmentId',
+        key: 'departmentName',
         minWidth: 120,
         title: t('page.purchase.purchaser.departmentId')
       },

@@ -80,6 +80,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master_supply': { icon: 'mdi:truck-outline', order: 4 },
   '(base)_master_supply_purchase-rules': { icon: 'mdi:clipboard-list-outline', order: 3 },
   '(base)_master_supply_purchasers': { icon: 'mdi:account-tie-outline', order: 2 },
+  '(base)_master_supply_purchasers_detail': { activeMenu: '/master/supply/purchasers', hideInMenu: true },
+  '(base)_master_supply_purchasers_detail_[id]': { activeMenu: '/master/supply/purchasers', hideInMenu: true },
   '(base)_master_supply_suppliers': { icon: 'mdi:truck-delivery-outline', order: 1 },
   '(base)_master_supply_suppliers_detail': { activeMenu: '/master/supply/suppliers', hideInMenu: true },
   '(base)_master_supply_suppliers_detail_[id]': { activeMenu: '/master/supply/suppliers', hideInMenu: true },

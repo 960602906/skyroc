@@ -1045,6 +1045,12 @@ declare namespace App {
               code: string;
               createTime: string;
               departmentId: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               editPurchaser: string;
               form: {
                 code: string;
@@ -1057,8 +1063,11 @@ declare namespace App {
               name: string;
               phone: string;
               remark: string;
+              sectionBasic: string;
+              sectionStatus: string;
               status: string;
               title: string;
+              userName: string;
             };
             rule: {
               addRule: string;

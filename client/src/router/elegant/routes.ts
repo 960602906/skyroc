@@ -723,7 +723,38 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_supply_purchasers',
                       icon: 'mdi:account-tie-outline',
                       order: 2
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/supply/purchasers/detail/index.tsx', null, null],
+                        name: '(base)_master_supply_purchasers_detail',
+                        path: '/master/supply/purchasers/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_supply_purchasers_detail',
+                          title: '(base)_master_supply_purchasers_detail',
+                          activeMenu: '/master/supply/purchasers',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/master/supply/purchasers/detail/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_master_supply_purchasers_detail_[id]',
+                            path: '/master/supply/purchasers/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_supply_purchasers_detail_[id]',
+                              title: '(base)_master_supply_purchasers_detail_[id]',
+                              activeMenu: '/master/supply/purchasers',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/master/supply/suppliers/index.tsx', null, null],

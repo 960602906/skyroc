@@ -1,12 +1,14 @@
 import { request } from '../request';
 import { DEPARTMENT_URLS } from '../urls';
 
-/** 获取部门树 */
-export function fetchGetDepartmentTree() {
-  return request<Api.Department.Tree>({
+/** 获取部门树（后端以分页结构返回，取 records 为树根列表）。 */
+export async function fetchGetDepartmentTree() {
+  const page = await request<Api.Common.PaginatingQueryRecord<Api.Department.Entity>>({
     method: 'get',
     url: DEPARTMENT_URLS.TREE
   });
+
+  return page?.records ?? [];
 }
 
 /** 根据 id 获取部门 */

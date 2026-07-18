@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Domain.Entities;
 using Domain.Entities.Customers;
 using Domain.Entities.Goods;
@@ -26,6 +27,27 @@ public class PurchaserRepository(ApplicationDbContext context)
             .Include(x => x.User)
             .Include(x => x.Department)
             .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    /// <summary>
+    ///     分页查询采购员，并加载关联系统用户与部门，供列表展示名称。
+    /// </summary>
+    public override async Task<(IEnumerable<Purchaser> Data, int Total)> GetPagedAsync(
+        Expression<Func<Purchaser, bool>>? predicate,
+        int pageNumber,
+        int pageSize,
+        Expression<Func<Purchaser, object>>? orderBy = null,
+        bool isDescending = false)
+    {
+        return await PagedFromQueryAsync(
+            DbSet.AsNoTracking()
+                .Include(x => x.User)
+                .Include(x => x.Department),
+            predicate,
+            pageNumber,
+            pageSize,
+            orderBy,
+            isDescending);
     }
 }
 

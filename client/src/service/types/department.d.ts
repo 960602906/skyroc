@@ -21,7 +21,5 @@ declare namespace Api {
     >;
 
     type UpdateParams = CreateParams & { id: string };
-
-    type Tree = Entity[];
   }
 }

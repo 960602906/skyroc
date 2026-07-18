@@ -685,6 +685,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       code: 'Purchaser Code',
       createTime: 'Created At',
       departmentId: 'Department',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Purchaser Detail',
+        updateTime: 'Updated At'
+      },
       editPurchaser: 'Edit Purchaser',
       form: {
         code: 'Please enter purchaser code',
@@ -697,8 +703,11 @@ const page: App.I18n.Schema['translation']['page'] = {
       name: 'Purchaser Name',
       phone: 'Phone',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionStatus: 'Status & Remark',
       status: 'Status',
-      title: 'Purchaser List'
+      title: 'Purchaser List',
+      userName: 'Linked User'
     },
     rule: {
       addRule: 'Add Purchase Rule',

@@ -8,17 +8,7 @@ import { QUERY_KEYS } from '@/service/keys';
 
 type RuleKey = 'code' | 'name';
 
-type DepartmentTreeNode = {
-  title: string;
-  value: string;
-};
-
-function flattenDepartmentTree(nodes: Api.Department.Entity[]): DepartmentTreeNode[] {
-  return nodes.flatMap(node => [
-    { title: node.name, value: node.id },
-    ...(node.children?.length ? flattenDepartmentTree(node.children) : [])
-  ]);
-}
+type DepartmentTreeNode = Api.Department.Entity & { children?: DepartmentTreeNode[] };
 
 const PurchaserOperateDrawer: FC<Page.OperateDrawerProps> = memo(
   ({ form, handleSubmit, onClose, open, operateType }) => {
@@ -27,11 +17,11 @@ const PurchaserOperateDrawer: FC<Page.OperateDrawerProps> = memo(
     const { defaultRequiredRule } = useFormRules();
 
     const { data: departmentTree } = useQuery({
+      enabled: open,
       queryFn: fetchGetDepartmentTree,
-      queryKey: QUERY_KEYS.BASE.DEPARTMENT_TREE
+      queryKey: QUERY_KEYS.BASE.DEPARTMENT_TREE,
+      staleTime: 60_000
     });
-
-    const departmentOptions = useMemo(() => flattenDepartmentTree(departmentTree ?? []), [departmentTree]);
 
     const rules: Record<RuleKey, App.Global.FormRule> = {
       code: defaultRequiredRule,
@@ -98,9 +88,10 @@ const PurchaserOperateDrawer: FC<Page.OperateDrawerProps> = memo(
               allowClear
               showSearch
               treeDefaultExpandAll
+              fieldNames={{ children: 'children', label: 'name', value: 'id' }}
               placeholder={t('page.purchase.purchaser.form.departmentId')}
-              treeData={departmentOptions}
-              treeNodeFilterProp="title"
+              treeData={(departmentTree ?? []) as DepartmentTreeNode[]}
+              treeNodeFilterProp="name"
             />
           </AForm.Item>
 

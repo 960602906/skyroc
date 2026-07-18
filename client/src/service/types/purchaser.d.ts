@@ -3,10 +3,14 @@ declare namespace Api {
     type Entity = Common.CommonRecord<{
       code: string;
       departmentId: string | null;
+      /** 所属部门名称（列表/详情回填） */
+      departmentName: string | null;
       name: string;
       phone: string | null;
       remark: string | null;
       userId: string | null;
+      /** 关联系统用户名（列表/详情回填） */
+      userName: string | null;
     }>;
 
     type CreateParams = CommonType.RecordNullable<

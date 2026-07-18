@@ -689,6 +689,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       code: '采购员编码',
       createTime: '创建时间',
       departmentId: '所属部门',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '采购员详情',
+        updateTime: '更新时间'
+      },
       editPurchaser: '编辑采购员',
       form: {
         code: '请输入采购员编码',
@@ -701,8 +707,11 @@ const page: App.I18n.Schema['translation']['page'] = {
       name: '采购员名称',
       phone: '手机号',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionStatus: '状态与备注',
       status: '状态',
-      title: '采购员列表'
+      title: '采购员列表',
+      userName: '关联用户'
     },
     rule: {
       addRule: '新增采购规则',
