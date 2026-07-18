@@ -1,11 +1,13 @@
 import { combineSlices, configureStore } from '@reduxjs/toolkit';
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
 
-import { appSlice } from '../features/app';
-import { authSlice } from '../features/auth';
-import { routeSlice } from '../features/router';
-import { tabSlice } from '../features/tab';
-import { themeSlice } from '../features/theme';
+// 必须从具体 store 文件导入，禁止走 feature barrel：
+// barrel 会连带执行 router.ts（顶层 navigator()），与 store 形成循环依赖。
+import { appSlice } from '../features/app/app-store';
+import { authSlice } from '../features/auth/auth-store';
+import { routeSlice } from '../features/router/route-store';
+import { tabSlice } from '../features/tab/tab-store';
+import { themeSlice } from '../features/theme/theme-settings-store';
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.

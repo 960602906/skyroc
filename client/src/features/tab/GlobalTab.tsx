@@ -5,7 +5,7 @@ import BetterScroll from '@/components/BetterScroll';
 import { getFullContent, toggleFullContent } from '@/features/app';
 import { isPC } from '@/utils/agent';
 
-import { setRemoveCacheKey } from '../router';
+import { setRemoveCacheKey } from '../router/route-store';
 import { useTheme, useThemeSettings } from '../theme';
 
 import ContextMenu from './TabContextMenu';

@@ -5,16 +5,16 @@ import { globalConfig } from '@/config';
 import { initCacheRoutes, routes } from '@/router';
 import { store } from '@/store';
 
-import { getIsLogin } from '../auth';
+import { getIsLogin } from '../auth/auth-store';
 
 import { initAuthRoutes } from './initRouter';
 import { type LocationQueryRaw, stringifyQuery } from './query';
 import { setCacheRoutes } from './route-store';
 
 /**
- * 根据配置创建路由实例
+ * ??????????
  *
- * 支持 history 和 hash 两种模式，由 globalConfig.routerMode 控制
+ * ?? history ? hash ?????? globalConfig.routerMode ??
  */
 function createRouterInstance() {
   const routerCreator = globalConfig.routerMode === 'hash' ? createHashRouter : createBrowserRouter;
@@ -71,12 +71,12 @@ function initRouter() {
   };
 }
 
-/** 扩展的导航选项，支持 query 参数 */
+/** ?????????? query ?? */
 type ExtendedNavigateOptions = RouterNavigateOptions & {
   query?: LocationQueryRaw;
 };
 
-/** 构建带查询参数的路径 */
+/** ?????????? */
 function buildPathWithQuery(path: To, query?: LocationQueryRaw): To {
   if (!query) return path;
 
@@ -105,7 +105,7 @@ function navigator() {
     reactRouter.navigate(delta);
   }
 
-  /** 替换当前历史记录并导航到新路径 支持完整的 RouterNavigateOptions 和 query 参数 */
+  /** ??????????????? ????? RouterNavigateOptions ? query ?? */
   function replace(path: To, options?: ExtendedNavigateOptions) {
     const { query, ...navigateOptions } = options || {};
     const finalPath = buildPathWithQuery(path, query);
@@ -126,23 +126,23 @@ function navigator() {
   }
 
   /**
-   * 推入新的历史记录并导航到新路径 支持完整的 RouterNavigateOptions 和 query 参数
+   * ??????????????? ????? RouterNavigateOptions ? query ??
    *
    * @example
-   *   // 基础用法
+   *   // ????
    *   router.push('/users');
    *
-   *   // 带查询参数
+   *   // ?????
    *   router.push('/users', { query: { page: 1, size: 10 } });
    *
-   *   // 带状态和选项
+   *   // ??????
    *   router.push('/users', {
    *     query: { page: 1 },
    *     state: { from: 'home' },
    *     preventScrollReset: true
    *   });
    *
-   *   // 替换模式（向后兼容）
+   *   // ??????????
    *   router.push('/users', { replace: true });
    */
   function push(path: To, options?: ExtendedNavigateOptions) {
@@ -152,7 +152,7 @@ function navigator() {
     reactRouter.navigate(finalPath, navigateOptions);
   }
 
-  /** 导航到指定路径（navigate 的语义化别名） */
+  /** ????????navigate ??????? */
   function goTo(path: To, options?: ExtendedNavigateOptions) {
     const { query, ...navigateOptions } = options || {};
     const finalPath = buildPathWithQuery(path, query);
@@ -160,32 +160,32 @@ function navigator() {
     reactRouter.navigate(finalPath, navigateOptions);
   }
 
-  /** 获取当前位置信息 */
+  /** ???????? */
   function getLocation() {
     return reactRouter.state.location;
   }
 
-  /** 获取当前路径名 */
+  /** ??????? */
   function getPathname() {
     return reactRouter.state.location.pathname;
   }
 
-  /** 获取当前查询参数 */
+  /** ???????? */
   function getSearch() {
     return reactRouter.state.location.search;
   }
 
-  /** 获取当前 hash */
+  /** ???? hash */
   function getHash() {
     return reactRouter.state.location.hash;
   }
 
-  /** 获取当前状态 */
+  /** ?????? */
   function getState() {
     return reactRouter.state.location.state;
   }
 
-  /** 检查是否可以后退（基于浏览器历史记录） */
+  /** ??????????????????? */
   function canGoBack() {
     return window.history.length > 1;
   }

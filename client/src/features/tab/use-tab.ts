@@ -4,7 +4,7 @@ import { useRoute, useRouter } from '@/features/router';
 import { localStg } from '@/utils/storage';
 
 import { getActiveFirstLevelMenuKey } from '../menu/MenuUtil';
-import { setRemoveCacheKey } from '../router';
+import { setRemoveCacheKey } from '../router/route-store';
 import { useThemeSettings } from '../theme';
 
 import { getFixedTabs, getTabByRoute, isTabInTabs } from './shared';
@@ -51,7 +51,7 @@ export function useTabActions() {
   const _tabIds = tabs.map(tab => tab.id);
 
   /**
-   * 切换激活的标签页
+   * 切杢激活的标签页
    *
    * @param tabId
    */
@@ -60,7 +60,7 @@ export function useTabActions() {
   }
 
   /**
-   * 根据标签页切换路由
+   * 根杮标签页切杢路由
    *
    * @param tab
    */
@@ -78,7 +78,7 @@ export function useTabActions() {
   function _clearTabs(excludes: string[] = []) {
     const remainTabIds = [..._fixedTabs.map(tab => tab.id), ...excludes];
 
-    // ② 单次遍历拆分：收集待删除 tab，收集 keepAlive‑cache key
+    // ② 坕次靝历拆分：收集待删除 tab，收集 keepAlive‑cache key
     const removeKeepKeys: string[] = [];
     const updatedTabs: App.Global.Tab[] = [];
 
@@ -91,7 +91,7 @@ export function useTabActions() {
     // 如果一次都没删，直接返回
     if (updatedTabs.length === tabs.length) return;
 
-    // ③ 处理激活页逻辑
+    // ③ 处睆激活页逻辑
     if (!remainTabIds.includes(activeTabId)) {
       const currentIndex = tabs.findIndex(tab => tab.id === activeTabId);
 
@@ -122,7 +122,7 @@ export function useTabActions() {
   }
 
   /**
-   * 清除右侧标签页
+   * 清除坳侧标签页
    *
    * @param tabId
    */
@@ -147,7 +147,7 @@ export function useTabActions() {
    * @param tabId
    */
   function removeTabById(tabId: string) {
-    const excludes = _tabIds // 除了要删的，其余都保留
+    const excludes = _tabIds // 除了覝删的，其余都保留
       .filter(t => t !== tabId);
 
     _clearTabs(excludes);
@@ -158,7 +158,7 @@ export function useTabActions() {
   }
 
   /**
-   * 判断标签页是否保留
+   * 判断标签页是坦保留
    *
    * @param tabId
    * @returns
@@ -171,10 +171,10 @@ export function useTabActions() {
     // 清除左侧标签页
     if (eventName === TabEvent.CLEAR_LEFT_TABS) return _clearLeftTabs(id);
 
-    // 清除右侧标签页
+    // 清除坳侧标签页
     if (eventName === TabEvent.CLEAR_RIGHT_TABS) return _clearRightTabs(id);
 
-    // 关闭当前标签页
+    // 关闭当剝标签页
     if (eventName === TabEvent.CLOSE_CURRENT) return removeTabById(id);
 
     // 关闭其他标签页

@@ -8,9 +8,9 @@ import { queryClient } from '@/service/queryClient';
 import { store } from '@/store';
 import { localStg } from '@/utils/storage';
 
-import { resetRouteStore } from '../router';
-import { clearTabs, selectTabs } from '../tab';
-import { getThemeSettings } from '../theme';
+import { resetRouteStore } from '../router/route-store';
+import { clearTabs, selectTabs } from '../tab/tab-store';
+import { getThemeSettings } from '../theme/theme-settings-store';
 
 import { getIsLogin, resetAuth as resetAuthAction, setToken } from './auth-store';
 import { clearAuthStorage, getUserInfo } from './shared';
