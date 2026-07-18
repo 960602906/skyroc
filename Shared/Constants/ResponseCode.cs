@@ -30,6 +30,11 @@ public enum ResponseCode
     Unauthorized = 401,
 
     /// <summary>
+    ///     访问令牌已过期，客户端应使用 refresh token 续期后重试
+    /// </summary>
+    TokenExpired = 4011,
+
+    /// <summary>
     ///     认证失败
     /// </summary>
     AuthenticationFailed = 402,

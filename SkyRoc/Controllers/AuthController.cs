@@ -54,7 +54,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     /// <summary>
-    ///     刷新令牌
+    ///     刷新令牌。
+    ///     失败时返回 <c>code=401</c>（不得返回 TokenExpired，以免客户端刷新死循环）。
     /// </summary>
     /// <param name="request">刷新令牌。</param>
     /// <returns>新的访问令牌与刷新令牌。</returns>
@@ -63,6 +64,9 @@ public class AuthController(IAuthService authService) : ControllerBase
     public async Task<ActionResult<ApiResponse<LoginResDto?>>> RefreshToken([FromBody] RefreshTokenReqDto request)
     {
         var loginUser = await authService.RefreshTokenAsync(request.RefreshToken);
+        if (loginUser is null)
+            return Ok(ApiResponse<LoginResDto?>.Unauthorized("刷新令牌无效或已过期，请重新登录"));
+
         return Ok(ApiResponse<LoginResDto?>.Ok(loginUser));
     }
 

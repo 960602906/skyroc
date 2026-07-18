@@ -106,6 +106,18 @@ public class ApiResponse<T>
         };
     }
 
+    /// <summary>
+    ///     访问令牌已过期（客户端应 refresh 后重试；refresh 接口本身不得返回此码）
+    /// </summary>
+    public static ApiResponse<T> TokenExpired(string message = "令牌已过期，请刷新令牌")
+    {
+        return new ApiResponse<T>
+        {
+            Code = ResponseCode.TokenExpired,
+            Msg = message,
+            Data = default
+        };
+    }
 
     /// <summary>
     ///     无权限

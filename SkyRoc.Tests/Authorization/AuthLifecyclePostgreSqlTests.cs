@@ -1,11 +1,15 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using Application.DTOs.Auth;
 using Domain.Entities;
 using Domain.Entities.System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Shared.Common;
 using Shared.Constants;
 using SkyRoc.Tests.Common;
@@ -199,9 +203,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
                        new RefreshTokenReqDto { RefreshToken = login.RefreshToken }))
             {
                 Assert.Equal(HttpStatusCode.OK, reuseOldRefresh.StatusCode);
-                var reusePayload = await ReadApiResponseAsync<LoginResDto?>(reuseOldRefresh);
-                Assert.Equal(ResponseCode.Success, reusePayload.Code);
-                Assert.Null(reusePayload.Data);
+                await ApiHttpAssert.AssertBusinessCodeAsync(reuseOldRefresh, ResponseCode.Unauthorized);
             }
 
             using var refreshedClient = factory.CreateClient();
@@ -232,8 +234,7 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
                        new RefreshTokenReqDto { RefreshToken = refreshed.RefreshToken }))
             {
                 Assert.Equal(HttpStatusCode.OK, afterLogoutRefresh.StatusCode);
-                var afterLogoutPayload = await ReadApiResponseAsync<LoginResDto?>(afterLogoutRefresh);
-                Assert.Null(afterLogoutPayload.Data);
+                await ApiHttpAssert.AssertBusinessCodeAsync(afterLogoutRefresh, ResponseCode.Unauthorized);
             }
 
             // 访问令牌已吊销后，受保护的重复注销应拒绝认证；刷新令牌侧的幂等失效已在上一断言覆盖
@@ -310,6 +311,40 @@ public class AuthLifecyclePostgreSqlTests(PostgreSqlTestFixture fixture)
             Assert.False(await residualContext.OperationLogs.AnyAsync(log =>
                 log.CreateName == enabledUsername || log.CreateName == disabledUsername));
         }
+    }
+
+    /// <summary>
+    ///     Access JWT 已过期时，受保护接口返回专用业务码 TokenExpired（4011），供客户端静默 refresh。
+    /// </summary>
+    [Fact]
+    public async Task GetUserInfo_ReturnsTokenExpired_WhenAccessJwtIsExpired()
+    {
+        using var factory = fixture.CreateWebApplicationFactory();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(AuthConstants.BearerScheme, CreateExpiredAccessToken());
+
+        using var response = await client.GetAsync("/api/auth/getUserInfo");
+        await ApiHttpAssert.AssertBusinessCodeAsync(response, ResponseCode.TokenExpired);
+    }
+
+    /// <summary>
+    ///     使用与 PostgreSQL 测试宿主相同的签名密钥签发已过期的 access JWT。
+    /// </summary>
+    private static string CreateExpiredAccessToken()
+    {
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes("postgresql-test-only-key-with-at-least-32-bytes"));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            "skyrocket",
+            "skyrocket",
+            [new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString("N"))],
+            notBefore: DateTime.UtcNow.AddHours(-2),
+            expires: DateTime.UtcNow.AddHours(-1),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     private static void RegisterLoginLogs(BatchCleanupRegistry registry, IEnumerable<LoginLog> loginLogs)

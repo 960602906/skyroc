@@ -101,16 +101,15 @@ public static class AuthExtensions
     }
 
     /// <summary>
-    ///     认证失败时（Token 无效、过期等）- 不直接返回错误
+    ///     认证失败时（Token 无效、过期等）：把异常挂到 HttpContext，供授权挑战出口区分业务码。
     /// </summary>
-    /// <param name="context"></param>
-    private static async Task OnAuthenticationFailed(AuthenticationFailedContext context)
+    private static Task OnAuthenticationFailed(AuthenticationFailedContext context)
     {
-        //✅ 不要 context.NoResult()，让流程继续
-        // ✅ 不要直接 WriteAsJsonAsync，让后续中间件处理
+        // 不在此写响应；Authorization 中间件挑战时由 ApiAuthorizationMiddlewareResultHandler 统一输出。
+        if (context.Exception is not null)
+            context.HttpContext.Items[AuthConstants.AuthenticateFailureItemKey] = context.Exception;
 
-
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -154,21 +153,21 @@ public static class AuthExtensions
     {
         return exception switch
         {
-            // ⭐ 1. 令牌过期 - 最常见的情况
-            SecurityTokenExpiredException => WriteUnauthorizedChallengeAsync(
+            // 访问令牌过期：返回专用业务码，供客户端静默 refresh 后重试
+            SecurityTokenExpiredException => WriteChallengeAsync(
                 context,
-                "令牌已过期，请重新登录或刷新令牌"),
-            // 5. 发行者无效
+                ApiResponse<string>.TokenExpired("令牌已过期，请刷新令牌")),
+            // 发行者无效
             SecurityTokenInvalidIssuerException => WriteUnauthorizedChallengeAsync(
                 context,
                 "令牌发行者无效"),
-            // 6. 受众无效
+            // 受众无效
             SecurityTokenInvalidAudienceException => WriteUnauthorizedChallengeAsync(
                 context,
                 "令牌受众无效"),
-            // 7. 其他安全令牌异常（含注销后缓存失效）
+            // 其他安全令牌异常（含注销后缓存失效）
             SecurityTokenException => WriteUnauthorizedChallengeAsync(context, exception.Message),
-            // 8. 其他未知异常
+            // 其他未知异常
             _ => WriteChallengeAsync(
                 context,
                 new ApiResponse<string>

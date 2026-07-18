@@ -131,15 +131,13 @@ public class AuthDisabledUserLoginPostgreSqlTests(PostgreSqlTestFixture fixture)
                 await disableContext.SaveChangesAsync();
             }
 
-            // 禁用后刷新应返回空 data，且旧 refresh 被吊销
+            // 禁用后刷新应返回 401，且旧 refresh 被吊销
             using (var refreshResponse = await client.PostAsJsonAsync(
                        "/api/auth/refresh-token",
                        new RefreshTokenReqDto { RefreshToken = login.RefreshToken }))
             {
                 Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
-                var refreshPayload = await ReadApiResponseAsync<LoginResDto?>(refreshResponse);
-                Assert.Equal(ResponseCode.Success, refreshPayload.Code);
-                Assert.Null(refreshPayload.Data);
+                await ApiHttpAssert.AssertBusinessCodeAsync(refreshResponse, ResponseCode.Unauthorized);
             }
 
             using (var reuseRefresh = await client.PostAsJsonAsync(
@@ -147,8 +145,7 @@ public class AuthDisabledUserLoginPostgreSqlTests(PostgreSqlTestFixture fixture)
                        new RefreshTokenReqDto { RefreshToken = login.RefreshToken }))
             {
                 Assert.Equal(HttpStatusCode.OK, reuseRefresh.StatusCode);
-                var reusePayload = await ReadApiResponseAsync<LoginResDto?>(reuseRefresh);
-                Assert.Null(reusePayload.Data);
+                await ApiHttpAssert.AssertBusinessCodeAsync(reuseRefresh, ResponseCode.Unauthorized);
             }
 
             // 禁用后再次登录仍被拒绝
