@@ -1,4 +1,4 @@
-import { EnableStatusSelect, SearchActions } from '@/features/crud';
+import { EnableStatusSelect, SearchActionsCol } from '@/features/crud';
 import { useQuotationOptions } from '@/service/hooks';
 
 const ProtocolSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
@@ -79,18 +79,11 @@ const ProtocolSearch: FC<Page.SearchProps> = memo(({ form, reset, search, search
           </AForm.Item>
         </ACol>
 
-        <ACol
-          lg={6}
-          md={12}
-          span={24}
-        >
-          <AForm.Item className="m-0">
-            <SearchActions
-              onReset={reset}
-              onSearch={search}
-            />
-          </AForm.Item>
-        </ACol>
+        <SearchActionsCol
+          fieldCount={4}
+          onReset={reset}
+          onSearch={search}
+        />
       </ARow>
     </AForm>
   );

@@ -1,6 +1,6 @@
-import { Button, Col, Flex, Form, Input, Row } from 'antd';
+import { Col, Form, Input, Row } from 'antd';
 
-import { EnableStatusSelect, UserGenderSelect } from '@/features/crud';
+import { EnableStatusSelect, SearchActionsCol, UserGenderSelect } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 
 const UserSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
@@ -108,33 +108,11 @@ const UserSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPara
           </Form.Item>
         </Col>
 
-        <Col
-          lg={12}
-          span={24}
-        >
-          <Form.Item className="m-0">
-            <Flex
-              align="center"
-              gap={12}
-              justify="end"
-            >
-              <Button
-                icon={<IconIcRoundRefresh />}
-                onClick={reset}
-              >
-                {t('common.reset')}
-              </Button>
-              <Button
-                ghost
-                icon={<IconIcRoundSearch />}
-                type="primary"
-                onClick={search}
-              >
-                {t('common.search')}
-              </Button>
-            </Flex>
-          </Form.Item>
-        </Col>
+        <SearchActionsCol
+          fieldCount={6}
+          onReset={reset}
+          onSearch={search}
+        />
       </Row>
     </Form>
   );

@@ -1,4 +1,4 @@
-import { EnableStatusSelect } from '@/features/crud';
+import { EnableStatusSelect, SearchActionsCol } from '@/features/crud';
 
 const SupplierSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -58,34 +58,11 @@ const SupplierSearch: FC<Page.SearchProps> = memo(({ form, reset, search, search
           </AForm.Item>
         </ACol>
 
-        <ACol
-          lg={6}
-          md={12}
-          span={24}
-        >
-          <AForm.Item className="m-0">
-            <AFlex
-              align="center"
-              gap={12}
-              justify="end"
-            >
-              <AButton
-                icon={<IconIcRoundRefresh />}
-                onClick={reset}
-              >
-                {t('common.reset')}
-              </AButton>
-              <AButton
-                ghost
-                icon={<IconIcRoundSearch />}
-                type="primary"
-                onClick={search}
-              >
-                {t('common.search')}
-              </AButton>
-            </AFlex>
-          </AForm.Item>
-        </ACol>
+        <SearchActionsCol
+          fieldCount={3}
+          onReset={reset}
+          onSearch={search}
+        />
       </ARow>
     </AForm>
   );

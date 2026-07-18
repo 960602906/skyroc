@@ -1,4 +1,4 @@
-import { EnableStatusSelect, SearchActions } from '@/features/crud';
+import { EnableStatusSelect, SearchActionsCol } from '@/features/crud';
 import { toOptions, useGoodsTypeOptions, useSupplierOptions, useWareOptions } from '@/service/hooks';
 
 const GoodsSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
@@ -131,18 +131,11 @@ const GoodsSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
             <EnableStatusSelect placeholder={t('page.goods.list.form.status')} />
           </AForm.Item>
         </ACol>
-        <ACol
-          lg={6}
-          md={12}
-          span={24}
-        >
-          <AForm.Item className="m-0">
-            <SearchActions
-              onReset={reset}
-              onSearch={search}
-            />
-          </AForm.Item>
-        </ACol>
+        <SearchActionsCol
+          fieldCount={7}
+          onReset={reset}
+          onSearch={search}
+        />
       </ARow>
     </AForm>
   );

@@ -1,4 +1,4 @@
-import { SearchActions } from '@/features/crud';
+import { SearchActionsCol } from '@/features/crud';
 import { toOptions, useGoodsOptions, useProtocolOptions } from '@/service/hooks';
 
 const ProtocolGoodsSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
@@ -56,18 +56,11 @@ const ProtocolGoodsSearch: FC<Page.SearchProps> = memo(({ form, reset, search, s
           </AForm.Item>
         </ACol>
 
-        <ACol
-          lg={6}
-          md={12}
-          span={24}
-        >
-          <AForm.Item className="m-0">
-            <SearchActions
-              onReset={reset}
-              onSearch={search}
-            />
-          </AForm.Item>
-        </ACol>
+        <SearchActionsCol
+          fieldCount={2}
+          onReset={reset}
+          onSearch={search}
+        />
       </ARow>
     </AForm>
   );

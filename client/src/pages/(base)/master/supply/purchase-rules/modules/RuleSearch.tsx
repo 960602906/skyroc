@@ -1,4 +1,4 @@
-import { EnableStatusSelect, SearchActions } from '@/features/crud';
+import { EnableStatusSelect, SearchActionsCol } from '@/features/crud';
 import { translateOptions } from '@/utils/common';
 
 const purchasePatternOptions = [
@@ -82,18 +82,11 @@ const RuleSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPara
           </AForm.Item>
         </ACol>
 
-        <ACol
-          lg={6}
-          md={12}
-          span={24}
-        >
-          <AForm.Item className="m-0">
-            <SearchActions
-              onReset={reset}
-              onSearch={search}
-            />
-          </AForm.Item>
-        </ACol>
+        <SearchActionsCol
+          fieldCount={4}
+          onReset={reset}
+          onSearch={search}
+        />
       </ARow>
     </AForm>
   );
