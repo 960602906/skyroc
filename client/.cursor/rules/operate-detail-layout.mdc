@@ -82,8 +82,8 @@ closeTabAndNavigate(listPath);
 
 | 要求 | 说明 |
 | --- | --- |
-| API | 统一用 `useCloseTabAndNavigate`（`@/features/tab`），内部先 `removeTabById(activeTabId)` 再 `nav(path)` |
-| 禁止 | 仅 `nav(listPath)` 而不关签；在页面内复制一套关签逻辑 |
+| API | 统一用 `useCloseTabAndNavigate`（`@/features/tab`）：只移除当前签再 `nav(path)`，**不要**走 `removeTabById`（会先跳邻签再跳目标，易闪错误页） |
+| 禁止 | 仅 `nav(listPath)` 而不关签；在页面内复制一套关签逻辑；先 `removeTabById` 再 `nav` |
 | 范围 | 仅全页 operate/detail；列表页上的 Drawer/Modal 编辑不关签 |
 | 详情点「编辑」 | 进入编辑页，**不**关详情签（用户可能返回对照） |
 

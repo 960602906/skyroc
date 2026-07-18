@@ -5,6 +5,8 @@ export { default as EnableStatusFormItem } from './EnableStatusFormItem';
 export { default as EnableStatusSelect } from './EnableStatusSelect';
 export { default as MenuTypeBadge } from './MenuTypeBadge';
 export { default as MenuTypeSelect } from './MenuTypeSelect';
+export { default as PurchasePatternBadge } from './PurchasePatternBadge';
+export { default as PurchasePatternSelect } from './PurchasePatternSelect';
 export * from './render-status';
 export { getSearchActionsSpan } from './search-actions-span';
 export { default as SearchActions, SearchActionsCol } from './SearchActions';

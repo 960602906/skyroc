@@ -84,6 +84,8 @@ export const routeMap: RouteMap = {
  "(base)_master_pricing_quotations_detail_[id]": "/master/pricing/quotations/detail/:id",
  "(base)_master_supply": "/master/supply",
  "(base)_master_supply_purchase-rules": "/master/supply/purchase-rules",
+ "(base)_master_supply_purchase-rules_detail": "/master/supply/purchase-rules/detail",
+ "(base)_master_supply_purchase-rules_detail_[id]": "/master/supply/purchase-rules/detail/:id",
  "(base)_master_supply_purchasers": "/master/supply/purchasers",
  "(base)_master_supply_purchasers_detail": "/master/supply/purchasers/detail",
  "(base)_master_supply_purchasers_detail_[id]": "/master/supply/purchasers/detail/:id",

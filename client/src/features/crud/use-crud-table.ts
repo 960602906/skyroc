@@ -4,6 +4,7 @@ export function createIndexColumn(t: App.I18n.$T) {
   return {
     align: 'center' as const,
     dataIndex: 'index' as const,
+    fixed: 'left' as const,
     key: 'index' as const,
     title: t('common.index'),
     width: 64

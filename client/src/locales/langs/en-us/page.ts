@@ -713,6 +713,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       addRule: 'Add Purchase Rule',
       code: 'Rule Code',
       createTime: 'Created At',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Purchase Rule Detail',
+        updateTime: 'Updated At'
+      },
       editRule: 'Edit Purchase Rule',
       form: {
         code: 'Please enter rule code',
@@ -732,6 +738,9 @@ const page: App.I18n.Schema['translation']['page'] = {
       purchasePatternMarket: 'Market Purchase',
       purchaserId: 'Purchaser',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionRelation: 'Related Info',
+      sectionStatus: 'Status & Remark',
       status: 'Status',
       supplierId: 'Supplier',
       title: 'Purchase Rule List',

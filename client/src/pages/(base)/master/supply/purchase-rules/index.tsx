@@ -6,6 +6,7 @@ import {
   createDefaultSearchParams,
   createIndexColumn,
   renderEnableStatus,
+  renderPurchasePattern,
   toggleEntityStatus
 } from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
@@ -24,11 +25,6 @@ import RuleSearch from './modules/RuleSearch';
 
 const RuleOperateDrawer = lazy(() => import('./modules/RuleOperateDrawer'));
 
-const purchasePatternRecord: Record<number, App.I18n.I18nKey> = {
-  1: 'page.purchase.rule.purchasePatternDirect',
-  2: 'page.purchase.rule.purchasePatternMarket'
-};
-
 function resolveOptionLabel(id: string | null, options?: { id: string; name: string }[]) {
   if (!id) {
     return null;
@@ -39,6 +35,7 @@ function resolveOptionLabel(id: string | null, options?: { id: string; name: str
 
 const RuleManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const { data: goodsTypes } = useGoodsTypeOptions();
   const { data: suppliers } = useSupplierOptions();
@@ -65,34 +62,40 @@ const RuleManage = () => {
       {
         align: 'center',
         dataIndex: 'name',
+        fixed: 'left',
         key: 'name',
+        render: (name: string, record) => (
+          <AButton
+            className="p-0"
+            type="link"
+            onClick={() => nav(`/master/supply/purchase-rules/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.purchase.rule.name'),
-        width: 240
+        width: 250
       },
       {
         align: 'center',
         dataIndex: 'code',
+        ellipsis: true,
         key: 'code',
-        minWidth: 120,
-        title: t('page.purchase.rule.code')
+        title: t('page.purchase.rule.code'),
+        width: 180
       },
       {
         align: 'center',
         dataIndex: 'purchasePattern',
         key: 'purchasePattern',
-        render: (_, record) => {
-          const key = purchasePatternRecord[record.purchasePattern];
-          return key ? t(key) : record.purchasePattern;
-        },
-        title: t('page.purchase.rule.purchasePattern'),
-        width: 120
+        render: (_, record) => renderPurchasePattern(record.purchasePattern),
+        title: t('page.purchase.rule.purchasePattern')
       },
       {
         align: 'center',
         dataIndex: 'goodsTypeId',
         ellipsis: true,
         key: 'goodsTypeId',
-        minWidth: 120,
         render: (_, record) => resolveOptionLabel(record.goodsTypeId, goodsTypes),
         title: t('page.purchase.rule.goodsTypeId')
       },
@@ -101,7 +104,6 @@ const RuleManage = () => {
         dataIndex: 'supplierId',
         ellipsis: true,
         key: 'supplierId',
-        minWidth: 120,
         render: (_, record) => resolveOptionLabel(record.supplierId, suppliers),
         title: t('page.purchase.rule.supplierId')
       },
@@ -110,7 +112,6 @@ const RuleManage = () => {
         dataIndex: 'purchaserId',
         ellipsis: true,
         key: 'purchaserId',
-        minWidth: 120,
         render: (_, record) => resolveOptionLabel(record.purchaserId, purchasers),
         title: t('page.purchase.rule.purchaserId')
       },
@@ -119,7 +120,6 @@ const RuleManage = () => {
         dataIndex: 'wareId',
         ellipsis: true,
         key: 'wareId',
-        minWidth: 120,
         render: (_, record) => resolveOptionLabel(record.wareId, wares),
         title: t('page.purchase.rule.wareId')
       },
@@ -175,7 +175,8 @@ const RuleManage = () => {
         width: 210
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =

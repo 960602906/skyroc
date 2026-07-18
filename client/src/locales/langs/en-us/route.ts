@@ -55,6 +55,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_pricing_quotations_detail_[id]': 'Quotation Detail',
   '(base)_master_supply': 'Supply & Warehouse',
   '(base)_master_supply_purchase-rules': 'Purchase Rules',
+  '(base)_master_supply_purchase-rules_detail': 'Purchase Rule Detail',
+  '(base)_master_supply_purchase-rules_detail_[id]': 'Purchase Rule Detail',
   '(base)_master_supply_purchasers': 'Purchasers',
   '(base)_master_supply_purchasers_detail': 'Purchaser Detail',
   '(base)_master_supply_purchasers_detail_[id]': 'Purchaser Detail',

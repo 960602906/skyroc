@@ -1,12 +1,20 @@
 declare namespace Api {
   namespace PurchaseRule {
+    /**
+     * 采购模式
+     *
+     * - 1: 供应商直供
+     * - 2: 市场自采
+     */
+    type PurchasePattern = import('../enums').PurchasePatternValue;
+
     type Entity = Common.CommonRecord<{
       code: string;
       customerIds: string[] | null;
       goodsIds: string[] | null;
       goodsTypeId: string | null;
       name: string;
-      purchasePattern: number;
+      purchasePattern: PurchasePattern;
       purchaserId: string | null;
       remark: string | null;
       supplierId: string | null;
@@ -35,7 +43,7 @@ declare namespace Api {
     type SearchParams = CommonType.RecordNullable<
       Api.Base.SearchParams & {
         goodsTypeId?: string | null;
-        purchasePattern?: number | null;
+        purchasePattern?: PurchasePattern | null;
         purchaserId?: string | null;
         supplierId?: string | null;
         wareId?: string | null;

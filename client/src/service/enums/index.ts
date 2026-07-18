@@ -5,4 +5,5 @@
  */
 
 export * from './common';
+export * from './purchase';
 export * from './system-manage';

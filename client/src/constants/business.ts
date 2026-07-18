@@ -27,3 +27,10 @@ export const menuIconTypeRecord: Record<Api.SystemManage.IconType, App.I18n.I18n
 };
 
 export const menuIconTypeOptions = transformRecordToOption(menuIconTypeRecord, true);
+
+export const purchasePatternRecord: Record<Api.PurchaseRule.PurchasePattern, App.I18n.I18nKey> = {
+  1: 'page.purchase.rule.purchasePatternDirect',
+  2: 'page.purchase.rule.purchasePatternMarket'
+};
+
+export const purchasePatternOptions = transformRecordToOption(purchasePatternRecord, true);

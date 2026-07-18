@@ -712,7 +712,43 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_supply_purchase-rules',
                       icon: 'mdi:clipboard-list-outline',
                       order: 3
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [
+                          null,
+                          '/src/pages/(base)/master/supply/purchase-rules/detail/index.tsx',
+                          null,
+                          null
+                        ],
+                        name: '(base)_master_supply_purchase-rules_detail',
+                        path: '/master/supply/purchase-rules/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_supply_purchase-rules_detail',
+                          title: '(base)_master_supply_purchase-rules_detail',
+                          activeMenu: '/master/supply/purchase-rules',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/master/supply/purchase-rules/detail/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_master_supply_purchase-rules_detail_[id]',
+                            path: '/master/supply/purchase-rules/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_supply_purchase-rules_detail_[id]',
+                              title: '(base)_master_supply_purchase-rules_detail_[id]',
+                              activeMenu: '/master/supply/purchase-rules',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/master/supply/purchasers/index.tsx', null, null],

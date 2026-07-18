@@ -1073,6 +1073,12 @@ declare namespace App {
               addRule: string;
               code: string;
               createTime: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               editRule: string;
               form: {
                 code: string;
@@ -1092,6 +1098,9 @@ declare namespace App {
               purchasePatternMarket: string;
               purchaserId: string;
               remark: string;
+              sectionBasic: string;
+              sectionRelation: string;
+              sectionStatus: string;
               status: string;
               supplierId: string;
               title: string;

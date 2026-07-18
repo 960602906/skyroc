@@ -717,6 +717,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       addRule: '新增采购规则',
       code: '规则编码',
       createTime: '创建时间',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '采购规则详情',
+        updateTime: '更新时间'
+      },
       editRule: '编辑采购规则',
       form: {
         code: '请输入规则编码',
@@ -736,6 +742,9 @@ const page: App.I18n.Schema['translation']['page'] = {
       purchasePatternMarket: '市场自采',
       purchaserId: '采购员',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionRelation: '关联信息',
+      sectionStatus: '状态与备注',
       status: '状态',
       supplierId: '供应商',
       title: '采购规则列表',

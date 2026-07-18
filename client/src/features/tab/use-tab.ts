@@ -195,14 +195,32 @@ export function useTabActions() {
   };
 }
 
-/** 关闭当前页签并跳转到目标路径。 用于档案类新增/编辑/详情页的取消、返回列表、保存成功。 */
+/**
+ * 关闭当前页签并跳转到目标路径。 用于档案类新增/编辑/详情页的取消、返回列表、保存成功。
+ *
+ * 注意：不能复用 removeTabById —— 它在关闭激活签时会先 switchRouteByTab 跳到邻签， 再 nav 目标路径，连续两次导航容易在中间态触发路由 ErrorBoundary，出现短暂错误页闪烁。
+ */
 export function useCloseTabAndNavigate() {
   const nav = useNavigate();
-  const { activeTabId, removeTabById } = useTabActions();
+  const dispatch = useAppDispatch();
+  const activeTabId = useAppSelector(selectActiveTabId);
+  const tabs = useAppSelector(selectTabs);
+  const updateTabs = useUpdateTabs();
 
   return function closeTabAndNavigate(path: string) {
     const tabId = activeTabId;
-    removeTabById(tabId);
+    const closingTab = tabs.find(tab => tab.id === tabId);
+    const updatedTabs = tabs.filter(tab => tab.id !== tabId);
+
+    // 只移除页签，不切换邻签；路由由下面的 nav 唯一负责
+    if (updatedTabs.length !== tabs.length) {
+      updateTabs(updatedTabs);
+
+      if (closingTab?.keepAlive) {
+        dispatch(setRemoveCacheKey(closingTab.routePath));
+      }
+    }
+
     nav(path);
   };
 }

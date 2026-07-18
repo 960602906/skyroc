@@ -1,4 +1,4 @@
-import { EnableStatusFormItem } from '@/features/crud';
+import { EnableStatusFormItem, PurchasePatternSelect } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import {
   toOptions,
@@ -9,11 +9,6 @@ import {
 } from '@/service/hooks';
 
 type RuleKey = 'code' | 'name' | 'purchasePattern';
-
-const purchasePatternOptions = [
-  { label: 'page.purchase.rule.purchasePatternDirect', value: 1 },
-  { label: 'page.purchase.rule.purchasePatternMarket', value: 2 }
-];
 
 const RuleOperateDrawer: FC<Page.OperateDrawerProps> = memo(({ form, handleSubmit, onClose, open, operateType }) => {
   const { t } = useTranslation();
@@ -79,12 +74,9 @@ const RuleOperateDrawer: FC<Page.OperateDrawerProps> = memo(({ form, handleSubmi
           name="purchasePattern"
           rules={[rules.purchasePattern]}
         >
-          <ASelect
+          <PurchasePatternSelect
+            allowClear={false}
             placeholder={t('page.purchase.rule.form.purchasePattern')}
-            options={purchasePatternOptions.map(item => ({
-              label: t(item.label),
-              value: item.value
-            }))}
           />
         </AForm.Item>
 

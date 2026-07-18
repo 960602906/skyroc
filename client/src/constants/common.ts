@@ -36,6 +36,12 @@ export const YES_OR_NO_MAP: Record<CommonType.YesOrNo, BadgeStatus> = {
   Y: 'success'
 };
 
+/** 采购模式：供应商直供 processing / 市场自采 default */
+export const PURCHASE_PATTERN_MAP: Record<Api.PurchaseRule.PurchasePattern, BadgeStatus> = {
+  1: 'processing',
+  2: 'default'
+};
+
 export const LAYOUT_MODE_VERTICAL: UnionKey.ThemeLayoutMode = 'vertical';
 export const LAYOUT_MODE_HORIZONTAL: UnionKey.ThemeLayoutMode = 'horizontal';
 export const LAYOUT_MODE_VERTICAL_MIX: UnionKey.ThemeLayoutMode = 'vertical-mix';

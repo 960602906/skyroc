@@ -1,5 +1,6 @@
 import EnableStatusBadge from './EnableStatusBadge';
 import MenuTypeBadge from './MenuTypeBadge';
+import PurchasePatternBadge from './PurchasePatternBadge';
 import UserGenderBadge from './UserGenderBadge';
 import YesOrNoBadge from './YesOrNoBadge';
 
@@ -16,6 +17,11 @@ export function renderUserGender(gender: Api.SystemManage.UserGender | null | un
 /** 表格列等场景的菜单类型渲染 */
 export function renderMenuType(menuType: Api.SystemManage.MenuType | null | undefined) {
   return <MenuTypeBadge menuType={menuType} />;
+}
+
+/** 表格列等场景的采购模式渲染 */
+export function renderPurchasePattern(purchasePattern: Api.PurchaseRule.PurchasePattern | null | undefined) {
+  return <PurchasePatternBadge purchasePattern={purchasePattern} />;
 }
 
 /** 表格列等场景的是否渲染 */

@@ -1,10 +1,4 @@
-import { EnableStatusSelect, SearchActionsCol } from '@/features/crud';
-import { translateOptions } from '@/utils/common';
-
-const purchasePatternOptions = [
-  { label: 'page.purchase.rule.purchasePatternDirect', value: 1 },
-  { label: 'page.purchase.rule.purchasePatternMarket', value: 2 }
-];
+import { EnableStatusSelect, PurchasePatternSelect, SearchActionsCol } from '@/features/crud';
 
 const RuleSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
@@ -60,11 +54,7 @@ const RuleSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPara
             label={t('page.purchase.rule.purchasePattern')}
             name="purchasePattern"
           >
-            <ASelect
-              allowClear
-              options={translateOptions(purchasePatternOptions)}
-              placeholder={t('page.purchase.rule.form.purchasePattern')}
-            />
+            <PurchasePatternSelect placeholder={t('page.purchase.rule.form.purchasePattern')} />
           </AForm.Item>
         </ACol>
 

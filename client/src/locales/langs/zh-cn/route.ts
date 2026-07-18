@@ -55,6 +55,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_pricing_quotations_detail_[id]': '报价单详情',
   '(base)_master_supply': '采供仓储',
   '(base)_master_supply_purchase-rules': '采购规则',
+  '(base)_master_supply_purchase-rules_detail': '采购规则详情',
+  '(base)_master_supply_purchase-rules_detail_[id]': '采购规则详情',
   '(base)_master_supply_purchasers': '采购员',
   '(base)_master_supply_purchasers_detail': '采购员详情',
   '(base)_master_supply_purchasers_detail_[id]': '采购员详情',
