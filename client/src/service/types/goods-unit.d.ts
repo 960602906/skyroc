@@ -3,7 +3,9 @@ declare namespace Api {
     type Entity = Common.CommonRecord<{
       code: string | null;
       conversionRate: number;
+      goodsCode: string | null;
       goodsId: string;
+      goodsName: string | null;
       isBaseUnit: boolean;
       name: string | null;
       remark: string | null;

@@ -2,9 +2,9 @@ import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { toOptions, useGoodsOptions } from '@/service/hooks';
 
-type RuleKey = 'conversionRate' | 'goodsId' | 'status';
+type RuleKey = 'conversionRate' | 'goodsId' | 'name' | 'status';
 
-const GoodsUnitOperateModal: FC<Page.OperateDrawerProps> = memo(
+const GoodsUnitOperateDrawer: FC<Page.OperateDrawerProps> = memo(
   ({ form, handleSubmit, onClose, open, operateType }) => {
     const { t } = useTranslation();
     const { defaultRequiredRule } = useFormRules();
@@ -14,17 +14,27 @@ const GoodsUnitOperateModal: FC<Page.OperateDrawerProps> = memo(
     const rules: Record<RuleKey, App.Global.FormRule> = {
       conversionRate: defaultRequiredRule,
       goodsId: defaultRequiredRule,
+      name: defaultRequiredRule,
       status: defaultRequiredRule
     };
 
     return (
-      <AModal
-        destroyOnClose
+      <ADrawer
         open={open}
         title={operateType === 'add' ? t('page.goods.unit.add') : t('page.goods.unit.edit')}
-        width={640}
-        onCancel={onClose}
-        onOk={handleSubmit}
+        width={520}
+        footer={
+          <AFlex justify="space-between">
+            <AButton onClick={onClose}>{t('common.cancel')}</AButton>
+            <AButton
+              type="primary"
+              onClick={handleSubmit}
+            >
+              {t('common.confirm')}
+            </AButton>
+          </AFlex>
+        }
+        onClose={onClose}
       >
         <AForm
           form={form}
@@ -41,6 +51,8 @@ const GoodsUnitOperateModal: FC<Page.OperateDrawerProps> = memo(
             rules={[rules.goodsId]}
           >
             <ASelect
+              showSearch
+              optionFilterProp="label"
               options={goodsOptions}
               placeholder={t('page.goods.unit.form.goodsId')}
             />
@@ -49,6 +61,7 @@ const GoodsUnitOperateModal: FC<Page.OperateDrawerProps> = memo(
           <AForm.Item
             label={t('page.goods.unit.name')}
             name="name"
+            rules={[rules.name]}
           >
             <AInput placeholder={t('page.goods.unit.form.name')} />
           </AForm.Item>
@@ -103,9 +116,9 @@ const GoodsUnitOperateModal: FC<Page.OperateDrawerProps> = memo(
 
           <EnableStatusFormItem label={t('page.goods.unit.status')} />
         </AForm>
-      </AModal>
+      </ADrawer>
     );
   }
 );
 
-export default GoodsUnitOperateModal;
+export default GoodsUnitOperateDrawer;

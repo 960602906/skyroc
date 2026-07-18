@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Domain.Entities;
 using Domain.Entities.Customers;
 using Domain.Entities.Goods;
@@ -19,11 +20,41 @@ public class GoodsUnitRepository(ApplicationDbContext context)
 {
     private readonly ApplicationDbContext _context = context;
 
+    /// <summary>
+    ///     按主键查询商品单位，并加载所属商品，供详情回填商品名称/编码。
+    /// </summary>
+    public override async Task<GoodsUnit?> GetByIdAsync(Guid id)
+    {
+        return await DbSet
+            .Include(x => x.Goods)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    /// <summary>
+    ///     分页查询商品单位，并加载所属商品，供列表展示商品名称/编码。
+    /// </summary>
+    public override async Task<(IEnumerable<GoodsUnit> Data, int Total)> GetPagedAsync(
+        Expression<Func<GoodsUnit, bool>>? predicate,
+        int pageNumber,
+        int pageSize,
+        Expression<Func<GoodsUnit, object>>? orderBy = null,
+        bool isDescending = false)
+    {
+        return await PagedFromQueryAsync(
+            DbSet.AsNoTracking().Include(x => x.Goods),
+            predicate,
+            pageNumber,
+            pageSize,
+            orderBy,
+            isDescending);
+    }
+
     /// <inheritdoc />
     public async Task<List<GoodsUnit>> GetByGoodsIdAsync(Guid goodsId)
     {
         return await DbSet
             .AsNoTracking()
+            .Include(x => x.Goods)
             .Where(x => x.GoodsId == goodsId)
             .OrderBy(x => x.Sort)
             .ThenBy(x => x.Id)

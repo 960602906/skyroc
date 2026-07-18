@@ -397,6 +397,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       add: 'Add Goods Unit',
       code: 'Unit Code',
       conversionRate: 'Conversion Rate',
+      detail: {
+        back: 'Back to list',
+        createTime: 'Created At',
+        title: 'Unit Detail',
+        updateTime: 'Updated At'
+      },
       edit: 'Edit Goods Unit',
       form: {
         code: 'Please enter unit code',
@@ -407,10 +413,13 @@ const page: App.I18n.Schema['translation']['page'] = {
         sort: 'Please enter sort',
         status: 'Please select status'
       },
+      goodsCode: 'Goods Code',
       goodsId: 'Goods',
       isBaseUnit: 'Base Unit',
       name: 'Unit Name',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionStatus: 'Status & Remark',
       sort: 'Sort',
       status: 'Status',
       title: 'Goods Unit'

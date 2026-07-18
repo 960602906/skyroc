@@ -36,6 +36,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_goods_types_detail': '分类详情',
   '(base)_master_goods_types_detail_[id]': '分类详情',
   '(base)_master_goods_units': '商品单位',
+  '(base)_master_goods_units_detail': '单位详情',
+  '(base)_master_goods_units_detail_[id]': '单位详情',
   '(base)_master_pricing': '定价管理',
   '(base)_master_pricing_protocol-goods': '协议商品',
   '(base)_master_pricing_protocols': '客户协议价',

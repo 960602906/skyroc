@@ -66,6 +66,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_master_goods_types_detail": "/master/goods/types/detail";
     "(base)_master_goods_types_detail_[id]": "/master/goods/types/detail/:id";
     "(base)_master_goods_units": "/master/goods/units";
+    "(base)_master_goods_units_detail": "/master/goods/units/detail";
+    "(base)_master_goods_units_detail_[id]": "/master/goods/units/detail/:id";
     "(base)_master_pricing": "/master/pricing";
     "(base)_master_pricing_protocol-goods": "/master/pricing/protocol-goods";
     "(base)_master_pricing_protocols": "/master/pricing/protocols";
@@ -248,6 +250,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_master_goods_types_detail_[id]"
     | "(base)_master_goods_types_detail"
     | "(base)_master_goods_types"
+    | "(base)_master_goods_units_detail_[id]"
+    | "(base)_master_goods_units_detail"
     | "(base)_master_goods_units"
     | "(base)_master"
     | "(base)_master_pricing"

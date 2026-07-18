@@ -397,6 +397,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       add: '新增商品单位',
       code: '单位编码',
       conversionRate: '换算率',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '单位详情',
+        updateTime: '更新时间'
+      },
       edit: '编辑商品单位',
       form: {
         code: '请输入单位编码',
@@ -407,10 +413,13 @@ const page: App.I18n.Schema['translation']['page'] = {
         sort: '请输入排序',
         status: '请选择状态'
       },
+      goodsCode: '商品编码',
       goodsId: '商品',
       isBaseUnit: '基本单位',
       name: '单位名称',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionStatus: '状态与备注',
       sort: '排序',
       status: '状态',
       title: '商品单位'

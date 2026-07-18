@@ -13,6 +13,16 @@ public class GoodsUnitDto : BaseDto
     public Guid GoodsId { get; set; }
 
     /// <summary>
+    ///     商品名称（关联查询）。
+    /// </summary>
+    public string? GoodsName { get; set; }
+
+    /// <summary>
+    ///     商品编码（关联查询）。
+    /// </summary>
+    public string? GoodsCode { get; set; }
+
+    /// <summary>
     ///     单位名称。
     /// </summary>
     public string? Name { get; set; }

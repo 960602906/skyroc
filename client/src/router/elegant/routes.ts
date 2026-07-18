@@ -438,7 +438,33 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_goods_units',
                       icon: 'mdi:ruler',
                       order: 3
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/goods/units/detail/index.tsx', null, null],
+                        name: '(base)_master_goods_units_detail',
+                        path: '/master/goods/units/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_goods_units_detail',
+                          title: '(base)_master_goods_units_detail',
+                          activeMenu: '/master/goods/units',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [null, '/src/pages/(base)/master/goods/units/detail/[id].tsx', null, null],
+                            name: '(base)_master_goods_units_detail_[id]',
+                            path: '/master/goods/units/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_goods_units_detail_[id]',
+                              title: '(base)_master_goods_units_detail_[id]',
+                              activeMenu: '/master/goods/units',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               },

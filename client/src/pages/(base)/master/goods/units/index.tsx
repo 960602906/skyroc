@@ -21,7 +21,7 @@ import {
 
 import GoodsUnitSearch from './modules/GoodsUnitSearch';
 
-const GoodsUnitOperateModal = lazy(() => import('./modules/GoodsUnitOperateModal'));
+const GoodsUnitOperateDrawer = lazy(() => import('./modules/GoodsUnitOperateDrawer'));
 
 const defaultSearchParams = {
   current: 1,
@@ -33,6 +33,7 @@ const defaultSearchParams = {
 
 const GoodsUnitManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
   const { scrollConfig, tableWrapperRef } = useTableScroll();
 
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
@@ -42,16 +43,49 @@ const GoodsUnitManage = () => {
       createIndexColumn(t),
       {
         align: 'center',
-        dataIndex: 'goodsId',
-        key: 'goodsId',
-        minWidth: 120,
+        dataIndex: 'goodsName',
+        key: 'goodsName',
+        minWidth: 140,
+        render: (_, record) => {
+          const label = record.goodsName || record.goodsCode || record.goodsId;
+          if (!record.goodsId) {
+            return label;
+          }
+          return (
+            <AButton
+              className="h-auto p-0 leading-normal"
+              size="small"
+              type="link"
+              onClick={() => nav(`/master/goods/detail/${record.goodsId}`)}
+            >
+              {label}
+            </AButton>
+          );
+        },
         title: t('page.goods.unit.goodsId')
+      },
+      {
+        align: 'center',
+        dataIndex: 'goodsCode',
+        key: 'goodsCode',
+        minWidth: 120,
+        title: t('page.goods.unit.goodsCode')
       },
       {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
         minWidth: 120,
+        render: (name: string, record) => (
+          <AButton
+            className="h-auto p-0 leading-normal"
+            size="small"
+            type="link"
+            onClick={() => nav(`/master/goods/units/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.goods.unit.name')
       },
       {
@@ -190,7 +224,7 @@ const GoodsUnitManage = () => {
             {...tableProps}
           />
           <Suspense>
-            <GoodsUnitOperateModal {...generalPopupOperation} />
+            <GoodsUnitOperateDrawer {...generalPopupOperation} />
           </Suspense>
         </>
       }

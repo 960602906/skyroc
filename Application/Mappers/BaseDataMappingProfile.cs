@@ -43,7 +43,9 @@ public class BaseDataMappingProfile : Profile
         CreateMap<UpdateGoodsDto, GoodsEntity>()
             .ForMember(x => x.BaseUnitId, opt => opt.Ignore());
 
-        CreateMap<GoodsUnit, GoodsUnitDto>();
+        CreateMap<GoodsUnit, GoodsUnitDto>()
+            .ForMember(x => x.GoodsName, opt => opt.MapFrom(src => src.Goods == null ? null : src.Goods.Name))
+            .ForMember(x => x.GoodsCode, opt => opt.MapFrom(src => src.Goods == null ? null : src.Goods.Code));
         CreateMap<CreateGoodsUnitDto, GoodsUnit>();
         CreateMap<UpdateGoodsUnitDto, GoodsUnit>();
         CreateMap<GoodsImage, GoodsImageDto>();

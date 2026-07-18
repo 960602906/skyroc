@@ -758,6 +758,12 @@ declare namespace App {
               add: string;
               code: string;
               conversionRate: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               edit: string;
               form: {
                 code: string;
@@ -768,10 +774,13 @@ declare namespace App {
                 sort: string;
                 status: string;
               };
+              goodsCode: string;
               goodsId: string;
               isBaseUnit: string;
               name: string;
               remark: string;
+              sectionBasic: string;
+              sectionStatus: string;
               sort: string;
               status: string;
               title: string;
