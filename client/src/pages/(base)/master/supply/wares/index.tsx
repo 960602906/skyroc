@@ -35,8 +35,8 @@ const WareManage = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 140,
-        title: t('page.storage.ware.name')
+        title: t('page.storage.ware.name'),
+        width: 240
       },
       {
         align: 'center',

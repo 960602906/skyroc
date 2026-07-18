@@ -31,7 +31,6 @@ const GoodsList = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 140,
         render: (name: string, record) => (
           <AButton
             className="p-0"
@@ -41,7 +40,8 @@ const GoodsList = () => {
             {name}
           </AButton>
         ),
-        title: t('page.goods.list.name')
+        title: t('page.goods.list.name'),
+        width: 240
       },
       {
         align: 'center',

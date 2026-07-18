@@ -35,8 +35,8 @@ const CompanyManage = () => {
       {
         align: 'center',
         dataIndex: 'name',
+        fixed: 'left',
         key: 'name',
-        minWidth: 140,
         render: (name: string, record) => (
           <AButton
             className="h-auto p-0 leading-normal"
@@ -47,7 +47,8 @@ const CompanyManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.customer.company.name')
+        title: t('page.customer.company.name'),
+        width: 240
       },
       {
         align: 'center',

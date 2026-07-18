@@ -36,7 +36,6 @@ const CustomerTagManage = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 140,
         render: (name: string, record) => (
           <AButton
             className="h-auto p-0 leading-normal"
@@ -47,7 +46,8 @@ const CustomerTagManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.customer.tag.name')
+        title: t('page.customer.tag.name'),
+        width: 240
       },
       {
         align: 'center',

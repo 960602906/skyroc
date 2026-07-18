@@ -76,8 +76,8 @@ const Menu = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 120,
-        title: t('page.manage.menu.routeName')
+        title: t('page.manage.menu.routeName'),
+        width: 240
       },
       {
         align: 'center',

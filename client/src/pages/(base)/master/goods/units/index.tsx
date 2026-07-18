@@ -44,7 +44,6 @@ const GoodsUnitManage = () => {
         align: 'center',
         dataIndex: 'goodsName',
         key: 'goodsName',
-        minWidth: 140,
         render: (_, record) => {
           const label = record.goodsName || record.goodsCode || record.goodsId;
           if (!record.goodsId) {
@@ -61,7 +60,8 @@ const GoodsUnitManage = () => {
             </AButton>
           );
         },
-        title: t('page.goods.unit.goodsId')
+        title: t('page.goods.unit.goodsId'),
+        width: 240
       },
       {
         align: 'center',
@@ -74,7 +74,6 @@ const GoodsUnitManage = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 120,
         render: (name: string, record) => (
           <AButton
             className="h-auto p-0 leading-normal"
@@ -85,7 +84,8 @@ const GoodsUnitManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.goods.unit.name')
+        title: t('page.goods.unit.name'),
+        width: 240
       },
       {
         align: 'center',

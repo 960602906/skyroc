@@ -35,8 +35,8 @@ const PurchaserManage = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 140,
-        title: t('page.purchase.purchaser.name')
+        title: t('page.purchase.purchaser.name'),
+        width: 240
       },
       {
         align: 'center',

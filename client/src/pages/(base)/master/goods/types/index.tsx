@@ -41,7 +41,6 @@ const GoodsTypeManage = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 140,
         render: (name: string, record) => (
           <AButton
             className="p-0"
@@ -51,7 +50,8 @@ const GoodsTypeManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.goods.type.name')
+        title: t('page.goods.type.name'),
+        width: 240
       },
       {
         align: 'center',

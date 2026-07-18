@@ -43,7 +43,6 @@ const SupplierManage = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 140,
         render: (name: string, record) => (
           <AButton
             className="p-0"
@@ -53,7 +52,8 @@ const SupplierManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.purchase.supplier.name')
+        title: t('page.purchase.supplier.name'),
+        width: 240
       },
       {
         align: 'center',

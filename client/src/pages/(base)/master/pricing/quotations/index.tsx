@@ -54,7 +54,7 @@ const QuotationManage = () => {
           </AButton>
         ),
         title: t('page.goods.quotation.name'),
-        width: 160
+        width: 240
       },
       {
         align: 'center',

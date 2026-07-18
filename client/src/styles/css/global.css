@@ -20,16 +20,6 @@ html {
   background-color: transparent;
 }
 
-/* CRUD 列表统一不换行：窄屏走横向滚动，避免把单元格内容挤换行 */
-.skyroc-table-nowrap .ant-table-thead > tr > th,
-.skyroc-table-nowrap .ant-table-tbody > tr > td {
-  white-space: nowrap;
-}
-
-.skyroc-table-nowrap .ant-table-cell .ant-btn {
-  white-space: nowrap;
-}
-
 html.grayscale {
   filter: grayscale(100%);
 }

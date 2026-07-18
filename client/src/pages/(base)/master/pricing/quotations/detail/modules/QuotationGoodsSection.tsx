@@ -83,7 +83,6 @@ function QuotationGoodsSection({ goods, onChanged, quotationId }: QuotationGoods
       align: 'center',
       dataIndex: 'goodsName',
       key: 'goodsName',
-      minWidth: 140,
       render: (_, record) =>
         record.goodsId ? (
           <AButton
@@ -97,7 +96,8 @@ function QuotationGoodsSection({ goods, onChanged, quotationId }: QuotationGoods
         ) : (
           DETAIL_EMPTY
         ),
-      title: t('page.goods.quotationGoods.goodsId')
+      title: t('page.goods.quotationGoods.goodsId'),
+      width: 240
     },
     {
       align: 'center',

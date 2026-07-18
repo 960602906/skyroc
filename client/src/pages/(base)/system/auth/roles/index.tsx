@@ -36,8 +36,8 @@ const Role = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 120,
-        title: t('page.manage.role.roleName')
+        title: t('page.manage.role.roleName'),
+        width: 240
       },
       {
         align: 'center',

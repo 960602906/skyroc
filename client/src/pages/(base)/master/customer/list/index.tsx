@@ -47,8 +47,8 @@ const CustomerListManage = () => {
       {
         align: 'center',
         dataIndex: 'name',
+        fixed: 'left',
         key: 'name',
-        minWidth: 140,
         render: (name: string, record) => (
           <AButton
             className="p-0"
@@ -58,7 +58,8 @@ const CustomerListManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.customer.list.name')
+        title: t('page.customer.list.name'),
+        width: 240
       },
       {
         align: 'center',

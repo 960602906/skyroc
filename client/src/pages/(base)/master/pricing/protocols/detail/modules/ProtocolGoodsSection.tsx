@@ -84,7 +84,6 @@ function ProtocolGoodsSection({ customerProtocolId, goods, onChanged }: Protocol
       align: 'center',
       dataIndex: 'goodsName',
       key: 'goodsName',
-      minWidth: 140,
       render: (_, record) =>
         record.goodsId ? (
           <AButton
@@ -98,7 +97,8 @@ function ProtocolGoodsSection({ customerProtocolId, goods, onChanged }: Protocol
         ) : (
           DETAIL_EMPTY
         ),
-      title: t('page.customer.protocolGoods.goodsId')
+      title: t('page.customer.protocolGoods.goodsId'),
+      width: 240
     },
     {
       align: 'center',

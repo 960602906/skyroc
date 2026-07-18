@@ -67,7 +67,8 @@ const ProtocolManage = () => {
             {name}
           </AButton>
         ),
-        title: t('page.customer.protocol.name')
+        title: t('page.customer.protocol.name'),
+        width: 240
       },
       {
         align: 'center',

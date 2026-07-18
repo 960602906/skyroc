@@ -66,8 +66,8 @@ const RuleManage = () => {
         align: 'center',
         dataIndex: 'name',
         key: 'name',
-        minWidth: 140,
-        title: t('page.purchase.rule.name')
+        title: t('page.purchase.rule.name'),
+        width: 240
       },
       {
         align: 'center',
