@@ -19,7 +19,6 @@ public class DeploymentConfigurationTests
 
         Assert.Empty(root.GetProperty("JwtSettings").GetProperty("SecretKey").GetString() ?? string.Empty);
         Assert.Empty(root.GetProperty("DevSeed").GetProperty("AdminPassword").GetString() ?? string.Empty);
-        Assert.Empty(root.GetProperty("DevSeed").GetProperty("UserPassword").GetString() ?? string.Empty);
         Assert.False(root.GetProperty("DevSeed").GetProperty("Enabled").GetBoolean());
     }
 

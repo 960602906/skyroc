@@ -1,7 +1,7 @@
 namespace Shared.Common;
 
 /// <summary>
-///     开发环境默认种子配置
+///     开发环境默认种子配置（仅管理员账户）。
 /// </summary>
 public class DevSeedOptions
 {
@@ -21,14 +21,4 @@ public class DevSeedOptions
     ///     管理员初始密码
     /// </summary>
     public string AdminPassword { get; set; } = string.Empty;
-
-    /// <summary>
-    ///     普通用户用户名
-    /// </summary>
-    public string UserUsername { get; set; } = "user";
-
-    /// <summary>
-    ///     普通用户初始密码
-    /// </summary>
-    public string UserPassword { get; set; } = string.Empty;
 }
