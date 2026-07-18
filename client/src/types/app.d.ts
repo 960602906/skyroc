@@ -1041,6 +1041,40 @@ declare namespace App {
             };
           };
           order: {
+            detail: {
+              auditAction: string;
+              auditActionApprove: string;
+              auditActionReject: string;
+              auditActionResubmit: string;
+              auditActionSubmit: string;
+              auditLogs: string;
+              auditTime: string;
+              auditUserName: string;
+              back: string;
+              baseQuantity: string;
+              currentStatus: string;
+              deliveryAddress: string;
+              fixedGoodsUnitName: string;
+              fixedPrice: string;
+              goodsCode: string;
+              goodsName: string;
+              goodsUnitName: string;
+              innerRemark: string;
+              outDate: string;
+              previousStatus: string;
+              quantity: string;
+              quotationId: string;
+              remark: string;
+              sectionAmounts: string;
+              sectionAudit: string;
+              sectionBasic: string;
+              sectionDetails: string;
+              sectionRemark: string;
+              title: string;
+              totalPrice: string;
+              updateTime: string;
+              wareId: string;
+            };
             list: {
               approve: string;
               approveConfirm: string;
@@ -1107,6 +1141,34 @@ declare namespace App {
               title: string;
               updateStatus: string;
               wareName: string;
+            };
+            operate: {
+              addDetail: string;
+              addTitle: string;
+              detailsRequired: string;
+              editDetail: string;
+              editTitle: string;
+              estimatedAmount: string;
+              form: {
+                contactName: string;
+                contactPhone: string;
+                customerId: string;
+                deliveryAddress: string;
+                fixedGoodsUnitId: string;
+                fixedPrice: string;
+                goodsId: string;
+                goodsUnitId: string;
+                innerRemark: string;
+                orderDate: string;
+                quantity: string;
+                quotationId: string;
+                receiveDate: string;
+                remark: string;
+                wareId: string;
+              };
+              sectionBasic: string;
+              sectionDetails: string;
+              sectionRemark: string;
             };
           };
           purchase: {

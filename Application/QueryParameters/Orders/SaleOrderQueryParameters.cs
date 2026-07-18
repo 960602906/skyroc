@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Application.Serialization;
 using Domain.Entities.Orders;
 using Shared.Constants;
 
@@ -45,20 +46,24 @@ public class SaleOrderQueryParameters : PagedQueryParameters
     {
         var keyword = Keyword?.Trim();
         var goodsKey = GoodsKey?.Trim();
+        // query 绑定可能是 Unspecified；比较前统一 UTC，截止日期-only 扩到当天末
+        var dateStart = DateTimeJsonFormats.AsUtcQueryStart(DateStart);
+        var dateEnd = DateTimeJsonFormats.AsUtcQueryEndInclusive(DateEnd);
+        var dateType = DateType;
 
         return x =>
             (string.IsNullOrWhiteSpace(keyword)
              || x.OrderNo.Contains(keyword)
              || x.CustomerNameSnapshot.Contains(keyword)
              || x.CustomerCodeSnapshot.Contains(keyword))
-            && (!DateStart.HasValue
-                || (DateType == OrderDateType.OrderDate && x.OrderDate >= DateStart.Value)
-                || (DateType == OrderDateType.ReceiveDate && x.ReceiveDate.HasValue && x.ReceiveDate.Value >= DateStart.Value)
-                || (DateType == OrderDateType.OutDate && x.OutDate.HasValue && x.OutDate.Value >= DateStart.Value))
-            && (!DateEnd.HasValue
-                || (DateType == OrderDateType.OrderDate && x.OrderDate <= DateEnd.Value)
-                || (DateType == OrderDateType.ReceiveDate && x.ReceiveDate.HasValue && x.ReceiveDate.Value <= DateEnd.Value)
-                || (DateType == OrderDateType.OutDate && x.OutDate.HasValue && x.OutDate.Value <= DateEnd.Value))
+            && (!dateStart.HasValue
+                || (dateType == OrderDateType.OrderDate && x.OrderDate >= dateStart.Value)
+                || (dateType == OrderDateType.ReceiveDate && x.ReceiveDate.HasValue && x.ReceiveDate.Value >= dateStart.Value)
+                || (dateType == OrderDateType.OutDate && x.OutDate.HasValue && x.OutDate.Value >= dateStart.Value))
+            && (!dateEnd.HasValue
+                || (dateType == OrderDateType.OrderDate && x.OrderDate <= dateEnd.Value)
+                || (dateType == OrderDateType.ReceiveDate && x.ReceiveDate.HasValue && x.ReceiveDate.Value <= dateEnd.Value)
+                || (dateType == OrderDateType.OutDate && x.OutDate.HasValue && x.OutDate.Value <= dateEnd.Value))
             && (!OrderStatus.HasValue || x.OrderStatus == OrderStatus.Value)
             && (!CustomerId.HasValue || x.CustomerId == CustomerId.Value)
             && (!HasOutSale.HasValue || x.HasOutSale == HasOutSale.Value)

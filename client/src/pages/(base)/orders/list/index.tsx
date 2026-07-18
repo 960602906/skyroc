@@ -5,11 +5,12 @@ import {
   CrudPageLayout,
   createDefaultPagination,
   createIndexColumn,
-  renderBooleanTag,
+  renderBooleanYesNo,
   renderOrderOutStorageStatus,
   renderOrderPrintStatus,
   renderOrderReturnStatus,
-  renderSaleOrderStatus
+  renderSaleOrderStatus,
+  toBooleanValue
 } from '@/features/crud';
 import { TableHeaderOperation, useTable } from '@/features/table';
 import {
@@ -178,7 +179,7 @@ const OrderListManage = () => {
         align: 'center',
         dataIndex: 'hasOutSale',
         key: 'hasOutSale',
-        render: (value: boolean) => renderBooleanTag(value, t('common.yesOrNo.yes'), t('common.yesOrNo.no')),
+        render: (value: boolean) => renderBooleanYesNo(value),
         title: t('page.order.list.hasOutSale'),
         width: 110
       },
@@ -186,7 +187,7 @@ const OrderListManage = () => {
         align: 'center',
         dataIndex: 'hasPurchasePlan',
         key: 'hasPurchasePlan',
-        render: (value: boolean) => renderBooleanTag(value, t('common.yesOrNo.yes'), t('common.yesOrNo.no')),
+        render: (value: boolean) => renderBooleanYesNo(value),
         title: t('page.order.list.hasPurchasePlan'),
         width: 120
       },
@@ -194,7 +195,7 @@ const OrderListManage = () => {
         align: 'center',
         dataIndex: 'updateStatus',
         key: 'updateStatus',
-        render: (value: boolean) => renderBooleanTag(value, t('common.yesOrNo.yes'), t('common.yesOrNo.no')),
+        render: (value: boolean) => renderBooleanYesNo(value),
         title: t('page.order.list.updateStatus'),
         width: 100
       },
@@ -240,12 +241,6 @@ const OrderListManage = () => {
           const isRejected = record.orderStatus === SaleOrderStatus.REJECTED;
           return (
             <div className="flex-center flex-wrap gap-8px">
-              <AButton
-                size="small"
-                onClick={() => nav(`/orders/detail/${record.id}`)}
-              >
-                {t('common.detail')}
-              </AButton>
               {(isPendingAudit || isRejected) && (
                 <AButton
                   ghost
@@ -298,7 +293,7 @@ const OrderListManage = () => {
           );
         },
         title: t('common.operate'),
-        width: 320
+        width: 260
       }
     ],
     pagination: createDefaultPagination(),
@@ -320,6 +315,33 @@ const OrderListManage = () => {
         delete next.dateStart;
         delete next.dateEnd;
       }
+
+      // URL 回填多为字符串，枚举统一转 number，避免下拉显示数字、接口绑定失败
+      const asLoose = next as Record<string, unknown>;
+      if (asLoose.dateType !== null && asLoose.dateType !== undefined && asLoose.dateType !== '') {
+        next.dateType = Number(asLoose.dateType) as Api.Order.DateType;
+      }
+      if (asLoose.orderStatus !== null && asLoose.orderStatus !== undefined && asLoose.orderStatus !== '') {
+        next.orderStatus = Number(asLoose.orderStatus) as Api.Order.OrderStatus;
+      }
+      if (asLoose.returnStatus !== null && asLoose.returnStatus !== undefined && asLoose.returnStatus !== '') {
+        next.returnStatus = Number(asLoose.returnStatus) as Api.Order.ReturnStatus;
+      }
+      if (asLoose.status !== null && asLoose.status !== undefined && asLoose.status !== '') {
+        next.status = Number(asLoose.status) as Api.Common.EnableStatus;
+      }
+
+      const hasOutSale = toBooleanValue(asLoose.hasOutSale);
+      if (hasOutSale === undefined) delete next.hasOutSale;
+      else next.hasOutSale = hasOutSale;
+
+      const hasPurchasePlan = toBooleanValue(asLoose.hasPurchasePlan);
+      if (hasPurchasePlan === undefined) delete next.hasPurchasePlan;
+      else next.hasPurchasePlan = hasPurchasePlan;
+
+      const updateStatus = toBooleanValue(asLoose.updateStatus);
+      if (updateStatus === undefined) delete next.updateStatus;
+      else next.updateStatus = updateStatus;
 
       delete next.dateRange;
       return next;

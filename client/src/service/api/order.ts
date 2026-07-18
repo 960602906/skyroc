@@ -2,7 +2,7 @@ import { request } from '../request';
 import { ORDER_URLS } from '../urls';
 
 /** 创建销售订单。 */
-export function fetchAddOrder(data: Record<string, unknown>) {
+export function fetchAddOrder(data: Api.Order.CreateParams) {
   return request<Api.Order.Entity>({
     data,
     method: 'post',
@@ -11,7 +11,7 @@ export function fetchAddOrder(data: Record<string, unknown>) {
 }
 
 /** 编辑销售订单及其商品明细。 */
-export function fetchUpdateOrder(data: Record<string, unknown>) {
+export function fetchUpdateOrder(data: Api.Order.UpdateParams) {
   return request<Api.Order.Entity>({
     data,
     method: 'put',

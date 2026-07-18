@@ -93,6 +93,71 @@ declare namespace Api {
 
     type AllEntity = Pick<Entity, 'customerName' | 'id' | 'orderNo'>;
 
+    /** 创建订单商品明细 */
+    type DetailCreateParams = {
+      fixedGoodsUnitId: string;
+      fixedPrice: number;
+      goodsId: string;
+      goodsUnitId: string;
+      innerRemark?: string | null;
+      quantity: number;
+      remark?: string | null;
+    };
+
+    /** 更新订单商品明细；id 为空表示新增明细 */
+    type DetailUpdateParams = DetailCreateParams & {
+      id?: string | null;
+    };
+
+    /** 表单中的明细行（含展示快照，提交前会剥离） */
+    type DetailFormItem = DetailUpdateParams & {
+      fixedGoodsUnitName?: string | null;
+      /** 单价单位换算率（基础单位），用于金额预估 */
+      fixedUnitConversion?: number | null;
+      goodsCode?: string | null;
+      goodsName?: string | null;
+      goodsUnitName?: string | null;
+      /** 下单单位换算率（基础单位），用于金额预估 */
+      unitConversion?: number | null;
+    };
+
+    /** 创建销售订单 */
+    type CreateParams = {
+      contactName?: string | null;
+      contactPhone?: string | null;
+      customerId: string;
+      deliveryAddress?: string | null;
+      details: DetailCreateParams[];
+      innerRemark?: string | null;
+      orderDate: string;
+      quotationId?: string | null;
+      receiveDate?: string | null;
+      remark?: string | null;
+      wareId?: string | null;
+    };
+
+    /** 更新销售订单 */
+    type UpdateParams = Omit<CreateParams, 'details'> & {
+      details: DetailUpdateParams[];
+      id: string;
+    };
+
+    /** 表单值（日期可能是 dayjs，明细含展示字段） */
+    type FormValues = {
+      contactName?: string | null;
+      contactPhone?: string | null;
+      customerId?: string | null;
+      deliveryAddress?: string | null;
+      details: DetailFormItem[];
+      id?: string | null;
+      innerRemark?: string | null;
+      orderDate?: unknown;
+      quotationId?: string | null;
+      receiveDate?: unknown;
+      remark?: string | null;
+      wareId?: string | null;
+    };
+
     /** 审核操作请求体 */
     type AuditParams = {
       remark?: string | null;

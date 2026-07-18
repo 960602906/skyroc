@@ -102,6 +102,52 @@ public class DateTimeJsonConverterTests
         Assert.Equal(DateTimeKind.Utc, dto.EffectiveStart.Kind);
     }
 
+    [Fact]
+    public void NormalizeToUtc_ShouldMarkUnspecifiedAsUtc()
+    {
+        var source = new DateTime(2026, 7, 19, 0, 0, 0, DateTimeKind.Unspecified);
+
+        var utc = Application.Serialization.DateTimeJsonFormats.NormalizeToUtc(source);
+
+        Assert.Equal(DateTimeKind.Utc, utc.Kind);
+        Assert.Equal(source.Ticks, utc.Ticks);
+    }
+
+    [Fact]
+    public void AsUtcQueryEndInclusive_ShouldExpandDateOnlyToEndOfDay()
+    {
+        var dateOnly = new DateTime(2026, 7, 19, 0, 0, 0, DateTimeKind.Unspecified);
+
+        var end = Application.Serialization.DateTimeJsonFormats.AsUtcQueryEndInclusive(dateOnly);
+
+        Assert.NotNull(end);
+        Assert.Equal(DateTimeKind.Utc, end!.Value.Kind);
+        Assert.Equal(new DateTime(2026, 7, 19, 23, 59, 59, DateTimeKind.Utc).Date, end.Value.Date);
+        Assert.True(end.Value > new DateTime(2026, 7, 19, 0, 0, 0, DateTimeKind.Utc));
+        Assert.True(end.Value < new DateTime(2026, 7, 20, 0, 0, 0, DateTimeKind.Utc));
+    }
+
+    [Fact]
+    public void SaleOrderQueryBuild_WithUnspecifiedDateRange_ShouldNotThrowWhenCompiled()
+    {
+        var parameters = new Application.QueryParameters.SaleOrderQueryParameters
+        {
+            DateStart = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Unspecified),
+            DateEnd = new DateTime(2026, 7, 19, 0, 0, 0, DateTimeKind.Unspecified)
+        };
+
+        var predicate = parameters.QueryBuild().Compile();
+        var sample = new Domain.Entities.Orders.SaleOrder
+        {
+            OrderDate = new DateTime(2026, 7, 10, 8, 0, 0, DateTimeKind.Utc),
+            OrderNo = "SO1",
+            CustomerNameSnapshot = "c",
+            CustomerCodeSnapshot = "c1"
+        };
+
+        Assert.True(predicate(sample));
+    }
+
     private sealed class TestDto : BaseDto;
 
     private sealed class RequiredDateDto

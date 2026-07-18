@@ -5,6 +5,7 @@ using Shared.Common;
 using Shared.Constants;
 using SkyRoc.Filters;
 using SkyRoc.Middleware;
+using SkyRoc.ModelBinding;
 
 namespace SkyRoc.Extensions;
 
@@ -25,6 +26,8 @@ public static class ControllerExtensions
     {
         services.AddControllers(options =>
             {
+                // query/form 的 DateTime 统一绑为 UTC，避免 Npgsql timestamptz 拒绝 Unspecified
+                options.ModelBinderProviders.Insert(0, new UtcDateTimeModelBinderProvider());
                 options.Filters.Add<ApiBusinessCodeResultFilter>();
             })
             .ConfigureApiBehaviorOptions(options =>

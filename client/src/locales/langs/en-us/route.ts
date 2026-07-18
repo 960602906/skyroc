@@ -70,7 +70,7 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_orders_after-sales': 'After Sales',
   '(base)_orders_detail': 'Order Detail',
   '(base)_orders_detail_[id]': 'Order Detail',
-  '(base)_orders_edit': 'Edit Order',
+  '(base)_orders_edit': 'Add Order',
   '(base)_orders_edit_[id]': 'Edit Order',
   '(base)_orders_list': 'Sales Orders',
   '(base)_orders_pickup-tasks': 'Pickup Tasks',

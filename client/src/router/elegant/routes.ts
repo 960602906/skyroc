@@ -898,13 +898,18 @@ export const generatedRoutes: ElegantConstRoute[] = [
                 }
               },
               {
-                matchedFiles: [null, null, null, null],
+                matchedFiles: [null, '/src/pages/(base)/orders/detail/index.tsx', null, null],
                 name: '(base)_orders_detail',
                 path: '/orders/detail',
-                handle: { i18nKey: 'route.(base)_orders_detail', title: '(base)_orders_detail', hideInMenu: true },
+                handle: {
+                  i18nKey: 'route.(base)_orders_detail',
+                  title: '(base)_orders_detail',
+                  activeMenu: '/orders/list',
+                  hideInMenu: true
+                },
                 children: [
                   {
-                    matchedFiles: [null, '/src/pages/(base)/orders/detail/[id]/index.tsx', null, null],
+                    matchedFiles: [null, '/src/pages/(base)/orders/detail/[id].tsx', null, null],
                     name: '(base)_orders_detail_[id]',
                     path: '/orders/detail/:id',
                     handle: {
@@ -917,13 +922,18 @@ export const generatedRoutes: ElegantConstRoute[] = [
                 ]
               },
               {
-                matchedFiles: [null, null, null, null],
+                matchedFiles: [null, '/src/pages/(base)/orders/edit/index.tsx', null, null],
                 name: '(base)_orders_edit',
                 path: '/orders/edit',
-                handle: { i18nKey: 'route.(base)_orders_edit', title: '(base)_orders_edit', hideInMenu: true },
+                handle: {
+                  i18nKey: 'route.(base)_orders_edit',
+                  title: '(base)_orders_edit',
+                  activeMenu: '/orders/list',
+                  hideInMenu: true
+                },
                 children: [
                   {
-                    matchedFiles: [null, '/src/pages/(base)/orders/edit/[id]/index.tsx', null, null],
+                    matchedFiles: [null, '/src/pages/(base)/orders/edit/[id].tsx', null, null],
                     name: '(base)_orders_edit_[id]',
                     path: '/orders/edit/:id',
                     handle: {

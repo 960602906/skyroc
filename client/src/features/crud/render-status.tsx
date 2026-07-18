@@ -1,3 +1,4 @@
+import BooleanYesNoBadge from './BooleanYesNoBadge';
 import EnableStatusBadge from './EnableStatusBadge';
 import MenuTypeBadge from './MenuTypeBadge';
 import PurchasePatternBadge from './PurchasePatternBadge';
@@ -38,11 +39,17 @@ export function renderYesOrNo(value: CommonType.YesOrNo | null | undefined) {
 /** 布尔值徽标（自定义文案，非标准 YesOrNo 枚举时使用） */
 export function renderBooleanTag(value: boolean, trueText: string, falseText: string) {
   return (
-    <ABadge
-      status={value ? 'success' : 'default'}
-      text={value ? trueText : falseText}
+    <BooleanYesNoBadge
+      falseText={falseText}
+      trueText={trueText}
+      value={value}
     />
   );
+}
+
+/** 表格列等场景的布尔是否渲染（默认「是/否」） */
+export function renderBooleanYesNo(value: boolean | null | undefined) {
+  return <BooleanYesNoBadge value={value} />;
 }
 
 /** 表格列等场景的销售订单业务状态渲染 */

@@ -1,10 +1,14 @@
+import { Form } from 'antd';
+
+import { orderDateTypeOptions, orderDateTypeRecord } from '@/constants/business';
 import {
+  BooleanYesNoSelect,
   EnableStatusSelect,
-  OrderDateTypeSelect,
   OrderReturnStatusSelect,
   SaleOrderStatusSelect,
   SearchActionsCol
 } from '@/features/crud';
+import { OrderDateType } from '@/service/enums';
 import { toOptions, useCustomerOptions, useCustomerTagOptions, useSupplierOptions } from '@/service/hooks';
 
 const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
@@ -14,12 +18,34 @@ const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
   const { data: customerTags } = useCustomerTagOptions();
   const { data: suppliers } = useSupplierOptions();
 
+  const rawDateType = Form.useWatch('dateType', form);
+  const dateType = (
+    rawDateType === null || rawDateType === undefined || rawDateType === ''
+      ? OrderDateType.ORDER_DATE
+      : Number(rawDateType)
+  ) as Api.Order.DateType;
+
+  const dateTypeOptions = orderDateTypeOptions.map(item => ({
+    label: t(item.label as App.I18n.I18nKey),
+    value: item.value as Api.Order.DateType
+  }));
+
+  const dateRangeLabel = t(orderDateTypeRecord[dateType] ?? orderDateTypeRecord[OrderDateType.ORDER_DATE]);
+
   return (
     <AForm
       form={form}
       initialValues={searchParams}
       labelCol={{ md: 7, span: 5 }}
     >
+      {/** 日期类型存表单；交互放在 RangePicker 面板内，不占筛选项位 */}
+      <AForm.Item
+        hidden
+        name="dateType"
+      >
+        <ASelect options={dateTypeOptions} />
+      </AForm.Item>
+
       <ARow
         wrap
         gutter={[16, 16]}
@@ -48,26 +74,32 @@ const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
         >
           <AForm.Item
             className="m-0"
-            label={t('page.order.list.dateType')}
-            name="dateType"
-          >
-            <OrderDateTypeSelect placeholder={t('page.order.list.form.dateType')} />
-          </AForm.Item>
-        </ACol>
-
-        <ACol
-          lg={6}
-          md={12}
-          span={24}
-        >
-          <AForm.Item
-            className="m-0"
-            label={t('page.order.list.dateRange')}
+            label={dateRangeLabel}
             name="dateRange"
           >
             <ADatePicker.RangePicker
               allowClear
               className="w-full"
+              panelRender={panel => (
+                <div>
+                  <div className="flex items-center gap-8px border-b border-[var(--ant-color-split)] border-solid px-12px py-8px">
+                    <span className="shrink-0 text-13px text-[var(--ant-color-text-secondary)]">
+                      {t('page.order.list.dateType')}
+                    </span>
+                    <ARadio.Group
+                      buttonStyle="solid"
+                      options={dateTypeOptions}
+                      optionType="button"
+                      size="small"
+                      value={dateType}
+                      onChange={event => {
+                        form.setFieldValue('dateType', event.target.value);
+                      }}
+                    />
+                  </div>
+                  {panel}
+                </div>
+              )}
             />
           </AForm.Item>
         </ACol>
@@ -130,14 +162,7 @@ const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
             label={t('page.order.list.hasOutSale')}
             name="hasOutSale"
           >
-            <ASelect
-              allowClear
-              placeholder={t('page.order.list.form.hasOutSale')}
-              options={[
-                { label: t('common.yesOrNo.yes'), value: true },
-                { label: t('common.yesOrNo.no'), value: false }
-              ]}
-            />
+            <BooleanYesNoSelect placeholder={t('page.order.list.form.hasOutSale')} />
           </AForm.Item>
         </ACol>
 
@@ -151,14 +176,7 @@ const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
             label={t('page.order.list.hasPurchasePlan')}
             name="hasPurchasePlan"
           >
-            <ASelect
-              allowClear
-              placeholder={t('page.order.list.form.hasPurchasePlan')}
-              options={[
-                { label: t('common.yesOrNo.yes'), value: true },
-                { label: t('common.yesOrNo.no'), value: false }
-              ]}
-            />
+            <BooleanYesNoSelect placeholder={t('page.order.list.form.hasPurchasePlan')} />
           </AForm.Item>
         </ACol>
 
@@ -172,14 +190,7 @@ const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
             label={t('page.order.list.updateStatus')}
             name="updateStatus"
           >
-            <ASelect
-              allowClear
-              placeholder={t('page.order.list.form.updateStatus')}
-              options={[
-                { label: t('common.yesOrNo.yes'), value: true },
-                { label: t('common.yesOrNo.no'), value: false }
-              ]}
-            />
+            <BooleanYesNoSelect placeholder={t('page.order.list.form.updateStatus')} />
           </AForm.Item>
         </ACol>
 
@@ -256,7 +267,7 @@ const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
         </ACol>
 
         <SearchActionsCol
-          fieldCount={13}
+          fieldCount={12}
           onReset={reset}
           onSearch={search}
         />

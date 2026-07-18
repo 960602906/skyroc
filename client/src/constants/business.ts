@@ -72,3 +72,10 @@ export const orderDateTypeRecord: Record<Api.Order.DateType, App.I18n.I18nKey> =
 };
 
 export const orderDateTypeOptions = transformRecordToOption(orderDateTypeRecord, true);
+
+export const orderAuditActionRecord: Record<Api.Order.AuditAction, App.I18n.I18nKey> = {
+  0: 'page.order.detail.auditActionSubmit',
+  1: 'page.order.detail.auditActionApprove',
+  2: 'page.order.detail.auditActionReject',
+  3: 'page.order.detail.auditActionResubmit'
+};

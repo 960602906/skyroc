@@ -70,7 +70,7 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_orders_after-sales': '售后单',
   '(base)_orders_detail': '订单详情',
   '(base)_orders_detail_[id]': '订单详情',
-  '(base)_orders_edit': '编辑订单',
+  '(base)_orders_edit': '新增订单',
   '(base)_orders_edit_[id]': '编辑订单',
   '(base)_orders_list': '销售订单',
   '(base)_orders_pickup-tasks': '取货任务',

@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Application.Serialization;
 using Domain.Entities.Orders;
 using Shared.Constants;
 
@@ -36,17 +37,20 @@ public class SaleOrderDetailQueryParameters : PagedQueryParameters
     public Expression<Func<SaleOrderDetail, bool>> QueryBuild()
     {
         var goodsKey = GoodsKey?.Trim();
+        var dateStart = DateTimeJsonFormats.AsUtcQueryStart(DateStart);
+        var dateEnd = DateTimeJsonFormats.AsUtcQueryEndInclusive(DateEnd);
+        var dateType = DateType;
 
         return x =>
             (!SaleOrderId.HasValue || x.SaleOrderId == SaleOrderId.Value)
-            && (!DateStart.HasValue
-                || (DateType == OrderDateType.OrderDate && x.SaleOrder.OrderDate >= DateStart.Value)
-                || (DateType == OrderDateType.ReceiveDate && x.SaleOrder.ReceiveDate.HasValue && x.SaleOrder.ReceiveDate.Value >= DateStart.Value)
-                || (DateType == OrderDateType.OutDate && x.SaleOrder.OutDate.HasValue && x.SaleOrder.OutDate.Value >= DateStart.Value))
-            && (!DateEnd.HasValue
-                || (DateType == OrderDateType.OrderDate && x.SaleOrder.OrderDate <= DateEnd.Value)
-                || (DateType == OrderDateType.ReceiveDate && x.SaleOrder.ReceiveDate.HasValue && x.SaleOrder.ReceiveDate.Value <= DateEnd.Value)
-                || (DateType == OrderDateType.OutDate && x.SaleOrder.OutDate.HasValue && x.SaleOrder.OutDate.Value <= DateEnd.Value))
+            && (!dateStart.HasValue
+                || (dateType == OrderDateType.OrderDate && x.SaleOrder.OrderDate >= dateStart.Value)
+                || (dateType == OrderDateType.ReceiveDate && x.SaleOrder.ReceiveDate.HasValue && x.SaleOrder.ReceiveDate.Value >= dateStart.Value)
+                || (dateType == OrderDateType.OutDate && x.SaleOrder.OutDate.HasValue && x.SaleOrder.OutDate.Value >= dateStart.Value))
+            && (!dateEnd.HasValue
+                || (dateType == OrderDateType.OrderDate && x.SaleOrder.OrderDate <= dateEnd.Value)
+                || (dateType == OrderDateType.ReceiveDate && x.SaleOrder.ReceiveDate.HasValue && x.SaleOrder.ReceiveDate.Value <= dateEnd.Value)
+                || (dateType == OrderDateType.OutDate && x.SaleOrder.OutDate.HasValue && x.SaleOrder.OutDate.Value <= dateEnd.Value))
             && (!OrderStatus.HasValue || x.SaleOrder.OrderStatus == OrderStatus.Value)
             && (!CustomerId.HasValue || x.SaleOrder.CustomerId == CustomerId.Value)
             && (string.IsNullOrWhiteSpace(goodsKey)
