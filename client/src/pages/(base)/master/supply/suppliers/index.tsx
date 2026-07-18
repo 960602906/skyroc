@@ -36,6 +36,7 @@ const SupplierManage = () => {
       {
         align: 'center',
         dataIndex: 'name',
+        fixed: 'left',
         key: 'name',
         render: (name: string, record) => (
           <AButton

@@ -843,7 +843,33 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_supply_wares',
                       icon: 'mdi:archive-outline',
                       order: 4
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/supply/wares/detail/index.tsx', null, null],
+                        name: '(base)_master_supply_wares_detail',
+                        path: '/master/supply/wares/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_supply_wares_detail',
+                          title: '(base)_master_supply_wares_detail',
+                          activeMenu: '/master/supply/wares',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [null, '/src/pages/(base)/master/supply/wares/detail/[id].tsx', null, null],
+                            name: '(base)_master_supply_wares_detail_[id]',
+                            path: '/master/supply/wares/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_supply_wares_detail_[id]',
+                              title: '(base)_master_supply_wares_detail_[id]',
+                              activeMenu: '/master/supply/wares',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               }

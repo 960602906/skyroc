@@ -52,7 +52,6 @@ const PurchaserManage = () => {
         align: 'center',
         dataIndex: 'code',
         key: 'code',
-        minWidth: 120,
         title: t('page.purchase.purchaser.code')
       },
       {
@@ -67,7 +66,6 @@ const PurchaserManage = () => {
         dataIndex: 'departmentName',
         ellipsis: true,
         key: 'departmentName',
-        minWidth: 120,
         title: t('page.purchase.purchaser.departmentId')
       },
       {
@@ -122,7 +120,8 @@ const PurchaserManage = () => {
         width: 210
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =

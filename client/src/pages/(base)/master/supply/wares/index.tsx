@@ -25,6 +25,7 @@ const WareOperateDrawer = lazy(() => import('./modules/WareOperateDrawer'));
 
 const WareManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetWareList,
@@ -34,22 +35,29 @@ const WareManage = () => {
       {
         align: 'center',
         dataIndex: 'name',
+        fixed: 'left',
         key: 'name',
-        title: t('page.storage.ware.name'),
-        width: 240
+        render: (name: string, record) => (
+          <AButton
+            className="p-0"
+            type="link"
+            onClick={() => nav(`/master/supply/wares/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
+        title: t('page.storage.ware.name')
       },
       {
         align: 'center',
         dataIndex: 'code',
         key: 'code',
-        minWidth: 120,
         title: t('page.storage.ware.code')
       },
       {
         align: 'center',
         dataIndex: 'contactName',
         key: 'contactName',
-        minWidth: 100,
         title: t('page.storage.ware.contactName')
       },
       {
@@ -63,7 +71,6 @@ const WareManage = () => {
         dataIndex: 'address',
         ellipsis: true,
         key: 'address',
-        minWidth: 160,
         title: t('page.storage.ware.address')
       },
       {
@@ -125,7 +132,8 @@ const WareManage = () => {
         width: 210
       }
     ],
-    pagination: createDefaultPagination()
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =

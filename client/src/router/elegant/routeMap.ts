@@ -93,6 +93,8 @@ export const routeMap: RouteMap = {
  "(base)_master_supply_suppliers_detail": "/master/supply/suppliers/detail",
  "(base)_master_supply_suppliers_detail_[id]": "/master/supply/suppliers/detail/:id",
  "(base)_master_supply_wares": "/master/supply/wares",
+ "(base)_master_supply_wares_detail": "/master/supply/wares/detail",
+ "(base)_master_supply_wares_detail_[id]": "/master/supply/wares/detail/:id",
  "(base)_orders": "/orders",
  "(base)_orders_after-sales": "/orders/after-sales",
  "(base)_orders_detail": "/orders/detail",

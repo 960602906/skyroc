@@ -64,6 +64,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_supply_suppliers_detail': 'Supplier Detail',
   '(base)_master_supply_suppliers_detail_[id]': 'Supplier Detail',
   '(base)_master_supply_wares': 'Warehouses',
+  '(base)_master_supply_wares_detail': 'Warehouse Detail',
+  '(base)_master_supply_wares_detail_[id]': 'Warehouse Detail',
   '(base)_orders': 'Orders',
   '(base)_orders_after-sales': 'After Sales',
   '(base)_orders_detail': 'Order Detail',

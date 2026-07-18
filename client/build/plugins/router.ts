@@ -92,6 +92,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master_supply_suppliers_detail_[id]': { activeMenu: '/master/supply/suppliers', hideInMenu: true },
 
   '(base)_master_supply_wares': { icon: 'mdi:archive-outline', order: 4 },
+  '(base)_master_supply_wares_detail': { activeMenu: '/master/supply/wares', hideInMenu: true },
+  '(base)_master_supply_wares_detail_[id]': { activeMenu: '/master/supply/wares', hideInMenu: true },
   '(base)_multi-menu': { hideInMenu: true },
   // —— 订单中心 ——
   '(base)_orders': { icon: 'mdi:clipboard-list-outline', order: 2 },
