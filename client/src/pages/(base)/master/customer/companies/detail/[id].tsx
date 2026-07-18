@@ -1,33 +1,36 @@
 import { Suspense, lazy } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData, useRevalidator } from 'react-router-dom';
 
+import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchGetCompanyDetail, fetchUpdateCompany } from '@/service/api';
 
 import CompanyDetailView from './modules/CompanyDetailView';
 
 const CompanyOperateDrawer = lazy(() => import('../modules/CompanyOperateDrawer'));
 
+const LIST_PATH = '/master/customer/companies';
+
 export async function loader({ params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) {
-    return redirect('/master/customer/companies');
+    return redirect(LIST_PATH);
   }
 
   try {
     const detail = await fetchGetCompanyDetail(id);
     if (!detail) {
-      return redirect('/master/customer/companies');
+      return redirect(LIST_PATH);
     }
     return detail;
   } catch {
-    return redirect('/master/customer/companies');
+    return redirect(LIST_PATH);
   }
 }
 
 const CompanyDetail = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.Company.Entity;
-  const nav = useNavigate();
+  const closeTabAndNavigate = useCloseTabAndNavigate();
   const revalidator = useRevalidator();
   const [form] = AForm.useForm<Api.Company.UpdateParams>();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -59,9 +62,7 @@ const CompanyDetail = () => {
         variant="borderless"
         extra={
           <ASpace>
-            <AButton onClick={() => nav('/master/customer/companies')}>
-              {t('page.customer.company.detail.back')}
-            </AButton>
+            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.customer.company.detail.back')}</AButton>
             <AButton
               type="primary"
               onClick={openEdit}

@@ -195,6 +195,18 @@ export function useTabActions() {
   };
 }
 
+/** 关闭当前页签并跳转到目标路径。 用于档案类新增/编辑/详情页的取消、返回列表、保存成功。 */
+export function useCloseTabAndNavigate() {
+  const nav = useNavigate();
+  const { activeTabId, removeTabById } = useTabActions();
+
+  return function closeTabAndNavigate(path: string) {
+    const tabId = activeTabId;
+    removeTabById(tabId);
+    nav(path);
+  };
+}
+
 export function useTabController() {
   const emit = useEmit();
 

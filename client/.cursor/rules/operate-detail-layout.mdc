@@ -17,6 +17,7 @@ alwaysApply: false
 - 新增/编辑：`src/pages/(base)/master/goods/operate/`
 - 详情：`src/pages/(base)/master/goods/detail/`
 - 列表进详情：`src/pages/(base)/master/goods/list/`、`.../goods/types/`
+- 客户（含关签回列表）：`src/pages/(base)/master/customer/operate/`、`.../customer/detail/`
 
 ## 页面外壳
 
@@ -51,6 +52,40 @@ alwaysApply: false
 - 路由建议：`.../detail/[id]`；列表点名称进详情，详情再进编辑
 - 分区字段与编辑页对齐；空值显示 `-`；状态用现有 badge/tag 渲染
 - ID 解析为名称后再展示（分类树 / 单位 / 仓库 / 供应商等）
+
+## 离开页：关闭当前页签（必守）
+
+档案类**全页**新增 / 编辑 / 详情离开时，必须**关闭当前页签**再回到列表，禁止只 `nav` 导致页签堆积。
+
+适用时机：
+
+| 操作 | 行为 |
+| --- | --- |
+| 取消 | 关当前签 → 列表 |
+| 返回列表 | 关当前签 → 列表 |
+| 新增 / 编辑保存成功 | 关当前签 → 列表 |
+
+```tsx
+import { useCloseTabAndNavigate } from '@/features/tab';
+
+const closeTabAndNavigate = useCloseTabAndNavigate();
+const listPath = '/master/xxx/list'; // 或该模块列表路径
+
+// 取消 / 返回
+<AButton onClick={() => closeTabAndNavigate(listPath)}>{t('common.cancel')}</AButton>
+
+// 保存成功
+await fetchAddXxx(values);
+window.$message?.success(t('common.addSuccess'));
+closeTabAndNavigate(listPath);
+```
+
+| 要求 | 说明 |
+| --- | --- |
+| API | 统一用 `useCloseTabAndNavigate`（`@/features/tab`），内部先 `removeTabById(activeTabId)` 再 `nav(path)` |
+| 禁止 | 仅 `nav(listPath)` 而不关签；在页面内复制一套关签逻辑 |
+| 范围 | 仅全页 operate/detail；列表页上的 Drawer/Modal 编辑不关签 |
+| 详情点「编辑」 | 进入编辑页，**不**关详情签（用户可能返回对照） |
 
 ## 列表 → 详情链接（必守）
 
@@ -90,4 +125,9 @@ alwaysApply: false
 <AButton type="link" style={{ color: '#1677ff' }} onClick={...}>
   {name}
 </AButton>
+
+// ❌ 取消/返回/保存成功只跳转不关签
+<AButton onClick={() => nav('/master/xxx/list')}>{t('common.cancel')}</AButton>
+await fetchAddXxx(values);
+nav('/master/xxx/list');
 ```

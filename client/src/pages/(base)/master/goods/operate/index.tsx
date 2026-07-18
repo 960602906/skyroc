@@ -1,11 +1,14 @@
+import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddGoods } from '@/service/api';
 
 import GoodsOperateForm from './modules/GoodsOperateForm';
 import { createDefaultGoodsFormValues } from './modules/create-default-goods-form-values';
 
+const LIST_PATH = '/master/goods/list';
+
 const GoodsCreate = () => {
   const { t } = useTranslation();
-  const nav = useNavigate();
+  const closeTabAndNavigate = useCloseTabAndNavigate();
   const [form] = AForm.useForm<Api.Goods.CreateParams>();
   const [submitting, setSubmitting] = useState(false);
 
@@ -19,7 +22,7 @@ const GoodsCreate = () => {
     try {
       await fetchAddGoods(values);
       window.$message?.success(t('common.addSuccess'));
-      nav('/master/goods/list');
+      closeTabAndNavigate(LIST_PATH);
     } finally {
       setSubmitting(false);
     }
@@ -34,7 +37,7 @@ const GoodsCreate = () => {
         variant="borderless"
         extra={
           <ASpace>
-            <AButton onClick={() => nav('/master/goods/list')}>{t('common.cancel')}</AButton>
+            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('common.cancel')}</AButton>
             <AButton
               loading={submitting}
               type="primary"

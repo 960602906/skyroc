@@ -1,11 +1,11 @@
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
 import { useCloseTabAndNavigate } from '@/features/tab';
-import { fetchGetGoodsDetail } from '@/service/api';
+import { fetchGetCustomerDetail } from '@/service/api';
 
-import GoodsDetailView from './modules/GoodsDetailView';
+import CustomerDetailView from './modules/CustomerDetailView';
 
-const LIST_PATH = '/master/goods/list';
+const LIST_PATH = '/master/customer/list';
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const { id } = params;
@@ -14,7 +14,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
   }
 
   try {
-    const detail = await fetchGetGoodsDetail(id);
+    const detail = await fetchGetCustomerDetail(id);
     if (!detail) {
       return redirect(LIST_PATH);
     }
@@ -24,9 +24,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
   }
 }
 
-const GoodsDetail = () => {
+const CustomerDetail = () => {
   const { t } = useTranslation();
-  const detail = useLoaderData() as Api.Goods.Entity;
+  const detail = useLoaderData() as Api.Customer.Entity;
   const nav = useNavigate();
   const closeTabAndNavigate = useCloseTabAndNavigate();
 
@@ -38,10 +38,10 @@ const GoodsDetail = () => {
         variant="borderless"
         extra={
           <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.goods.detail.back')}</AButton>
+            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.customer.detail.back')}</AButton>
             <AButton
               type="primary"
-              onClick={() => nav(`/master/goods/operate/${detail.id}`)}
+              onClick={() => nav(`/master/customer/operate/${detail.id}`)}
             >
               {t('common.edit')}
             </AButton>
@@ -49,15 +49,15 @@ const GoodsDetail = () => {
         }
       >
         <span className="opacity-60">
-          {t('page.goods.operate.code')}：{detail.code}
+          {t('page.customer.list.code')}：{detail.code}
         </span>
       </ACard>
 
       <div className="flex-col-stretch gap-16px">
-        <GoodsDetailView detail={detail} />
+        <CustomerDetailView detail={detail} />
       </div>
     </div>
   );
 };
 
-export default GoodsDetail;
+export default CustomerDetail;

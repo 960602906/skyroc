@@ -1,33 +1,36 @@
 import { Suspense, lazy } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData, useRevalidator } from 'react-router-dom';
 
+import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchGetGoodsUnitDetail, fetchUpdateGoodsUnit } from '@/service/api';
 
 import GoodsUnitDetailView from './modules/GoodsUnitDetailView';
 
 const GoodsUnitOperateDrawer = lazy(() => import('../modules/GoodsUnitOperateDrawer'));
 
+const LIST_PATH = '/master/goods/units';
+
 export async function loader({ params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) {
-    return redirect('/master/goods/units');
+    return redirect(LIST_PATH);
   }
 
   try {
     const detail = await fetchGetGoodsUnitDetail(id);
     if (!detail) {
-      return redirect('/master/goods/units');
+      return redirect(LIST_PATH);
     }
     return detail;
   } catch {
-    return redirect('/master/goods/units');
+    return redirect(LIST_PATH);
   }
 }
 
 const GoodsUnitDetail = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.GoodsUnit.Entity;
-  const nav = useNavigate();
+  const closeTabAndNavigate = useCloseTabAndNavigate();
   const revalidator = useRevalidator();
   const [form] = AForm.useForm<Api.GoodsUnit.UpdateParams>();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -61,7 +64,7 @@ const GoodsUnitDetail = () => {
         variant="borderless"
         extra={
           <ASpace>
-            <AButton onClick={() => nav('/master/goods/units')}>{t('page.goods.unit.detail.back')}</AButton>
+            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.goods.unit.detail.back')}</AButton>
             <AButton
               type="primary"
               onClick={openEdit}

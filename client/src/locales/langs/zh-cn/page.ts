@@ -43,6 +43,11 @@ const page: App.I18n.Schema['translation']['page'] = {
       status: '状态',
       title: '公司资料'
     },
+    detail: {
+      back: '返回列表',
+      title: '客户详情',
+      updateTime: '更新时间'
+    },
     list: {
       addCustomer: '新增客户',
       address: '地址',
@@ -66,11 +71,13 @@ const page: App.I18n.Schema['translation']['page'] = {
       title: '客户列表'
     },
     operate: {
+      addTitle: '新增客户',
       bankAccount: '银行账号',
       bankName: '开户银行',
       businessScope: '经营范围',
       businessTerm: '营业期限',
       defaultWareId: '默认仓库',
+      editTitle: '编辑客户',
       establishDate: '成立日期',
       form: {
         bankAccount: '请输入银行账号',
@@ -111,11 +118,9 @@ const page: App.I18n.Schema['translation']['page'] = {
       registrationAuthority: '登记机关',
       registrationStatus: '登记状态',
       remark: '备注',
-      tabs: {
-        basic: '基本信息',
-        business: '工商信息',
-        invoice: '开票信息'
-      },
+      sectionBasic: '基础信息',
+      sectionBusiness: '工商信息',
+      sectionInvoice: '开票信息',
       tagIds: '客户标签',
       taxpayerIdentificationNumber: '纳税人识别号',
       unifiedSocialCreditCode: '统一社会信用代码'

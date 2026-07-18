@@ -404,6 +404,11 @@ declare namespace App {
               status: string;
               title: string;
             };
+            detail: {
+              back: string;
+              title: string;
+              updateTime: string;
+            };
             list: {
               addCustomer: string;
               address: string;
@@ -427,11 +432,13 @@ declare namespace App {
               title: string;
             };
             operate: {
+              addTitle: string;
               bankAccount: string;
               bankName: string;
               businessScope: string;
               businessTerm: string;
               defaultWareId: string;
+              editTitle: string;
               establishDate: string;
               form: {
                 bankAccount: string;
@@ -472,11 +479,9 @@ declare namespace App {
               registrationAuthority: string;
               registrationStatus: string;
               remark: string;
-              tabs: {
-                basic: string;
-                business: string;
-                invoice: string;
-              };
+              sectionBasic: string;
+              sectionBusiness: string;
+              sectionInvoice: string;
               tagIds: string;
               taxpayerIdentificationNumber: string;
               unifiedSocialCreditCode: string;

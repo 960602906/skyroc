@@ -51,6 +51,15 @@ const CustomerListManage = () => {
         dataIndex: 'name',
         key: 'name',
         minWidth: 140,
+        render: (name: string, record) => (
+          <AButton
+            className="p-0"
+            type="link"
+            onClick={() => nav(`/master/customer/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.customer.list.name')
       },
       {

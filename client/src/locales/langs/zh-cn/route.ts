@@ -23,6 +23,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_master_customer_companies': '公司',
   '(base)_master_customer_companies_detail': '公司详情',
   '(base)_master_customer_companies_detail_[id]': '公司详情',
+  '(base)_master_customer_detail': '客户详情',
+  '(base)_master_customer_detail_[id]': '客户详情',
   '(base)_master_customer_list': '客户',
   '(base)_master_customer_operate': '新增客户',
   '(base)_master_customer_operate_[id]': '编辑客户',

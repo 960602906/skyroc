@@ -1,33 +1,36 @@
 import { Suspense, lazy } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData, useRevalidator } from 'react-router-dom';
 
+import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchGetGoodsTypeDetail, fetchUpdateGoodsType } from '@/service/api';
 
 import GoodsTypeDetailView from './modules/GoodsTypeDetailView';
 
 const GoodsTypeOperateDrawer = lazy(() => import('../modules/GoodsTypeOperateDrawer'));
 
+const LIST_PATH = '/master/goods/types';
+
 export async function loader({ params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) {
-    return redirect('/master/goods/types');
+    return redirect(LIST_PATH);
   }
 
   try {
     const detail = await fetchGetGoodsTypeDetail(id);
     if (!detail) {
-      return redirect('/master/goods/types');
+      return redirect(LIST_PATH);
     }
     return detail;
   } catch {
-    return redirect('/master/goods/types');
+    return redirect(LIST_PATH);
   }
 }
 
 const GoodsTypeDetail = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.GoodsType.Entity;
-  const nav = useNavigate();
+  const closeTabAndNavigate = useCloseTabAndNavigate();
   const revalidator = useRevalidator();
   const [form] = AForm.useForm<Api.GoodsType.UpdateParams>();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -59,7 +62,7 @@ const GoodsTypeDetail = () => {
         variant="borderless"
         extra={
           <ASpace>
-            <AButton onClick={() => nav('/master/goods/types')}>{t('page.goods.type.detail.back')}</AButton>
+            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.goods.type.detail.back')}</AButton>
             <AButton
               type="primary"
               onClick={openEdit}

@@ -43,6 +43,11 @@ const page: App.I18n.Schema['translation']['page'] = {
       status: 'Status',
       title: 'Company Profile'
     },
+    detail: {
+      back: 'Back to List',
+      title: 'Customer Detail',
+      updateTime: 'Updated At'
+    },
     list: {
       addCustomer: 'Add Customer',
       address: 'Address',
@@ -66,11 +71,13 @@ const page: App.I18n.Schema['translation']['page'] = {
       title: 'Customer List'
     },
     operate: {
+      addTitle: 'Add Customer',
       bankAccount: 'Bank Account',
       bankName: 'Bank Name',
       businessScope: 'Business Scope',
       businessTerm: 'Business Term',
       defaultWareId: 'Default Warehouse',
+      editTitle: 'Edit Customer',
       establishDate: 'Establish Date',
       form: {
         bankAccount: 'Please enter bank account',
@@ -111,11 +118,9 @@ const page: App.I18n.Schema['translation']['page'] = {
       registrationAuthority: 'Registration Authority',
       registrationStatus: 'Registration Status',
       remark: 'Remark',
-      tabs: {
-        basic: 'Basic Info',
-        business: 'Business Info',
-        invoice: 'Invoice Info'
-      },
+      sectionBasic: 'Basic Info',
+      sectionBusiness: 'Business Info',
+      sectionInvoice: 'Invoice Info',
       tagIds: 'Customer Tags',
       taxpayerIdentificationNumber: 'Taxpayer ID',
       unifiedSocialCreditCode: 'Unified Social Credit Code'

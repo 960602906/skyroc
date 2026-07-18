@@ -300,6 +300,30 @@ export const generatedRoutes: ElegantConstRoute[] = [
                     ]
                   },
                   {
+                    matchedFiles: [null, '/src/pages/(base)/master/customer/detail/index.tsx', null, null],
+                    name: '(base)_master_customer_detail',
+                    path: '/master/customer/detail',
+                    handle: {
+                      i18nKey: 'route.(base)_master_customer_detail',
+                      title: '(base)_master_customer_detail',
+                      activeMenu: '/master/customer/list',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/customer/detail/[id].tsx', null, null],
+                        name: '(base)_master_customer_detail_[id]',
+                        path: '/master/customer/detail/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_master_customer_detail_[id]',
+                          title: '(base)_master_customer_detail_[id]',
+                          activeMenu: '/master/customer/list',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
+                  },
+                  {
                     matchedFiles: [null, '/src/pages/(base)/master/customer/list/index.tsx', null, null],
                     name: '(base)_master_customer_list',
                     path: '/master/customer/list',
