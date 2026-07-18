@@ -5,6 +5,8 @@ import {
   CrudPageLayout,
   createDefaultPagination,
   createIndexColumn,
+  displayDate,
+  displayDateTime,
   renderBooleanYesNo,
   renderOrderOutStorageStatus,
   renderOrderPrintStatus,
@@ -115,8 +117,9 @@ const OrderListManage = () => {
         dataIndex: 'orderDate',
         ellipsis: true,
         key: 'orderDate',
+        render: (value: string) => displayDate(value),
         title: t('page.order.list.orderDate'),
-        width: 170
+        width: 120
       },
       {
         align: 'center',
@@ -124,8 +127,9 @@ const OrderListManage = () => {
         dataIndex: 'receiveDate',
         ellipsis: true,
         key: 'receiveDate',
+        render: (value: string) => displayDate(value),
         title: t('page.order.list.receiveDate'),
-        width: 170
+        width: 120
       },
       {
         align: 'center',
@@ -229,6 +233,7 @@ const OrderListManage = () => {
         dataIndex: 'createTime',
         ellipsis: true,
         key: 'createTime',
+        render: (value: string) => displayDateTime(value),
         title: t('page.order.list.createTime'),
         width: 170
       },

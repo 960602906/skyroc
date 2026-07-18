@@ -3,6 +3,8 @@ import type { DescriptionsProps, TableColumnsType } from 'antd';
 import { orderAuditActionRecord } from '@/constants/business';
 import {
   DETAIL_EMPTY,
+  displayDate,
+  displayDateTime,
   displayText,
   renderBooleanYesNo,
   renderOrderOutStorageStatus,
@@ -63,17 +65,17 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
       label: t('page.order.list.customerCode')
     },
     {
-      children: displayText(detail.orderDate),
+      children: displayDate(detail.orderDate),
       key: 'orderDate',
       label: t('page.order.list.orderDate')
     },
     {
-      children: displayText(detail.receiveDate),
+      children: displayDate(detail.receiveDate),
       key: 'receiveDate',
       label: t('page.order.list.receiveDate')
     },
     {
-      children: displayText(detail.outDate),
+      children: displayDateTime(detail.outDate),
       key: 'outDate',
       label: t('page.order.detail.outDate')
     },
@@ -163,12 +165,12 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
       span: 'filled'
     },
     {
-      children: displayText(detail.createTime),
+      children: displayDateTime(detail.createTime),
       key: 'createTime',
       label: t('page.order.list.createTime')
     },
     {
-      children: displayText(detail.updateTime),
+      children: displayDateTime(detail.updateTime),
       key: 'updateTime',
       label: t('page.order.detail.updateTime')
     }
@@ -319,7 +321,7 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
       className: 'whitespace-nowrap',
       dataIndex: 'auditTime',
       key: 'auditTime',
-      render: value => displayText(value),
+      render: value => displayDateTime(value as string),
       title: t('page.order.detail.auditTime'),
       width: 170
     },

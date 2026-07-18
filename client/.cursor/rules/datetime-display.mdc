@@ -1,0 +1,66 @@
+---
+description: 日期时间展示与表单提交约定（UTC 审计时间 vs 业务日期）
+globs:
+  - "**/pages/**/*.{tsx,ts}"
+  - "**/features/**/*.{tsx,ts}"
+  - "**/utils/datetime.ts"
+  - "**/features/crud/display-text.ts"
+alwaysApply: false
+---
+
+# 日期时间展示规范
+
+后端审计时间存 **UTC**，JSON 经 `FixedDateTimeJsonConverter` 写成 `yyyy-MM-dd HH:mm:ss` **且不带时区后缀**。前端若原样展示，中国时区会慢约 8 小时。业务日历日期（下单日等）是另一类，不能当时间戳做本地化。
+
+权威实现：
+
+- `src/utils/datetime.ts` — `formatUtcDateTime` / `formatBusinessDate` / `displayUtcDateTime` / `displayBusinessDate`
+- `src/features/crud` — `displayDateTime` / `displayDate`（详情空值占位 `-`）
+
+## 两类字段（必分清）
+
+| 类型 | 典型字段 | 后端含义 | 展示 | API |
+| --- | --- | --- | --- | --- |
+| **审计 / 事件时间戳** | `createTime`、`updateTime`、`auditTime`、实际出库/审核时刻 | UTC 时刻 | **UTC → 本地时区** 再格式化为 `YYYY-MM-DD HH:mm:ss` | `displayDateTime(value)` |
+| **业务日历日期** | `orderDate`、`receiveDate`、协议生效起止日等 | 业务选中的“哪一天”（常规范成 UTC 午夜写出） | **只取日期** `YYYY-MM-DD`，**不做时区换算**（避免跨日） | `displayDate(value)` |
+
+## 列表 / 详情（必守）
+
+```tsx
+import { displayDate, displayDateTime } from '@/features/crud';
+
+// ✅ 创建时间、更新时间、审核时间
+{ render: (v: string) => displayDateTime(v), dataIndex: 'createTime' }
+{ children: displayDateTime(detail.createTime), label: t('...createTime') }
+
+// ✅ 下单日、收货日等业务日
+{ render: (v: string) => displayDate(v), dataIndex: 'orderDate' }
+{ children: displayDate(detail.orderDate), label: t('...orderDate') }
+```
+
+| 要求 | 说明 |
+| --- | --- |
+| 统一入口 | 列表列 `render`、详情 `ADescriptions` 的 children，时间戳用 `displayDateTime`，业务日用 `displayDate` |
+| 禁止 | 对 `createTime`/`updateTime`/`auditTime` 直接 `displayText` 或原样绑 `dataIndex` 不转换 |
+| 禁止 | 对业务日期用 `displayDateTime`（会把 UTC 午夜换成本地时分，甚至跨日） |
+| 禁止 | 页面内私自 `dayjs(value).format(...)` 再猜时区；有新场景先扩 `utils/datetime.ts` |
+
+## 表单提交（业务日期）
+
+- DatePicker 提交业务日：统一 `YYYY-MM-DD` 字符串（可用 `getValueFromEvent={(_, s) => s || null}` + `getValueProps` 用 `dayjs(value)`）。
+- 不要给业务日拼本地时分秒或随意加 `Z`，除非接口明确要求时刻。
+- 回填编辑表单时业务日取日期部分即可，与 `formatBusinessDate` / 列表展示一致。
+
+## 反例
+
+```tsx
+// ❌ 审计时间原样展示 → 比本地慢 8 小时
+{ dataIndex: 'createTime', title: '创建时间' }
+{ children: displayText(detail.createTime) }
+
+// ❌ 业务日当时间戳本地化 → 可能显示成前一天/带 08:00
+{ children: displayDateTime(detail.orderDate) }
+
+// ❌ 页面内手写时区逻辑
+dayjs(createTime).add(8, 'hour').format('...')
+```

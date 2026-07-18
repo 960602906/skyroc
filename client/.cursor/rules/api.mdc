@@ -26,6 +26,10 @@ alwaysApply: true
 - 需要自定义错误提示时使用 `window.$message` 或在 `backEndFail` 中扩展。
 - 若接口需要 form-data、文件上传等特殊配置，请在调用前通过 `request` 的第二个参数或 axios config 调整。
 
+## 日期时间（与展示联动）
+- 后端 `createTime` / `updateTime` / `auditTime` 等为 **UTC**，JSON 多为 `yyyy-MM-dd HH:mm:ss` 且**无时区后缀**。
+- UI 展示须走 `displayDateTime`（UTC→本地）；业务日历日走 `displayDate`。完整约定见 `.cursor/rules/datetime-display.mdc`。
+
 ## 示例
 ```ts
 import { request } from '../request';

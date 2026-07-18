@@ -52,6 +52,7 @@ alwaysApply: false
 - 路由建议：`.../detail/[id]`；列表点名称进详情，详情再进编辑
 - 分区字段与编辑页对齐；空值显示 `-`；状态用现有 badge/tag 渲染
 - ID 解析为名称后再展示（分类树 / 单位 / 仓库 / 供应商等）
+- **时间字段：** 审计时间戳用 `displayDateTime`（UTC→本地）；业务日历日用 `displayDate`。详见 `.cursor/rules/datetime-display.mdc`
 
 ## 离开页：关闭当前页签（必守）
 
