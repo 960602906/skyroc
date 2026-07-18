@@ -15,7 +15,7 @@ alwaysApply: true
 - [`naming.mdc`](./naming.mdc)：文件、组件、类型与样式命名约定。
 - [`api.mdc`](./api.mdc)：服务层封装、`request` 客户端使用方法与类型声明。
 - [`styling.mdc`](./styling.mdc)：UnoCSS、Ant Design 主题与全局样式指引。
-- [`operate-detail-layout.mdc`](./operate-detail-layout.mdc)：档案类新增/编辑/详情的分区卡片布局（对齐商品档案）。
+- [`operate-detail-layout.mdc`](./operate-detail-layout.mdc)：档案类新增/编辑/详情的分区卡片布局，以及列表进详情链接须跟随主题色。
 - [`typescript.mdc`](./typescript.mdc)：TypeScript 配置、命名空间约定与类型定义原则。
 - [`comments.mdc`](./comments.mdc)：注释与文档说明书写风格。
 

@@ -17,6 +17,7 @@ alwaysApply: true
 ## 使用约定
 - UnoCSS 类命名遵循 `结构 → 状态 → 修饰`，常见 shortcut（如 `card-wrapper`）已在 `uno.config.ts` 定义，可直接复用。
 - Ant Design 主题通过 `ConfigProvider` 注入，若需调整全局主题色，修改 `features/theme` 模块的设置后更新 `themeVars`。
+- **`colorLink` 与 `colorPrimary` 对齐**（见 `features/theme/shared.ts`）：列表「名称进详情」等 `type="link"` 按钮须跟随主题色，禁止业务页写死链接色。细则见 [`operate-detail-layout.mdc`](./operate-detail-layout.mdc)。
 - 避免在组件内写内联 magic number。若需要固定尺寸，请在 `App.Theme.ThemeToken` 中扩展后引用。
 - 滚动条、全局重置、暗色模式等基础样式在 `src/styles/css`、`src/styles/scss`。仅当需要全局效果时才修改这些文件。
 

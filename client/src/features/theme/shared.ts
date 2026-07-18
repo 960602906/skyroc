@@ -204,6 +204,8 @@ export function getAntdTheme(
       colorBgContainer: containerBgColor,
       colorError: error,
       colorInfo: info,
+      // link 按钮默认走 colorLink（antd 蓝），与主题色脱节；与 primary 对齐
+      colorLink: primary,
       colorPrimary: primary,
       colorSuccess: success,
       colorWarning: warning
