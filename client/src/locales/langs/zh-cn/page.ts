@@ -173,6 +173,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       companyId: '所属公司',
       createTime: '创建时间',
       customerId: '关联客户',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '子账号详情',
+        updateTime: '更新时间'
+      },
       editSubAccount: '编辑子账号',
       email: '邮箱',
       form: {
@@ -188,6 +194,8 @@ const page: App.I18n.Schema['translation']['page'] = {
       nickName: '昵称',
       phone: '手机号',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionStatus: '状态与备注',
       status: '状态',
       title: '子账号管理',
       username: '用户名'
@@ -196,6 +204,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       addTag: '新增标签',
       code: '标签编码',
       createTime: '创建时间',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '标签详情',
+        updateTime: '更新时间'
+      },
       editTag: '编辑标签',
       form: {
         code: '请输入标签编码',
@@ -208,6 +222,8 @@ const page: App.I18n.Schema['translation']['page'] = {
       name: '标签名称',
       parentId: '父级标签',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionStatus: '状态与备注',
       sort: '排序',
       status: '状态',
       title: '客户标签'

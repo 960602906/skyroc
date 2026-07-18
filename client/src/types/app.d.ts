@@ -534,6 +534,12 @@ declare namespace App {
               companyId: string;
               createTime: string;
               customerId: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               editSubAccount: string;
               email: string;
               form: {
@@ -549,6 +555,8 @@ declare namespace App {
               nickName: string;
               phone: string;
               remark: string;
+              sectionBasic: string;
+              sectionStatus: string;
               status: string;
               title: string;
               username: string;
@@ -557,6 +565,12 @@ declare namespace App {
               addTag: string;
               code: string;
               createTime: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               editTag: string;
               form: {
                 code: string;
@@ -569,6 +583,8 @@ declare namespace App {
               name: string;
               parentId: string;
               remark: string;
+              sectionBasic: string;
+              sectionStatus: string;
               sort: string;
               status: string;
               title: string;

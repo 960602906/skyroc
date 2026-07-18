@@ -173,6 +173,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       companyId: 'Company',
       createTime: 'Created At',
       customerId: 'Customer',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Sub Account Detail',
+        updateTime: 'Updated At'
+      },
       editSubAccount: 'Edit Sub Account',
       email: 'Email',
       form: {
@@ -188,6 +194,8 @@ const page: App.I18n.Schema['translation']['page'] = {
       nickName: 'Nickname',
       phone: 'Phone',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionStatus: 'Status & Remark',
       status: 'Status',
       title: 'Sub Account',
       username: 'Username'
@@ -196,6 +204,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       addTag: 'Add Tag',
       code: 'Tag Code',
       createTime: 'Created At',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Tag Detail',
+        updateTime: 'Updated At'
+      },
       editTag: 'Edit Tag',
       form: {
         code: 'Please enter tag code',
@@ -208,6 +222,8 @@ const page: App.I18n.Schema['translation']['page'] = {
       name: 'Tag Name',
       parentId: 'Parent Tag',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionStatus: 'Status & Remark',
       sort: 'Sort',
       status: 'Status',
       title: 'Customer Tags'

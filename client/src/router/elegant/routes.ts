@@ -367,7 +367,43 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_customer_sub-accounts',
                       icon: 'mdi:account-multiple-outline',
                       order: 4
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [
+                          null,
+                          '/src/pages/(base)/master/customer/sub-accounts/detail/index.tsx',
+                          null,
+                          null
+                        ],
+                        name: '(base)_master_customer_sub-accounts_detail',
+                        path: '/master/customer/sub-accounts/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_customer_sub-accounts_detail',
+                          title: '(base)_master_customer_sub-accounts_detail',
+                          activeMenu: '/master/customer/sub-accounts',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/master/customer/sub-accounts/detail/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_master_customer_sub-accounts_detail_[id]',
+                            path: '/master/customer/sub-accounts/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_customer_sub-accounts_detail_[id]',
+                              title: '(base)_master_customer_sub-accounts_detail_[id]',
+                              activeMenu: '/master/customer/sub-accounts',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/master/customer/tags/index.tsx', null, null],
@@ -378,7 +414,33 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_customer_tags',
                       icon: 'mdi:tag-multiple-outline',
                       order: 3
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/master/customer/tags/detail/index.tsx', null, null],
+                        name: '(base)_master_customer_tags_detail',
+                        path: '/master/customer/tags/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_customer_tags_detail',
+                          title: '(base)_master_customer_tags_detail',
+                          activeMenu: '/master/customer/tags',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [null, '/src/pages/(base)/master/customer/tags/detail/[id].tsx', null, null],
+                            name: '(base)_master_customer_tags_detail_[id]',
+                            path: '/master/customer/tags/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_customer_tags_detail_[id]',
+                              title: '(base)_master_customer_tags_detail_[id]',
+                              activeMenu: '/master/customer/tags',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               },

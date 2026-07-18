@@ -9,7 +9,7 @@ type TagTreeNode = Api.CustomerTag.Entity & { children?: TagTreeNode[] };
 
 type RuleKey = 'code' | 'name' | 'sort';
 
-const CustomerTagOperateModal: FC<Page.OperateDrawerProps> = memo(
+const CustomerTagOperateDrawer: FC<Page.OperateDrawerProps> = memo(
   ({ form, handleSubmit, onClose, open, operateType }) => {
     const { t } = useTranslation();
 
@@ -28,13 +28,22 @@ const CustomerTagOperateModal: FC<Page.OperateDrawerProps> = memo(
     };
 
     return (
-      <AModal
-        destroyOnClose
+      <ADrawer
         open={open}
         title={operateType === 'add' ? t('page.customer.tag.addTag') : t('page.customer.tag.editTag')}
-        width={480}
-        onCancel={onClose}
-        onOk={handleSubmit}
+        width={520}
+        footer={
+          <AFlex justify="space-between">
+            <AButton onClick={onClose}>{t('common.cancel')}</AButton>
+            <AButton
+              type="primary"
+              onClick={handleSubmit}
+            >
+              {t('common.confirm')}
+            </AButton>
+          </AFlex>
+        }
+        onClose={onClose}
       >
         <AForm
           form={form}
@@ -100,9 +109,9 @@ const CustomerTagOperateModal: FC<Page.OperateDrawerProps> = memo(
 
           <EnableStatusFormItem label={t('page.customer.tag.status')} />
         </AForm>
-      </AModal>
+      </ADrawer>
     );
   }
 );
 
-export default CustomerTagOperateModal;
+export default CustomerTagOperateDrawer;

@@ -21,10 +21,11 @@ import {
 
 import CustomerTagSearch from './modules/CustomerTagSearch';
 
-const CustomerTagOperateModal = lazy(() => import('./modules/CustomerTagOperateModal'));
+const CustomerTagOperateDrawer = lazy(() => import('./modules/CustomerTagOperateDrawer'));
 
 const CustomerTagManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const { scrollConfig, tableWrapperRef } = useTableScroll();
 
@@ -38,6 +39,16 @@ const CustomerTagManage = () => {
         dataIndex: 'name',
         key: 'name',
         minWidth: 140,
+        render: (name: string, record) => (
+          <AButton
+            className="h-auto p-0 leading-normal"
+            size="small"
+            type="link"
+            onClick={() => nav(`/master/customer/tags/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
         title: t('page.customer.tag.name')
       },
       {
@@ -169,7 +180,7 @@ const CustomerTagManage = () => {
           />
 
           <Suspense>
-            <CustomerTagOperateModal {...generalPopupOperation} />
+            <CustomerTagOperateDrawer {...generalPopupOperation} />
           </Suspense>
         </>
       }

@@ -59,7 +59,11 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_master_customer_operate": "/master/customer/operate";
     "(base)_master_customer_operate_[id]": "/master/customer/operate/:id";
     "(base)_master_customer_sub-accounts": "/master/customer/sub-accounts";
+    "(base)_master_customer_sub-accounts_detail": "/master/customer/sub-accounts/detail";
+    "(base)_master_customer_sub-accounts_detail_[id]": "/master/customer/sub-accounts/detail/:id";
     "(base)_master_customer_tags": "/master/customer/tags";
+    "(base)_master_customer_tags_detail": "/master/customer/tags/detail";
+    "(base)_master_customer_tags_detail_[id]": "/master/customer/tags/detail/:id";
     "(base)_master_goods": "/master/goods";
     "(base)_master_goods_detail": "/master/goods/detail";
     "(base)_master_goods_detail_[id]": "/master/goods/detail/:id";
@@ -247,7 +251,11 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_master_customer_list"
     | "(base)_master_customer_operate_[id]"
     | "(base)_master_customer_operate"
+    | "(base)_master_customer_sub-accounts_detail_[id]"
+    | "(base)_master_customer_sub-accounts_detail"
     | "(base)_master_customer_sub-accounts"
+    | "(base)_master_customer_tags_detail_[id]"
+    | "(base)_master_customer_tags_detail"
     | "(base)_master_customer_tags"
     | "(base)_master_goods_detail_[id]"
     | "(base)_master_goods_detail"

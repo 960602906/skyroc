@@ -49,7 +49,14 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_master_customer_operate': { activeMenu: '/master/customer/list', hideInMenu: true },
   '(base)_master_customer_operate_[id]': { activeMenu: '/master/customer/list', hideInMenu: true },
   '(base)_master_customer_sub-accounts': { icon: 'mdi:account-multiple-outline', order: 4 },
+  '(base)_master_customer_sub-accounts_detail': { activeMenu: '/master/customer/sub-accounts', hideInMenu: true },
+  '(base)_master_customer_sub-accounts_detail_[id]': {
+    activeMenu: '/master/customer/sub-accounts',
+    hideInMenu: true
+  },
   '(base)_master_customer_tags': { icon: 'mdi:tag-multiple-outline', order: 3 },
+  '(base)_master_customer_tags_detail': { activeMenu: '/master/customer/tags', hideInMenu: true },
+  '(base)_master_customer_tags_detail_[id]': { activeMenu: '/master/customer/tags', hideInMenu: true },
 
   '(base)_master_goods': { icon: 'mdi:shopping-outline', order: 1 },
   '(base)_master_goods_detail': { activeMenu: '/master/goods/list', hideInMenu: true },

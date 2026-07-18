@@ -34,6 +34,7 @@ const defaultSearchParams: Api.CustomerSubAccount.SearchParams = {
 
 const SubAccountManage = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const { scrollConfig, tableWrapperRef } = useTableScroll();
 
@@ -47,6 +48,16 @@ const SubAccountManage = () => {
         dataIndex: 'username',
         key: 'username',
         minWidth: 120,
+        render: (username: string, record) => (
+          <AButton
+            className="h-auto p-0 leading-normal"
+            size="small"
+            type="link"
+            onClick={() => nav(`/master/customer/sub-accounts/detail/${record.id}`)}
+          >
+            {username}
+          </AButton>
+        ),
         title: t('page.customer.subAccount.username')
       },
       {
