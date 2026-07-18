@@ -25,7 +25,7 @@ public class SaleOrderDetailRepository(ApplicationDbContext context)
         int pageSize,
         Expression<Func<SaleOrderDetail, object>>? orderBy = null,
         bool isDescending = false)
-        {
+    {
         return await PagedFromQueryAsync(
             BuildDetailQuery().AsNoTracking(),
             predicate,

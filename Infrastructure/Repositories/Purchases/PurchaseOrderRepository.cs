@@ -39,7 +39,7 @@ public class PurchaseOrderRepository(ApplicationDbContext context)
         int pageSize,
         Expression<Func<PurchaseOrder, object>>? orderBy = null,
         bool isDescending = false)
-        {
+    {
         return await PagedFromQueryAsync(
             BuildDetailQuery(includePlanDetails: false).AsNoTracking(),
             predicate,

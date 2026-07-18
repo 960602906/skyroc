@@ -128,7 +128,7 @@ public class StockInOrderRepository(ApplicationDbContext context)
         int pageSize,
         Expression<Func<StockInOrder, object>>? orderBy = null,
         bool isDescending = false)
-        {
+    {
         return await PagedFromQueryAsync(
             BuildDetailQuery().AsNoTracking(),
             predicate,

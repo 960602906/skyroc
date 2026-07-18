@@ -77,7 +77,7 @@ public class DeliveryTaskRepository(ApplicationDbContext context)
         int pageSize,
         Expression<Func<DeliveryTask, object>>? orderBy = null,
         bool isDescending = false)
-        {
+    {
         return await PagedFromQueryAsync(
             BuildDetailQuery().AsNoTracking(),
             predicate,

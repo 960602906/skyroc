@@ -490,878 +490,878 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
         var baseDataStrategy = context.Database.CreateExecutionStrategy();
         await baseDataStrategy.ExecuteAsync(async () =>
         {
-        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-        try
-        {
-            foreach (var seed in departmentSeeds)
+            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            try
             {
-                Guid? parentId = seed.ParentCode is null
-                    ? null
-                    : GetManagedReferenceId(existingDepartments, seed.ParentCode, "上级部门");
-                if (!existingDepartments.TryGetValue(seed.Code, out var department))
+                foreach (var seed in departmentSeeds)
                 {
-                    await departmentService.CreateAsync(seed.ToCreateDto(parentId, auditUser));
-                    department = await context.Departments.SingleAsync(
-                        item => item.Code == seed.Code,
-                        cancellationToken);
-                    existingDepartments.Add(seed.Code, department);
-                    createdDepartments++;
-                    continue;
-                }
-
-                if (!seed.Matches(department, parentId, auditUser))
-                    await departmentService.UpdateAsync(department.Id, seed.ToUpdateDto(department.Id, parentId, auditUser));
-
-                if (department.CreateBy != auditUser.Id || department.CreateName != auditUser.Username)
-                {
-                    // 部门创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    department.CreateBy = auditUser.Id;
-                    department.CreateName = auditUser.Username;
-                }
-
-                reusedDepartments++;
-            }
-
-            var organizationalDepartments = existingDepartments.Values
-                .OrderBy(department => department.Code)
-                .Select(department => new DemoOrganizationalDepartment(department.Id, department.Code))
-                .ToList();
-
-            foreach (var seed in systemRoleSeeds)
-            {
-                if (!existingSystemRoles.TryGetValue(seed.Code, out var role))
-                {
-                    await roleService.CreateRoleAsync(seed.ToCreateDto());
-                    createdSystemRoles++;
-                    continue;
-                }
-
-                if (!seed.Matches(role))
-                    await roleService.UpdateRoleAsync(role.Id, seed.ToUpdateDto(role.Id));
-
-                if (role.CreateBy != auditUser.Id || role.CreateName != auditUser.Username)
-                {
-                    // 角色创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    role.CreateBy = auditUser.Id;
-                    role.CreateName = auditUser.Username;
-                }
-
-                reusedSystemRoles++;
-            }
-
-            var managedSystemRoles = await context.Roles
-                .Where(role => systemRoleCodes.Contains(role.Code))
-                .ToDictionaryAsync(role => role.Code, StringComparer.Ordinal, cancellationToken);
-            var permissionMenuNames = new[] { "home", "manage", "manage_role", "manage_user" };
-            var permissionMenuIds = await context.Menus
-                .Where(menu => permissionMenuNames.Contains(menu.Name))
-                .OrderBy(menu => menu.Name)
-                .Select(menu => menu.Id)
-                .ToArrayAsync(cancellationToken);
-            if (permissionMenuIds.Length != permissionMenuNames.Length)
-            {
-                throw new InvalidOperationException("长期联调系统角色生成需要已存在的首页、管理、角色和用户菜单。 ");
-            }
-
-            var managedMenuId = await context.Menus
-                .Where(menu => menu.Name == "manage")
-                .Select(menu => menu.Id)
-                .SingleAsync(cancellationToken);
-            var existingMenuButtons = await context.MenuButtons
-                .Where(button => button.MenuId == managedMenuId && menuButtonCodes.Contains(button.Code))
-                .ToDictionaryAsync(button => button.Code, StringComparer.Ordinal, cancellationToken);
-            var unknownManagedMenuButtons = await context.MenuButtons
-                .Where(button => button.MenuId == managedMenuId && button.Code.StartsWith($"{DemoDataStableKeyCatalog.ManagedPrefix}-MENU-BUTTON-"))
-                .Where(button => !menuButtonCodes.Contains(button.Code))
-                .Select(button => button.Code)
-                .ToListAsync(cancellationToken);
-            if (unknownManagedMenuButtons.Count != 0)
-            {
-                throw new InvalidOperationException(
-                    $"管理菜单存在未登记的受管权限按钮：{string.Join(", ", unknownManagedMenuButtons)}。");
-            }
-
-            foreach (var seed in menuButtonSeeds)
-            {
-                if (!existingMenuButtons.TryGetValue(seed.Code, out var button))
-                {
-                    await menuButtonService.CreateMenuButtonAsync(new CreateMenuButtonDto
+                    Guid? parentId = seed.ParentCode is null
+                        ? null
+                        : GetManagedReferenceId(existingDepartments, seed.ParentCode, "上级部门");
+                    if (!existingDepartments.TryGetValue(seed.Code, out var department))
                     {
-                        MenuId = managedMenuId,
-                        Code = seed.Code,
-                        Desc = seed.Desc
-                    });
-                    createdMenuButtons++;
-                    continue;
-                }
-
-                if (button.Desc != seed.Desc || button.CreateBy != auditUser.Id || button.CreateName != auditUser.Username)
-                {
-                    throw new InvalidOperationException($"受管菜单按钮 {seed.Code} 的业务字段或创建审计发生漂移。");
-                }
-
-                reusedMenuButtons++;
-            }
-
-            var managedRoleIds = managedSystemRoles.Values.Select(role => role.Id).ToArray();
-            var managedRoleMenus = await context.RoleMenus
-                .Where(relation => managedRoleIds.Contains(relation.RoleId))
-                .ToListAsync(cancellationToken);
-            context.RoleMenus.RemoveRange(managedRoleMenus);
-            foreach (var role in managedSystemRoles.Values)
-            {
-                foreach (var menuId in permissionMenuIds)
-                    context.RoleMenus.Add(new Domain.Entities.RoleMenu { RoleId = role.Id, MenuId = menuId });
-            }
-
-            foreach (var seed in systemUserSeeds)
-            {
-                if (!existingSystemUsers.TryGetValue(seed.Username, out var user))
-                {
-                    await userService.CreateUserAsync(seed.ToCreateDto());
-                    createdSystemUsers++;
-                    continue;
-                }
-
-                if (!seed.Matches(user))
-                    await userService.UpdateUserAsync(user.Id, seed.ToUpdateDto(user.Id));
-
-                if (user.CreateBy != auditUser.Id || user.CreateName != auditUser.Username)
-                {
-                    // 用户创建审计没有公开补写入口，仅修复完整稳定用户名对应的受管记录。
-                    user.CreateBy = auditUser.Id;
-                    user.CreateName = auditUser.Username;
-                }
-
-                reusedSystemUsers++;
-            }
-
-            var managedSystemUsers = await context.Users
-                .Where(user => systemUsernames.Contains(user.Username))
-                .ToDictionaryAsync(user => user.Username, StringComparer.Ordinal, cancellationToken);
-            var managedUserRoleRelations = await context.UserRoles
-                .Where(relation => managedSystemUsers.Values.Select(user => user.Id).Contains(relation.UserId))
-                .ToListAsync(cancellationToken);
-            context.UserRoles.RemoveRange(managedUserRoleRelations);
-            foreach (var seed in systemUserSeeds)
-            {
-                var user = GetManagedReference(managedSystemUsers, seed.Username, "系统用户");
-                var role = GetManagedReference(managedSystemRoles, seed.RoleCode, "系统角色");
-                var department = organizationalDepartments[(seed.Sequence - 1) % organizationalDepartments.Count];
-                // 用户部门未包含在公开创建/更新 DTO 中，故仅对完整稳定用户名命中的受管用户受控补齐。
-                user.DepartmentId = department.Id;
-                user.UpdateBy = auditUser.Id;
-                user.UpdateName = auditUser.Username;
-                context.UserRoles.Add(new Domain.Entities.UserRole { UserId = user.Id, RoleId = role.Id });
-            }
-
-            foreach (var seed in companySeeds)
-            {
-                if (!existingCompanies.TryGetValue(seed.Code, out var company))
-                {
-                    await companyService.CreateAsync(seed.ToCreateDto());
-                    createdCompanies++;
-                    continue;
-                }
-
-                if (!seed.Matches(company))
-                    await companyService.UpdateAsync(company.Id, seed.ToUpdateDto(company.Id));
-
-                if (company.CreateBy != auditUser.Id || company.CreateName != auditUser.Username)
-                {
-                    // 创建审计字段没有公开补写接口，只对完整稳定键命中的受管记录受控修复。
-                    company.CreateBy = auditUser.Id;
-                    company.CreateName = auditUser.Username;
-                }
-
-                reusedCompanies++;
-            }
-
-            foreach (var seed in customerTagSeeds)
-            {
-                if (!existingCustomerTags.TryGetValue(seed.Code, out var tag))
-                {
-                    await customerTagService.CreateAsync(seed.ToCreateDto());
-                    createdCustomerTags++;
-                    continue;
-                }
-
-                if (!seed.Matches(tag))
-                    await customerTagService.UpdateAsync(tag.Id, seed.ToUpdateDto(tag.Id));
-
-                if (tag.CreateBy != auditUser.Id || tag.CreateName != auditUser.Username)
-                {
-                    // 标签没有补写创建审计的公开入口，只修复完整稳定键命中的受管记录。
-                    tag.CreateBy = auditUser.Id;
-                    tag.CreateName = auditUser.Username;
-                }
-
-                reusedCustomerTags++;
-            }
-
-            var managedCompanies = await context.Companies
-                .Where(company => companyCodes.Contains(company.Code))
-                .ToDictionaryAsync(company => company.Code, StringComparer.Ordinal, cancellationToken);
-            var managedCustomerTags = await context.CustomerTags
-                .Where(tag => customerTagCodes.Contains(tag.Code))
-                .ToDictionaryAsync(tag => tag.Code, StringComparer.Ordinal, cancellationToken);
-            var existingCustomers = await context.Customers
-                .Include(customer => customer.TagRelations)
-                .Where(customer => customerCodes.Contains(customer.Code))
-                .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
-
-            foreach (var seed in customerSeeds)
-            {
-                var companyId = GetManagedReferenceId(managedCompanies, seed.CompanyCode, "公司");
-                var customerTagIds = seed.CustomerTagCodes
-                    .Select(code => GetManagedReferenceId(managedCustomerTags, code, "客户标签"))
-                    .ToArray();
-                if (!existingCustomers.TryGetValue(seed.Code, out var customer))
-                {
-                    await customerService.CreateAsync(seed.ToCreateDto(companyId, customerTagIds));
-                    createdCustomers++;
-                    createdCustomerTagRelations += customerTagIds.Length;
-                    continue;
-                }
-
-                if (!seed.Matches(customer, companyId, customerTagIds))
-                    await customerService.UpdateAsync(customer.Id, seed.ToUpdateDto(customer.Id, companyId, customerTagIds));
-
-                if (customer.CreateBy != auditUser.Id || customer.CreateName != auditUser.Username)
-                {
-                    // 客户创建审计没有补写入口，仅修复完整稳定编码对应的受管记录。
-                    customer.CreateBy = auditUser.Id;
-                    customer.CreateName = auditUser.Username;
-                }
-
-                reusedCustomers++;
-                reusedCustomerTagRelations += customerTagIds.Length;
-            }
-
-            var managedCustomers = await context.Customers
-                .Include(customer => customer.TagRelations)
-                .Where(customer => customerCodes.Contains(customer.Code))
-                .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
-
-            foreach (var seed in customerSubAccountSeeds)
-            {
-                var companyId = GetManagedReferenceId(managedCompanies, seed.CompanyCode, "公司");
-                var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
-                if (!existingCustomerSubAccounts.TryGetValue(seed.Username, out var subAccount))
-                {
-                    await customerSubAccountService.CreateAsync(seed.ToCreateDto(companyId, customerId));
-                    createdCustomerSubAccounts++;
-                    continue;
-                }
-
-                if (!seed.Matches(subAccount, companyId, customerId))
-                {
-                    await customerSubAccountService.UpdateAsync(
-                        subAccount.Id,
-                        seed.ToUpdateDto(subAccount.Id, companyId, customerId));
-                }
-
-                if (subAccount.CreateBy != auditUser.Id || subAccount.CreateName != auditUser.Username)
-                {
-                    // 客户子账号没有补写创建审计的公开入口，仅修复完整稳定账号对应的受管记录。
-                    subAccount.CreateBy = auditUser.Id;
-                    subAccount.CreateName = auditUser.Username;
-                }
-
-                reusedCustomerSubAccounts++;
-            }
-
-            foreach (var seed in carrierSeeds)
-            {
-                if (!existingCarriers.TryGetValue(seed.Code, out var carrier))
-                {
-                    await carrierService.CreateAsync(seed.ToCreateDto());
-                    createdCarriers++;
-                    continue;
-                }
-
-                if (!seed.Matches(carrier))
-                    await carrierService.UpdateAsync(carrier.Id, seed.ToUpdateDto(carrier.Id));
-
-                if (carrier.CreateBy != auditUser.Id || carrier.CreateName != auditUser.Username)
-                {
-                    // 承运商创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
-                    carrier.CreateBy = auditUser.Id;
-                    carrier.CreateName = auditUser.Username;
-                }
-
-                reusedCarriers++;
-            }
-
-            var managedCarriers = await context.Carriers
-                .Where(carrier => carrierCodes.Contains(carrier.Code))
-                .ToDictionaryAsync(carrier => carrier.Code, StringComparer.Ordinal, cancellationToken);
-            foreach (var seed in driverSeeds)
-            {
-                var carrierId = GetManagedReferenceId(managedCarriers, seed.CarrierCode, "承运商");
-                if (!existingDrivers.TryGetValue(seed.Code, out var driver))
-                {
-                    await driverService.CreateAsync(seed.ToCreateDto(carrierId));
-                    createdDrivers++;
-                    continue;
-                }
-
-                if (!seed.Matches(driver, carrierId))
-                    await driverService.UpdateAsync(driver.Id, seed.ToUpdateDto(driver.Id, carrierId));
-
-                if (driver.CreateBy != auditUser.Id || driver.CreateName != auditUser.Username)
-                {
-                    // 司机创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
-                    driver.CreateBy = auditUser.Id;
-                    driver.CreateName = auditUser.Username;
-                }
-
-                reusedDrivers++;
-            }
-
-            foreach (var seed in deliveryRouteSeeds)
-            {
-                var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
-                if (!existingDeliveryRoutes.TryGetValue(seed.Code, out var route))
-                {
-                    await deliveryRouteService.CreateAsync(seed.ToCreateDto(customerId));
-                    createdDeliveryRoutes++;
-                    continue;
-                }
-
-                if (!seed.Matches(route, customerId))
-                    await deliveryRouteService.UpdateAsync(route.Id, seed.ToUpdateDto(route.Id, customerId));
-
-                if (route.CreateBy != auditUser.Id || route.CreateName != auditUser.Username)
-                {
-                    // 路线创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
-                    route.CreateBy = auditUser.Id;
-                    route.CreateName = auditUser.Username;
-                }
-
-                reusedDeliveryRoutes++;
-            }
-
-            var managedDeliveryRoutes = await context.DeliveryRoutes
-                .Where(route => deliveryRouteCodes.Contains(route.Code))
-                .ToDictionaryAsync(route => route.Code, StringComparer.Ordinal, cancellationToken);
-            var managedDeliveryRouteIds = managedDeliveryRoutes.Values.Select(route => route.Id).ToArray();
-            var managedCustomerRoutes = await context.CustomerRoutes
-                .Where(relation => managedDeliveryRouteIds.Contains(relation.RouteId))
-                .ToListAsync(cancellationToken);
-            foreach (var seed in deliveryRouteSeeds)
-            {
-                var route = GetManagedReference(managedDeliveryRoutes, seed.Code, "配送路线");
-                var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
-                var relation = managedCustomerRoutes.Single(item => item.RouteId == route.Id && item.CustomerId == customerId);
-
-                // 路线服务的客户集合接口没有暴露关系排序和创建审计；仅对受管路线的精确关系补齐这两个业务字段。
-                relation.Sort = seed.Sort;
-                relation.CreateBy = auditUser.Id;
-                relation.CreateName = auditUser.Username;
-            }
-
-            var existingGoodsTypes = await context.GoodsTypes
-                .Where(goodsType => goodsTypeCodes.Contains(goodsType.Code))
-                .ToDictionaryAsync(goodsType => goodsType.Code, StringComparer.Ordinal, cancellationToken);
-            foreach (var seed in goodsTypeSeeds)
-            {
-                if (!existingGoodsTypes.TryGetValue(seed.Code, out var goodsType))
-                {
-                    await goodsTypeService.CreateAsync(seed.ToCreateDto());
-                    createdGoodsTypes++;
-                    continue;
-                }
-
-                if (!seed.Matches(goodsType))
-                    await goodsTypeService.UpdateAsync(goodsType.Id, seed.ToUpdateDto(goodsType.Id));
-
-                if (goodsType.CreateBy != auditUser.Id || goodsType.CreateName != auditUser.Username)
-                {
-                    // 商品分类的创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    goodsType.CreateBy = auditUser.Id;
-                    goodsType.CreateName = auditUser.Username;
-                }
-
-                reusedGoodsTypes++;
-            }
-
-            var managedGoodsTypes = await context.GoodsTypes
-                .Where(goodsType => goodsTypeCodes.Contains(goodsType.Code))
-                .ToDictionaryAsync(goodsType => goodsType.Code, StringComparer.Ordinal, cancellationToken);
-
-            foreach (var seed in supplierSeeds)
-            {
-                if (!existingSuppliers.TryGetValue(seed.Code, out var supplier))
-                {
-                    await supplierService.CreateAsync(seed.ToCreateDto());
-                    createdSuppliers++;
-                    continue;
-                }
-
-                if (!seed.Matches(supplier))
-                    await supplierService.UpdateAsync(supplier.Id, seed.ToUpdateDto(supplier.Id));
-
-                if (supplier.CreateBy != auditUser.Id || supplier.CreateName != auditUser.Username)
-                {
-                    // 供应商创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    supplier.CreateBy = auditUser.Id;
-                    supplier.CreateName = auditUser.Username;
-                }
-
-                reusedSuppliers++;
-            }
-
-            var managedSuppliers = await context.Suppliers
-                .Where(supplier => supplierCodes.Contains(supplier.Code))
-                .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
-
-            foreach (var seed in purchaserSeeds)
-            {
-                var user = organizationalUsers[(seed.Sequence - 1) % organizationalUsers.Count];
-                var department = organizationalDepartments[(seed.Sequence - 1) % organizationalDepartments.Count];
-                if (!existingPurchasers.TryGetValue(seed.Code, out var purchaser))
-                {
-                    await purchaserService.CreateAsync(seed.ToCreateDto(user.Id, department.Id));
-                    createdPurchasers++;
-                    continue;
-                }
-
-                if (!seed.Matches(purchaser, user.Id, department.Id))
-                    await purchaserService.UpdateAsync(purchaser.Id, seed.ToUpdateDto(purchaser.Id, user.Id, department.Id));
-
-                if (purchaser.CreateBy != auditUser.Id || purchaser.CreateName != auditUser.Username)
-                {
-                    // 采购员创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    purchaser.CreateBy = auditUser.Id;
-                    purchaser.CreateName = auditUser.Username;
-                }
-
-                reusedPurchasers++;
-            }
-
-            foreach (var seed in wareSeeds)
-            {
-                if (!existingWares.TryGetValue(seed.Code, out var ware))
-                {
-                    await wareService.CreateAsync(seed.ToCreateDto());
-                    createdWares++;
-                    continue;
-                }
-
-                if (!seed.Matches(ware))
-                    await wareService.UpdateAsync(ware.Id, seed.ToUpdateDto(ware.Id));
-
-                if (ware.CreateBy != auditUser.Id || ware.CreateName != auditUser.Username)
-                {
-                    // 仓库创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    ware.CreateBy = auditUser.Id;
-                    ware.CreateName = auditUser.Username;
-                }
-
-                reusedWares++;
-            }
-
-            var managedPurchasers = await context.Purchasers
-                .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
-                .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
-
-            var managedWares = await context.Wares
-                .Where(ware => wareCodes.Contains(ware.Code))
-                .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
-            foreach (var seed in goodsSeeds)
-            {
-                var goodsTypeId = GetManagedReferenceId(managedGoodsTypes, seed.GoodsTypeCode, "商品分类");
-                var defaultSupplierId = GetManagedReferenceId(managedSuppliers, seed.SupplierCode, "供应商");
-                var supplierIds = seed.SupplierCodes
-                    .Select(code => GetManagedReferenceId(managedSuppliers, code, "供应商"))
-                    .ToArray();
-                var wareId = GetManagedReferenceId(managedWares, seed.WareCode, "仓库");
-                if (!existingGoods.TryGetValue(seed.Code, out var goods))
-                {
-                    await goodsService.CreateAsync(seed.ToCreateDto(goodsTypeId, defaultSupplierId, supplierIds, wareId));
-                    createdGoods++;
-                    createdGoodsSupplierRelations += supplierIds.Length;
-                    continue;
-                }
-
-                if (!seed.Matches(goods, goodsTypeId, defaultSupplierId, supplierIds, wareId))
-                    await goodsService.UpdateAsync(
-                        goods.Id,
-                        seed.ToUpdateDto(goods.Id, goodsTypeId, defaultSupplierId, supplierIds, wareId));
-
-                if (goods.CreateBy != auditUser.Id || goods.CreateName != auditUser.Username)
-                {
-                    // 商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    goods.CreateBy = auditUser.Id;
-                    goods.CreateName = auditUser.Username;
-                }
-
-                reusedGoods++;
-                reusedGoodsSupplierRelations += supplierIds.Length;
-            }
-
-            var managedGoods = await context.Goods
-                .Where(goods => goodsCodes.Contains(goods.Code))
-                .ToDictionaryAsync(goods => goods.Code, StringComparer.Ordinal, cancellationToken);
-            foreach (var seed in goodsSeeds)
-            {
-                var goods = GetManagedReference(managedGoods, seed.Code, "商品");
-                if (!existingGoodsUnits.TryGetValue(seed.UnitCode, out var unit))
-                {
-                    await goodsUnitService.CreateAsync(seed.ToCreateGoodsUnitDto(goods.Id));
-                    createdGoodsUnits++;
-                    continue;
-                }
-
-                // 商品档案更新曾误清 BaseUnitId；单位字段未漂移时也要经单位服务重新挂回基础单位。
-                if (!seed.Matches(unit, goods.Id) || goods.BaseUnitId != unit.Id)
-                    await goodsUnitService.UpdateAsync(unit.Id, seed.ToUpdateGoodsUnitDto(unit.Id, goods.Id));
-
-                if (unit.CreateBy != auditUser.Id || unit.CreateName != auditUser.Username)
-                {
-                    // 商品单位创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    unit.CreateBy = auditUser.Id;
-                    unit.CreateName = auditUser.Username;
-                }
-
-                reusedGoodsUnits++;
-            }
-
-            var managedGoodsUnits = await context.GoodsUnits
-                .Where(unit => goodsUnitCodes.Contains(unit.Code))
-                .ToDictionaryAsync(unit => unit.Code!, StringComparer.Ordinal, cancellationToken);
-            foreach (var seed in quotationSeeds)
-            {
-                var customer = GetManagedReference(managedCustomers, seed.CustomerCode, "客户");
-                var goods = GetManagedReference(managedGoods, seed.GoodsCode, "商品");
-                var goodsUnit = GetManagedReference(managedGoodsUnits, seed.GoodsUnitCode, "商品单位");
-                Guid quotationId;
-                if (!existingQuotations.TryGetValue(seed.Code, out var quotation))
-                {
-                    quotationId = (await quotationService.CreateAsync(seed.ToCreateDto(customer.Id))).Id;
-                    createdQuotations++;
-                }
-                else
-                {
-                    if (!seed.Matches(quotation))
-                    {
-                        await quotationService.UpdateAsync(quotation.Id, seed.ToUpdateDto(quotation.Id, customer.Id));
+                        await departmentService.CreateAsync(seed.ToCreateDto(parentId, auditUser));
+                        department = await context.Departments.SingleAsync(
+                            item => item.Code == seed.Code,
+                            cancellationToken);
+                        existingDepartments.Add(seed.Code, department);
+                        createdDepartments++;
+                        continue;
                     }
 
-                    if (quotation.CreateBy != auditUser.Id || quotation.CreateName != auditUser.Username)
+                    if (!seed.Matches(department, parentId, auditUser))
+                        await departmentService.UpdateAsync(department.Id, seed.ToUpdateDto(department.Id, parentId, auditUser));
+
+                    if (department.CreateBy != auditUser.Id || department.CreateName != auditUser.Username)
                     {
-                        // 报价创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                        quotation.CreateBy = auditUser.Id;
-                        quotation.CreateName = auditUser.Username;
+                        // 部门创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        department.CreateBy = auditUser.Id;
+                        department.CreateName = auditUser.Username;
                     }
 
-                    quotationId = quotation.Id;
-                    reusedQuotations++;
+                    reusedDepartments++;
                 }
 
-                var customerQuotation = await context.CustomerQuotations.SingleAsync(
-                    relation => relation.CustomerId == customer.Id && relation.QuotationId == quotationId,
-                    cancellationToken);
-                // 当前报价维护接口只维护客户绑定；稳定受管关系的默认标志和有效期由生成器精确补齐。
-                customerQuotation.IsDefault = seed.IsAudited;
-                customerQuotation.EffectiveStart = seed.EffectiveStart;
-                customerQuotation.EffectiveEnd = seed.EffectiveEnd;
+                var organizationalDepartments = existingDepartments.Values
+                    .OrderBy(department => department.Code)
+                    .Select(department => new DemoOrganizationalDepartment(department.Id, department.Code))
+                    .ToList();
 
-                // 客户服务未提供默认报价和仓库的批量写入入口；仅对完整稳定编码命中的已加载受管客户在同一事务中精确补齐。
-                customer.QuotationId = seed.IsAudited ? quotationId : null;
-                customer.DefaultWareId = goods.DefaultWareId;
-                customer.UpdateBy = auditUser.Id;
-                customer.UpdateName = auditUser.Username;
-
-                var quotationGoods = await context.QuotationGoods.SingleOrDefaultAsync(
-                    item => item.QuotationId == quotationId
-                            && item.GoodsId == goods.Id
-                            && item.GoodsUnitId == goodsUnit.Id,
-                    cancellationToken);
-                if (quotationGoods is null)
+                foreach (var seed in systemRoleSeeds)
                 {
-                    await quotationGoodsService.CreateAsync(seed.ToCreateGoodsDto(quotationId, goods.Id, goodsUnit.Id));
-                    createdQuotationGoods++;
-                    continue;
-                }
-
-                if (!seed.Matches(quotationGoods))
-                {
-                    await quotationGoodsService.UpdateAsync(
-                        quotationGoods.Id,
-                        seed.ToUpdateGoodsDto(quotationGoods.Id, quotationId, goods.Id, goodsUnit.Id));
-                }
-
-                if (quotationGoods.CreateBy != auditUser.Id || quotationGoods.CreateName != auditUser.Username)
-                {
-                    // 报价商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    quotationGoods.CreateBy = auditUser.Id;
-                    quotationGoods.CreateName = auditUser.Username;
-                }
-
-                reusedQuotationGoods++;
-            }
-
-            var managedQuotations = await context.Quotations
-                .Where(quotation => quotationCodes.Contains(quotation.Code))
-                .ToDictionaryAsync(quotation => quotation.Code, StringComparer.Ordinal, cancellationToken);
-            foreach (var seed in customerProtocolSeeds)
-            {
-                var quotation = GetManagedReference(managedQuotations, seed.QuotationCode, "报价单");
-                var customer = GetManagedReference(managedCustomers, seed.CustomerCode, "客户");
-                var goods = GetManagedReference(managedGoods, seed.GoodsCode, "商品");
-                var goodsUnit = GetManagedReference(managedGoodsUnits, seed.GoodsUnitCode, "商品单位");
-                Guid customerProtocolId;
-                if (!existingCustomerProtocols.TryGetValue(seed.Code, out var customerProtocol))
-                {
-                    customerProtocolId = (await customerProtocolService.CreateAsync(
-                        seed.ToCreateDto(quotation.Id, customer.Id))).Id;
-                    createdCustomerProtocols++;
-                }
-                else
-                {
-                    if (!seed.Matches(customerProtocol, quotation.Id, customer.Id))
+                    if (!existingSystemRoles.TryGetValue(seed.Code, out var role))
                     {
-                        await customerProtocolService.UpdateAsync(
-                            customerProtocol.Id,
-                            seed.ToUpdateDto(customerProtocol.Id, quotation.Id, customer.Id));
+                        await roleService.CreateRoleAsync(seed.ToCreateDto());
+                        createdSystemRoles++;
+                        continue;
                     }
 
-                    if (customerProtocol.CreateBy != auditUser.Id || customerProtocol.CreateName != auditUser.Username)
+                    if (!seed.Matches(role))
+                        await roleService.UpdateRoleAsync(role.Id, seed.ToUpdateDto(role.Id));
+
+                    if (role.CreateBy != auditUser.Id || role.CreateName != auditUser.Username)
                     {
-                        // 客户协议价创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                        customerProtocol.CreateBy = auditUser.Id;
-                        customerProtocol.CreateName = auditUser.Username;
+                        // 角色创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        role.CreateBy = auditUser.Id;
+                        role.CreateName = auditUser.Username;
                     }
 
-                    customerProtocolId = customerProtocol.Id;
-                    reusedCustomerProtocols++;
+                    reusedSystemRoles++;
                 }
 
-                var customerProtocolGoods = await context.CustomerProtocolGoods.SingleOrDefaultAsync(
-                    item => item.CustomerProtocolId == customerProtocolId
-                            && item.GoodsId == goods.Id
-                            && item.GoodsUnitId == goodsUnit.Id,
-                    cancellationToken);
-                if (customerProtocolGoods is null)
+                var managedSystemRoles = await context.Roles
+                    .Where(role => systemRoleCodes.Contains(role.Code))
+                    .ToDictionaryAsync(role => role.Code, StringComparer.Ordinal, cancellationToken);
+                var permissionMenuNames = new[] { "home", "manage", "manage_role", "manage_user" };
+                var permissionMenuIds = await context.Menus
+                    .Where(menu => permissionMenuNames.Contains(menu.Name))
+                    .OrderBy(menu => menu.Name)
+                    .Select(menu => menu.Id)
+                    .ToArrayAsync(cancellationToken);
+                if (permissionMenuIds.Length != permissionMenuNames.Length)
                 {
-                    await customerProtocolGoodsService.CreateAsync(
-                        seed.ToCreateGoodsDto(customerProtocolId, goods.Id, goodsUnit.Id));
-                    createdCustomerProtocolGoods++;
-                    continue;
+                    throw new InvalidOperationException("长期联调系统角色生成需要已存在的首页、管理、角色和用户菜单。 ");
                 }
 
-                if (!seed.Matches(customerProtocolGoods))
+                var managedMenuId = await context.Menus
+                    .Where(menu => menu.Name == "manage")
+                    .Select(menu => menu.Id)
+                    .SingleAsync(cancellationToken);
+                var existingMenuButtons = await context.MenuButtons
+                    .Where(button => button.MenuId == managedMenuId && menuButtonCodes.Contains(button.Code))
+                    .ToDictionaryAsync(button => button.Code, StringComparer.Ordinal, cancellationToken);
+                var unknownManagedMenuButtons = await context.MenuButtons
+                    .Where(button => button.MenuId == managedMenuId && button.Code.StartsWith($"{DemoDataStableKeyCatalog.ManagedPrefix}-MENU-BUTTON-"))
+                    .Where(button => !menuButtonCodes.Contains(button.Code))
+                    .Select(button => button.Code)
+                    .ToListAsync(cancellationToken);
+                if (unknownManagedMenuButtons.Count != 0)
                 {
-                    await customerProtocolGoodsService.UpdateAsync(
-                        customerProtocolGoods.Id,
-                        seed.ToUpdateGoodsDto(customerProtocolGoods.Id, customerProtocolId, goods.Id, goodsUnit.Id));
+                    throw new InvalidOperationException(
+                        $"管理菜单存在未登记的受管权限按钮：{string.Join(", ", unknownManagedMenuButtons)}。");
                 }
 
-                if (customerProtocolGoods.CreateBy != auditUser.Id || customerProtocolGoods.CreateName != auditUser.Username)
+                foreach (var seed in menuButtonSeeds)
                 {
-                    // 客户协议价商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
-                    customerProtocolGoods.CreateBy = auditUser.Id;
-                    customerProtocolGoods.CreateName = auditUser.Username;
-                }
-
-                reusedCustomerProtocolGoods++;
-            }
-
-            foreach (var seed in purchaseRuleSeeds)
-            {
-                var supplierId = GetManagedReferenceId(managedSuppliers, seed.SupplierCode, "供应商");
-                var purchaserId = GetManagedReferenceId(managedPurchasers, seed.PurchaserCode, "采购员");
-                var wareId = GetManagedReferenceId(managedWares, seed.WareCode, "仓库");
-                var goodsTypeId = GetManagedReferenceId(managedGoodsTypes, seed.GoodsTypeCode, "商品分类");
-                var goodsId = GetManagedReferenceId(managedGoods, seed.GoodsCode, "商品");
-                var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
-                if (!existingPurchaseRules.TryGetValue(seed.Code, out var purchaseRule))
-                {
-                    await purchaseRuleService.CreateAsync(
-                        seed.ToCreateDto(supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId));
-                    createdPurchaseRules++;
-                    continue;
-                }
-
-                if (!seed.Matches(purchaseRule, supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId))
-                {
-                    await purchaseRuleService.UpdateAsync(
-                        purchaseRule.Id,
-                        seed.ToUpdateDto(purchaseRule.Id, supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId));
-                }
-
-                if (purchaseRule.CreateBy != auditUser.Id || purchaseRule.CreateName != auditUser.Username)
-                {
-                    // 采购规则没有补写创建审计的公开入口，仅修复完整稳定编码对应的受管记录。
-                    purchaseRule.CreateBy = auditUser.Id;
-                    purchaseRule.CreateName = auditUser.Username;
-                }
-
-                reusedPurchaseRules++;
-            }
-
-            await systemSupportService.SaveMiniProgramOrderSettingsAsync(new MiniProgramOrderSettingsDto
-            {
-                IsEnabled = true,
-                MaxAdvanceOrderDays = 7
-            });
-            await systemSupportService.SaveSortingWeightSettingsAsync(new SortingWeightSettingsDto
-            {
-                OrderTimeWeight = 1.2500m,
-                RouteWeight = 0.7500m,
-                CustomerWeight = 0.5000m
-            });
-
-            foreach (var seed in servicePeriodSeeds)
-            {
-                if (!existingServicePeriods.TryGetValue(seed.Name, out var servicePeriod))
-                {
-                    await systemSupportService.CreateServicePeriodAsync(seed.ToUpsertDto());
-                    createdServicePeriods++;
-                    continue;
-                }
-
-                if (!seed.Matches(servicePeriod))
-                    await systemSupportService.UpdateServicePeriodAsync(servicePeriod.Id, seed.ToUpsertDto());
-
-                if (servicePeriod.CreateBy != auditUser.Id || servicePeriod.CreateName != auditUser.Username)
-                {
-                    servicePeriod.CreateBy = auditUser.Id;
-                    servicePeriod.CreateName = auditUser.Username;
-                }
-
-                reusedServicePeriods++;
-            }
-
-            foreach (var seed in noticeSeeds)
-            {
-                Guid noticeId;
-                if (!existingNotices.TryGetValue(seed.Title, out var notice))
-                {
-                    noticeId = (await systemSupportService.CreateNoticeAsync(seed.ToUpsertDto())).Id;
-                    createdNotices++;
-                }
-                else
-                {
-                    if (!seed.Matches(notice))
-                        await systemSupportService.UpdateNoticeAsync(notice.Id, seed.ToUpsertDto());
-
-                    if (notice.CreateBy != auditUser.Id || notice.CreateName != auditUser.Username)
+                    if (!existingMenuButtons.TryGetValue(seed.Code, out var button))
                     {
-                        notice.CreateBy = auditUser.Id;
-                        notice.CreateName = auditUser.Username;
-                    }
-
-                    noticeId = notice.Id;
-                    reusedNotices++;
-                }
-
-                var refreshedNotice = await context.Notices.SingleAsync(item => item.Id == noticeId, cancellationToken);
-                if (refreshedNotice.NoticeStatus != seed.NoticeStatus)
-                {
-                    await systemSupportService.UpdateNoticeStatusAsync(
-                        refreshedNotice.Id,
-                        new UpdateNoticeStatusDto { NoticeStatus = seed.NoticeStatus });
-                }
-
-                refreshedNotice.PublishedTime = seed.NoticeStatus == NoticeStatus.Published
-                    ? seed.PublishedTime
-                    : null;
-            }
-
-            foreach (var seed in printTemplateSeeds)
-            {
-                if (!existingPrintTemplates.TryGetValue(seed.TemplateCode, out var printTemplate))
-                {
-                    await printService.CreateTemplateAsync(seed.ToCreateDto());
-                    createdPrintTemplates++;
-                    continue;
-                }
-
-                var replacedPrintTemplateFields = false;
-                if (!seed.Matches(printTemplate))
-                {
-                    printTemplate.TemplateCode = seed.TemplateCode;
-                    printTemplate.Name = seed.Name;
-                    printTemplate.BusinessType = seed.BusinessType;
-                    printTemplate.DesignJson = seed.DesignJson;
-                    printTemplate.IsEnabled = seed.IsEnabled;
-                    printTemplate.UpdateBy = auditUser.Id;
-                    printTemplate.UpdateName = auditUser.Username;
-                    context.PrintTemplateFields.RemoveRange(printTemplate.Fields);
-                    await context.SaveChangesAsync(cancellationToken);
-                    foreach (var field in seed.Fields.OrderBy(field => field.DisplayOrder))
-                    {
-                        context.PrintTemplateFields.Add(field.ToEntity(printTemplate.Id, auditUser));
-                    }
-
-                    replacedPrintTemplateFields = true;
-                }
-
-                if (printTemplate.CreateBy != auditUser.Id || printTemplate.CreateName != auditUser.Username)
-                {
-                    printTemplate.CreateBy = auditUser.Id;
-                    printTemplate.CreateName = auditUser.Username;
-                }
-
-                if (!replacedPrintTemplateFields)
-                {
-                    foreach (var field in printTemplate.Fields)
-                    {
-                        if (field.CreateBy != auditUser.Id || field.CreateName != auditUser.Username)
+                        await menuButtonService.CreateMenuButtonAsync(new CreateMenuButtonDto
                         {
-                            field.CreateBy = auditUser.Id;
-                            field.CreateName = auditUser.Username;
+                            MenuId = managedMenuId,
+                            Code = seed.Code,
+                            Desc = seed.Desc
+                        });
+                        createdMenuButtons++;
+                        continue;
+                    }
+
+                    if (button.Desc != seed.Desc || button.CreateBy != auditUser.Id || button.CreateName != auditUser.Username)
+                    {
+                        throw new InvalidOperationException($"受管菜单按钮 {seed.Code} 的业务字段或创建审计发生漂移。");
+                    }
+
+                    reusedMenuButtons++;
+                }
+
+                var managedRoleIds = managedSystemRoles.Values.Select(role => role.Id).ToArray();
+                var managedRoleMenus = await context.RoleMenus
+                    .Where(relation => managedRoleIds.Contains(relation.RoleId))
+                    .ToListAsync(cancellationToken);
+                context.RoleMenus.RemoveRange(managedRoleMenus);
+                foreach (var role in managedSystemRoles.Values)
+                {
+                    foreach (var menuId in permissionMenuIds)
+                        context.RoleMenus.Add(new Domain.Entities.RoleMenu { RoleId = role.Id, MenuId = menuId });
+                }
+
+                foreach (var seed in systemUserSeeds)
+                {
+                    if (!existingSystemUsers.TryGetValue(seed.Username, out var user))
+                    {
+                        await userService.CreateUserAsync(seed.ToCreateDto());
+                        createdSystemUsers++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(user))
+                        await userService.UpdateUserAsync(user.Id, seed.ToUpdateDto(user.Id));
+
+                    if (user.CreateBy != auditUser.Id || user.CreateName != auditUser.Username)
+                    {
+                        // 用户创建审计没有公开补写入口，仅修复完整稳定用户名对应的受管记录。
+                        user.CreateBy = auditUser.Id;
+                        user.CreateName = auditUser.Username;
+                    }
+
+                    reusedSystemUsers++;
+                }
+
+                var managedSystemUsers = await context.Users
+                    .Where(user => systemUsernames.Contains(user.Username))
+                    .ToDictionaryAsync(user => user.Username, StringComparer.Ordinal, cancellationToken);
+                var managedUserRoleRelations = await context.UserRoles
+                    .Where(relation => managedSystemUsers.Values.Select(user => user.Id).Contains(relation.UserId))
+                    .ToListAsync(cancellationToken);
+                context.UserRoles.RemoveRange(managedUserRoleRelations);
+                foreach (var seed in systemUserSeeds)
+                {
+                    var user = GetManagedReference(managedSystemUsers, seed.Username, "系统用户");
+                    var role = GetManagedReference(managedSystemRoles, seed.RoleCode, "系统角色");
+                    var department = organizationalDepartments[(seed.Sequence - 1) % organizationalDepartments.Count];
+                    // 用户部门未包含在公开创建/更新 DTO 中，故仅对完整稳定用户名命中的受管用户受控补齐。
+                    user.DepartmentId = department.Id;
+                    user.UpdateBy = auditUser.Id;
+                    user.UpdateName = auditUser.Username;
+                    context.UserRoles.Add(new Domain.Entities.UserRole { UserId = user.Id, RoleId = role.Id });
+                }
+
+                foreach (var seed in companySeeds)
+                {
+                    if (!existingCompanies.TryGetValue(seed.Code, out var company))
+                    {
+                        await companyService.CreateAsync(seed.ToCreateDto());
+                        createdCompanies++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(company))
+                        await companyService.UpdateAsync(company.Id, seed.ToUpdateDto(company.Id));
+
+                    if (company.CreateBy != auditUser.Id || company.CreateName != auditUser.Username)
+                    {
+                        // 创建审计字段没有公开补写接口，只对完整稳定键命中的受管记录受控修复。
+                        company.CreateBy = auditUser.Id;
+                        company.CreateName = auditUser.Username;
+                    }
+
+                    reusedCompanies++;
+                }
+
+                foreach (var seed in customerTagSeeds)
+                {
+                    if (!existingCustomerTags.TryGetValue(seed.Code, out var tag))
+                    {
+                        await customerTagService.CreateAsync(seed.ToCreateDto());
+                        createdCustomerTags++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(tag))
+                        await customerTagService.UpdateAsync(tag.Id, seed.ToUpdateDto(tag.Id));
+
+                    if (tag.CreateBy != auditUser.Id || tag.CreateName != auditUser.Username)
+                    {
+                        // 标签没有补写创建审计的公开入口，只修复完整稳定键命中的受管记录。
+                        tag.CreateBy = auditUser.Id;
+                        tag.CreateName = auditUser.Username;
+                    }
+
+                    reusedCustomerTags++;
+                }
+
+                var managedCompanies = await context.Companies
+                    .Where(company => companyCodes.Contains(company.Code))
+                    .ToDictionaryAsync(company => company.Code, StringComparer.Ordinal, cancellationToken);
+                var managedCustomerTags = await context.CustomerTags
+                    .Where(tag => customerTagCodes.Contains(tag.Code))
+                    .ToDictionaryAsync(tag => tag.Code, StringComparer.Ordinal, cancellationToken);
+                var existingCustomers = await context.Customers
+                    .Include(customer => customer.TagRelations)
+                    .Where(customer => customerCodes.Contains(customer.Code))
+                    .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
+
+                foreach (var seed in customerSeeds)
+                {
+                    var companyId = GetManagedReferenceId(managedCompanies, seed.CompanyCode, "公司");
+                    var customerTagIds = seed.CustomerTagCodes
+                        .Select(code => GetManagedReferenceId(managedCustomerTags, code, "客户标签"))
+                        .ToArray();
+                    if (!existingCustomers.TryGetValue(seed.Code, out var customer))
+                    {
+                        await customerService.CreateAsync(seed.ToCreateDto(companyId, customerTagIds));
+                        createdCustomers++;
+                        createdCustomerTagRelations += customerTagIds.Length;
+                        continue;
+                    }
+
+                    if (!seed.Matches(customer, companyId, customerTagIds))
+                        await customerService.UpdateAsync(customer.Id, seed.ToUpdateDto(customer.Id, companyId, customerTagIds));
+
+                    if (customer.CreateBy != auditUser.Id || customer.CreateName != auditUser.Username)
+                    {
+                        // 客户创建审计没有补写入口，仅修复完整稳定编码对应的受管记录。
+                        customer.CreateBy = auditUser.Id;
+                        customer.CreateName = auditUser.Username;
+                    }
+
+                    reusedCustomers++;
+                    reusedCustomerTagRelations += customerTagIds.Length;
+                }
+
+                var managedCustomers = await context.Customers
+                    .Include(customer => customer.TagRelations)
+                    .Where(customer => customerCodes.Contains(customer.Code))
+                    .ToDictionaryAsync(customer => customer.Code, StringComparer.Ordinal, cancellationToken);
+
+                foreach (var seed in customerSubAccountSeeds)
+                {
+                    var companyId = GetManagedReferenceId(managedCompanies, seed.CompanyCode, "公司");
+                    var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
+                    if (!existingCustomerSubAccounts.TryGetValue(seed.Username, out var subAccount))
+                    {
+                        await customerSubAccountService.CreateAsync(seed.ToCreateDto(companyId, customerId));
+                        createdCustomerSubAccounts++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(subAccount, companyId, customerId))
+                    {
+                        await customerSubAccountService.UpdateAsync(
+                            subAccount.Id,
+                            seed.ToUpdateDto(subAccount.Id, companyId, customerId));
+                    }
+
+                    if (subAccount.CreateBy != auditUser.Id || subAccount.CreateName != auditUser.Username)
+                    {
+                        // 客户子账号没有补写创建审计的公开入口，仅修复完整稳定账号对应的受管记录。
+                        subAccount.CreateBy = auditUser.Id;
+                        subAccount.CreateName = auditUser.Username;
+                    }
+
+                    reusedCustomerSubAccounts++;
+                }
+
+                foreach (var seed in carrierSeeds)
+                {
+                    if (!existingCarriers.TryGetValue(seed.Code, out var carrier))
+                    {
+                        await carrierService.CreateAsync(seed.ToCreateDto());
+                        createdCarriers++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(carrier))
+                        await carrierService.UpdateAsync(carrier.Id, seed.ToUpdateDto(carrier.Id));
+
+                    if (carrier.CreateBy != auditUser.Id || carrier.CreateName != auditUser.Username)
+                    {
+                        // 承运商创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
+                        carrier.CreateBy = auditUser.Id;
+                        carrier.CreateName = auditUser.Username;
+                    }
+
+                    reusedCarriers++;
+                }
+
+                var managedCarriers = await context.Carriers
+                    .Where(carrier => carrierCodes.Contains(carrier.Code))
+                    .ToDictionaryAsync(carrier => carrier.Code, StringComparer.Ordinal, cancellationToken);
+                foreach (var seed in driverSeeds)
+                {
+                    var carrierId = GetManagedReferenceId(managedCarriers, seed.CarrierCode, "承运商");
+                    if (!existingDrivers.TryGetValue(seed.Code, out var driver))
+                    {
+                        await driverService.CreateAsync(seed.ToCreateDto(carrierId));
+                        createdDrivers++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(driver, carrierId))
+                        await driverService.UpdateAsync(driver.Id, seed.ToUpdateDto(driver.Id, carrierId));
+
+                    if (driver.CreateBy != auditUser.Id || driver.CreateName != auditUser.Username)
+                    {
+                        // 司机创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
+                        driver.CreateBy = auditUser.Id;
+                        driver.CreateName = auditUser.Username;
+                    }
+
+                    reusedDrivers++;
+                }
+
+                foreach (var seed in deliveryRouteSeeds)
+                {
+                    var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
+                    if (!existingDeliveryRoutes.TryGetValue(seed.Code, out var route))
+                    {
+                        await deliveryRouteService.CreateAsync(seed.ToCreateDto(customerId));
+                        createdDeliveryRoutes++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(route, customerId))
+                        await deliveryRouteService.UpdateAsync(route.Id, seed.ToUpdateDto(route.Id, customerId));
+
+                    if (route.CreateBy != auditUser.Id || route.CreateName != auditUser.Username)
+                    {
+                        // 路线创建审计没有公开补写入口，仅修复完整稳定编码命中的受管记录。
+                        route.CreateBy = auditUser.Id;
+                        route.CreateName = auditUser.Username;
+                    }
+
+                    reusedDeliveryRoutes++;
+                }
+
+                var managedDeliveryRoutes = await context.DeliveryRoutes
+                    .Where(route => deliveryRouteCodes.Contains(route.Code))
+                    .ToDictionaryAsync(route => route.Code, StringComparer.Ordinal, cancellationToken);
+                var managedDeliveryRouteIds = managedDeliveryRoutes.Values.Select(route => route.Id).ToArray();
+                var managedCustomerRoutes = await context.CustomerRoutes
+                    .Where(relation => managedDeliveryRouteIds.Contains(relation.RouteId))
+                    .ToListAsync(cancellationToken);
+                foreach (var seed in deliveryRouteSeeds)
+                {
+                    var route = GetManagedReference(managedDeliveryRoutes, seed.Code, "配送路线");
+                    var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
+                    var relation = managedCustomerRoutes.Single(item => item.RouteId == route.Id && item.CustomerId == customerId);
+
+                    // 路线服务的客户集合接口没有暴露关系排序和创建审计；仅对受管路线的精确关系补齐这两个业务字段。
+                    relation.Sort = seed.Sort;
+                    relation.CreateBy = auditUser.Id;
+                    relation.CreateName = auditUser.Username;
+                }
+
+                var existingGoodsTypes = await context.GoodsTypes
+                    .Where(goodsType => goodsTypeCodes.Contains(goodsType.Code))
+                    .ToDictionaryAsync(goodsType => goodsType.Code, StringComparer.Ordinal, cancellationToken);
+                foreach (var seed in goodsTypeSeeds)
+                {
+                    if (!existingGoodsTypes.TryGetValue(seed.Code, out var goodsType))
+                    {
+                        await goodsTypeService.CreateAsync(seed.ToCreateDto());
+                        createdGoodsTypes++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(goodsType))
+                        await goodsTypeService.UpdateAsync(goodsType.Id, seed.ToUpdateDto(goodsType.Id));
+
+                    if (goodsType.CreateBy != auditUser.Id || goodsType.CreateName != auditUser.Username)
+                    {
+                        // 商品分类的创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        goodsType.CreateBy = auditUser.Id;
+                        goodsType.CreateName = auditUser.Username;
+                    }
+
+                    reusedGoodsTypes++;
+                }
+
+                var managedGoodsTypes = await context.GoodsTypes
+                    .Where(goodsType => goodsTypeCodes.Contains(goodsType.Code))
+                    .ToDictionaryAsync(goodsType => goodsType.Code, StringComparer.Ordinal, cancellationToken);
+
+                foreach (var seed in supplierSeeds)
+                {
+                    if (!existingSuppliers.TryGetValue(seed.Code, out var supplier))
+                    {
+                        await supplierService.CreateAsync(seed.ToCreateDto());
+                        createdSuppliers++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(supplier))
+                        await supplierService.UpdateAsync(supplier.Id, seed.ToUpdateDto(supplier.Id));
+
+                    if (supplier.CreateBy != auditUser.Id || supplier.CreateName != auditUser.Username)
+                    {
+                        // 供应商创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        supplier.CreateBy = auditUser.Id;
+                        supplier.CreateName = auditUser.Username;
+                    }
+
+                    reusedSuppliers++;
+                }
+
+                var managedSuppliers = await context.Suppliers
+                    .Where(supplier => supplierCodes.Contains(supplier.Code))
+                    .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
+
+                foreach (var seed in purchaserSeeds)
+                {
+                    var user = organizationalUsers[(seed.Sequence - 1) % organizationalUsers.Count];
+                    var department = organizationalDepartments[(seed.Sequence - 1) % organizationalDepartments.Count];
+                    if (!existingPurchasers.TryGetValue(seed.Code, out var purchaser))
+                    {
+                        await purchaserService.CreateAsync(seed.ToCreateDto(user.Id, department.Id));
+                        createdPurchasers++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(purchaser, user.Id, department.Id))
+                        await purchaserService.UpdateAsync(purchaser.Id, seed.ToUpdateDto(purchaser.Id, user.Id, department.Id));
+
+                    if (purchaser.CreateBy != auditUser.Id || purchaser.CreateName != auditUser.Username)
+                    {
+                        // 采购员创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        purchaser.CreateBy = auditUser.Id;
+                        purchaser.CreateName = auditUser.Username;
+                    }
+
+                    reusedPurchasers++;
+                }
+
+                foreach (var seed in wareSeeds)
+                {
+                    if (!existingWares.TryGetValue(seed.Code, out var ware))
+                    {
+                        await wareService.CreateAsync(seed.ToCreateDto());
+                        createdWares++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(ware))
+                        await wareService.UpdateAsync(ware.Id, seed.ToUpdateDto(ware.Id));
+
+                    if (ware.CreateBy != auditUser.Id || ware.CreateName != auditUser.Username)
+                    {
+                        // 仓库创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        ware.CreateBy = auditUser.Id;
+                        ware.CreateName = auditUser.Username;
+                    }
+
+                    reusedWares++;
+                }
+
+                var managedPurchasers = await context.Purchasers
+                    .Where(purchaser => purchaserCodes.Contains(purchaser.Code))
+                    .ToDictionaryAsync(purchaser => purchaser.Code, StringComparer.Ordinal, cancellationToken);
+
+                var managedWares = await context.Wares
+                    .Where(ware => wareCodes.Contains(ware.Code))
+                    .ToDictionaryAsync(ware => ware.Code, StringComparer.Ordinal, cancellationToken);
+                foreach (var seed in goodsSeeds)
+                {
+                    var goodsTypeId = GetManagedReferenceId(managedGoodsTypes, seed.GoodsTypeCode, "商品分类");
+                    var defaultSupplierId = GetManagedReferenceId(managedSuppliers, seed.SupplierCode, "供应商");
+                    var supplierIds = seed.SupplierCodes
+                        .Select(code => GetManagedReferenceId(managedSuppliers, code, "供应商"))
+                        .ToArray();
+                    var wareId = GetManagedReferenceId(managedWares, seed.WareCode, "仓库");
+                    if (!existingGoods.TryGetValue(seed.Code, out var goods))
+                    {
+                        await goodsService.CreateAsync(seed.ToCreateDto(goodsTypeId, defaultSupplierId, supplierIds, wareId));
+                        createdGoods++;
+                        createdGoodsSupplierRelations += supplierIds.Length;
+                        continue;
+                    }
+
+                    if (!seed.Matches(goods, goodsTypeId, defaultSupplierId, supplierIds, wareId))
+                        await goodsService.UpdateAsync(
+                            goods.Id,
+                            seed.ToUpdateDto(goods.Id, goodsTypeId, defaultSupplierId, supplierIds, wareId));
+
+                    if (goods.CreateBy != auditUser.Id || goods.CreateName != auditUser.Username)
+                    {
+                        // 商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        goods.CreateBy = auditUser.Id;
+                        goods.CreateName = auditUser.Username;
+                    }
+
+                    reusedGoods++;
+                    reusedGoodsSupplierRelations += supplierIds.Length;
+                }
+
+                var managedGoods = await context.Goods
+                    .Where(goods => goodsCodes.Contains(goods.Code))
+                    .ToDictionaryAsync(goods => goods.Code, StringComparer.Ordinal, cancellationToken);
+                foreach (var seed in goodsSeeds)
+                {
+                    var goods = GetManagedReference(managedGoods, seed.Code, "商品");
+                    if (!existingGoodsUnits.TryGetValue(seed.UnitCode, out var unit))
+                    {
+                        await goodsUnitService.CreateAsync(seed.ToCreateGoodsUnitDto(goods.Id));
+                        createdGoodsUnits++;
+                        continue;
+                    }
+
+                    // 商品档案更新曾误清 BaseUnitId；单位字段未漂移时也要经单位服务重新挂回基础单位。
+                    if (!seed.Matches(unit, goods.Id) || goods.BaseUnitId != unit.Id)
+                        await goodsUnitService.UpdateAsync(unit.Id, seed.ToUpdateGoodsUnitDto(unit.Id, goods.Id));
+
+                    if (unit.CreateBy != auditUser.Id || unit.CreateName != auditUser.Username)
+                    {
+                        // 商品单位创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        unit.CreateBy = auditUser.Id;
+                        unit.CreateName = auditUser.Username;
+                    }
+
+                    reusedGoodsUnits++;
+                }
+
+                var managedGoodsUnits = await context.GoodsUnits
+                    .Where(unit => goodsUnitCodes.Contains(unit.Code))
+                    .ToDictionaryAsync(unit => unit.Code!, StringComparer.Ordinal, cancellationToken);
+                foreach (var seed in quotationSeeds)
+                {
+                    var customer = GetManagedReference(managedCustomers, seed.CustomerCode, "客户");
+                    var goods = GetManagedReference(managedGoods, seed.GoodsCode, "商品");
+                    var goodsUnit = GetManagedReference(managedGoodsUnits, seed.GoodsUnitCode, "商品单位");
+                    Guid quotationId;
+                    if (!existingQuotations.TryGetValue(seed.Code, out var quotation))
+                    {
+                        quotationId = (await quotationService.CreateAsync(seed.ToCreateDto(customer.Id))).Id;
+                        createdQuotations++;
+                    }
+                    else
+                    {
+                        if (!seed.Matches(quotation))
+                        {
+                            await quotationService.UpdateAsync(quotation.Id, seed.ToUpdateDto(quotation.Id, customer.Id));
+                        }
+
+                        if (quotation.CreateBy != auditUser.Id || quotation.CreateName != auditUser.Username)
+                        {
+                            // 报价创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                            quotation.CreateBy = auditUser.Id;
+                            quotation.CreateName = auditUser.Username;
+                        }
+
+                        quotationId = quotation.Id;
+                        reusedQuotations++;
+                    }
+
+                    var customerQuotation = await context.CustomerQuotations.SingleAsync(
+                        relation => relation.CustomerId == customer.Id && relation.QuotationId == quotationId,
+                        cancellationToken);
+                    // 当前报价维护接口只维护客户绑定；稳定受管关系的默认标志和有效期由生成器精确补齐。
+                    customerQuotation.IsDefault = seed.IsAudited;
+                    customerQuotation.EffectiveStart = seed.EffectiveStart;
+                    customerQuotation.EffectiveEnd = seed.EffectiveEnd;
+
+                    // 客户服务未提供默认报价和仓库的批量写入入口；仅对完整稳定编码命中的已加载受管客户在同一事务中精确补齐。
+                    customer.QuotationId = seed.IsAudited ? quotationId : null;
+                    customer.DefaultWareId = goods.DefaultWareId;
+                    customer.UpdateBy = auditUser.Id;
+                    customer.UpdateName = auditUser.Username;
+
+                    var quotationGoods = await context.QuotationGoods.SingleOrDefaultAsync(
+                        item => item.QuotationId == quotationId
+                                && item.GoodsId == goods.Id
+                                && item.GoodsUnitId == goodsUnit.Id,
+                        cancellationToken);
+                    if (quotationGoods is null)
+                    {
+                        await quotationGoodsService.CreateAsync(seed.ToCreateGoodsDto(quotationId, goods.Id, goodsUnit.Id));
+                        createdQuotationGoods++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(quotationGoods))
+                    {
+                        await quotationGoodsService.UpdateAsync(
+                            quotationGoods.Id,
+                            seed.ToUpdateGoodsDto(quotationGoods.Id, quotationId, goods.Id, goodsUnit.Id));
+                    }
+
+                    if (quotationGoods.CreateBy != auditUser.Id || quotationGoods.CreateName != auditUser.Username)
+                    {
+                        // 报价商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        quotationGoods.CreateBy = auditUser.Id;
+                        quotationGoods.CreateName = auditUser.Username;
+                    }
+
+                    reusedQuotationGoods++;
+                }
+
+                var managedQuotations = await context.Quotations
+                    .Where(quotation => quotationCodes.Contains(quotation.Code))
+                    .ToDictionaryAsync(quotation => quotation.Code, StringComparer.Ordinal, cancellationToken);
+                foreach (var seed in customerProtocolSeeds)
+                {
+                    var quotation = GetManagedReference(managedQuotations, seed.QuotationCode, "报价单");
+                    var customer = GetManagedReference(managedCustomers, seed.CustomerCode, "客户");
+                    var goods = GetManagedReference(managedGoods, seed.GoodsCode, "商品");
+                    var goodsUnit = GetManagedReference(managedGoodsUnits, seed.GoodsUnitCode, "商品单位");
+                    Guid customerProtocolId;
+                    if (!existingCustomerProtocols.TryGetValue(seed.Code, out var customerProtocol))
+                    {
+                        customerProtocolId = (await customerProtocolService.CreateAsync(
+                            seed.ToCreateDto(quotation.Id, customer.Id))).Id;
+                        createdCustomerProtocols++;
+                    }
+                    else
+                    {
+                        if (!seed.Matches(customerProtocol, quotation.Id, customer.Id))
+                        {
+                            await customerProtocolService.UpdateAsync(
+                                customerProtocol.Id,
+                                seed.ToUpdateDto(customerProtocol.Id, quotation.Id, customer.Id));
+                        }
+
+                        if (customerProtocol.CreateBy != auditUser.Id || customerProtocol.CreateName != auditUser.Username)
+                        {
+                            // 客户协议价创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                            customerProtocol.CreateBy = auditUser.Id;
+                            customerProtocol.CreateName = auditUser.Username;
+                        }
+
+                        customerProtocolId = customerProtocol.Id;
+                        reusedCustomerProtocols++;
+                    }
+
+                    var customerProtocolGoods = await context.CustomerProtocolGoods.SingleOrDefaultAsync(
+                        item => item.CustomerProtocolId == customerProtocolId
+                                && item.GoodsId == goods.Id
+                                && item.GoodsUnitId == goodsUnit.Id,
+                        cancellationToken);
+                    if (customerProtocolGoods is null)
+                    {
+                        await customerProtocolGoodsService.CreateAsync(
+                            seed.ToCreateGoodsDto(customerProtocolId, goods.Id, goodsUnit.Id));
+                        createdCustomerProtocolGoods++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(customerProtocolGoods))
+                    {
+                        await customerProtocolGoodsService.UpdateAsync(
+                            customerProtocolGoods.Id,
+                            seed.ToUpdateGoodsDto(customerProtocolGoods.Id, customerProtocolId, goods.Id, goodsUnit.Id));
+                    }
+
+                    if (customerProtocolGoods.CreateBy != auditUser.Id || customerProtocolGoods.CreateName != auditUser.Username)
+                    {
+                        // 客户协议价商品创建审计没有公开补写入口，仅修复完整稳定编码对应的受管记录。
+                        customerProtocolGoods.CreateBy = auditUser.Id;
+                        customerProtocolGoods.CreateName = auditUser.Username;
+                    }
+
+                    reusedCustomerProtocolGoods++;
+                }
+
+                foreach (var seed in purchaseRuleSeeds)
+                {
+                    var supplierId = GetManagedReferenceId(managedSuppliers, seed.SupplierCode, "供应商");
+                    var purchaserId = GetManagedReferenceId(managedPurchasers, seed.PurchaserCode, "采购员");
+                    var wareId = GetManagedReferenceId(managedWares, seed.WareCode, "仓库");
+                    var goodsTypeId = GetManagedReferenceId(managedGoodsTypes, seed.GoodsTypeCode, "商品分类");
+                    var goodsId = GetManagedReferenceId(managedGoods, seed.GoodsCode, "商品");
+                    var customerId = GetManagedReferenceId(managedCustomers, seed.CustomerCode, "客户");
+                    if (!existingPurchaseRules.TryGetValue(seed.Code, out var purchaseRule))
+                    {
+                        await purchaseRuleService.CreateAsync(
+                            seed.ToCreateDto(supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId));
+                        createdPurchaseRules++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(purchaseRule, supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId))
+                    {
+                        await purchaseRuleService.UpdateAsync(
+                            purchaseRule.Id,
+                            seed.ToUpdateDto(purchaseRule.Id, supplierId, purchaserId, wareId, goodsTypeId, goodsId, customerId));
+                    }
+
+                    if (purchaseRule.CreateBy != auditUser.Id || purchaseRule.CreateName != auditUser.Username)
+                    {
+                        // 采购规则没有补写创建审计的公开入口，仅修复完整稳定编码对应的受管记录。
+                        purchaseRule.CreateBy = auditUser.Id;
+                        purchaseRule.CreateName = auditUser.Username;
+                    }
+
+                    reusedPurchaseRules++;
+                }
+
+                await systemSupportService.SaveMiniProgramOrderSettingsAsync(new MiniProgramOrderSettingsDto
+                {
+                    IsEnabled = true,
+                    MaxAdvanceOrderDays = 7
+                });
+                await systemSupportService.SaveSortingWeightSettingsAsync(new SortingWeightSettingsDto
+                {
+                    OrderTimeWeight = 1.2500m,
+                    RouteWeight = 0.7500m,
+                    CustomerWeight = 0.5000m
+                });
+
+                foreach (var seed in servicePeriodSeeds)
+                {
+                    if (!existingServicePeriods.TryGetValue(seed.Name, out var servicePeriod))
+                    {
+                        await systemSupportService.CreateServicePeriodAsync(seed.ToUpsertDto());
+                        createdServicePeriods++;
+                        continue;
+                    }
+
+                    if (!seed.Matches(servicePeriod))
+                        await systemSupportService.UpdateServicePeriodAsync(servicePeriod.Id, seed.ToUpsertDto());
+
+                    if (servicePeriod.CreateBy != auditUser.Id || servicePeriod.CreateName != auditUser.Username)
+                    {
+                        servicePeriod.CreateBy = auditUser.Id;
+                        servicePeriod.CreateName = auditUser.Username;
+                    }
+
+                    reusedServicePeriods++;
+                }
+
+                foreach (var seed in noticeSeeds)
+                {
+                    Guid noticeId;
+                    if (!existingNotices.TryGetValue(seed.Title, out var notice))
+                    {
+                        noticeId = (await systemSupportService.CreateNoticeAsync(seed.ToUpsertDto())).Id;
+                        createdNotices++;
+                    }
+                    else
+                    {
+                        if (!seed.Matches(notice))
+                            await systemSupportService.UpdateNoticeAsync(notice.Id, seed.ToUpsertDto());
+
+                        if (notice.CreateBy != auditUser.Id || notice.CreateName != auditUser.Username)
+                        {
+                            notice.CreateBy = auditUser.Id;
+                            notice.CreateName = auditUser.Username;
+                        }
+
+                        noticeId = notice.Id;
+                        reusedNotices++;
+                    }
+
+                    var refreshedNotice = await context.Notices.SingleAsync(item => item.Id == noticeId, cancellationToken);
+                    if (refreshedNotice.NoticeStatus != seed.NoticeStatus)
+                    {
+                        await systemSupportService.UpdateNoticeStatusAsync(
+                            refreshedNotice.Id,
+                            new UpdateNoticeStatusDto { NoticeStatus = seed.NoticeStatus });
+                    }
+
+                    refreshedNotice.PublishedTime = seed.NoticeStatus == NoticeStatus.Published
+                        ? seed.PublishedTime
+                        : null;
+                }
+
+                foreach (var seed in printTemplateSeeds)
+                {
+                    if (!existingPrintTemplates.TryGetValue(seed.TemplateCode, out var printTemplate))
+                    {
+                        await printService.CreateTemplateAsync(seed.ToCreateDto());
+                        createdPrintTemplates++;
+                        continue;
+                    }
+
+                    var replacedPrintTemplateFields = false;
+                    if (!seed.Matches(printTemplate))
+                    {
+                        printTemplate.TemplateCode = seed.TemplateCode;
+                        printTemplate.Name = seed.Name;
+                        printTemplate.BusinessType = seed.BusinessType;
+                        printTemplate.DesignJson = seed.DesignJson;
+                        printTemplate.IsEnabled = seed.IsEnabled;
+                        printTemplate.UpdateBy = auditUser.Id;
+                        printTemplate.UpdateName = auditUser.Username;
+                        context.PrintTemplateFields.RemoveRange(printTemplate.Fields);
+                        await context.SaveChangesAsync(cancellationToken);
+                        foreach (var field in seed.Fields.OrderBy(field => field.DisplayOrder))
+                        {
+                            context.PrintTemplateFields.Add(field.ToEntity(printTemplate.Id, auditUser));
+                        }
+
+                        replacedPrintTemplateFields = true;
+                    }
+
+                    if (printTemplate.CreateBy != auditUser.Id || printTemplate.CreateName != auditUser.Username)
+                    {
+                        printTemplate.CreateBy = auditUser.Id;
+                        printTemplate.CreateName = auditUser.Username;
+                    }
+
+                    if (!replacedPrintTemplateFields)
+                    {
+                        foreach (var field in printTemplate.Fields)
+                        {
+                            if (field.CreateBy != auditUser.Id || field.CreateName != auditUser.Username)
+                            {
+                                field.CreateBy = auditUser.Id;
+                                field.CreateName = auditUser.Username;
+                            }
                         }
                     }
+
+                    reusedPrintTemplates++;
                 }
 
-                reusedPrintTemplates++;
-            }
-
-            var managedSystemUsersBySequence = await context.Users
-                .Where(user => systemUsernames.Contains(user.Username))
-                .OrderBy(user => user.Username)
-                .Select(user => new DemoOrganizationalUser(user.Id, user.Username))
-                .ToListAsync(cancellationToken);
-            foreach (var seed in operationLogSeeds)
-            {
-                var user = managedSystemUsersBySequence[(seed.Sequence - 1) % managedSystemUsersBySequence.Count];
-                if (!existingOperationLogs.TryGetValue(seed.Description, out var operationLog))
+                var managedSystemUsersBySequence = await context.Users
+                    .Where(user => systemUsernames.Contains(user.Username))
+                    .OrderBy(user => user.Username)
+                    .Select(user => new DemoOrganizationalUser(user.Id, user.Username))
+                    .ToListAsync(cancellationToken);
+                foreach (var seed in operationLogSeeds)
                 {
-                    context.OperationLogs.Add(seed.ToEntity(user, auditUser));
-                    createdOperationLogs++;
-                    continue;
+                    var user = managedSystemUsersBySequence[(seed.Sequence - 1) % managedSystemUsersBySequence.Count];
+                    if (!existingOperationLogs.TryGetValue(seed.Description, out var operationLog))
+                    {
+                        context.OperationLogs.Add(seed.ToEntity(user, auditUser));
+                        createdOperationLogs++;
+                        continue;
+                    }
+
+                    seed.Apply(operationLog, user, auditUser);
+                    reusedOperationLogs++;
                 }
 
-                seed.Apply(operationLog, user, auditUser);
-                reusedOperationLogs++;
-            }
-
-            foreach (var seed in loginLogSeeds)
-            {
-                var user = managedSystemUsersBySequence[(seed.Sequence - 1) % managedSystemUsersBySequence.Count];
-                if (!existingLoginLogs.TryGetValue(seed.Username, out var loginLog))
+                foreach (var seed in loginLogSeeds)
                 {
-                    context.LoginLogs.Add(seed.ToEntity(user, auditUser));
-                    createdLoginLogs++;
-                    continue;
+                    var user = managedSystemUsersBySequence[(seed.Sequence - 1) % managedSystemUsersBySequence.Count];
+                    if (!existingLoginLogs.TryGetValue(seed.Username, out var loginLog))
+                    {
+                        context.LoginLogs.Add(seed.ToEntity(user, auditUser));
+                        createdLoginLogs++;
+                        continue;
+                    }
+
+                    seed.Apply(loginLog, user, auditUser);
+                    reusedLoginLogs++;
                 }
 
-                seed.Apply(loginLog, user, auditUser);
-                reusedLoginLogs++;
+                await context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
             }
-
-            await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
         });
 
         (

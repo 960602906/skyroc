@@ -46,7 +46,7 @@ public class DeliveryExceptionRepository(ApplicationDbContext context)
         int pageSize,
         Expression<Func<DeliveryException, object>>? orderBy = null,
         bool isDescending = false)
-        {
+    {
         return await PagedFromQueryAsync(
             BuildDetailQuery().AsNoTracking(),
             predicate,
