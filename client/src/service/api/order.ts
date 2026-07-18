@@ -2,7 +2,7 @@ import { request } from '../request';
 import { ORDER_URLS } from '../urls';
 
 /** 创建销售订单。 */
-export function fetchAddOrder(data?: Api.Order.Payload) {
+export function fetchAddOrder(data: Record<string, unknown>) {
   return request<Api.Order.Entity>({
     data,
     method: 'post',
@@ -11,7 +11,7 @@ export function fetchAddOrder(data?: Api.Order.Payload) {
 }
 
 /** 编辑销售订单及其商品明细。 */
-export function fetchUpdateOrder(data?: Api.Order.Payload) {
+export function fetchUpdateOrder(data: Record<string, unknown>) {
   return request<Api.Order.Entity>({
     data,
     method: 'put',
@@ -30,7 +30,7 @@ export function fetchGetOrderList(params?: Api.Order.SearchParams) {
 
 /** 删除销售订单。 */
 export function fetchDeleteOrder(id: string) {
-  return request<Api.Order.Entity>({
+  return request<boolean>({
     method: 'delete',
     url: `${ORDER_URLS.BASE}/${id}`
   });
@@ -45,7 +45,7 @@ export function fetchGetOrderDetail(id: string) {
 }
 
 /** 审核通过待审核订单。 */
-export function fetchApproveOrder(id: string, data?: Api.Order.Payload) {
+export function fetchApproveOrder(id: string, data?: Api.Order.AuditParams) {
   return request<Api.Order.Entity>({
     data,
     method: 'post',
@@ -54,7 +54,7 @@ export function fetchApproveOrder(id: string, data?: Api.Order.Payload) {
 }
 
 /** 驳回待审核订单。 */
-export function fetchRejectOrder(id: string, data?: Api.Order.Payload) {
+export function fetchRejectOrder(id: string, data?: Api.Order.AuditParams) {
   return request<Api.Order.Entity>({
     data,
     method: 'post',
@@ -63,7 +63,7 @@ export function fetchRejectOrder(id: string, data?: Api.Order.Payload) {
 }
 
 /** 重新提交已驳回订单。 */
-export function fetchResubmitOrder(id: string, data?: Api.Order.Payload) {
+export function fetchResubmitOrder(id: string, data?: Api.Order.AuditParams) {
   return request<Api.Order.Entity>({
     data,
     method: 'post',

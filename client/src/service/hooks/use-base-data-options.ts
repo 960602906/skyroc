@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import {
   fetchGetAllCompanies,
+  fetchGetAllCustomerTags,
   fetchGetAllCustomers,
   fetchGetAllGoods,
   fetchGetAllGoodsTypes,
@@ -32,6 +33,14 @@ export function useCustomerOptions() {
   return useQuery({
     queryFn: () => fetchGetAllCustomers(),
     queryKey: QUERY_KEYS.BASE.CUSTOMERS,
+    staleTime: 60_000
+  });
+}
+
+export function useCustomerTagOptions() {
+  return useQuery({
+    queryFn: () => fetchGetAllCustomerTags(),
+    queryKey: QUERY_KEYS.BASE.CUSTOMER_TAGS,
     staleTime: 60_000
   });
 }

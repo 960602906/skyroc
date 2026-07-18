@@ -8,6 +8,13 @@ export { default as MenuTypeSelect } from './MenuTypeSelect';
 export { default as PurchasePatternBadge } from './PurchasePatternBadge';
 export { default as PurchasePatternSelect } from './PurchasePatternSelect';
 export * from './render-status';
+export {
+  OrderOutStorageStatusBadge,
+  OrderPrintStatusBadge,
+  OrderReturnStatusBadge,
+  SaleOrderStatusBadge
+} from './SaleOrderStatusBadge';
+export { OrderDateTypeSelect, OrderReturnStatusSelect, SaleOrderStatusSelect } from './SaleOrderStatusSelect';
 export { getSearchActionsSpan } from './search-actions-span';
 export { default as SearchActions, SearchActionsCol } from './SearchActions';
 export * from './use-crud-table';

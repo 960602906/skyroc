@@ -13,6 +13,7 @@ const common: App.I18n.Schema['translation']['common'] = {
   confirmDelete: '确认删除吗？',
   delete: '删除',
   deleteSuccess: '删除成功',
+  detail: '详情',
   edit: '编辑',
   error: '错误',
   errorHint: '出错了，请稍后再试',

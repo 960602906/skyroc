@@ -42,6 +42,36 @@ export const PURCHASE_PATTERN_MAP: Record<Api.PurchaseRule.PurchasePattern, Badg
   2: 'default'
 };
 
+/** 销售订单状态徽标色 */
+export const SALE_ORDER_STATUS_MAP: Record<Api.Order.OrderStatus, BadgeStatus> = {
+  [-1]: 'warning',
+  1: 'processing',
+  2: 'processing',
+  3: 'success',
+  4: 'processing',
+  5: 'success',
+  6: 'error'
+};
+
+/** 回单状态徽标色 */
+export const ORDER_RETURN_STATUS_MAP: Record<Api.Order.ReturnStatus, BadgeStatus> = {
+  0: 'default',
+  1: 'success'
+};
+
+/** 打印状态徽标色 */
+export const ORDER_PRINT_STATUS_MAP: Record<Api.Order.PrintStatus, BadgeStatus> = {
+  0: 'default',
+  1: 'success'
+};
+
+/** 出库生成状态徽标色 */
+export const ORDER_OUT_STORAGE_STATUS_MAP: Record<Api.Order.OutStorageStatus, BadgeStatus> = {
+  0: 'default',
+  1: 'warning',
+  2: 'success'
+};
+
 export const LAYOUT_MODE_VERTICAL: UnionKey.ThemeLayoutMode = 'vertical';
 export const LAYOUT_MODE_HORIZONTAL: UnionKey.ThemeLayoutMode = 'horizontal';
 export const LAYOUT_MODE_VERTICAL_MIX: UnionKey.ThemeLayoutMode = 'vertical-mix';

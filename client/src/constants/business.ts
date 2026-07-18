@@ -34,3 +34,41 @@ export const purchasePatternRecord: Record<Api.PurchaseRule.PurchasePattern, App
 };
 
 export const purchasePatternOptions = transformRecordToOption(purchasePatternRecord, true);
+
+export const saleOrderStatusRecord: Record<Api.Order.OrderStatus, App.I18n.I18nKey> = {
+  [-1]: 'page.order.list.orderStatusPendingAudit',
+  1: 'page.order.list.orderStatusSortingPending',
+  2: 'page.order.list.orderStatusSorting',
+  3: 'page.order.list.orderStatusSortingCompleted',
+  4: 'page.order.list.orderStatusDelivering',
+  5: 'page.order.list.orderStatusSigned',
+  6: 'page.order.list.orderStatusRejected'
+};
+
+export const saleOrderStatusOptions = transformRecordToOption(saleOrderStatusRecord, true);
+
+export const orderReturnStatusRecord: Record<Api.Order.ReturnStatus, App.I18n.I18nKey> = {
+  0: 'page.order.list.returnStatusNotReturned',
+  1: 'page.order.list.returnStatusReturned'
+};
+
+export const orderReturnStatusOptions = transformRecordToOption(orderReturnStatusRecord, true);
+
+export const orderPrintStatusRecord: Record<Api.Order.PrintStatus, App.I18n.I18nKey> = {
+  0: 'page.order.list.printStatusNotPrinted',
+  1: 'page.order.list.printStatusPrinted'
+};
+
+export const orderOutStorageStatusRecord: Record<Api.Order.OutStorageStatus, App.I18n.I18nKey> = {
+  0: 'page.order.list.outStorageStatusNotGenerated',
+  1: 'page.order.list.outStorageStatusPartiallyGenerated',
+  2: 'page.order.list.outStorageStatusGenerated'
+};
+
+export const orderDateTypeRecord: Record<Api.Order.DateType, App.I18n.I18nKey> = {
+  0: 'page.order.list.dateTypeOrderDate',
+  1: 'page.order.list.dateTypeReceiveDate',
+  2: 'page.order.list.dateTypeOutDate'
+};
+
+export const orderDateTypeOptions = transformRecordToOption(orderDateTypeRecord, true);

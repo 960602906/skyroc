@@ -1,6 +1,12 @@
 import EnableStatusBadge from './EnableStatusBadge';
 import MenuTypeBadge from './MenuTypeBadge';
 import PurchasePatternBadge from './PurchasePatternBadge';
+import {
+  OrderOutStorageStatusBadge,
+  OrderPrintStatusBadge,
+  OrderReturnStatusBadge,
+  SaleOrderStatusBadge
+} from './SaleOrderStatusBadge';
 import UserGenderBadge from './UserGenderBadge';
 import YesOrNoBadge from './YesOrNoBadge';
 
@@ -37,4 +43,24 @@ export function renderBooleanTag(value: boolean, trueText: string, falseText: st
       text={value ? trueText : falseText}
     />
   );
+}
+
+/** 表格列等场景的销售订单业务状态渲染 */
+export function renderSaleOrderStatus(orderStatus: Api.Order.OrderStatus | null | undefined) {
+  return <SaleOrderStatusBadge orderStatus={orderStatus} />;
+}
+
+/** 表格列等场景的回单状态渲染 */
+export function renderOrderReturnStatus(returnStatus: Api.Order.ReturnStatus | null | undefined) {
+  return <OrderReturnStatusBadge returnStatus={returnStatus} />;
+}
+
+/** 表格列等场景的打印状态渲染 */
+export function renderOrderPrintStatus(printStatus: Api.Order.PrintStatus | null | undefined) {
+  return <OrderPrintStatusBadge printStatus={printStatus} />;
+}
+
+/** 表格列等场景的出库生成状态渲染 */
+export function renderOrderOutStorageStatus(outStorageStatus: Api.Order.OutStorageStatus | null | undefined) {
+  return <OrderOutStorageStatusBadge outStorageStatus={outStorageStatus} />;
 }
