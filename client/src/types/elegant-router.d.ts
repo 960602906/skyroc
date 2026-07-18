@@ -81,6 +81,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_master_pricing_protocols": "/master/pricing/protocols";
     "(base)_master_pricing_quotation-goods": "/master/pricing/quotation-goods";
     "(base)_master_pricing_quotations": "/master/pricing/quotations";
+    "(base)_master_pricing_quotations_detail": "/master/pricing/quotations/detail";
+    "(base)_master_pricing_quotations_detail_[id]": "/master/pricing/quotations/detail/:id";
     "(base)_master_supply": "/master/supply";
     "(base)_master_supply_purchase-rules": "/master/supply/purchase-rules";
     "(base)_master_supply_purchasers": "/master/supply/purchasers";
@@ -274,6 +276,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_master_pricing_protocol-goods"
     | "(base)_master_pricing_protocols"
     | "(base)_master_pricing_quotation-goods"
+    | "(base)_master_pricing_quotations_detail_[id]"
+    | "(base)_master_pricing_quotations_detail"
     | "(base)_master_pricing_quotations"
     | "(base)_master_supply"
     | "(base)_master_supply_purchase-rules"

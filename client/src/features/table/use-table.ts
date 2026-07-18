@@ -5,12 +5,22 @@ import { Form } from 'antd';
 import { getIsMobile } from '@/features/app';
 import { parseQuery } from '@/features/router/query';
 
+import { type CalcTableScrollXOptions, type TableScrollColumnLike, calcTableScrollX } from './calc-table-scroll-x';
+
 type TableData = AntDesign.TableData;
 type GetTableData<A extends AntDesign.TableApiFn> = AntDesign.GetTableData<A>;
 
 type TableColumn<T> = AntDesign.TableColumn<T>;
 
-type Config<A extends AntDesign.TableApiFn> = AntDesign.AntDesignTableConfig<A>;
+type Config<A extends AntDesign.TableApiFn> = AntDesign.AntDesignTableConfig<A> & {
+  /**
+   * 横向滚动计算选项。
+   *
+   * - 默认按当前可见列 width/minWidth 累计，并预留勾选列宽度
+   * - 传 `false` 关闭自动 scroll.x（仍计算纵向 y）
+   */
+  scrollX?: number | 'max-content' | false | CalcTableScrollXOptions;
+};
 
 type CustomTableProps<A extends AntDesign.TableApiFn> = Omit<
   TableProps<AntDesign.TableDataWithIndex<GetTableData<A>>>,
@@ -19,18 +29,29 @@ type CustomTableProps<A extends AntDesign.TableApiFn> = Omit<
   loading: boolean;
 };
 
+const TABLE_NOWRAP_CLASS = 'skyroc-table-nowrap';
+
+function mergeClassName(...classNames: Array<string | undefined>) {
+  return classNames.filter(Boolean).join(' ');
+}
+
+export { calcTableScrollX, resolveColumnWidth } from './calc-table-scroll-x';
+
 export function useTable<A extends AntDesign.TableApiFn>(config: Config<A>) {
   const isMobile = useAppSelector(getIsMobile);
 
   const {
     apiFn,
     apiParams,
+    className,
     columns: columnsFactory,
     immediate,
     isChangeURL = true,
     onChange: onChangeCallback,
     pagination: paginationConfig,
     rowKey = 'id',
+    scroll: scrollFromConfig,
+    scrollX: scrollXConfig,
     transformParams,
     ...rest
   } = config;
@@ -118,6 +139,37 @@ export function useTable<A extends AntDesign.TableApiFn>(config: Config<A>) {
     total,
     ...paginationConfig
   };
+
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const size = useSize(tableWrapperRef);
+
+  const resolvedScrollX = useMemo(() => {
+    if (scrollFromConfig?.x !== undefined && scrollFromConfig.x !== true) {
+      return scrollFromConfig.x;
+    }
+
+    if (scrollXConfig === false) {
+      return undefined;
+    }
+
+    if (typeof scrollXConfig === 'number' || scrollXConfig === 'max-content') {
+      return scrollXConfig;
+    }
+
+    return calcTableScrollX(columns as TableScrollColumnLike[], scrollXConfig);
+  }, [columns, scrollFromConfig?.x, scrollXConfig]);
+
+  const scrollConfig = useMemo(() => {
+    const height = size?.height;
+    const y = height ? height - 160 : undefined;
+
+    return {
+      ...scrollFromConfig,
+      x: resolvedScrollX ?? scrollFromConfig?.x,
+      y: scrollFromConfig?.y ?? y
+    };
+  }, [resolvedScrollX, scrollFromConfig, size?.height]);
+
   function reset() {
     form.setFieldsValue(apiParams as NonNullable<Parameters<A>[0]>);
 
@@ -161,6 +213,7 @@ export function useTable<A extends AntDesign.TableApiFn>(config: Config<A>) {
     empty,
     form,
     run,
+    scrollConfig,
     searchParams,
     searchProps: {
       form,
@@ -176,10 +229,16 @@ export function useTable<A extends AntDesign.TableApiFn>(config: Config<A>) {
       onChange: handleChange,
       pagination,
       rowKey,
-      ...rest
-    } as CustomTableProps<A>
+      ...rest,
+      // 放在 rest 之后，避免被覆盖；页面里 {...tableProps} 在后时自动生效
+      className: mergeClassName(TABLE_NOWRAP_CLASS, className),
+      scroll: scrollConfig
+    } as CustomTableProps<A>,
+    tableWrapperRef
   };
 }
+
+type UseTableScrollInput = number | 'max-content' | readonly TableScrollColumnLike[] | CalcTableScrollXOptions;
 
 export function useTableOperate<T extends TableData = TableData>(
   data: T[],
@@ -289,10 +348,36 @@ export function useTableOperate<T extends TableData = TableData>(
   };
 }
 
-export function useTableScroll(scrollX: number = 702) {
+/**
+ * 表格容器尺寸与横向滚动配置。
+ *
+ * - `useTableScroll()`：默认 max-content（内容撑开，窄屏横向滚）
+ * - `useTableScroll(1200)`：固定宽度
+ * - `useTableScroll(columns)` / `useTableScroll({ extraWidth: 48 })`：按列累计
+ *
+ * 推荐优先使用 `useTable` 返回的 `scrollConfig` / `tableWrapperRef`（已按可见列自动计算）。
+ */
+export function useTableScroll(scrollXOrOptions: UseTableScrollInput = 'max-content') {
   const tableWrapperRef = useRef<HTMLDivElement>(null);
 
   const size = useSize(tableWrapperRef);
+
+  const scrollX = useMemo(() => {
+    if (typeof scrollXOrOptions === 'number' || scrollXOrOptions === 'max-content') {
+      return scrollXOrOptions;
+    }
+
+    if (Array.isArray(scrollXOrOptions)) {
+      return calcTableScrollX(scrollXOrOptions);
+    }
+
+    // 仅传 options、无 columns 时仍用 max-content，避免再退回过小的 702
+    if (scrollXOrOptions && typeof scrollXOrOptions === 'object') {
+      return 'max-content' as const;
+    }
+
+    return 'max-content' as const;
+  }, [scrollXOrOptions]);
 
   function getTableScrollY() {
     const height = size?.height;

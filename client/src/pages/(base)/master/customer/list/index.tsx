@@ -8,7 +8,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable } from '@/features/table';
 import {
   fetchBatchDeleteCustomer,
   fetchDeleteCustomer,
@@ -33,15 +33,13 @@ const CustomerListManage = () => {
 
   const nav = useNavigate();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
   const { data: companies } = useCompanyOptions();
 
   const companyNameMap = new Map(toOptions(companies).map(item => [item.value, item.label]));
 
   const [checkedRowKeys, setCheckedRowKeys] = useState<React.Key[]>([]);
 
-  const { columnChecks, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetCustomerList,
     apiParams: customerSearchParams,
     columns: () => [
@@ -200,7 +198,6 @@ const CustomerListManage = () => {
       table={
         <ATable
           rowSelection={rowSelection}
-          scroll={scrollConfig}
           size="small"
           {...tableProps}
         />

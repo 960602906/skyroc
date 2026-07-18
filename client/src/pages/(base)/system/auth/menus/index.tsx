@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 
 import { renderEnableStatus, renderMenuType, renderYesOrNo } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import { pages } from '@/router/elegant/imports';
 import {
   fetchAddMenu,
@@ -20,11 +20,9 @@ import { createDefaultModel, flattenMenu, getPathParamFromRoutePath } from './mo
 const Menu = () => {
   const { t } = useTranslation();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
   const allPages = Object.keys(pages);
 
-  const { columnChecks, data, run, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetMenuList,
     columns: () => [
       {
@@ -239,7 +237,6 @@ const Menu = () => {
       >
         <ATable
           rowSelection={rowSelection}
-          scroll={scrollConfig}
           size="small"
           {...tableProps}
         />

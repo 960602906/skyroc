@@ -9,7 +9,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddCustomerProtocol,
   fetchBatchDeleteCustomerProtocol,
@@ -40,9 +40,7 @@ const protocolSearchParams = {
 const ProtocolManage = () => {
   const { t } = useTranslation();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetCustomerProtocolList,
     apiParams: protocolSearchParams,
     columns: () => [
@@ -195,7 +193,6 @@ const ProtocolManage = () => {
         <>
           <ATable
             rowSelection={rowSelection}
-            scroll={scrollConfig}
             size="small"
             {...tableProps}
           />

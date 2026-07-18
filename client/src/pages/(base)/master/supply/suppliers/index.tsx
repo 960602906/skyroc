@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 
 import { renderEnableStatus } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddSupplier,
   fetchBatchDeleteSupplier,
@@ -21,9 +21,7 @@ const SupplierManage = () => {
 
   const isMobile = useMobile();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetSupplierList,
     apiParams: {
       code: null,
@@ -197,7 +195,6 @@ const SupplierManage = () => {
       >
         <ATable
           rowSelection={rowSelection}
-          scroll={scrollConfig}
           size="small"
           {...tableProps}
         />

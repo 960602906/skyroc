@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 
 import { renderEnableStatus } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import { fetchAddRole, fetchBatchDeleteRole, fetchDeleteRole, fetchGetRoleList, fetchUpdateRole } from '@/service/api';
 
 import RoleSearch from './modules/role-search';
@@ -15,9 +15,7 @@ const Role = () => {
 
   const nav = useNavigate();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetRoleList,
     apiParams: {
       code: undefined,
@@ -170,7 +168,6 @@ const Role = () => {
       >
         <ATable
           rowSelection={rowSelection}
-          scroll={scrollConfig}
           size="small"
           {...tableProps}
         />

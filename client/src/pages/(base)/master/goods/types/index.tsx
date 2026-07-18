@@ -9,7 +9,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddGoodsType,
   fetchBatchDeleteGoodsType,
@@ -27,9 +27,8 @@ const GoodsTypeOperateDrawer = lazy(() => import('./modules/GoodsTypeOperateDraw
 const GoodsTypeManage = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
 
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetGoodsTypeList,
     apiParams: {
       ...createDefaultSearchParams(),
@@ -192,7 +191,6 @@ const GoodsTypeManage = () => {
         <>
           <ATable
             rowSelection={rowSelection}
-            scroll={scrollConfig}
             size="small"
             {...tableProps}
           />

@@ -342,6 +342,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       code: '报价单编码',
       customerIds: '关联客户',
       description: '描述',
+      detail: {
+        back: '返回列表',
+        createTime: '创建时间',
+        title: '报价单详情',
+        updateTime: '更新时间'
+      },
       edit: '编辑报价单',
       effectiveEnd: '生效结束',
       effectiveStart: '生效开始',
@@ -355,8 +361,12 @@ const page: App.I18n.Schema['translation']['page'] = {
         status: '请选择状态'
       },
       isAudited: '审核状态',
+      manageGoods: '维护商品',
       name: '报价单名称',
       remark: '备注',
+      sectionBasic: '基础信息',
+      sectionGoods: '报价商品',
+      sectionStatus: '状态与备注',
       status: '状态',
       title: '报价单',
       unaudit: '反审核',

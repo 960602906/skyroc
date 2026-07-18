@@ -8,7 +8,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddPurchaseRule,
   fetchBatchDeletePurchaseRule,
@@ -40,8 +40,6 @@ function resolveOptionLabel(id: string | null, options?: { id: string; name: str
 const RuleManage = () => {
   const { t } = useTranslation();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
   const { data: goodsTypes } = useGoodsTypeOptions();
   const { data: suppliers } = useSupplierOptions();
   const { data: purchasers } = usePurchaserOptions();
@@ -59,7 +57,7 @@ const RuleManage = () => {
     []
   );
 
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetPurchaseRuleList,
     apiParams: searchParams,
     columns: () => [
@@ -234,7 +232,6 @@ const RuleManage = () => {
         <>
           <ATable
             rowSelection={rowSelection}
-            scroll={scrollConfig}
             size="small"
             {...tableProps}
           />

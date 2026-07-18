@@ -9,7 +9,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddQuotation,
   fetchAuditQuotation,
@@ -27,9 +27,9 @@ const QuotationOperateDrawer = lazy(() => import('./modules/QuotationOperateDraw
 
 const QuotationManage = () => {
   const { t } = useTranslation();
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
+  const nav = useNavigate();
 
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetQuotationList,
     apiParams: {
       ...createDefaultSearchParams(),
@@ -40,30 +40,47 @@ const QuotationManage = () => {
       {
         align: 'center',
         dataIndex: 'name',
+        ellipsis: true,
+        fixed: 'left',
         key: 'name',
-        minWidth: 140,
-        title: t('page.goods.quotation.name')
+        render: (name: string, record) => (
+          <AButton
+            className="h-auto p-0 leading-normal"
+            size="small"
+            type="link"
+            onClick={() => nav(`/master/pricing/quotations/detail/${record.id}`)}
+          >
+            {name}
+          </AButton>
+        ),
+        title: t('page.goods.quotation.name'),
+        width: 160
       },
       {
         align: 'center',
         dataIndex: 'code',
+        ellipsis: true,
         key: 'code',
-        minWidth: 120,
-        title: t('page.goods.quotation.code')
+        title: t('page.goods.quotation.code'),
+        width: 140
       },
       {
         align: 'center',
+        className: 'whitespace-nowrap',
         dataIndex: 'effectiveStart',
+        ellipsis: true,
         key: 'effectiveStart',
         title: t('page.goods.quotation.effectiveStart'),
-        width: 120
+        width: 170
       },
       {
         align: 'center',
+        className: 'whitespace-nowrap',
         dataIndex: 'effectiveEnd',
+        ellipsis: true,
         key: 'effectiveEnd',
         title: t('page.goods.quotation.effectiveEnd'),
-        width: 120
+        width: 170
       },
       {
         align: 'center',
@@ -98,6 +115,12 @@ const QuotationManage = () => {
             </AButton>
             <AButton
               size="small"
+              onClick={() => nav(`/master/pricing/quotations/detail/${record.id}`)}
+            >
+              {t('page.goods.quotation.manageGoods')}
+            </AButton>
+            <AButton
+              size="small"
               onClick={() => handleAudit(record)}
             >
               {record.isAudited ? t('page.goods.quotation.unaudit') : t('page.goods.quotation.audit')}
@@ -122,7 +145,7 @@ const QuotationManage = () => {
           </div>
         ),
         title: t('common.operate'),
-        width: 280
+        width: 340
       }
     ],
     pagination: createDefaultPagination()
@@ -188,7 +211,6 @@ const QuotationManage = () => {
         <>
           <ATable
             rowSelection={rowSelection}
-            scroll={scrollConfig}
             size="small"
             {...tableProps}
           />

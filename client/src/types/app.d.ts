@@ -703,6 +703,12 @@ declare namespace App {
               code: string;
               customerIds: string;
               description: string;
+              detail: {
+                back: string;
+                createTime: string;
+                title: string;
+                updateTime: string;
+              };
               edit: string;
               effectiveEnd: string;
               effectiveStart: string;
@@ -716,8 +722,12 @@ declare namespace App {
                 status: string;
               };
               isAudited: string;
+              manageGoods: string;
               name: string;
               remark: string;
+              sectionBasic: string;
+              sectionGoods: string;
+              sectionStatus: string;
               status: string;
               title: string;
               unaudit: string;

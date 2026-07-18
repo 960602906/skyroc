@@ -8,7 +8,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddPurchaser,
   fetchBatchDeletePurchaser,
@@ -26,9 +26,7 @@ const PurchaserOperateDrawer = lazy(() => import('./modules/PurchaserOperateDraw
 const PurchaserManage = () => {
   const { t } = useTranslation();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetPurchaserList,
     apiParams: createDefaultSearchParams(),
     columns: () => [
@@ -171,7 +169,6 @@ const PurchaserManage = () => {
         <>
           <ATable
             rowSelection={rowSelection}
-            scroll={scrollConfig}
             size="small"
             {...tableProps}
           />

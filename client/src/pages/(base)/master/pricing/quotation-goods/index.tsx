@@ -1,7 +1,8 @@
 import { Suspense, lazy } from 'react';
 
 import { CrudPageLayout, createDefaultPagination, createIndexColumn, renderBooleanTag } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { parseQuery } from '@/features/router/query';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddQuotationGoods,
   fetchBatchDeleteQuotationGoods,
@@ -25,9 +26,11 @@ const defaultSearchParams = {
 
 const QuotationGoodsManage = () => {
   const { t } = useTranslation();
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
+  const { search } = useLocation();
+  const query = parseQuery(search) as { quotationId?: string };
+  const quotationIdFromQuery = query.quotationId || null;
 
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetQuotationGoodsList,
     apiParams: defaultSearchParams,
     columns: () => [
@@ -119,6 +122,14 @@ const QuotationGoodsManage = () => {
       }
     });
 
+  function handleAddGoods() {
+    handleAdd();
+    generalPopupOperation.form.setFieldsValue({
+      isOnSale: true,
+      quotationId: quotationIdFromQuery ?? undefined
+    } as never);
+  }
+
   async function handleBatchDelete() {
     await fetchBatchDeleteQuotationGoods(checkedRowKeys.map(key => key as string));
     onBatchDeleted();
@@ -141,7 +152,7 @@ const QuotationGoodsManage = () => {
       title={t('page.goods.quotationGoods.title')}
       extra={
         <TableHeaderOperation
-          add={handleAdd}
+          add={handleAddGoods}
           columns={columnChecks}
           disabledDelete={checkedRowKeys.length === 0}
           loading={tableProps.loading}
@@ -154,7 +165,6 @@ const QuotationGoodsManage = () => {
         <>
           <ATable
             rowSelection={rowSelection}
-            scroll={scrollConfig}
             size="small"
             {...tableProps}
           />

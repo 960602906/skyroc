@@ -8,7 +8,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddCustomerTag,
   fetchBatchDeleteCustomerTag,
@@ -27,9 +27,7 @@ const CustomerTagManage = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetCustomerTagList,
     apiParams: createDefaultSearchParams(),
     columns: () => [
@@ -174,7 +172,6 @@ const CustomerTagManage = () => {
         <>
           <ATable
             rowSelection={rowSelection}
-            scroll={scrollConfig}
             size="small"
             {...tableProps}
           />

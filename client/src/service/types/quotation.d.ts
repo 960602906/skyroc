@@ -6,6 +6,8 @@ declare namespace Api {
       description: string | null;
       effectiveEnd: string | null;
       effectiveStart: string | null;
+      /** 报价商品明细（详情接口返回） */
+      goods?: Api.QuotationGoods.Entity[] | null;
       isAudited: boolean;
       name: string;
       remark: string | null;

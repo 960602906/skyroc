@@ -7,7 +7,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable } from '@/features/table';
 import { fetchBatchDeleteGoods, fetchDeleteGoods, fetchGetGoodsList, fetchToggleGoodsStatus } from '@/service/api';
 
 import GoodsSearch from './modules/GoodsSearch';
@@ -15,9 +15,8 @@ import GoodsSearch from './modules/GoodsSearch';
 const GoodsList = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
 
-  const { columnChecks, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetGoodsList,
     apiParams: {
       ...createDefaultSearchParams(),
@@ -181,7 +180,6 @@ const GoodsList = () => {
       table={
         <ATable
           rowSelection={rowSelection}
-          scroll={scrollConfig}
           size="small"
           {...tableProps}
         />

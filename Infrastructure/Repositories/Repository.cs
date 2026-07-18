@@ -150,7 +150,15 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     /// <inheritdoc />
     public virtual Task UpdateAsync(T entity)
     {
-        DbSet.Update(entity);
+        // 已跟踪实体只依赖 ChangeTracker 识别标量属性变更。
+        // 对带 Include 导航的图调用 DbSet.Update 会把子实体一并标为 Modified，
+        // 随后若再替换复合主键关联，易在同一 SaveChanges 中触发唯一约束冲突。
+        var entry = Context.Entry(entity);
+        if (entry.State == EntityState.Detached)
+        {
+            DbSet.Update(entity);
+        }
+
         return Task.CompletedTask;
     }
 

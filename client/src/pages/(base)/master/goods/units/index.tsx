@@ -8,7 +8,7 @@ import {
   renderEnableStatus,
   toggleEntityStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddGoodsUnit,
   fetchBatchDeleteGoodsUnit,
@@ -34,9 +34,8 @@ const defaultSearchParams = {
 const GoodsUnitManage = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
 
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetGoodsUnitList,
     apiParams: defaultSearchParams,
     columns: () => [
@@ -219,7 +218,6 @@ const GoodsUnitManage = () => {
         <>
           <ATable
             rowSelection={rowSelection}
-            scroll={scrollConfig}
             size="small"
             {...tableProps}
           />

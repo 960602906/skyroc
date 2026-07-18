@@ -3,8 +3,13 @@ import { toOptions, useGoodsOptions, useGoodsUnitsByGoodsOptions, useQuotationOp
 
 type RuleKey = 'goodsId' | 'goodsUnitId' | 'quotationId' | 'unitPrice';
 
-const QuotationGoodsOperateModal: FC<Page.OperateDrawerProps> = memo(
-  ({ form, handleSubmit, onClose, open, operateType }) => {
+type QuotationGoodsOperateModalProps = Page.OperateDrawerProps & {
+  /** 固定报价单时隐藏报价单选择，由表单 quotationId 字段承载 */
+  lockQuotationId?: boolean;
+};
+
+const QuotationGoodsOperateModal: FC<QuotationGoodsOperateModalProps> = memo(
+  ({ form, handleSubmit, lockQuotationId = false, onClose, open, operateType }) => {
     const { t } = useTranslation();
     const { defaultRequiredRule } = useFormRules();
     const { data: quotationOptions = [] } = useQuotationOptions();
@@ -13,11 +18,20 @@ const QuotationGoodsOperateModal: FC<Page.OperateDrawerProps> = memo(
 
     const goodsId = AForm.useWatch('goodsId', form);
     const { data: goodsUnitOptions = [] } = useGoodsUnitsByGoodsOptions(goodsId);
+    const prevGoodsIdRef = useRef<string | undefined>(undefined);
 
+    // 仅在用户切换商品时清空单位，避免编辑回填被冲掉
     useEffect(() => {
-      if (open) {
+      if (!open) {
+        prevGoodsIdRef.current = undefined;
+        return;
+      }
+
+      if (prevGoodsIdRef.current !== undefined && prevGoodsIdRef.current !== goodsId) {
         form.setFieldValue('goodsUnitId', undefined);
       }
+
+      prevGoodsIdRef.current = goodsId;
     }, [form, goodsId, open]);
 
     const rules: Record<RuleKey, App.Global.FormRule> = {
@@ -45,16 +59,24 @@ const QuotationGoodsOperateModal: FC<Page.OperateDrawerProps> = memo(
             name="id"
           />
 
-          <AForm.Item
-            label={t('page.goods.quotationGoods.quotationId')}
-            name="quotationId"
-            rules={[rules.quotationId]}
-          >
-            <ASelect
-              options={quotationOptions}
-              placeholder={t('page.goods.quotationGoods.form.quotationId')}
+          {lockQuotationId ? (
+            <AForm.Item
+              hidden
+              name="quotationId"
+              rules={[rules.quotationId]}
             />
-          </AForm.Item>
+          ) : (
+            <AForm.Item
+              label={t('page.goods.quotationGoods.quotationId')}
+              name="quotationId"
+              rules={[rules.quotationId]}
+            >
+              <ASelect
+                options={quotationOptions}
+                placeholder={t('page.goods.quotationGoods.form.quotationId')}
+              />
+            </AForm.Item>
+          )}
 
           <AForm.Item
             label={t('page.goods.quotationGoods.goodsId')}

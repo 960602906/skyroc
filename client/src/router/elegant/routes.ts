@@ -643,7 +643,43 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_master_pricing_quotations',
                       icon: 'mdi:file-document-outline',
                       order: 1
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [
+                          null,
+                          '/src/pages/(base)/master/pricing/quotations/detail/index.tsx',
+                          null,
+                          null
+                        ],
+                        name: '(base)_master_pricing_quotations_detail',
+                        path: '/master/pricing/quotations/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_master_pricing_quotations_detail',
+                          title: '(base)_master_pricing_quotations_detail',
+                          activeMenu: '/master/pricing/quotations',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/master/pricing/quotations/detail/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_master_pricing_quotations_detail_[id]',
+                            path: '/master/pricing/quotations/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_master_pricing_quotations_detail_[id]',
+                              title: '(base)_master_pricing_quotations_detail_[id]',
+                              activeMenu: '/master/pricing/quotations',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               },

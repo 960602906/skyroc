@@ -34,21 +34,38 @@ public class QuotationRepository(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task ReplaceCustomerRelationsAsync(Guid quotationId, IEnumerable<Guid>? customerIds)
     {
-        var relations = await _context.Set<CustomerQuotation>()
-            .Where(x => x.QuotationId == quotationId)
-            .ToListAsync();
-        _context.Set<CustomerQuotation>().RemoveRange(relations);
-
-        var newRelations = customerIds?
+        // 差量同步，避免「先全删再全插」在同一 SaveChanges 中对复合主键 (customer_id, quotation_id)
+        // 产生 delete+insert 冲突（尤其是保留原客户再追加时）。
+        var desiredIds = customerIds?
             .Where(x => x != Guid.Empty)
             .Distinct()
+            .ToHashSet() ?? [];
+
+        var existing = await _context.Set<CustomerQuotation>()
+            .Where(x => x.QuotationId == quotationId)
+            .ToListAsync();
+
+        var existingIds = existing.Select(x => x.CustomerId).ToHashSet();
+
+        var toRemove = existing.Where(x => !desiredIds.Contains(x.CustomerId)).ToList();
+        if (toRemove.Count > 0)
+        {
+            _context.Set<CustomerQuotation>().RemoveRange(toRemove);
+        }
+
+        var toAdd = desiredIds
+            .Where(id => !existingIds.Contains(id))
             .Select(customerId => new CustomerQuotation
             {
                 QuotationId = quotationId,
                 CustomerId = customerId,
                 IsDefault = false
-            }) ?? [];
+            })
+            .ToList();
 
-        await _context.Set<CustomerQuotation>().AddRangeAsync(newRelations);
+        if (toAdd.Count > 0)
+        {
+            await _context.Set<CustomerQuotation>().AddRangeAsync(toAdd);
+        }
     }
 }

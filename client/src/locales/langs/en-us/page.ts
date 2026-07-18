@@ -342,6 +342,12 @@ const page: App.I18n.Schema['translation']['page'] = {
       code: 'Quotation Code',
       customerIds: 'Customers',
       description: 'Description',
+      detail: {
+        back: 'Back to List',
+        createTime: 'Created At',
+        title: 'Quotation Detail',
+        updateTime: 'Updated At'
+      },
       edit: 'Edit Quotation',
       effectiveEnd: 'Effective End',
       effectiveStart: 'Effective Start',
@@ -355,8 +361,12 @@ const page: App.I18n.Schema['translation']['page'] = {
         status: 'Please select status'
       },
       isAudited: 'Audit Status',
+      manageGoods: 'Manage Goods',
       name: 'Quotation Name',
       remark: 'Remark',
+      sectionBasic: 'Basic Info',
+      sectionGoods: 'Quotation Goods',
+      sectionStatus: 'Status & Remark',
       status: 'Status',
       title: 'Quotation',
       unaudit: 'Unaudit',

@@ -62,6 +62,85 @@ public class PricingServiceTests
     }
 
     [Fact]
+    public async Task Update_quotation_should_bind_multiple_customers_and_keep_existing()
+    {
+        await using var context = CreateDbContext();
+        var data = await SeedPricingAsync(context);
+        // 详情 Include 商品后再更新，覆盖「带导航图更新 + 替换客户」路径
+        await CreateQuotationGoodsService(context).CreateAsync(new CreateQuotationGoodsDto
+        {
+            QuotationId = data.QuotationId,
+            GoodsId = data.GoodsId,
+            GoodsUnitId = data.GoodsUnitId,
+            UnitPrice = 9.9m,
+            IsOnSale = true
+        });
+
+        var secondCustomer = new Customer
+        {
+            Id = Guid.NewGuid(),
+            Name = "第二客户",
+            Code = "CUSTOMER_002"
+        };
+        var thirdCustomer = new Customer
+        {
+            Id = Guid.NewGuid(),
+            Name = "第三客户",
+            Code = "CUSTOMER_003"
+        };
+        await context.Customers.AddRangeAsync(secondCustomer, thirdCustomer);
+        await context.SaveChangesAsync();
+
+        var service = CreateQuotationService(context);
+        var quotation = await context.Quotations.AsNoTracking().SingleAsync(x => x.Id == data.QuotationId);
+        const string renamedName = "多客户报价单-已更新";
+
+        // 先绑一个客户
+        await service.UpdateAsync(data.QuotationId, new UpdateQuotationDto
+        {
+            Id = data.QuotationId,
+            Name = quotation.Name,
+            Code = quotation.Code,
+            CustomerIds = [data.CustomerId]
+        });
+
+        // 保留原客户并追加多个客户（旧实现会在同一 SaveChanges 里对复合主键先删后插而失败）
+        await service.UpdateAsync(data.QuotationId, new UpdateQuotationDto
+        {
+            Id = data.QuotationId,
+            Name = quotation.Name,
+            Code = quotation.Code,
+            CustomerIds = [data.CustomerId, secondCustomer.Id, thirdCustomer.Id]
+        });
+
+        var customerIds = await context.Set<CustomerQuotation>()
+            .Where(x => x.QuotationId == data.QuotationId)
+            .Select(x => x.CustomerId)
+            .OrderBy(x => x)
+            .ToListAsync();
+
+        Assert.Equal(3, customerIds.Count);
+        Assert.Contains(data.CustomerId, customerIds);
+        Assert.Contains(secondCustomer.Id, customerIds);
+        Assert.Contains(thirdCustomer.Id, customerIds);
+
+        // 再次提交相同客户集合应保持幂等
+        await service.UpdateAsync(data.QuotationId, new UpdateQuotationDto
+        {
+            Id = data.QuotationId,
+            Name = renamedName,
+            Code = quotation.Code,
+            CustomerIds = [data.CustomerId, secondCustomer.Id, thirdCustomer.Id]
+        });
+
+        var again = await context.Set<CustomerQuotation>()
+            .CountAsync(x => x.QuotationId == data.QuotationId);
+        Assert.Equal(3, again);
+        var renamed = await context.Quotations.AsNoTracking().SingleAsync(x => x.Id == data.QuotationId);
+        Assert.Equal(renamedName, renamed.Name);
+    }
+
+    [Fact]
     public async Task Create_quotation_goods_should_reject_unit_from_another_goods()
     {
         await using var context = CreateDbContext();

@@ -68,6 +68,8 @@ export const pages: Record<string, () => Promise<any>> = {
 "(base)_master_pricing_protocol-goods": () => import("@/pages/(base)/master/pricing/protocol-goods/index.tsx"),
 "(base)_master_pricing_protocols": () => import("@/pages/(base)/master/pricing/protocols/index.tsx"),
 "(base)_master_pricing_quotation-goods": () => import("@/pages/(base)/master/pricing/quotation-goods/index.tsx"),
+"(base)_master_pricing_quotations_detail_[id]": () => import("@/pages/(base)/master/pricing/quotations/detail/[id].tsx"),
+"(base)_master_pricing_quotations_detail": () => import("@/pages/(base)/master/pricing/quotations/detail/index.tsx"),
 "(base)_master_pricing_quotations": () => import("@/pages/(base)/master/pricing/quotations/index.tsx"),
 "(base)_master_supply": () => import("@/pages/(base)/master/supply/index.tsx"),
 "(base)_master_supply_purchase-rules": () => import("@/pages/(base)/master/supply/purchase-rules/index.tsx"),

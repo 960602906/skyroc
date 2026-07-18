@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 
 import { renderEnableStatus, renderUserGender } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate, useTableScroll } from '@/features/table';
+import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddUser,
   fetchBatchDeleteUser,
@@ -18,13 +18,11 @@ const UserOperateDrawer = lazy(() => import('./modules/UserOperateDrawer'));
 const UserManage = () => {
   const { t } = useTranslation();
 
-  const { scrollConfig, tableWrapperRef } = useTableScroll();
-
   const nav = useNavigate();
 
   const isMobile = useMobile();
 
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetUserList,
     apiParams: {
       current: 1,
@@ -193,7 +191,6 @@ const UserManage = () => {
       >
         <ATable
           rowSelection={rowSelection}
-          scroll={scrollConfig}
           size="small"
           {...tableProps}
         />
