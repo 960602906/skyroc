@@ -1,7 +1,7 @@
 import { SimpleScrollbar } from '@sa/materials';
 
+import { closeThemeDrawer, getThemeDrawerVisible } from '@/features/app';
 import { cacheThemeSettings } from '@/features/theme';
-import { closeThemeDrawer, getThemeDrawerVisible } from '@/layouts/appStore';
 
 import ConfigOperation from './modules/ConfigOperation';
 import DarkMode from './modules/DarkMode';

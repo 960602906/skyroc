@@ -2,7 +2,7 @@ import { PageTab } from '@sa/materials';
 import clsx from 'clsx';
 
 import BetterScroll from '@/components/BetterScroll';
-import { getFullContent, toggleFullContent } from '@/layouts/appStore';
+import { getFullContent, toggleFullContent } from '@/features/app';
 import { isPC } from '@/utils/agent';
 
 import { setRemoveCacheKey } from '../router';

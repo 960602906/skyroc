@@ -2,8 +2,8 @@ import { useBoolean, useHookTable } from '@sa/hooks';
 import type { TablePaginationConfig, TableProps } from 'antd';
 import { Form } from 'antd';
 
+import { getIsMobile } from '@/features/app';
 import { parseQuery } from '@/features/router/query';
-import { getIsMobile } from '@/layouts/appStore';
 
 type TableData = AntDesign.TableData;
 type GetTableData<A extends AntDesign.TableApiFn> = AntDesign.GetTableData<A>;

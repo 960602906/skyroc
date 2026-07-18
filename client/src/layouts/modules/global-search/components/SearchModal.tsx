@@ -2,9 +2,9 @@ import { useDebounceFn, useKeyPress } from 'ahooks';
 import type { InputRef } from 'antd';
 import clsx from 'clsx';
 
+import { getIsMobile } from '@/features/app';
 import { useMixMenuContext } from '@/features/menu';
 import { useRouter } from '@/features/router';
-import { getIsMobile } from '@/layouts/appStore';
 
 import SearchFooter from './SearchFooter';
 import SearchResult from './SearchResult';

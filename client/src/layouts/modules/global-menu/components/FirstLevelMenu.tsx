@@ -3,10 +3,10 @@ import { SimpleScrollbar } from '@sa/materials';
 import clsx from 'clsx';
 import { cloneElement } from 'react';
 
+import { getSiderCollapse } from '@/features/app';
 import { MenuToggler, useMixMenuContext } from '@/features/menu';
 import { useRouter } from '@/features/router';
 import { ThemeContext, getThemeSettings } from '@/features/theme';
-import { getSiderCollapse } from '@/layouts/appStore';
 
 interface Props {
   children?: React.ReactNode;

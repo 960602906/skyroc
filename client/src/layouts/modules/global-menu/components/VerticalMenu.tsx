@@ -2,10 +2,10 @@ import { SimpleScrollbar } from '@sa/materials';
 import type { MenuProps } from 'antd';
 import type { MenuInfo } from 'rc-menu/lib/interface';
 
+import { getSiderCollapse } from '@/features/app';
 import { useMixMenuContext } from '@/features/menu';
 import { useRouter } from '@/features/router';
 import { getThemeSettings } from '@/features/theme';
-import { getSiderCollapse } from '@/layouts/appStore';
 
 interface LevelKeysProps {
   children?: LevelKeysProps[];

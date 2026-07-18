@@ -1,6 +1,5 @@
+import { getReloadFlag, setReloadFlag } from '@/features/app';
 import { useThemeSettings } from '@/features/theme';
-
-import { getReloadFlag, setReloadFlag } from './appStore';
 
 /**
  * Reload page

@@ -1,11 +1,11 @@
 import { combineSlices, configureStore } from '@reduxjs/toolkit';
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
 
+import { appSlice } from '../features/app';
 import { authSlice } from '../features/auth';
 import { routeSlice } from '../features/router';
 import { tabSlice } from '../features/tab';
 import { themeSlice } from '../features/theme';
-import { appSlice } from '../layouts/appStore';
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.

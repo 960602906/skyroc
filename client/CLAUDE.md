@@ -37,7 +37,7 @@ pnpm monorepo: the root is the app shell (`src/`), `packages/` holds reusable wo
 ### `src/` layout
 
 - `pages/` — file-system routes (see Routing below).
-- `features/` — domain modules (auth, theme, menu, tab, router, lang…); each bundles its own hooks/store/components and exposes `index.ts`. Put business logic here, not in pages.
+- `features/` — domain modules (app、auth、theme、menu、tab、router、lang…); each bundles its own hooks/store/components and exposes `index.ts`. Put business logic here, not in pages. Cross-cutting layout UI state lives in `features/app`（`appSlice`）。
 - `layouts/` — layout skeletons and global modules (menu, tabs, theme drawer).
 - `components/` — cross-feature reusable components.
 - `router/` — route initialization, auth guards, keep-alive cache; merges generated routes with permissions.

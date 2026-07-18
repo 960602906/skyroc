@@ -1,6 +1,6 @@
 import ButtonIcon from '@/components/ButtonIcon';
 import SvgIcon from '@/components/SvgIcon';
-import { getSiderCollapse, toggleSiderCollapse } from '@/layouts/appStore';
+import { getSiderCollapse, toggleSiderCollapse } from '@/features/app';
 
 interface Props {
   /** Arrow style icon */

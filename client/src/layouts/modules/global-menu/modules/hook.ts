@@ -1,4 +1,4 @@
-import { getIsMobile } from '@/layouts/appStore';
+import { getIsMobile } from '@/features/app';
 
 export function useGetElementById(id: string) {
   const [container, setContainers] = useState<HTMLElement | null>();

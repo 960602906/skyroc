@@ -1,4 +1,4 @@
-import { getIsMobile } from '@/layouts/appStore';
+import { getIsMobile } from '@/features/app';
 
 export function useMobile() {
   const isMobile = useAppSelector(getIsMobile);
