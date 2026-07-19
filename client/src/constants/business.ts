@@ -35,6 +35,34 @@ export const purchasePatternRecord: Record<Api.PurchaseRule.PurchasePattern, App
 
 export const purchasePatternOptions = transformRecordToOption(purchasePatternRecord, true);
 
+export const afterSaleStatusRecord: Record<Api.AfterSale.AfterStatus, App.I18n.I18nKey> = {
+  1: 'page.afterSale.list.statusDraft',
+  2: 'page.afterSale.list.statusPendingAudit',
+  3: 'page.afterSale.list.statusReturnPending',
+  4: 'page.afterSale.list.statusRefundPending',
+  5: 'page.afterSale.list.statusCompleted'
+};
+
+export const afterSaleStatusOptions = transformRecordToOption(afterSaleStatusRecord, true);
+
+export const afterSaleTypeRecord: Record<Api.AfterSale.AfterSaleType, App.I18n.I18nKey> = {
+  1: 'page.afterSale.list.typeRefundOnly',
+  2: 'page.afterSale.list.typeReturnAndRefund'
+};
+
+export const afterSaleTypeOptions = transformRecordToOption(afterSaleTypeRecord, true);
+
+export const afterSaleHandleTypeRecord: Record<Api.AfterSale.HandleType, App.I18n.I18nKey> = {
+  1: 'page.afterSale.list.handleGoodsDiscount',
+  2: 'page.afterSale.list.handleReplenishment',
+  3: 'page.afterSale.list.handleExchange',
+  4: 'page.afterSale.list.handleBillAdjustment',
+  5: 'page.afterSale.list.handleCustomerCommunication',
+  6: 'page.afterSale.list.handleOther'
+};
+
+export const afterSaleHandleTypeOptions = transformRecordToOption(afterSaleHandleTypeRecord, true);
+
 export const saleOrderStatusRecord: Record<Api.Order.OrderStatus, App.I18n.I18nKey> = {
   [-1]: 'page.order.list.orderStatusPendingAudit',
   1: 'page.order.list.orderStatusSortingPending',

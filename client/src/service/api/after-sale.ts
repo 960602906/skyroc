@@ -81,7 +81,7 @@ export function fetchGetAfterSaleDetail(id: string) {
 }
 
 /** 审核通过售后并进入实物或退款处理；退货退款商品会幂等生成取货任务。 */
-export function fetchApproveAfterSale(id: string, data?: Api.AfterSale.Payload) {
+export function fetchApproveAfterSale(id: string, data?: Api.AfterSale.ActionParams) {
   return request<Api.AfterSale.Entity>({
     data,
     method: 'post',
@@ -90,7 +90,7 @@ export function fetchApproveAfterSale(id: string, data?: Api.AfterSale.Payload) 
 }
 
 /** 完成待退货、补货、换货或待退款处理；退货退款必须已完成并审核退货入库。 */
-export function fetchCompleteAfterSale(id: string, data?: Api.AfterSale.Payload) {
+export function fetchCompleteAfterSale(id: string, data?: Api.AfterSale.ActionParams) {
   return request<Api.AfterSale.Entity>({
     data,
     method: 'post',
@@ -99,7 +99,7 @@ export function fetchCompleteAfterSale(id: string, data?: Api.AfterSale.Payload)
 }
 
 /** 驳回待审核售后到可修改草稿。 */
-export function fetchRejectAfterSale(id: string, data?: Api.AfterSale.Payload) {
+export function fetchRejectAfterSale(id: string, data?: Api.AfterSale.ActionParams) {
   return request<Api.AfterSale.Entity>({
     data,
     method: 'post',
@@ -108,7 +108,7 @@ export function fetchRejectAfterSale(id: string, data?: Api.AfterSale.Payload) {
 }
 
 /** 将已驳回并修正的售后单重新提交审核。 */
-export function fetchResubmitAfterSale(id: string, data?: Api.AfterSale.Payload) {
+export function fetchResubmitAfterSale(id: string, data?: Api.AfterSale.ActionParams) {
   return request<Api.AfterSale.Entity>({
     data,
     method: 'post',
@@ -117,7 +117,7 @@ export function fetchResubmitAfterSale(id: string, data?: Api.AfterSale.Payload)
 }
 
 /** 撤销尚未产生下游取货任务的审核结论。 */
-export function fetchReverseAfterSale(id: string, data?: Api.AfterSale.Payload) {
+export function fetchReverseAfterSale(id: string, data?: Api.AfterSale.ActionParams) {
   return request<Api.AfterSale.Entity>({
     data,
     method: 'post',
@@ -126,7 +126,7 @@ export function fetchReverseAfterSale(id: string, data?: Api.AfterSale.Payload) 
 }
 
 /** 首次提交售后草稿进入待审核。 */
-export function fetchSubmitAfterSale(id: string, data?: Api.AfterSale.Payload) {
+export function fetchSubmitAfterSale(id: string, data?: Api.AfterSale.ActionParams) {
   return request<Api.AfterSale.Entity>({
     data,
     method: 'post',

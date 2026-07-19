@@ -1,3 +1,4 @@
+import AfterSaleStatusBadge from './AfterSaleStatusBadge';
 import BooleanYesNoBadge from './BooleanYesNoBadge';
 import EnableStatusBadge from './EnableStatusBadge';
 import MenuTypeBadge from './MenuTypeBadge';
@@ -50,6 +51,11 @@ export function renderBooleanTag(value: boolean, trueText: string, falseText: st
 /** 表格列等场景的布尔是否渲染（默认「是/否」） */
 export function renderBooleanYesNo(value: boolean | null | undefined) {
   return <BooleanYesNoBadge value={value} />;
+}
+
+/** 表格列等场景的售后业务状态渲染 */
+export function renderAfterSaleStatus(afterStatus: Api.AfterSale.AfterStatus | null | undefined) {
+  return <AfterSaleStatusBadge afterStatus={afterStatus} />;
 }
 
 /** 表格列等场景的销售订单业务状态渲染 */

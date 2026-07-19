@@ -374,6 +374,62 @@ declare namespace App {
             };
             title: string;
           };
+          afterSale: {
+            list: {
+              afterSaleNo: string;
+              afterSaleType: string;
+              afterStatus: string;
+              approve: string;
+              approveConfirm: string;
+              complete: string;
+              completeConfirm: string;
+              completeTip: string;
+              contactName: string;
+              contactPhone: string;
+              createTime: string;
+              customerId: string;
+              customerName: string;
+              form: {
+                afterSaleType: string;
+                afterStatus: string;
+                customerId: string;
+                handleType: string;
+                keyword: string;
+                remark: string;
+                requiredRemark: string;
+              };
+              handleBillAdjustment: string;
+              handleCustomerCommunication: string;
+              handleExchange: string;
+              handleGoodsDiscount: string;
+              handleOther: string;
+              handleReplenishment: string;
+              handleType: string;
+              keyword: string;
+              orderPrice: string;
+              reject: string;
+              rejectConfirm: string;
+              remarkRequired: string;
+              requestAndHandle: string;
+              resubmit: string;
+              resubmitConfirm: string;
+              reverse: string;
+              reverseConfirm: string;
+              saleOrderNo: string;
+              settlementPrice: string;
+              statusCompleted: string;
+              statusDraft: string;
+              statusPendingAudit: string;
+              statusRefundPending: string;
+              statusReturnPending: string;
+              submit: string;
+              submitConfirm: string;
+              title: string;
+              totalRefundAmount: string;
+              typeRefundOnly: string;
+              typeReturnAndRefund: string;
+            };
+          };
           customer: {
             company: {
               addCompany: string;

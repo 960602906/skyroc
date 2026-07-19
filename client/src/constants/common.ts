@@ -42,6 +42,15 @@ export const PURCHASE_PATTERN_MAP: Record<Api.PurchaseRule.PurchasePattern, Badg
   2: 'default'
 };
 
+/** 售后单状态徽标色 */
+export const AFTER_SALE_STATUS_MAP: Record<Api.AfterSale.AfterStatus, BadgeStatus> = {
+  1: 'default',
+  2: 'processing',
+  3: 'warning',
+  4: 'warning',
+  5: 'success'
+};
+
 /** 销售订单状态徽标色 */
 export const SALE_ORDER_STATUS_MAP: Record<Api.Order.OrderStatus, BadgeStatus> = {
   [-1]: 'warning',
