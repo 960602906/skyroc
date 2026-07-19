@@ -98,6 +98,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_master_supply_wares_detail_[id]": "/master/supply/wares/detail/:id";
     "(base)_orders": "/orders";
     "(base)_orders_after-sales": "/orders/after-sales";
+    "(base)_orders_after-sales_detail": "/orders/after-sales/detail";
+    "(base)_orders_after-sales_detail_[id]": "/orders/after-sales/detail/:id";
     "(base)_orders_detail": "/orders/detail";
     "(base)_orders_detail_[id]": "/orders/detail/:id";
     "(base)_orders_edit": "/orders/edit";
@@ -300,6 +302,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_master_supply_wares_detail_[id]"
     | "(base)_master_supply_wares_detail"
     | "(base)_master_supply_wares"
+    | "(base)_orders_after-sales_detail_[id]"
+    | "(base)_orders_after-sales_detail"
     | "(base)_orders_after-sales"
     | "(base)_orders_detail_[id]"
     | "(base)_orders_detail"

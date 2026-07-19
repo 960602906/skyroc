@@ -895,7 +895,33 @@ export const generatedRoutes: ElegantConstRoute[] = [
                   title: '(base)_orders_after-sales',
                   icon: 'mdi:backup-restore',
                   order: 2
-                }
+                },
+                children: [
+                  {
+                    matchedFiles: [null, '/src/pages/(base)/orders/after-sales/detail/index.tsx', null, null],
+                    name: '(base)_orders_after-sales_detail',
+                    path: '/orders/after-sales/detail',
+                    handle: {
+                      i18nKey: 'route.(base)_orders_after-sales_detail',
+                      title: '(base)_orders_after-sales_detail',
+                      activeMenu: '/orders/after-sales',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/orders/after-sales/detail/[id].tsx', null, null],
+                        name: '(base)_orders_after-sales_detail_[id]',
+                        path: '/orders/after-sales/detail/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_orders_after-sales_detail_[id]',
+                          title: '(base)_orders_after-sales_detail_[id]',
+                          activeMenu: '/orders/after-sales',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               {
                 matchedFiles: [null, '/src/pages/(base)/orders/detail/index.tsx', null, null],

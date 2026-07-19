@@ -375,6 +375,36 @@ declare namespace App {
             title: string;
           };
           afterSale: {
+            detail: {
+              afterSaleType: string;
+              auditAction: string;
+              auditActionApprove: string;
+              auditActionReject: string;
+              auditActionResubmit: string;
+              auditActionReverse: string;
+              auditActionSubmit: string;
+              auditTime: string;
+              auditUserName: string;
+              back: string;
+              baseRefundQuantity: string;
+              createTime: string;
+              currentStatus: string;
+              goodsCode: string;
+              goodsName: string;
+              handleType: string;
+              pickupAddress: string;
+              previousStatus: string;
+              refundAmount: string;
+              refundQuantity: string;
+              remark: string;
+              sectionAmounts: string;
+              sectionAudit: string;
+              sectionBasic: string;
+              sectionGoods: string;
+              sectionRemark: string;
+              updateTime: string;
+              view: string;
+            };
             list: {
               afterSaleNo: string;
               afterSaleType: string;

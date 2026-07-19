@@ -57,6 +57,7 @@ const afterSaleSearchParams = {
 
 const AfterSaleList = () => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetAfterSaleList,
@@ -69,8 +70,17 @@ const AfterSaleList = () => {
         ellipsis: true,
         fixed: 'left',
         key: 'afterSaleNo',
-        title: t('page.afterSale.list.afterSaleNo'),
-        width: 180
+        render: (value: string, record) => (
+          <AButton
+            className="h-auto p-0 leading-normal"
+            size="small"
+            type="link"
+            onClick={() => nav(`/orders/after-sales/detail/${record.id}`)}
+          >
+            {value}
+          </AButton>
+        ),
+        title: t('page.afterSale.list.afterSaleNo')
       },
       {
         align: 'center',
@@ -78,8 +88,7 @@ const AfterSaleList = () => {
         ellipsis: true,
         key: 'saleOrderNo',
         render: (value: string | null) => value || '-',
-        title: t('page.afterSale.list.saleOrderNo'),
-        width: 170
+        title: t('page.afterSale.list.saleOrderNo')
       },
       {
         align: 'center',
@@ -193,6 +202,13 @@ const AfterSaleList = () => {
 
           return (
             <div className="flex-center flex-wrap gap-8px">
+              <AButton
+                size="small"
+                type="link"
+                onClick={() => nav(`/orders/after-sales/detail/${record.id}`)}
+              >
+                {t('page.afterSale.detail.view')}
+              </AButton>
               {isDraft && (
                 <AButton
                   size="small"
@@ -263,7 +279,9 @@ const AfterSaleList = () => {
     pagination: createDefaultPagination(),
     scroll: { x: 'max-content' },
     transformParams: params => {
-      const next = { ...params } as Api.AfterSale.SearchParams & { dateRange?: [unknown, unknown] | null };
+      const next = { ...params } as Api.AfterSale.SearchParams & {
+        dateRange?: [unknown, unknown] | null;
+      };
       const range = next.dateRange;
 
       if (Array.isArray(range) && range.length === 2) {
@@ -335,7 +353,9 @@ const AfterSaleList = () => {
     try {
       const required = action === 'reject' || action === 'reverse';
       const remark = await promptRemark(
-        t(`page.afterSale.list.${action}Confirm`, { afterSaleNo: record.afterSaleNo }),
+        t(`page.afterSale.list.${action}Confirm`, {
+          afterSaleNo: record.afterSaleNo
+        }),
         required
       );
       const handlers = {
@@ -361,7 +381,9 @@ const AfterSaleList = () => {
         window.$message?.success(t('common.updateSuccess'));
         await run(false);
       },
-      title: t('page.afterSale.list.completeConfirm', { afterSaleNo: record.afterSaleNo })
+      title: t('page.afterSale.list.completeConfirm', {
+        afterSaleNo: record.afterSaleNo
+      })
     });
   }
 

@@ -63,6 +63,14 @@ export const afterSaleHandleTypeRecord: Record<Api.AfterSale.HandleType, App.I18
 
 export const afterSaleHandleTypeOptions = transformRecordToOption(afterSaleHandleTypeRecord, true);
 
+export const afterSaleAuditActionRecord: Record<Api.AfterSale.AuditAction, App.I18n.I18nKey> = {
+  1: 'page.afterSale.detail.auditActionSubmit',
+  2: 'page.afterSale.detail.auditActionApprove',
+  3: 'page.afterSale.detail.auditActionReject',
+  4: 'page.afterSale.detail.auditActionResubmit',
+  5: 'page.afterSale.detail.auditActionReverse'
+};
+
 export const saleOrderStatusRecord: Record<Api.Order.OrderStatus, App.I18n.I18nKey> = {
   [-1]: 'page.order.list.orderStatusPendingAudit',
   1: 'page.order.list.orderStatusSortingPending',
