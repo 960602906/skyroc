@@ -27,9 +27,8 @@ public class GoodsConfiguration : IEntityTypeConfiguration<Goods>
         builder.Property(x => x.Origin).HasColumnName("origin").HasMaxLength(100);
         builder.Property(x => x.Description).HasColumnName("description").HasMaxLength(1000);
         builder.Property(x => x.TaxRate).HasColumnName("tax_rate").HasColumnType("numeric(8,4)");
-        builder.Property(x => x.IsOnSale).HasColumnName("is_on_sale")
-            .HasDefaultValue(true)
-            .HasSentinel(false);
+        // false 为合法业务值，不能使用 store default + bool 哨兵，否则下架写入会被数据库默认值 true 覆盖
+        builder.Property(x => x.IsOnSale).HasColumnName("is_on_sale");
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => x.Code).IsUnique().HasDatabaseName("idx_goods_code");

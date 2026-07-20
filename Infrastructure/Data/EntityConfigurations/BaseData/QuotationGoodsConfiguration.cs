@@ -21,9 +21,8 @@ public class QuotationGoodsConfiguration : IEntityTypeConfiguration<QuotationGoo
         builder.Property(x => x.GoodsUnitId).HasColumnName("goods_unit_id");
         builder.Property(x => x.UnitPrice).HasColumnName("unit_price").HasColumnType("numeric(18,4)");
         builder.Property(x => x.MinOrderQuantity).HasColumnName("min_order_quantity").HasColumnType("numeric(18,4)");
-        builder.Property(x => x.IsOnSale).HasColumnName("is_on_sale")
-            .HasDefaultValue(true)
-            .HasSentinel(false);
+        // false 为合法业务值，不能使用 store default + bool 哨兵，否则下架写入会被数据库默认值 true 覆盖
+        builder.Property(x => x.IsOnSale).HasColumnName("is_on_sale");
         builder.Property(x => x.Remark).HasColumnName("remark").HasMaxLength(500);
 
         builder.HasIndex(x => x.QuotationId).HasDatabaseName("idx_quotation_goods_quotation_id");
