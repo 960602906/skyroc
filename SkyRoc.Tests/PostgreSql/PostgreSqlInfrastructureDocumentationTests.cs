@@ -29,6 +29,36 @@ public class PostgreSqlInfrastructureDocumentationTests
     }
 
     /// <summary>
+    ///     T14 一键验收必须先白名单校验，再迁移、has-pending-model-changes、FullAcceptance 与质量门禁；
+    ///     完整 SkyRoc.Tests 仅能通过显式开关触发，且不得包含破坏性数据库命令。
+    /// </summary>
+    [Fact]
+    public void FullAcceptanceScript_GatesPendingModelChangesBeforeSuiteAndContainsNoDestructiveCommands()
+    {
+        var script = File.ReadAllText(GetRepositoryFile("scripts", "Invoke-SkyRocFullAcceptance.ps1"));
+        var validationPosition = script.IndexOf("expectedDatabaseName", StringComparison.Ordinal);
+        var migrationPosition = script.IndexOf("dotnet ef database update", StringComparison.Ordinal);
+        var pendingModelPosition = script.IndexOf(
+            "dotnet ef migrations has-pending-model-changes",
+            StringComparison.Ordinal);
+        var dotnetTestPosition = script.IndexOf("dotnet test", StringComparison.Ordinal);
+        var fullSuiteSwitchPosition = script.IndexOf("IncludeFullTestSuite", StringComparison.Ordinal);
+
+        Assert.True(validationPosition >= 0);
+        Assert.True(migrationPosition > validationPosition);
+        Assert.True(pendingModelPosition > migrationPosition);
+        Assert.True(dotnetTestPosition > pendingModelPosition);
+        Assert.True(fullSuiteSwitchPosition >= 0);
+        Assert.Contains("Testing", script, StringComparison.Ordinal);
+        Assert.Contains("FullAcceptancePostgreSqlTests", script, StringComparison.Ordinal);
+        Assert.Contains("DatabaseMetadataInventoryTests", script, StringComparison.Ordinal);
+        Assert.Contains("dotnet format", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRUNCATE", script, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DROP DATABASE", script, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("EnsureDeleted", script, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     ///     非敏感测试约定必须固定 Testing 环境、用户确认的 skyroc 白名单和报告目录。
     /// </summary>
     [Fact]
@@ -56,8 +86,30 @@ public class PostgreSqlInfrastructureDocumentationTests
         Assert.Contains("事务", guide, StringComparison.Ordinal);
         Assert.Contains("逆序", guide, StringComparison.Ordinal);
         Assert.Contains("Invoke-PostgreSqlBusinessTests.ps1", guide, StringComparison.Ordinal);
+        Assert.Contains("Invoke-SkyRocFullAcceptance.ps1", guide, StringComparison.Ordinal);
+        Assert.Contains("has-pending-model-changes", guide, StringComparison.Ordinal);
+        Assert.Contains("FullAcceptancePostgreSqlTests", guide, StringComparison.Ordinal);
         Assert.Contains("JSON", guide, StringComparison.Ordinal);
         Assert.Contains("Markdown", guide, StringComparison.Ordinal);
+        Assert.Contains("前端联调数据说明.md", guide, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    ///     联调手册不得写入密码或连接串，但必须说明稳定键前缀、账号来源与安全边界。
+    /// </summary>
+    [Fact]
+    public void FrontendIntegrationGuide_DocumentsManagedKeysWithoutSecrets()
+    {
+        var guide = File.ReadAllText(GetRepositoryFile("docs", "testing", "前端联调数据说明.md"));
+
+        Assert.Contains("SKYROC-DEMO-", guide, StringComparison.Ordinal);
+        Assert.Contains("SYSTEM-USER", guide, StringComparison.Ordinal);
+        Assert.Contains("幂等", guide, StringComparison.Ordinal);
+        Assert.Contains("skyroc", guide, StringComparison.Ordinal);
+        Assert.DoesNotContain("Password=", guide, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Host=", guide, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("AdminPassword", guide, StringComparison.Ordinal);
+        Assert.DoesNotContain("SkyRocSystem", guide, StringComparison.Ordinal);
     }
 
     private static string GetRepositoryFile(params string[] pathSegments)
