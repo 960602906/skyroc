@@ -15,6 +15,7 @@ import {
 } from '@/service/api';
 import { PickupTaskStatus } from '@/service/enums';
 import { useDriverOptions } from '@/service/hooks';
+import { formatField } from '@/utils/common';
 
 import PickupTaskSearch from './modules/PickupTaskSearch';
 
@@ -105,7 +106,7 @@ const PickupTaskList = () => {
           <div className="flex flex-col gap-2px">
             <span>{value}</span>
             <span className="text-12px text-[var(--ant-color-text-secondary)]">
-              {record.quantity} {record.goodsUnitName}
+              {formatField(record, ['quantity', 'goodsUnitName'], ' ')}
             </span>
           </div>
         ),
@@ -121,7 +122,7 @@ const PickupTaskList = () => {
           <div className="flex flex-col gap-2px">
             <span className="truncate">{value}</span>
             <span className="text-12px text-[var(--ant-color-text-secondary)]">
-              {[record.contactName, record.contactPhone].filter(Boolean).join(' · ') || '-'}
+              {formatField(record, ['contactName', 'contactPhone'], ' · ') || '-'}
             </span>
           </div>
         ),

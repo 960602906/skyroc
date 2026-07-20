@@ -4,6 +4,7 @@ import { PickupTaskStatusBadge, displayDateTime, displayText } from '@/features/
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchGetAfterSalePickupTaskDetail } from '@/service/api';
 import { PickupTaskStatus } from '@/service/enums';
+import { formatField } from '@/utils/common';
 
 const LIST_PATH = '/orders/pickup-tasks';
 
@@ -92,7 +93,7 @@ const PickupTaskDetailPage = () => {
             },
             { children: detail.goodsName, key: 'goodsName', label: t('page.pickupTask.goods') },
             {
-              children: `${detail.quantity} ${detail.goodsUnitName}`,
+              children: formatField(detail, ['quantity', 'goodsUnitName'], ' '),
               key: 'quantity',
               label: t('page.pickupTask.detail.quantity')
             },

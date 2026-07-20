@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddAfterSale, fetchGetOrderDetail, fetchGetOrderList } from '@/service/api';
 import { AfterSaleHandleType, AfterSaleReasonType, AfterSaleType } from '@/service/enums';
+import { formatField } from '@/utils/common';
 
 import AfterSaleOperateForm, {
   type AfterSaleFormValues,
@@ -40,7 +41,10 @@ const AfterSaleCreatePage = () => {
 
   const orderOptions = useMemo(
     () =>
-      (orderList?.records ?? []).map(order => ({ label: `${order.orderNo} · ${order.customerName}`, value: order.id })),
+      (orderList?.records ?? []).map(order => ({
+        label: formatField(order, ['orderNo', 'customerName'], ' · '),
+        value: order.id
+      })),
     [orderList]
   );
 

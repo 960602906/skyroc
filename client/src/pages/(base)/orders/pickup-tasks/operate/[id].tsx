@@ -8,6 +8,7 @@ import {
   fetchUpdateAfterSalePickupTasksAssign
 } from '@/service/api';
 import { EnableStatus, PickupTaskStatus } from '@/service/enums';
+import { formatField } from '@/utils/common';
 
 const LIST_PATH = '/orders/pickup-tasks';
 const BACKEND_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
@@ -52,7 +53,7 @@ const PickupTaskOperatePage = () => {
   const driverOptions = drivers
     .filter(driver => driver.status === EnableStatus.ENABLED)
     .map(driver => ({
-      label: [driver.name, driver.phone].filter(Boolean).join(' · ') || driver.id,
+      label: formatField(driver, ['name', 'phone'], ' · ') || driver.id,
       value: driver.id
     }));
 

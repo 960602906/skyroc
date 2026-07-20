@@ -1,4 +1,5 @@
 import { PickupTaskStatusSelect, SearchActionsCol } from '@/features/crud';
+import { formatField } from '@/utils/common';
 
 interface PickupTaskSearchProps extends Page.SearchProps {
   drivers?: Api.Driver.AllEntity[];
@@ -9,7 +10,7 @@ const PickupTaskSearch: FC<PickupTaskSearchProps> = memo(({ drivers = [], form, 
   const { t } = useTranslation();
 
   const driverOptions = drivers.map(driver => ({
-    label: [driver.name, driver.phone].filter(Boolean).join(' · ') || driver.id,
+    label: formatField(driver, ['name', 'phone'], ' · ') || driver.id,
     value: driver.id
   }));
 
