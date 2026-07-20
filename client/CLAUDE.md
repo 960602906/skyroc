@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **统一客户端规范入口：** 开始客户端任务前必须阅读 [`AGENT.md`](./AGENT.md)、父目录的 [`AGENTS.md`](../AGENTS.md)，以及匹配任务范围的 [`.cursor/rules/`](./.cursor/rules/) 规则。
+> `AGENT.md` 是 Claude Code、Codex 与其他代理共享的客户端规范；本文件仅保留 Claude 导航与背景说明，不得形成独立规则版本。
+
 SkyrocAdmin (`client/`) is the React 19 admin frontend for the SkyRoc fresh-produce supply-chain platform (the .NET backend lives one level up — see `../CLAUDE.md`). It is based on the Soybean Admin template. Most comments and docs are in Chinese; keep comments in Chinese to match.
 
 ## Commands
