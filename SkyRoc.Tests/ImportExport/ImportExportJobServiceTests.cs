@@ -58,6 +58,26 @@ public class ImportExportJobServiceTests
     }
 
     [Fact]
+    public async Task ImportGoods_OffSaleRow_PersistsIsOnSaleFalse()
+    {
+        await using var context = CreateDbContext();
+        var type = new GoodsType { Id = Guid.NewGuid(), Name = "豆类", Code = "BEAN" };
+        await context.GoodsTypes.AddAsync(type);
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+        var csv = $"Name,Code,GoodsTypeId,Spec,Brand,Origin,TaxRate,IsOnSale,Remark\n芸豆,KIDNEYBEAN,{type.Id},,,,6.0000,false,下架导入\n";
+
+        var result = await service.ImportAsync(
+            ImportExportJobType.Goods,
+            "goods.csv",
+            new MemoryStream(Encoding.UTF8.GetBytes(csv)));
+
+        var goods = await context.Goods.SingleAsync();
+        Assert.Equal(ImportExportJobStatus.Succeeded, result.JobStatus);
+        Assert.False(goods.IsOnSale);
+    }
+
+    [Fact]
     public async Task ImportGoods_InvalidRows_RecordFailureWithoutWritingGoods()
     {
         await using var context = CreateDbContext();
