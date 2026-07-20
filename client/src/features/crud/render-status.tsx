@@ -2,6 +2,7 @@ import AfterSaleStatusBadge from './AfterSaleStatusBadge';
 import BooleanYesNoBadge from './BooleanYesNoBadge';
 import EnableStatusBadge from './EnableStatusBadge';
 import MenuTypeBadge from './MenuTypeBadge';
+import PickupTaskStatusBadge from './PickupTaskStatusBadge';
 import PurchasePatternBadge from './PurchasePatternBadge';
 import {
   OrderOutStorageStatusBadge,
@@ -56,6 +57,11 @@ export function renderBooleanYesNo(value: boolean | null | undefined) {
 /** 表格列等场景的售后业务状态渲染 */
 export function renderAfterSaleStatus(afterStatus: Api.AfterSale.AfterStatus | null | undefined) {
   return <AfterSaleStatusBadge afterStatus={afterStatus} />;
+}
+
+/** 表格列等场景的取货任务履约状态渲染。 */
+export function renderPickupTaskStatus(pickupStatus: Api.AfterSale.PickupStatus | null | undefined) {
+  return <PickupTaskStatusBadge pickupStatus={pickupStatus} />;
 }
 
 /** 表格列等场景的销售订单业务状态渲染 */

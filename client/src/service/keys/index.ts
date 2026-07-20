@@ -14,6 +14,7 @@ export const QUERY_KEYS = {
     CUSTOMER_TAGS: ['base', 'customerTags'] as const,
     CUSTOMERS: ['base', 'customers'] as const,
     DEPARTMENT_TREE: ['base', 'departmentTree'] as const,
+    DRIVERS: ['base', 'drivers'] as const,
     GOODS: ['base', 'goods'] as const,
     GOODS_TYPE_TREE: ['base', 'goodsTypeTree'] as const,
     GOODS_TYPES: ['base', 'goodsTypes'] as const,

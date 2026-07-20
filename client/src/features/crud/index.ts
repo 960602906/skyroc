@@ -16,6 +16,8 @@ export { default as EnableStatusFormItem } from './EnableStatusFormItem';
 export { default as EnableStatusSelect } from './EnableStatusSelect';
 export { default as MenuTypeBadge } from './MenuTypeBadge';
 export { default as MenuTypeSelect } from './MenuTypeSelect';
+export { default as PickupTaskStatusBadge } from './PickupTaskStatusBadge';
+export { default as PickupTaskStatusSelect } from './PickupTaskStatusSelect';
 export { default as PurchasePatternBadge } from './PurchasePatternBadge';
 export { default as PurchasePatternSelect } from './PurchasePatternSelect';
 export * from './render-status';

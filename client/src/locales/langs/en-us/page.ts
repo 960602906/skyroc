@@ -932,6 +932,39 @@ const page: App.I18n.Schema['translation']['page'] = {
       sectionRemark: 'Remarks'
     }
   },
+  pickupTask: {
+    afterSaleNo: 'After-sale No.',
+    assign: 'Assign Driver',
+    assignTitle: 'Schedule Pickup · {{taskNo}}',
+    complete: 'Complete Pickup',
+    completeConfirm: 'Complete pickup task {{taskNo}}? It can then be used for sales-return stock-in.',
+    customerName: 'Customer',
+    driver: 'Pickup Driver',
+    form: {
+      driver: 'Select an active driver',
+      keyword: 'Enter task no., after-sale no., customer, or goods',
+      pickupStatus: 'Select pickup status',
+      remark: 'Enter scheduling remark (optional)'
+    },
+    goods: 'Goods to Pick Up',
+    keyword: 'Keyword',
+    pickupAddress: 'Pickup Address / Contact',
+    pickupStatus: 'Pickup Status',
+    plannedPickupTime: 'Planned Pickup Time',
+    remark: 'Scheduling Remark',
+    start: 'Start Pickup',
+    startConfirm: 'Start pickup task {{taskNo}}?',
+    statusCancelled: 'Cancelled',
+    statusCompleted: 'Completed',
+    statusPendingAssign: 'Pending Assignment',
+    statusPendingPickup: 'Pending Pickup',
+    statusPickingUp: 'Picking Up',
+    stockInGenerated: 'Stock-in Created',
+    stockInPending: 'Pending Stock-in',
+    stockInStatus: 'Return Stock-in',
+    taskNo: 'Pickup Task No.',
+    title: 'Pickup Tasks'
+  },
   purchase: {
     purchaser: {
       addPurchaser: 'Add Purchaser',

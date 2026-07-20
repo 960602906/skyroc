@@ -4,6 +4,7 @@ import {
   fetchGetAllCompanies,
   fetchGetAllCustomerTags,
   fetchGetAllCustomers,
+  fetchGetAllDrivers,
   fetchGetAllGoods,
   fetchGetAllGoodsTypes,
   fetchGetAllGoodsUnits,
@@ -41,6 +42,15 @@ export function useCustomerTagOptions() {
   return useQuery({
     queryFn: () => fetchGetAllCustomerTags(),
     queryKey: QUERY_KEYS.BASE.CUSTOMER_TAGS,
+    staleTime: 60_000
+  });
+}
+
+/** 查询全部司机，供配送与售后取货任务调度、筛选复用。 */
+export function useDriverOptions() {
+  return useQuery({
+    queryFn: () => fetchGetAllDrivers(),
+    queryKey: QUERY_KEYS.BASE.DRIVERS,
     staleTime: 60_000
   });
 }

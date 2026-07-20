@@ -936,6 +936,39 @@ const page: App.I18n.Schema['translation']['page'] = {
       sectionRemark: '备注信息'
     }
   },
+  pickupTask: {
+    afterSaleNo: '售后单号',
+    assign: '分配司机',
+    assignTitle: '安排取货 · {{taskNo}}',
+    complete: '完成取货',
+    completeConfirm: '确认完成取货任务 {{taskNo}}？完成后可作为销售退货入库来源。',
+    customerName: '客户名称',
+    driver: '取货司机',
+    form: {
+      driver: '请选择启用司机',
+      keyword: '请输入任务号/售后单号/客户/商品',
+      pickupStatus: '请选择取货状态',
+      remark: '请输入调度备注（可选）'
+    },
+    goods: '取货商品',
+    keyword: '关键字',
+    pickupAddress: '取货地址/联系人',
+    pickupStatus: '取货状态',
+    plannedPickupTime: '计划取货时间',
+    remark: '调度备注',
+    start: '开始取货',
+    startConfirm: '确认开始执行取货任务 {{taskNo}}？',
+    statusCancelled: '已取消',
+    statusCompleted: '已完成',
+    statusPendingAssign: '待分配',
+    statusPendingPickup: '待取货',
+    statusPickingUp: '取货中',
+    stockInGenerated: '已生成退货入库',
+    stockInPending: '待退货入库',
+    stockInStatus: '退货入库',
+    taskNo: '取货任务号',
+    title: '取货任务'
+  },
   purchase: {
     purchaser: {
       addPurchaser: '新增采购员',

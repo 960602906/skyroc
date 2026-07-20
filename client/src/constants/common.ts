@@ -51,6 +51,15 @@ export const AFTER_SALE_STATUS_MAP: Record<Api.AfterSale.AfterStatus, BadgeStatu
   5: 'success'
 };
 
+/** 售后取货任务履约状态徽标色。 */
+export const PICKUP_TASK_STATUS_MAP: Record<Api.AfterSale.PickupStatus, BadgeStatus> = {
+  1: 'default',
+  2: 'warning',
+  3: 'processing',
+  4: 'success',
+  5: 'error'
+};
+
 /** 售后申请类型徽标色。 */
 export const AFTER_SALE_TYPE_MAP: Record<Api.AfterSale.AfterSaleType, BadgeStatus> = {
   1: 'processing',

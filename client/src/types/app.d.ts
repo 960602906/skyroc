@@ -1293,6 +1293,39 @@ declare namespace App {
               sectionRemark: string;
             };
           };
+          pickupTask: {
+            afterSaleNo: string;
+            assign: string;
+            assignTitle: string;
+            complete: string;
+            completeConfirm: string;
+            customerName: string;
+            driver: string;
+            form: {
+              driver: string;
+              keyword: string;
+              pickupStatus: string;
+              remark: string;
+            };
+            goods: string;
+            keyword: string;
+            pickupAddress: string;
+            pickupStatus: string;
+            plannedPickupTime: string;
+            remark: string;
+            start: string;
+            startConfirm: string;
+            statusCancelled: string;
+            statusCompleted: string;
+            statusPendingAssign: string;
+            statusPendingPickup: string;
+            statusPickingUp: string;
+            stockInGenerated: string;
+            stockInPending: string;
+            stockInStatus: string;
+            taskNo: string;
+            title: string;
+          };
           purchase: {
             purchaser: {
               addPurchaser: string;

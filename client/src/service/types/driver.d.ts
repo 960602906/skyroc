@@ -1,9 +1,18 @@
 declare namespace Api {
   namespace Driver {
-    /** 业务实体（字段随后端 DTO 演进，页面接入时再细化） */
-    type Entity = Common.CommonRecord<Record<string, unknown>>;
+    /** 配送或取货任务可分配的司机档案。 */
+    type Entity = Common.CommonRecord<{
+      carrierId: string | null;
+      carrierName: string | null;
+      code: string | null;
+      licenseNo: string | null;
+      name: string | null;
+      phone: string | null;
+      plateNumber: string | null;
+      remark: string | null;
+    }>;
 
-    type AllEntity = Pick<Entity, 'id'> & Record<string, unknown>;
+    type AllEntity = Pick<Entity, 'id' | 'name' | 'phone' | 'status'>;
 
     type Payload = Record<string, unknown>;
 

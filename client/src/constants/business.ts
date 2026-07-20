@@ -45,6 +45,16 @@ export const afterSaleStatusRecord: Record<Api.AfterSale.AfterStatus, App.I18n.I
 
 export const afterSaleStatusOptions = transformRecordToOption(afterSaleStatusRecord, true);
 
+export const pickupTaskStatusRecord: Record<Api.AfterSale.PickupStatus, App.I18n.I18nKey> = {
+  1: 'page.pickupTask.statusPendingAssign',
+  2: 'page.pickupTask.statusPendingPickup',
+  3: 'page.pickupTask.statusPickingUp',
+  4: 'page.pickupTask.statusCompleted',
+  5: 'page.pickupTask.statusCancelled'
+};
+
+export const pickupTaskStatusOptions = transformRecordToOption(pickupTaskStatusRecord, true);
+
 export const afterSaleTypeRecord: Record<Api.AfterSale.AfterSaleType, App.I18n.I18nKey> = {
   1: 'page.afterSale.list.typeRefundOnly',
   2: 'page.afterSale.list.typeReturnAndRefund'

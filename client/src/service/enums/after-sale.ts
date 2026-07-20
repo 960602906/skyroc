@@ -21,6 +21,27 @@ export type AfterSaleStatusValue =
   | AfterSaleStatus.REFUND_PENDING
   | AfterSaleStatus.COMPLETED;
 
+/** 售后取货任务履约状态 */
+export enum PickupTaskStatus {
+  /** 已生成任务，等待调度司机 */
+  PENDING_ASSIGN = 1,
+  /** 已分配司机，等待上门 */
+  PENDING_PICKUP = 2,
+  /** 司机正在执行取货 */
+  PICKING_UP = 3,
+  /** 商品已取回，可作为销售退货入库来源 */
+  COMPLETED = 4,
+  /** 任务已取消，不再执行 */
+  CANCELLED = 5
+}
+
+export type PickupTaskStatusValue =
+  | PickupTaskStatus.PENDING_ASSIGN
+  | PickupTaskStatus.PENDING_PICKUP
+  | PickupTaskStatus.PICKING_UP
+  | PickupTaskStatus.COMPLETED
+  | PickupTaskStatus.CANCELLED;
+
 /** 售后商品申请类型 */
 export enum AfterSaleType {
   /** 仅退款 */

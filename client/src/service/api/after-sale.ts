@@ -29,8 +29,8 @@ export function fetchUpdateAfterSale(data: Api.AfterSale.UpdatePayload) {
 }
 
 /** 分页查询取货任务及其销售退货入库衔接状态。 */
-export function fetchGetAfterSalePickupTasks(params?: Api.AfterSale.SearchParams) {
-  return request<Api.AfterSale.Result>({
+export function fetchGetAfterSalePickupTasks(params?: Api.AfterSale.PickupTaskSearchParams) {
+  return request<Api.AfterSale.PickupTaskList>({
     method: 'get',
     params,
     url: AFTER_SALE_URLS.PICKUP_TASKS
@@ -38,8 +38,8 @@ export function fetchGetAfterSalePickupTasks(params?: Api.AfterSale.SearchParams
 }
 
 /** 为尚未开始的取货任务分配或更换启用司机。 */
-export function fetchUpdateAfterSalePickupTasksAssign(id: string, data?: Api.AfterSale.Payload) {
-  return request<Api.AfterSale.Entity>({
+export function fetchUpdateAfterSalePickupTasksAssign(id: string, data: Api.AfterSale.AssignPickupTaskPayload) {
+  return request<Api.AfterSale.PickupTask>({
     data,
     method: 'put',
     url: `${AFTER_SALE_URLS.PICKUP_TASKS}/${id}/assign`
@@ -47,18 +47,16 @@ export function fetchUpdateAfterSalePickupTasksAssign(id: string, data?: Api.Aft
 }
 
 /** 完成取货中的任务，使其可以作为销售退货入库来源。 */
-export function fetchPickupTasksCompleteAfterSale(id: string, data?: Api.AfterSale.Payload) {
-  return request<Api.AfterSale.Entity>({
-    data,
+export function fetchPickupTasksCompleteAfterSale(id: string) {
+  return request<Api.AfterSale.PickupTask>({
     method: 'post',
     url: `${AFTER_SALE_URLS.PICKUP_TASKS}/${id}/complete`
   });
 }
 
 /** 开始执行已分配的取货任务并记录开始时间。 */
-export function fetchPickupTasksStartAfterSale(id: string, data?: Api.AfterSale.Payload) {
-  return request<Api.AfterSale.Entity>({
-    data,
+export function fetchPickupTasksStartAfterSale(id: string) {
+  return request<Api.AfterSale.PickupTask>({
     method: 'post',
     url: `${AFTER_SALE_URLS.PICKUP_TASKS}/${id}/start`
   });

@@ -15,6 +15,9 @@ declare namespace Api {
     /** 售后审核轨迹动作 */
     type AuditAction = import('../enums').AfterSaleAuditActionValue;
 
+    /** 取货任务履约状态 */
+    type PickupStatus = import('../enums').PickupTaskStatusValue;
+
     /** 售后审核轨迹 */
     type AuditLog = Common.CommonRecord<{
       action: AuditAction;
@@ -97,6 +100,40 @@ declare namespace Api {
       latestAuditAction: AuditAction | null;
     };
 
+    /** 售后退货商品的上门取货任务。 */
+    type PickupTask = Common.CommonRecord<{
+      afterSaleGoodsId: string;
+      afterSaleId: string;
+      afterSaleNo: string;
+      assignedTime: string | null;
+      completedTime: string | null;
+      contactName: string | null;
+      contactPhone: string | null;
+      customerId: string;
+      customerName: string;
+      driverId: string | null;
+      driverName: string | null;
+      driverPhone: string | null;
+      goodsId: string;
+      goodsName: string;
+      goodsUnitName: string;
+      pickupAddress: string;
+      pickupStatus: PickupStatus;
+      plannedPickupTime: string | null;
+      quantity: number;
+      remark: string | null;
+      startedTime: string | null;
+      stockInOrderId: string | null;
+      taskNo: string;
+    }>;
+
+    /** 取货任务的司机调度请求。 */
+    type AssignPickupTaskPayload = {
+      driverId: string;
+      plannedPickupTime?: string | null;
+      remark?: string | null;
+    };
+
     type AllEntity = Pick<Entity, 'afterSaleNo' | 'customerName' | 'id'>;
 
     /** 售后商品编辑行，关联来源订单时由后端固定商品、单位和单价快照。 */
@@ -149,10 +186,26 @@ declare namespace Api {
       }
     >;
 
+    /** 取货任务列表筛选条件（含表单专用计划日期范围）。 */
+    type PickupTaskSearchParams = CommonType.RecordNullable<
+      Api.Base.SearchParams & {
+        afterSaleId?: string | null;
+        driverId?: string | null;
+        keyword?: string | null;
+        pickupStatus?: PickupStatus | null;
+        plannedEnd?: string | null;
+        /** 表单专用日期范围，请求前会拆成 plannedStart/plannedEnd。 */
+        plannedRange?: [unknown, unknown] | null;
+        plannedStart?: string | null;
+      }
+    >;
+
     type List = Common.PaginatingQueryRecord<ListItem>;
+
+    type PickupTaskList = Common.PaginatingQueryRecord<PickupTask>;
 
     type Payload = ActionParams | CreatePayload | UpdatePayload | Record<string, unknown>;
 
-    type Result = unknown;
+    type Result = PickupTask;
   }
 }
