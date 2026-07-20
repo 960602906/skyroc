@@ -12,6 +12,7 @@ using Domain.Entities.Orders;
 using Domain.Entities.Purchases;
 using Domain.Entities.Storage;
 using Domain.Interfaces;
+using Domain.ReadModels.AfterSales;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared.Constants;
@@ -45,15 +46,13 @@ public class AfterSaleService(
     ILogger<AfterSaleService> logger) : IAfterSaleService
 {
     /// <inheritdoc />
-    public async Task<PagedResult<AfterSaleDto>> GetPagedAsync(AfterSaleQueryParameters parameters)
+    public async Task<PagedResult<AfterSaleListItemDto>> GetPagedAsync(AfterSaleQueryParameters parameters)
     {
-        var result = await afterSaleRepository.GetPagedAsync(
+        var result = await afterSaleRepository.GetListPageAsync(
             parameters.QueryBuild(),
             parameters.Current,
-            parameters.Size,
-            x => x.CreateTime!,
-            true);
-        return mapper.ToPagedResult<AfterSale, AfterSaleDto>(result, parameters);
+            parameters.Size);
+        return mapper.ToPagedResult<AfterSaleListItemReadModel, AfterSaleListItemDto>(result, parameters);
     }
 
     /// <inheritdoc />

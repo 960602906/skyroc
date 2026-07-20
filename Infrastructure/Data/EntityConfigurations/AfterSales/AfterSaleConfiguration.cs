@@ -48,6 +48,9 @@ public class AfterSaleConfiguration : IEntityTypeConfiguration<AfterSale>
         builder.HasIndex(x => x.SaleOrderId).HasDatabaseName("idx_after_sale_order_id");
         builder.HasIndex(x => x.CustomerId).HasDatabaseName("idx_after_sale_customer_id");
         builder.HasIndex(x => new { x.AfterStatus, x.CreateTime }).HasDatabaseName("idx_after_sale_status_create_time");
+        builder.HasIndex(x => new { x.CreateTime, x.Id })
+            .IsDescending(true, true)
+            .HasDatabaseName("idx_after_sale_create_time_id");
 
         builder.HasOne(x => x.SaleOrder)
             .WithMany()

@@ -301,6 +301,21 @@ public class AfterSaleServiceTests
         configuration.AssertConfigurationIsValid();
     }
 
+    [Fact]
+    public void AfterSaleListItemDto_CalculatesRoundedRefundTotalFromLightweightGoods()
+    {
+        var dto = new AfterSaleListItemDto
+        {
+            Goods =
+            [
+                new AfterSaleListGoodsDto { RefundAmount = 1.23456m },
+                new AfterSaleListGoodsDto { RefundAmount = 2.34567m }
+            ]
+        };
+
+        Assert.Equal(3.5802m, dto.TotalRefundAmount);
+    }
+
     private static CreateAfterSaleDto CreateRequest(OrderSeed seed, decimal quantity)
     {
         return new CreateAfterSaleDto

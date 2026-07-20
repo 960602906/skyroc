@@ -9,8 +9,8 @@ namespace Application.Interfaces;
 /// </summary>
 public interface IAfterSaleService
 {
-    /// <summary>按业务条件分页查询售后单。</summary>
-    Task<PagedResult<AfterSaleDto>> GetPagedAsync(AfterSaleQueryParameters parameters);
+    /// <summary>按业务条件分页查询售后单列表摘要。</summary>
+    Task<PagedResult<AfterSaleListItemDto>> GetPagedAsync(AfterSaleQueryParameters parameters);
 
     /// <summary>读取售后单商品明细和完整审核轨迹。</summary>
     Task<AfterSaleDto> GetByIdAsync(Guid id);

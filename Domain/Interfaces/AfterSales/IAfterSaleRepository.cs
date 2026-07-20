@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using Domain.Entities.AfterSales;
+using Domain.ReadModels.AfterSales;
 
 namespace Domain.Interfaces;
 
@@ -7,6 +9,18 @@ namespace Domain.Interfaces;
 /// </summary>
 public interface IAfterSaleRepository : IRepository<AfterSale>
 {
+    /// <summary>
+    /// 按业务条件读取轻量售后分页，只返回列表展示与操作判断所需字段。
+    /// </summary>
+    /// <param name="predicate">售后业务筛选表达式。</param>
+    /// <param name="pageNumber">从 1 开始的页码。</param>
+    /// <param name="pageSize">每页记录数。</param>
+    /// <returns>按创建时间和主键稳定倒序排列的列表数据及总记录数。</returns>
+    Task<(IReadOnlyList<AfterSaleListItemReadModel> Data, int Total)> GetListPageAsync(
+        Expression<Func<AfterSale, bool>>? predicate,
+        int pageNumber,
+        int pageSize);
+
     /// <summary>
     /// 在当前数据库事务内锁定并读取售后聚合，防止审核、反审核、编辑和删除并发交错。
     /// </summary>

@@ -52,6 +52,9 @@ declare namespace Api {
       unitPrice: number;
     }>;
 
+    /** 售后分页列表使用的商品处理摘要 */
+    type ListGoods = Pick<Goods, 'afterSaleType' | 'handleType' | 'refundAmount'>;
+
     /** 售后单实体 */
     type Entity = Common.CommonRecord<{
       afterSaleNo: string;
@@ -72,6 +75,27 @@ declare namespace Api {
       source: string;
       totalRefundAmount: number;
     }>;
+
+    /** 售后分页列表项，仅包含列表展示和操作判断需要的数据 */
+    type ListItem = Pick<
+      Entity,
+      | 'afterSaleNo'
+      | 'afterStatus'
+      | 'contactName'
+      | 'contactPhone'
+      | 'createTime'
+      | 'customerName'
+      | 'id'
+      | 'orderPrice'
+      | 'saleOrderId'
+      | 'saleOrderNo'
+      | 'settlementPrice'
+      | 'totalRefundAmount'
+    > & {
+      goods: ListGoods[];
+      hasPickupTasks: boolean;
+      latestAuditAction: AuditAction | null;
+    };
 
     type AllEntity = Pick<Entity, 'afterSaleNo' | 'customerName' | 'id'>;
 
@@ -125,7 +149,7 @@ declare namespace Api {
       }
     >;
 
-    type List = Common.PaginatingQueryRecord<Entity>;
+    type List = Common.PaginatingQueryRecord<ListItem>;
 
     type Payload = ActionParams | CreatePayload | UpdatePayload | Record<string, unknown>;
 

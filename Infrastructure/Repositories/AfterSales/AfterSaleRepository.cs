@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Domain.Entities.AfterSales;
 using Domain.Interfaces;
+using Domain.ReadModels.AfterSales;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,20 +33,57 @@ public class AfterSaleRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public override async Task<(IEnumerable<AfterSale> Data, int Total)> GetPagedAsync(
+    public async Task<(IReadOnlyList<AfterSaleListItemReadModel> Data, int Total)> GetListPageAsync(
         Expression<Func<AfterSale, bool>>? predicate,
         int pageNumber,
-        int pageSize,
-        Expression<Func<AfterSale, object>>? orderBy = null,
-        bool isDescending = false)
+        int pageSize)
     {
-        return await PagedFromQueryAsync(
-            BuildDetailQuery().AsNoTracking(),
-            predicate,
-            pageNumber,
-            pageSize,
-            orderBy,
-            isDescending);
+        var query = DbSet.AsNoTracking();
+        if (predicate is not null)
+        {
+            query = query.Where(predicate);
+        }
+
+        var total = await query.CountAsync();
+        var data = await query
+            .AsSingleQuery()
+            .OrderByDescending(x => x.CreateTime)
+            .ThenByDescending(x => x.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new AfterSaleListItemReadModel
+            {
+                Id = x.Id,
+                CreateTime = x.CreateTime,
+                AfterSaleNo = x.AfterSaleNo,
+                SaleOrderId = x.SaleOrderId,
+                SaleOrderNo = x.SaleOrderNoSnapshot,
+                CustomerName = x.CustomerNameSnapshot,
+                OrderPrice = x.OrderPrice,
+                SettlementPrice = x.SettlementPrice,
+                AfterStatus = x.AfterStatus,
+                ContactName = x.ContactNameSnapshot,
+                ContactPhone = x.ContactPhoneSnapshot,
+                Goods = x.Goods
+                    .OrderBy(item => item.Id)
+                    .Select(item => new AfterSaleListGoodsReadModel
+                    {
+                        AfterSaleType = item.AfterSaleType,
+                        HandleType = item.HandleType,
+                        RefundAmount = item.RefundAmount
+                    })
+                    .ToList(),
+                LatestAuditAction = x.AuditLogs
+                    .OrderByDescending(log => log.AuditTime)
+                    .ThenByDescending(log => log.CreateTime)
+                    .ThenByDescending(log => log.Id)
+                    .Select(log => (AfterSaleAuditAction?)log.Action)
+                    .FirstOrDefault(),
+                HasPickupTasks = x.PickupTasks.Any()
+            })
+            .ToListAsync();
+
+        return (data, total);
     }
 
     /// <inheritdoc />

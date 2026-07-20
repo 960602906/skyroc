@@ -63,6 +63,13 @@ public class AfterSaleModelTests
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(AfterSale.OrderPrice))!.GetScale());
         Assert.Equal(NumericPrecision.MoneyScale, entityType.FindProperty(nameof(AfterSale.SettlementPrice))!.GetScale());
         Assert.True(entityType.GetIndexes().Single(x => x.GetDatabaseName() == "idx_after_sale_no").IsUnique);
+        var listIndex = entityType.GetIndexes().Single(
+            x => x.GetDatabaseName() == "idx_after_sale_create_time_id");
+        Assert.Equal(
+            [nameof(AfterSale.CreateTime), nameof(AfterSale.Id)],
+            listIndex.Properties.Select(x => x.Name));
+        Assert.NotNull(listIndex.IsDescending);
+        Assert.Empty(listIndex.IsDescending);
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_after_sale_amounts");
         Assert.Contains(entityType.GetCheckConstraints(), x => x.Name == "ck_after_sale_status");
     }

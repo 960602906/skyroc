@@ -207,10 +207,10 @@ const AfterSaleList = () => {
           const isPendingHandle =
             record.afterStatus === AfterSaleStatus.RETURN_PENDING ||
             record.afterStatus === AfterSaleStatus.REFUND_PENDING;
-          const latestAction = record.auditLogs?.at(-1)?.action;
+          const latestAction = record.latestAuditAction;
           const isRejectedDraft = isDraft && latestAction === AfterSaleAuditAction.REJECT;
-          const canDelete = isDraft && !record.auditLogs?.length;
-          const canReverse = isPendingHandle && !record.pickupTasks?.length;
+          const canDelete = isDraft && latestAction === null;
+          const canReverse = isPendingHandle && !record.hasPickupTasks;
 
           return (
             <div className="flex-center flex-wrap gap-8px">
@@ -362,7 +362,7 @@ const AfterSaleList = () => {
   }
 
   async function handleAction(
-    record: Api.AfterSale.Entity,
+    record: Api.AfterSale.ListItem,
     action: 'approve' | 'reject' | 'resubmit' | 'reverse' | 'submit'
   ) {
     try {
@@ -388,7 +388,7 @@ const AfterSaleList = () => {
     }
   }
 
-  function handleComplete(record: Api.AfterSale.Entity) {
+  function handleComplete(record: Api.AfterSale.ListItem) {
     Modal.confirm({
       content: t('page.afterSale.list.completeTip'),
       onOk: async () => {

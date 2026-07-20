@@ -1,6 +1,7 @@
 using Application.DTOs.AfterSales;
 using AutoMapper;
 using Domain.Entities.AfterSales;
+using Domain.ReadModels.AfterSales;
 
 namespace Application.Mappers;
 
@@ -14,6 +15,9 @@ public class AfterSaleMappingProfile : Profile
     /// </summary>
     public AfterSaleMappingProfile()
     {
+        CreateMap<AfterSaleListItemReadModel, AfterSaleListItemDto>();
+        CreateMap<AfterSaleListGoodsReadModel, AfterSaleListGoodsDto>();
+
         CreateMap<AfterSale, AfterSaleDto>()
             .ForMember(x => x.SaleOrderNo, opt => opt.MapFrom(src => src.SaleOrderNoSnapshot))
             .ForMember(x => x.CustomerName, opt => opt.MapFrom(src => src.CustomerNameSnapshot))

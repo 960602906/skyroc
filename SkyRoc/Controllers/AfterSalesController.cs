@@ -20,14 +20,14 @@ public class AfterSalesController(IAfterSaleService service) : ControllerBase
 {
     /// <summary>分页查询售后单。</summary>
     /// <param name="parameters">时间、单号、客户、状态和处理类型筛选条件。</param>
-    /// <returns>符合条件的售后单分页结果。</returns>
+    /// <returns>符合条件的售后单轻量分页结果。</returns>
     [HttpGet]
     [ResourcePermission(PermissionActions.Read)]
-    public async Task<ActionResult<ApiResponse<PagedResult<AfterSaleDto>>>> GetPaged(
+    public async Task<ActionResult<ApiResponse<PagedResult<AfterSaleListItemDto>>>> GetPaged(
         [FromQuery] AfterSaleQueryParameters parameters)
     {
         var result = await service.GetPagedAsync(parameters);
-        return Ok(ApiResponse<PagedResult<AfterSaleDto>>.Ok(result));
+        return Ok(ApiResponse<PagedResult<AfterSaleListItemDto>>.Ok(result));
     }
 
     /// <summary>查询售后单商品明细和审核轨迹。</summary>

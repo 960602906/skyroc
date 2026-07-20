@@ -143,6 +143,8 @@ public class SwaggerResponseSchemaTests
         var schemas = root.GetProperty("components").GetProperty("schemas");
 
         Assert.True(schemas.TryGetProperty("AfterSaleDto", out _));
+        Assert.True(schemas.TryGetProperty("AfterSaleListItemDto", out _));
+        Assert.True(schemas.TryGetProperty("AfterSaleListGoodsDto", out _));
         Assert.True(schemas.TryGetProperty("PickupTaskDto", out _));
         Assert.True(schemas.TryGetProperty("AssignPickupTaskDto", out _));
         Assert.True(schemas.TryGetProperty("CreateAfterSaleDto", out var createSchema));
@@ -163,6 +165,10 @@ public class SwaggerResponseSchemaTests
         Assert.Contains(PermissionCodes.Business.AfterSales.Read, operation.GetProperty("description").GetString());
         Assert.Contains("售后", operation.GetProperty("tags").EnumerateArray().Select(x => x.GetString()));
         Assert.True(operation.GetProperty("responses").GetProperty("200").TryGetProperty("content", out _));
+        Assert.Contains("AfterSaleListItemDto", operation.GetRawText());
+
+        var detailOperation = paths.GetProperty("/api/after-sales/{id}").GetProperty("get");
+        Assert.Contains("AfterSaleDto", detailOperation.GetRawText());
 
         var pickupOperation = paths.GetProperty("/api/after-sales/pickup-tasks").GetProperty("get");
         Assert.Contains(PermissionCodes.Business.AfterSales.Read, pickupOperation.GetProperty("description").GetString());
