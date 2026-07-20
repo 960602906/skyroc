@@ -1,6 +1,7 @@
 using Infrastructure.Data;
 using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Shared.Common;
 using Xunit;
 
@@ -73,9 +74,11 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
     /// <summary>
     ///     创建使用同一白名单库的真实 Web 测试宿主。
     /// </summary>
-    public PostgreSqlWebApplicationFactory CreateWebApplicationFactory()
+    /// <param name="configureTestServices">可选的测试服务替换/装饰回调（例如故障注入门闩）。</param>
+    public PostgreSqlWebApplicationFactory CreateWebApplicationFactory(
+        Action<IServiceCollection>? configureTestServices = null)
     {
-        return new PostgreSqlWebApplicationFactory(Settings, ObjectStorage);
+        return new PostgreSqlWebApplicationFactory(Settings, ObjectStorage, configureTestServices);
     }
 
     /// <summary>

@@ -11,7 +11,8 @@ namespace SkyRoc.Tests.Testing.PostgreSql;
 /// </summary>
 public sealed class PostgreSqlWebApplicationFactory(
     PostgreSqlTestSettings settings,
-    IObjectStorage sharedObjectStorage) : WebApplicationFactory<Program>
+    IObjectStorage sharedObjectStorage,
+    Action<IServiceCollection>? configureTestServices = null) : WebApplicationFactory<Program>
 {
     /// <summary>
     ///     将真实宿主连接、认证密钥、缓存和进程内对象存储固定到测试用途。
@@ -35,6 +36,7 @@ public sealed class PostgreSqlWebApplicationFactory(
             }
 
             services.AddSingleton(sharedObjectStorage);
+            configureTestServices?.Invoke(services);
         });
     }
 }
