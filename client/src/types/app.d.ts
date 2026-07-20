@@ -1294,12 +1294,26 @@ declare namespace App {
             };
           };
           pickupTask: {
+            addAfterSale: string;
             afterSaleNo: string;
             assign: string;
             assignTitle: string;
             complete: string;
             completeConfirm: string;
             customerName: string;
+            detail: {
+              assignedTime: string;
+              back: string;
+              basicInfo: string;
+              completedTime: string;
+              contactName: string;
+              contactPhone: string;
+              driverPhone: string;
+              executionInfo: string;
+              quantity: string;
+              scheduleInfo: string;
+              startedTime: string;
+            };
             driver: string;
             form: {
               driver: string;
@@ -1309,10 +1323,15 @@ declare namespace App {
             };
             goods: string;
             keyword: string;
+            operate: {
+              scheduleInfo: string;
+              title: string;
+            };
             pickupAddress: string;
             pickupStatus: string;
             plannedPickupTime: string;
             remark: string;
+            schedule: string;
             start: string;
             startConfirm: string;
             statusCancelled: string;

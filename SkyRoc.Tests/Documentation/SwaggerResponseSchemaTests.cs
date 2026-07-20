@@ -157,6 +157,7 @@ public class SwaggerResponseSchemaTests
         Assert.True(paths.TryGetProperty("/api/after-sales/{id}/reverse", out _));
         Assert.True(paths.TryGetProperty("/api/after-sales/{id}/complete", out _));
         Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks", out _));
+        Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks/{id}", out _));
         Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks/{id}/assign", out _));
         Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks/{id}/start", out _));
         Assert.True(paths.TryGetProperty("/api/after-sales/pickup-tasks/{id}/complete", out _));

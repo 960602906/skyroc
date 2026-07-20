@@ -3135,6 +3135,11 @@ GET {{SkyRoc_HostAddress}}/api/after-sales/pickup-tasks?current=1&size=10&afterS
 Authorization: Bearer {{accessToken}}
 Accept: {{contentType}}
 
+### Pickup Tasks - Get Detail
+GET {{SkyRoc_HostAddress}}/api/after-sales/pickup-tasks/{{pickupTaskId}}
+Authorization: Bearer {{accessToken}}
+Accept: {{contentType}}
+
 ### Pickup Tasks - Assign Driver
 PUT {{SkyRoc_HostAddress}}/api/after-sales/pickup-tasks/{{pickupTaskId}}/assign
 Authorization: Bearer {{accessToken}}

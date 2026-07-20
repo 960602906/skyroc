@@ -37,6 +37,14 @@ export function fetchGetAfterSalePickupTasks(params?: Api.AfterSale.PickupTaskSe
   });
 }
 
+/** 查询单个取货任务的售后来源、调度和履约详情。 */
+export function fetchGetAfterSalePickupTaskDetail(id: string) {
+  return request<Api.AfterSale.PickupTask>({
+    method: 'get',
+    url: `${AFTER_SALE_URLS.PICKUP_TASKS}/${id}`
+  });
+}
+
 /** 为尚未开始的取货任务分配或更换启用司机。 */
 export function fetchUpdateAfterSalePickupTasksAssign(id: string, data: Api.AfterSale.AssignPickupTaskPayload) {
   return request<Api.AfterSale.PickupTask>({

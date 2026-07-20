@@ -12,6 +12,9 @@ public interface IPickupTaskService
     /// <summary>分页查询售后取货任务及其退货入库衔接状态。</summary>
     Task<PagedResult<PickupTaskDto>> GetPagedAsync(PickupTaskQueryParameters parameters);
 
+    /// <summary>按主键查询取货任务的售后来源、商品、调度和履约详情。</summary>
+    Task<PickupTaskDto> GetByIdAsync(Guid id);
+
     /// <summary>为尚未开始的取货任务分配或更换启用司机。</summary>
     Task<PickupTaskDto> AssignAsync(Guid id, AssignPickupTaskDto dto);
 

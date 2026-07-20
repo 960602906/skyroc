@@ -64,6 +64,7 @@ public class AfterSaleControllerPermissionTests
         var expected = new Dictionary<string, string>
         {
             [nameof(PickupTasksController.GetPaged)] = PermissionActions.Read,
+            [nameof(PickupTasksController.GetById)] = PermissionActions.Read,
             [nameof(PickupTasksController.Assign)] = PermissionActions.Update,
             [nameof(PickupTasksController.Start)] = PermissionActions.Update,
             [nameof(PickupTasksController.Complete)] = PermissionActions.Update

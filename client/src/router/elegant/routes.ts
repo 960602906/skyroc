@@ -1015,7 +1015,57 @@ export const generatedRoutes: ElegantConstRoute[] = [
                   title: '(base)_orders_pickup-tasks',
                   icon: 'mdi:package-variant-closed',
                   order: 3
-                }
+                },
+                children: [
+                  {
+                    matchedFiles: [null, '/src/pages/(base)/orders/pickup-tasks/detail/index.tsx', null, null],
+                    name: '(base)_orders_pickup-tasks_detail',
+                    path: '/orders/pickup-tasks/detail',
+                    handle: {
+                      i18nKey: 'route.(base)_orders_pickup-tasks_detail',
+                      title: '(base)_orders_pickup-tasks_detail',
+                      activeMenu: '/orders/pickup-tasks',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/orders/pickup-tasks/detail/[id].tsx', null, null],
+                        name: '(base)_orders_pickup-tasks_detail_[id]',
+                        path: '/orders/pickup-tasks/detail/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_orders_pickup-tasks_detail_[id]',
+                          title: '(base)_orders_pickup-tasks_detail_[id]',
+                          activeMenu: '/orders/pickup-tasks',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    matchedFiles: [null, '/src/pages/(base)/orders/pickup-tasks/operate/index.tsx', null, null],
+                    name: '(base)_orders_pickup-tasks_operate',
+                    path: '/orders/pickup-tasks/operate',
+                    handle: {
+                      i18nKey: 'route.(base)_orders_pickup-tasks_operate',
+                      title: '(base)_orders_pickup-tasks_operate',
+                      activeMenu: '/orders/pickup-tasks',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/orders/pickup-tasks/operate/[id].tsx', null, null],
+                        name: '(base)_orders_pickup-tasks_operate_[id]',
+                        path: '/orders/pickup-tasks/operate/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_orders_pickup-tasks_operate_[id]',
+                          title: '(base)_orders_pickup-tasks_operate_[id]',
+                          activeMenu: '/orders/pickup-tasks',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             ]
           },

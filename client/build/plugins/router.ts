@@ -109,6 +109,10 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_orders_edit_[id]': { activeMenu: '/orders/list', hideInMenu: true },
   '(base)_orders_list': { icon: 'mdi:format-list-bulleted', order: 1 },
   '(base)_orders_pickup-tasks': { icon: 'mdi:package-variant-closed', order: 3 },
+  '(base)_orders_pickup-tasks_detail': { activeMenu: '/orders/pickup-tasks', hideInMenu: true },
+  '(base)_orders_pickup-tasks_detail_[id]': { activeMenu: '/orders/pickup-tasks', hideInMenu: true },
+  '(base)_orders_pickup-tasks_operate': { activeMenu: '/orders/pickup-tasks', hideInMenu: true },
+  '(base)_orders_pickup-tasks_operate_[id]': { activeMenu: '/orders/pickup-tasks', hideInMenu: true },
   '(base)_projects': { hideInMenu: true },
   // —— 采购中心 ——
   '(base)_purchase': { icon: 'mdi:cart-arrow-down', order: 3 },

@@ -38,6 +38,12 @@ public class PickupTaskService(
     }
 
     /// <inheritdoc />
+    public async Task<PickupTaskDto> GetByIdAsync(Guid id)
+    {
+        return mapper.Map<PickupTaskDto>(await GetRequiredAsync(id));
+    }
+
+    /// <inheritdoc />
     public async Task<PickupTaskDto> AssignAsync(Guid id, AssignPickupTaskDto dto)
     {
         var validation = await assignValidator.ValidateAsync(dto);

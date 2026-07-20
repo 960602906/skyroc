@@ -237,6 +237,12 @@ public class FinanceAfterSaleFlowApiIntegrationTests
             new AfterSaleActionDto { Remark = "同意退货退款" }));
         var pickupTask = Assert.Single(approvedAfterSale.PickupTasks);
 
+        var pickupTaskDetail = await ReadDataAsync<PickupTaskDto>(await client.GetAsync(
+            $"/api/after-sales/pickup-tasks/{pickupTask.Id}"));
+        Assert.Equal(pickupTask.Id, pickupTaskDetail.Id);
+        Assert.Equal(afterSale.Id, pickupTaskDetail.AfterSaleId);
+        Assert.Equal("第三阶段联调学校食堂", pickupTaskDetail.PickupAddress);
+
         await ReadDataAsync<PickupTaskDto>(await client.PutAsJsonAsync(
             $"/api/after-sales/pickup-tasks/{pickupTask.Id}/assign",
             new AssignPickupTaskDto

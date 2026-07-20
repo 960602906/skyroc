@@ -11,13 +11,11 @@ import { TableHeaderOperation, useTable } from '@/features/table';
 import {
   fetchGetAfterSalePickupTasks,
   fetchPickupTasksCompleteAfterSale,
-  fetchPickupTasksStartAfterSale,
-  fetchUpdateAfterSalePickupTasksAssign
+  fetchPickupTasksStartAfterSale
 } from '@/service/api';
 import { PickupTaskStatus } from '@/service/enums';
 import { useDriverOptions } from '@/service/hooks';
 
-import PickupTaskAssignModal from './modules/PickupTaskAssignModal';
 import PickupTaskSearch from './modules/PickupTaskSearch';
 
 const backendDateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
@@ -47,8 +45,6 @@ const PickupTaskList = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
   const { data: drivers = [] } = useDriverOptions();
-  const [assigning, setAssigning] = useState(false);
-  const [assignTask, setAssignTask] = useState<Api.AfterSale.PickupTask | null>(null);
 
   const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetAfterSalePickupTasks,
@@ -61,6 +57,16 @@ const PickupTaskList = () => {
         ellipsis: true,
         fixed: 'left',
         key: 'taskNo',
+        render: (value: string, record) => (
+          <AButton
+            className="h-auto p-0 leading-normal"
+            size="small"
+            type="link"
+            onClick={() => nav(`/orders/pickup-tasks/detail/${record.id}`)}
+          >
+            {value}
+          </AButton>
+        ),
         title: t('page.pickupTask.taskNo'),
         width: 155
       },
@@ -183,9 +189,9 @@ const PickupTaskList = () => {
                 <AButton
                   size="small"
                   type="primary"
-                  onClick={() => setAssignTask(record)}
+                  onClick={() => nav(`/orders/pickup-tasks/operate/${record.id}`)}
                 >
-                  {t('page.pickupTask.assign')}
+                  {t('page.pickupTask.schedule')}
                 </AButton>
               )}
               {canStart && (
@@ -246,20 +252,6 @@ const PickupTaskList = () => {
     }
   });
 
-  async function handleAssign(values: Api.AfterSale.AssignPickupTaskPayload) {
-    if (!assignTask) return;
-
-    setAssigning(true);
-    try {
-      await fetchUpdateAfterSalePickupTasksAssign(assignTask.id, values);
-      window.$message?.success(t('common.updateSuccess'));
-      setAssignTask(null);
-      await run(false);
-    } finally {
-      setAssigning(false);
-    }
-  }
-
   async function handleStart(id: string) {
     await fetchPickupTasksStartAfterSale(id);
     window.$message?.success(t('common.updateSuccess'));
@@ -273,44 +265,43 @@ const PickupTaskList = () => {
   }
 
   return (
-    <>
-      <CrudPageLayout
-        tableWrapperRef={tableWrapperRef}
-        title={t('page.pickupTask.title')}
-        extra={
-          <TableHeaderOperation
-            disabledDelete
-            add={() => undefined}
-            columns={columnChecks}
-            loading={tableProps.loading}
-            refresh={run}
-            setColumnChecks={setColumnChecks}
-            onDelete={() => undefined}
-          />
-        }
-        search={
-          <PickupTaskSearch
-            {...searchProps}
-            drivers={drivers}
-          />
-        }
-        table={
-          <ATable
+    <CrudPageLayout
+      tableWrapperRef={tableWrapperRef}
+      title={t('page.pickupTask.title')}
+      extra={
+        <TableHeaderOperation
+          disabledDelete
+          add={() => nav('/orders/after-sales/operate')}
+          columns={columnChecks}
+          loading={tableProps.loading}
+          refresh={run}
+          setColumnChecks={setColumnChecks}
+          onDelete={() => undefined}
+        >
+          <AButton
+            ghost
+            icon={<IconIcRoundPlus className="text-icon" />}
             size="small"
-            {...tableProps}
-          />
-        }
-      />
-
-      <PickupTaskAssignModal
-        drivers={drivers}
-        loading={assigning}
-        open={Boolean(assignTask)}
-        task={assignTask}
-        onCancel={() => setAssignTask(null)}
-        onSubmit={handleAssign}
-      />
-    </>
+            type="primary"
+            onClick={() => nav('/orders/after-sales/operate')}
+          >
+            {t('page.pickupTask.addAfterSale')}
+          </AButton>
+        </TableHeaderOperation>
+      }
+      search={
+        <PickupTaskSearch
+          {...searchProps}
+          drivers={drivers}
+        />
+      }
+      table={
+        <ATable
+          size="small"
+          {...tableProps}
+        />
+      }
+    />
   );
 };
 
