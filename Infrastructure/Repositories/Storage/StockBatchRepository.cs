@@ -205,6 +205,17 @@ public class StockBatchRepository(ApplicationDbContext context)
             return await GetByIdentityAsync(wareId, goodsId, normalizedBatchNo);
         }
 
+        // 出库单/盘点单 FOR UPDATE 常会 ThenInclude 已跟踪的 StockBatch；若直接复用跟踪实例，
+        // 后续 FOR UPDATE 查到的提交后可用量会被旧快照覆盖，并发扣减会双胜并写坏库存。
+        foreach (var entry in Context.ChangeTracker.Entries<StockBatch>()
+                     .Where(item => item.Entity.WareId == wareId
+                                    && item.Entity.GoodsId == goodsId
+                                    && item.Entity.BatchNo == normalizedBatchNo)
+                     .ToList())
+        {
+            entry.State = EntityState.Detached;
+        }
+
         return await DbSet.FromSqlInterpolated(
                 $"SELECT * FROM stock_batch WHERE ware_id = {wareId} AND goods_id = {goodsId} AND batch_no = {normalizedBatchNo} FOR UPDATE")
             .FirstOrDefaultAsync();

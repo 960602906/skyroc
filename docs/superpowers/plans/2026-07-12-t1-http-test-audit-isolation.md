@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 只连接已确认的 `neondb` 专用 PostgreSQL 测试库；不得删除、重建、截断或清理无批次归属数据。
+- 只连接已确认的 `skyroc` 专用 PostgreSQL 测试库；不得删除、重建、截断或清理无批次归属数据。
 - 非 PostgreSQL HTTP 测试不得解析 Npgsql DbContext，也不得持久化登录或操作审计。
 - 新增/修改代码使用中文 XML 文档；不新增迁移、不提交、不推送。
 - 按 TDD 执行：先增加会失败的测试，再写最小实现并复跑。

@@ -16,7 +16,7 @@ public class DemoDataQualityAcceptanceEvaluatorTests
     {
         var report = DataQualityReport.CreateInfrastructureReport(
             "SKYROC-DEMO-QUALITY-UNIT",
-            "neondb",
+            "skyroc",
             new Dictionary<string, long> { ["goods"] = 19 },
             new Dictionary<string, decimal> { ["goods.name"] = 95m },
             new Dictionary<string, IReadOnlyDictionary<string, long>>(),

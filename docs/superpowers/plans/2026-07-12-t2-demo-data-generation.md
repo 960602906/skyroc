@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 仅可使用经 `DatabaseSafetyGuard` 精确校验为 `neondb` 的 `Testing` 数据库。
+- 仅可使用经 `DatabaseSafetyGuard` 精确校验为 `skyroc` 的 `Testing` 数据库。
 - 严禁 `DROP DATABASE`、重建、全表 `TRUNCATE`、删除未由生成器完整稳定键确认归属的数据。
 - 长期业务键必须为 `SKYROC-DEMO-<AREA>-<NNN>`，只允许完整键精确定位；临时探针使用本轮 `SKYROC-AUTOTEST-*` 批次并精确清理。
 - 任何数量、单价、成本、金额计算均使用 `Shared.Constants.NumericPrecision`；所有注释为中文。

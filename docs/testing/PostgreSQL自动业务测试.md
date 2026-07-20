@@ -2,9 +2,9 @@
 
 ## 用途与数据库边界
 
-SkyRoc 自动业务测试与前端联调共用一个项目专用 PostgreSQL 数据库。项目维护者已在 2026-07-12 明确确认 `neondb` 是该专用测试库，因此非敏感配置 `SkyRoc.Tests/postgresql-testsettings.json` 将它登记为唯一精确白名单。测试宿主固定使用 `Testing` 环境；环境不是 `Testing`、连接串为空、实际数据库名不是 `neondb` 时，都会在建立连接或执行迁移前失败。
+SkyRoc 自动业务测试与前端联调共用一个项目专用 PostgreSQL 数据库。当前专用测试库为 `skyroc`（与 `SkyRoc/appsettings.Development.json` 一致），非敏感配置 `SkyRoc.Tests/postgresql-testsettings.json` 将其登记为唯一精确白名单。测试宿主固定使用 `Testing` 环境；环境不是 `Testing`、连接串为空、实际数据库名不是 `skyroc` 时，都会在建立连接或执行迁移前失败。
 
-连接串默认读取项目的 `SkyRoc/appsettings.json`。需要在本机或 CI 覆盖时，使用 `SKYROC_TEST_CONNECTION_STRING`，不要把新的密码写入测试代码、脚本或报告。EF Core 设计时工厂只接受 `ConnectionStrings__DefaultConnection` 环境变量，不再内嵌远端账号或密码。
+连接串默认优先读取 `SkyRoc/appsettings.Development.json`，若不存在再回退到 `SkyRoc/appsettings.json`。需要在本机或 CI 覆盖时，使用 `SKYROC_TEST_CONNECTION_STRING`，不要把新的密码写入测试代码、脚本或报告。EF Core 设计时工厂只接受 `ConnectionStrings__DefaultConnection` 环境变量，不再内嵌远端账号或密码。
 
 ## 长期数据保护规则
 
@@ -30,7 +30,7 @@ $env:SKYROC_TEST_CONNECTION_STRING = '<专用测试库连接串>'
 .\scripts\Invoke-PostgreSqlBusinessTests.ps1
 ```
 
-脚本先解析连接串并核对 `Testing` 环境和 `neondb` 精确白名单，然后执行：
+脚本先解析连接串并核对 `Testing` 环境和 `skyroc` 精确白名单，然后执行：
 
 ```powershell
 dotnet ef database update --project Infrastructure --startup-project SkyRoc

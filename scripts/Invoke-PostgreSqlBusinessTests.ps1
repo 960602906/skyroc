@@ -5,13 +5,21 @@ param(
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $testSettingsPath = Join-Path $repositoryRoot 'SkyRoc.Tests\postgresql-testsettings.json'
+$developmentSettingsPath = Join-Path $repositoryRoot 'SkyRoc\appsettings.Development.json'
 $applicationSettingsPath = Join-Path $repositoryRoot 'SkyRoc\appsettings.json'
 $testSettings = Get-Content -LiteralPath $testSettingsPath -Raw | ConvertFrom-Json
 $expectedDatabaseName = [string]$testSettings.expectedDatabaseName
 $environmentName = [string]$testSettings.environmentName
 
 if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
-    $applicationSettings = Get-Content -LiteralPath $applicationSettingsPath -Raw | ConvertFrom-Json
+    # 优先本地开发库约定（appsettings.Development.json），再回退到 appsettings.json
+    $settingsPath = if (Test-Path -LiteralPath $developmentSettingsPath) {
+        $developmentSettingsPath
+    }
+    else {
+        $applicationSettingsPath
+    }
+    $applicationSettings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
     $ConnectionString = [string]$applicationSettings.ConnectionStrings.DefaultConnection
 }
 

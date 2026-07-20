@@ -20,12 +20,11 @@ public static class PostgreSqlTestSettingsLoader
         var connectionString = Environment.GetEnvironmentVariable("SKYROC_TEST_CONNECTION_STRING");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            using var applicationSettingsDocument = JsonDocument.Parse(File.ReadAllText(
-                Path.Combine(repositoryRoot, "SkyRoc", "appsettings.json")));
-            connectionString = applicationSettingsDocument.RootElement
-                .GetProperty("ConnectionStrings")
-                .GetProperty("DefaultConnection")
-                .GetString();
+            // 优先本地开发库约定（appsettings.Development.json），再回退到 appsettings.json
+            connectionString = TryReadDefaultConnection(
+                                   Path.Combine(repositoryRoot, "SkyRoc", "appsettings.Development.json"))
+                               ?? TryReadDefaultConnection(
+                                   Path.Combine(repositoryRoot, "SkyRoc", "appsettings.json"));
         }
 
         var environmentName = Environment.GetEnvironmentVariable("SKYROC_TEST_ENVIRONMENT")
@@ -41,6 +40,22 @@ public static class PostgreSqlTestSettingsLoader
             connectionString ?? string.Empty,
             expectedDatabaseName,
             reportDirectory);
+    }
+
+    private static string? TryReadDefaultConnection(string settingsPath)
+    {
+        if (!File.Exists(settingsPath))
+            return null;
+
+        using var document = JsonDocument.Parse(File.ReadAllText(settingsPath));
+        if (!document.RootElement.TryGetProperty("ConnectionStrings", out var connectionStrings)
+            || !connectionStrings.TryGetProperty("DefaultConnection", out var defaultConnection))
+        {
+            return null;
+        }
+
+        var value = defaultConnection.GetString();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     private static string FindRepositoryRoot()

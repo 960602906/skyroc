@@ -64,13 +64,13 @@ public class DatabaseSafetyGuardTests
     {
         var settings = CreateSettings(
             "Testing",
-            "Host=localhost;Database=neondb;Username=runner;Password=secret",
-            "skyroc_business_test");
+            "Host=localhost;Database=otherdb;Username=runner;Password=secret",
+            "skyroc");
 
         var exception = Assert.Throws<InvalidOperationException>(() => DatabaseSafetyGuard.Validate(settings));
 
-        Assert.Contains("neondb", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("skyroc_business_test", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("otherdb", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("skyroc", exception.Message, StringComparison.Ordinal);
     }
 
     private static PostgreSqlTestSettings CreateSettings(
