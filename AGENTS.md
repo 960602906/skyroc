@@ -15,7 +15,7 @@ Add code to the narrowest layer and preserve dependency direction.
 
 ## Development Continuity
 
-Before feature work, read `docs/开发进度.md` and `docs/自动开发任务清单.md`; complete only the first unchecked task. Before handoff, update the breakpoint and test baseline.
+Before feature work, read `docs/开发进度.md` and `docs/自动开发任务清单.md`; complete only the first unchecked task. For automated business testing, also read `docs/测试进度.md` and `docs/自动测试任务清单.md`. Before handoff, update implementation breakpoints in `docs/开发进度.md` and validation evidence in `docs/测试进度.md` separately.
 
 ## Build, Test, and Development Commands
 

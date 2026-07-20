@@ -88,7 +88,7 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
 
 ## Development continuity
 
-This project follows a strict task-ordered workflow. Before feature work, read `docs/开发进度.md` (module progress) and `docs/自动开发任务清单.md` (task checklist), and complete only the **first unchecked task** — do not skip ahead. Business flow specs live in `docs/business-flows/`. Update the progress breakpoint and test baseline before handoff.
+This project follows a strict task-ordered workflow. Before feature work, read `docs/开发进度.md` (implementation progress) and `docs/自动开发任务清单.md` (task checklist), and complete only the **first unchecked task** — do not skip ahead. Automated business testing additionally reads `docs/测试进度.md` and `docs/自动测试任务清单.md`. Business flow specs live in `docs/business-flows/`. Before handoff, update implementation breakpoints and test baselines in their separate progress documents.
 
 ## Testing
 

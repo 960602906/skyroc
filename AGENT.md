@@ -8,7 +8,7 @@
 
 1. 阅读 `AGENTS.md`、本文件及任务目录中更近层的说明文件。
 2. 后端任务同时阅读 `CLAUDE.md`；前端任务同时阅读 `client/CLAUDE.md` 和适用的 `.cursor/skills/*/SKILL.md`。
-3. 阅读 `docs/开发进度.md`、`docs/自动开发任务清单.md` 与对应的 `docs/business-flows/`；自动开发只处理第一个未勾选任务。
+3. 开发前阅读 `docs/开发进度.md`、`docs/自动开发任务清单.md` 与对应的 `docs/business-flows/`；自动开发只处理第一个未勾选任务。自动业务测试还必须阅读 `docs/测试进度.md` 与 `docs/自动测试任务清单.md`。
 4. 先检查 `git status`，保留用户已有改动。
 
 ## 共享硬性约定摘要
@@ -38,4 +38,4 @@ pnpm typecheck
 pnpm build
 ```
 
-交付前按任务范围运行相关测试，更新 `docs/开发进度.md` 的断点和测试基线，并保留 `git diff --check` 为零错误。
+交付前按任务范围运行相关测试：实现断点更新 `docs/开发进度.md`，命令结果和测试基线更新 `docs/测试进度.md`，并保留 `git diff --check` 为零错误。
