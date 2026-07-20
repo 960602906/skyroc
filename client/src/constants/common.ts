@@ -51,6 +51,39 @@ export const AFTER_SALE_STATUS_MAP: Record<Api.AfterSale.AfterStatus, BadgeStatu
   5: 'success'
 };
 
+/** 售后申请类型徽标色。 */
+export const AFTER_SALE_TYPE_MAP: Record<Api.AfterSale.AfterSaleType, BadgeStatus> = {
+  1: 'processing',
+  2: 'warning'
+};
+
+/** 售后原因徽标色。 */
+export const AFTER_SALE_REASON_TYPE_MAP: Record<Api.AfterSale.ReasonType, BadgeStatus> = {
+  1: 'warning',
+  2: 'warning',
+  3: 'error',
+  4: 'default',
+  5: 'warning',
+  6: 'error',
+  7: 'error',
+  8: 'error',
+  9: 'warning',
+  10: 'error',
+  11: 'error',
+  12: 'warning',
+  13: 'default'
+};
+
+/** 售后处理方式徽标色。 */
+export const AFTER_SALE_HANDLE_TYPE_MAP: Record<Api.AfterSale.HandleType, BadgeStatus> = {
+  1: 'processing',
+  2: 'success',
+  3: 'warning',
+  4: 'processing',
+  5: 'default',
+  6: 'default'
+};
+
 /** 销售订单状态徽标色 */
 export const SALE_ORDER_STATUS_MAP: Record<Api.Order.OrderStatus, BadgeStatus> = {
   [-1]: 'warning',

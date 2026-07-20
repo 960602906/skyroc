@@ -96,6 +96,42 @@ const page: App.I18n.Schema['translation']['page'] = {
       totalRefundAmount: '退款/减免金额',
       typeRefundOnly: '仅退款',
       typeReturnAndRefund: '退货退款'
+    },
+    operate: {
+      add: '新增售后单',
+      addTitle: '新增售后单',
+      apply: '申请',
+      contactName: '联系人',
+      contactPhone: '联系电话',
+      editTitle: '编辑售后单',
+      goods: '售后商品',
+      goodsUnit: '单位',
+      handleType: '处理方式',
+      pickupAddress: '取件地址',
+      reasonType: '售后原因',
+      refundQuantity: '申请数量',
+      remark: '备注',
+      saleOrder: '来源销售订单',
+      saleOrderPlaceholder: '请选择来源销售订单',
+      sectionBasic: '基础信息',
+      sectionGoods: '商品明细',
+      source: '后台建单',
+      type: '申请类型'
+    },
+    reason: {
+      driverLossOrDamage: '配送损耗',
+      lateDelivery: '延迟送达',
+      marketOutOfStock: '市场缺货',
+      missingItem: '漏送商品',
+      orderingError: '下单错误',
+      other: '其他',
+      purchaseIssue: '采购问题',
+      qualityIssue: '质量问题',
+      quantityMismatch: '数量不足',
+      specificationMismatch: '规格不符',
+      systemIssue: '系统异常',
+      unableToDeliver: '无法配送',
+      wrongItem: '商品不符'
     }
   },
   customer: {

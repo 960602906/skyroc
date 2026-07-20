@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **统一规范入口：** 开始任何任务前必须完整阅读仓库根目录的 [`AGENTS.md`](./AGENTS.md)。
+> `AGENTS.md` 是 Codex、Claude Code 和其他编码代理共享的权威规则；本文件仅补充 Claude 的项目导航，不得与其冲突或复制出独立规则版本。
+
 SkyRoc is a .NET 9 ASP.NET Core Web API for a fresh-produce supply-chain backend, built with Clean Architecture. Most documentation and code comments are in Chinese; keep comments in Chinese to match.
 
 The React 19 admin frontend lives in `client/` (SkyrocAdmin, pnpm/Vite/Ant Design). It has its own `client/CLAUDE.md` — read that before working on frontend code. This file covers the backend.

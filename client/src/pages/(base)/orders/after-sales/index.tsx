@@ -87,7 +87,19 @@ const AfterSaleList = () => {
         dataIndex: 'saleOrderNo',
         ellipsis: true,
         key: 'saleOrderNo',
-        render: (value: string | null) => value || '-',
+        render: (value: string | null, record) =>
+          value && record.saleOrderId ? (
+            <AButton
+              className="h-auto p-0 leading-normal"
+              size="small"
+              type="link"
+              onClick={() => nav(`/orders/detail/${record.saleOrderId}`)}
+            >
+              {value}
+            </AButton>
+          ) : (
+            value || '-'
+          ),
         title: t('page.afterSale.list.saleOrderNo')
       },
       {
@@ -202,13 +214,16 @@ const AfterSaleList = () => {
 
           return (
             <div className="flex-center flex-wrap gap-8px">
-              <AButton
-                size="small"
-                type="link"
-                onClick={() => nav(`/orders/after-sales/detail/${record.id}`)}
-              >
-                {t('page.afterSale.detail.view')}
-              </AButton>
+              {isDraft && (
+                <AButton
+                  ghost
+                  size="small"
+                  type="primary"
+                  onClick={() => nav(`/orders/after-sales/operate/${record.id}`)}
+                >
+                  {t('common.edit')}
+                </AButton>
+              )}
               {isDraft && (
                 <AButton
                   size="small"
@@ -395,14 +410,21 @@ const AfterSaleList = () => {
       extra={
         <TableHeaderOperation
           disabledDelete
-          add={() => undefined}
+          add={() => nav('/orders/after-sales/operate')}
           columns={columnChecks}
           loading={tableProps.loading}
           refresh={run}
           setColumnChecks={setColumnChecks}
           onDelete={() => undefined}
         >
-          <span className="hidden" />
+          <AButton
+            icon={<IconIcRoundPlus className="text-icon" />}
+            size="small"
+            type="primary"
+            onClick={() => nav('/orders/after-sales/operate')}
+          >
+            {t('page.afterSale.operate.add')}
+          </AButton>
         </TableHeaderOperation>
       }
       table={

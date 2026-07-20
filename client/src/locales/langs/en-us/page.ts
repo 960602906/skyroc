@@ -96,6 +96,42 @@ const page: App.I18n.Schema['translation']['page'] = {
       totalRefundAmount: 'Refund / Discount',
       typeRefundOnly: 'Refund Only',
       typeReturnAndRefund: 'Return and Refund'
+    },
+    operate: {
+      add: 'Add After-sale',
+      addTitle: 'Add After-sale',
+      apply: 'Apply',
+      contactName: 'Contact',
+      contactPhone: 'Contact Phone',
+      editTitle: 'Edit After-sale',
+      goods: 'After-sale Goods',
+      goodsUnit: 'Unit',
+      handleType: 'Handling Method',
+      pickupAddress: 'Pickup Address',
+      reasonType: 'Reason',
+      refundQuantity: 'Requested Quantity',
+      remark: 'Remark',
+      saleOrder: 'Source Order',
+      saleOrderPlaceholder: 'Select source order',
+      sectionBasic: 'Basic Information',
+      sectionGoods: 'Goods Details',
+      source: 'Back-office Entry',
+      type: 'Request Type'
+    },
+    reason: {
+      driverLossOrDamage: 'Delivery Loss or Damage',
+      lateDelivery: 'Late Delivery',
+      marketOutOfStock: 'Market Out of Stock',
+      missingItem: 'Missing Item',
+      orderingError: 'Ordering Error',
+      other: 'Other',
+      purchaseIssue: 'Purchase Issue',
+      qualityIssue: 'Quality Issue',
+      quantityMismatch: 'Quantity Mismatch',
+      specificationMismatch: 'Specification Mismatch',
+      systemIssue: 'System Issue',
+      unableToDeliver: 'Unable to Deliver',
+      wrongItem: 'Wrong Item'
     }
   },
   customer: {

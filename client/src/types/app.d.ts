@@ -459,6 +459,42 @@ declare namespace App {
               typeRefundOnly: string;
               typeReturnAndRefund: string;
             };
+            operate: {
+              add: string;
+              addTitle: string;
+              apply: string;
+              contactName: string;
+              contactPhone: string;
+              editTitle: string;
+              goods: string;
+              goodsUnit: string;
+              handleType: string;
+              pickupAddress: string;
+              reasonType: string;
+              refundQuantity: string;
+              remark: string;
+              saleOrder: string;
+              saleOrderPlaceholder: string;
+              sectionBasic: string;
+              sectionGoods: string;
+              source: string;
+              type: string;
+            };
+            reason: {
+              driverLossOrDamage: string;
+              lateDelivery: string;
+              marketOutOfStock: string;
+              missingItem: string;
+              orderingError: string;
+              other: string;
+              purchaseIssue: string;
+              qualityIssue: string;
+              quantityMismatch: string;
+              specificationMismatch: string;
+              systemIssue: string;
+              unableToDeliver: string;
+              wrongItem: string;
+            };
           };
           customer: {
             company: {

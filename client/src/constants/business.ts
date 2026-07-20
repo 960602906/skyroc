@@ -52,6 +52,24 @@ export const afterSaleTypeRecord: Record<Api.AfterSale.AfterSaleType, App.I18n.I
 
 export const afterSaleTypeOptions = transformRecordToOption(afterSaleTypeRecord, true);
 
+export const afterSaleReasonTypeRecord: Record<Api.AfterSale.ReasonType, App.I18n.I18nKey> = {
+  1: 'page.afterSale.reason.lateDelivery',
+  2: 'page.afterSale.reason.missingItem',
+  3: 'page.afterSale.reason.wrongItem',
+  4: 'page.afterSale.reason.orderingError',
+  5: 'page.afterSale.reason.quantityMismatch',
+  6: 'page.afterSale.reason.qualityIssue',
+  7: 'page.afterSale.reason.specificationMismatch',
+  8: 'page.afterSale.reason.driverLossOrDamage',
+  9: 'page.afterSale.reason.marketOutOfStock',
+  10: 'page.afterSale.reason.systemIssue',
+  11: 'page.afterSale.reason.purchaseIssue',
+  12: 'page.afterSale.reason.unableToDeliver',
+  13: 'page.afterSale.reason.other'
+};
+
+export const afterSaleReasonTypeOptions = transformRecordToOption(afterSaleReasonTypeRecord, true);
+
 export const afterSaleHandleTypeRecord: Record<Api.AfterSale.HandleType, App.I18n.I18nKey> = {
   1: 'page.afterSale.list.handleGoodsDiscount',
   2: 'page.afterSale.list.handleReplenishment',

@@ -11,7 +11,7 @@ export function fetchGetAfterSaleList(params?: Api.AfterSale.SearchParams) {
 }
 
 /** 创建待提交售后单并固化来源业务快照。 */
-export function fetchAddAfterSale(data?: Api.AfterSale.Payload) {
+export function fetchAddAfterSale(data: Api.AfterSale.CreatePayload) {
   return request<Api.AfterSale.Entity>({
     data,
     method: 'post',
@@ -20,7 +20,7 @@ export function fetchAddAfterSale(data?: Api.AfterSale.Payload) {
 }
 
 /** 更新待提交售后单并原子替换全部商品申请行。 */
-export function fetchUpdateAfterSale(data?: Api.AfterSale.Payload) {
+export function fetchUpdateAfterSale(data: Api.AfterSale.UpdatePayload) {
   return request<Api.AfterSale.Entity>({
     data,
     method: 'put',

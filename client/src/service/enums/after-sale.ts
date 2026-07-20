@@ -31,6 +31,38 @@ export enum AfterSaleType {
 
 export type AfterSaleTypeValue = AfterSaleType.REFUND_ONLY | AfterSaleType.RETURN_AND_REFUND;
 
+/** 售后原因分类。 */
+export enum AfterSaleReasonType {
+  LATE_DELIVERY = 1,
+  MISSING_ITEM = 2,
+  WRONG_ITEM = 3,
+  ORDERING_ERROR = 4,
+  QUANTITY_MISMATCH = 5,
+  QUALITY_ISSUE = 6,
+  SPECIFICATION_MISMATCH = 7,
+  DRIVER_LOSS_OR_DAMAGE = 8,
+  MARKET_OUT_OF_STOCK = 9,
+  SYSTEM_ISSUE = 10,
+  PURCHASE_ISSUE = 11,
+  UNABLE_TO_DELIVER = 12,
+  OTHER = 13
+}
+
+export type AfterSaleReasonTypeValue =
+  | AfterSaleReasonType.LATE_DELIVERY
+  | AfterSaleReasonType.MISSING_ITEM
+  | AfterSaleReasonType.WRONG_ITEM
+  | AfterSaleReasonType.ORDERING_ERROR
+  | AfterSaleReasonType.QUANTITY_MISMATCH
+  | AfterSaleReasonType.QUALITY_ISSUE
+  | AfterSaleReasonType.SPECIFICATION_MISMATCH
+  | AfterSaleReasonType.DRIVER_LOSS_OR_DAMAGE
+  | AfterSaleReasonType.MARKET_OUT_OF_STOCK
+  | AfterSaleReasonType.SYSTEM_ISSUE
+  | AfterSaleReasonType.PURCHASE_ISSUE
+  | AfterSaleReasonType.UNABLE_TO_DELIVER
+  | AfterSaleReasonType.OTHER;
+
 /** 售后处理方式 */
 export enum AfterSaleHandleType {
   /** 商品减免 */

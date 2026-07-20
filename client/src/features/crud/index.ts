@@ -1,5 +1,11 @@
+export { default as AfterSaleHandleTypeBadge } from './AfterSaleHandleTypeBadge';
+export { default as AfterSaleHandleTypeSelect } from './AfterSaleHandleTypeSelect';
+export { default as AfterSaleReasonTypeBadge } from './AfterSaleReasonTypeBadge';
+export { default as AfterSaleReasonTypeSelect } from './AfterSaleReasonTypeSelect';
 export { default as AfterSaleStatusBadge } from './AfterSaleStatusBadge';
 export { default as AfterSaleStatusSelect } from './AfterSaleStatusSelect';
+export { default as AfterSaleTypeBadge } from './AfterSaleTypeBadge';
+export { default as AfterSaleTypeSelect } from './AfterSaleTypeSelect';
 export { toBooleanValue } from './boolean-utils';
 export { default as BooleanYesNoBadge } from './BooleanYesNoBadge';
 export { default as BooleanYesNoSelect } from './BooleanYesNoSelect';

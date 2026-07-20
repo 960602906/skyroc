@@ -920,6 +920,30 @@ export const generatedRoutes: ElegantConstRoute[] = [
                         }
                       }
                     ]
+                  },
+                  {
+                    matchedFiles: [null, '/src/pages/(base)/orders/after-sales/operate/index.tsx', null, null],
+                    name: '(base)_orders_after-sales_operate',
+                    path: '/orders/after-sales/operate',
+                    handle: {
+                      i18nKey: 'route.(base)_orders_after-sales_operate',
+                      title: '(base)_orders_after-sales_operate',
+                      activeMenu: '/orders/after-sales',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/orders/after-sales/operate/[id].tsx', null, null],
+                        name: '(base)_orders_after-sales_operate_[id]',
+                        path: '/orders/after-sales/operate/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_orders_after-sales_operate_[id]',
+                          title: '(base)_orders_after-sales_operate_[id]',
+                          activeMenu: '/orders/after-sales',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
                   }
                 ]
               },

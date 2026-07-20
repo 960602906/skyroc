@@ -9,6 +9,9 @@ declare namespace Api {
     /** 售后处理方式 */
     type HandleType = import('../enums').AfterSaleHandleTypeValue;
 
+    /** 售后原因分类 */
+    type ReasonType = import('../enums').AfterSaleReasonTypeValue;
+
     /** 售后审核轨迹动作 */
     type AuditAction = import('../enums').AfterSaleAuditActionValue;
 
@@ -40,7 +43,7 @@ declare namespace Api {
       goodsUnitId: string;
       goodsUnitName: string;
       handleType: HandleType;
-      reasonType: number;
+      reasonType: ReasonType;
       refundAmount: number;
       remark: string | null;
       saleOrderDetailId: string | null;
@@ -72,6 +75,35 @@ declare namespace Api {
 
     type AllEntity = Pick<Entity, 'afterSaleNo' | 'customerName' | 'id'>;
 
+    /** 售后商品编辑行，关联来源订单时由后端固定商品、单位和单价快照。 */
+    type GoodsPayload = {
+      actualRefundQuantity: number;
+      afterSaleType: AfterSaleType;
+      goodsId?: string | null;
+      goodsUnitId?: string | null;
+      handleType: HandleType;
+      reasonType: ReasonType;
+      remark?: string | null;
+      saleOrderDetailId?: string | null;
+      unitPrice?: number | null;
+    };
+
+    /** 基于销售订单创建的售后草稿。 */
+    type CreatePayload = {
+      contactName?: string | null;
+      contactPhone?: string | null;
+      goods: GoodsPayload[];
+      pickupAddress?: string | null;
+      remark?: string | null;
+      saleOrderId: string;
+      source: string;
+    };
+
+    /** 编辑售后草稿，来源订单和客户创建后不可变更。 */
+    type UpdatePayload = Omit<CreatePayload, 'saleOrderId' | 'source'> & {
+      id: string;
+    };
+
     /** 审核及状态流转操作请求体 */
     type ActionParams = {
       remark?: string | null;
@@ -95,7 +127,7 @@ declare namespace Api {
 
     type List = Common.PaginatingQueryRecord<Entity>;
 
-    type Payload = ActionParams & Record<string, unknown>;
+    type Payload = ActionParams | CreatePayload | UpdatePayload | Record<string, unknown>;
 
     type Result = unknown;
   }

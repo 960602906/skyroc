@@ -98,6 +98,10 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   // —— 订单中心 ——
   '(base)_orders': { icon: 'mdi:clipboard-list-outline', order: 2 },
   '(base)_orders_after-sales': { icon: 'mdi:backup-restore', order: 2 },
+  '(base)_orders_after-sales_detail': { activeMenu: '/orders/after-sales', hideInMenu: true },
+  '(base)_orders_after-sales_detail_[id]': { activeMenu: '/orders/after-sales', hideInMenu: true },
+  '(base)_orders_after-sales_operate': { activeMenu: '/orders/after-sales', hideInMenu: true },
+  '(base)_orders_after-sales_operate_[id]': { activeMenu: '/orders/after-sales', hideInMenu: true },
 
   '(base)_orders_detail': { hideInMenu: true },
   '(base)_orders_detail_[id]': { activeMenu: '/orders/list', hideInMenu: true },
