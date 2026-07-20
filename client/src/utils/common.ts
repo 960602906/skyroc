@@ -2,25 +2,51 @@ import { get } from 'lodash-es';
 
 import { $t } from '@/locales';
 
+type FormatFieldValue = boolean | null | number | string | undefined;
+
+type FormatFieldDefaults<T extends object> = Partial<Record<Extract<keyof T, string>, FormatFieldValue>>;
+
+/** 将单个字段值规范为可拼接的文本。 */
+function toFormatFieldText(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+
+  if (typeof value === 'string') {
+    const trimmedValue = value.trim();
+    return trimmedValue || null;
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+
+  return null;
+}
+
 /**
  * 按字段顺序拼接对象中的可展示值，支持嵌套字段和对象中提供的默认值。
  *
- * `0` 和 `false` 是有效展示值；仅忽略 `null`、`undefined` 和空字符串。
+ * `0` 和 `false` 是有效展示值；忽略空白字符串、`null` 与 `undefined`。字段对象中的默认值会在原字段没有可展示值时生效。
  *
  * @param obj 源对象
  * @param fields 要格式化的字段数组，或以字段名为键、默认值为值的对象
  * @param separator 字段间分隔符
  */
-export function formatField<T extends object, K extends keyof T>(
+export function formatField<T extends object, K extends Extract<keyof T, string>>(
   obj: T,
-  fields: readonly K[] | readonly string[] | Partial<Pick<T, K>>,
-  separator = '/'
-): string {
+  fields: readonly K[],
+  separator?: string
+): string;
+export function formatField<T extends object>(obj: T, fields: readonly string[], separator?: string): string;
+export function formatField<T extends object>(obj: T, fields: FormatFieldDefaults<T>, separator?: string): string;
+export function formatField(obj: object, fields: object | readonly string[], separator = '/'): string {
   const values = Array.isArray(fields)
-    ? fields.map(field => get(obj, field))
-    : Object.entries(fields).map(([field, defaultValue]) => get(obj, field, defaultValue));
+    ? fields.map(field => toFormatFieldText(get(obj, field)))
+    : Object.entries(fields).map(([field, defaultValue]) => {
+        const fieldText = toFormatFieldText(get(obj, field));
+        return fieldText ?? toFormatFieldText(defaultValue);
+      });
 
-  return values.filter(value => value !== null && value !== undefined && value !== '').join(separator);
+  return values.filter((value): value is string => value !== null).join(separator);
 }
 
 /**
