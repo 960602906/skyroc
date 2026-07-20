@@ -26,6 +26,11 @@ export const QUERY_KEYS = {
     SUPPLIERS: ['base', 'suppliers'] as const,
     WARES: ['base', 'wares'] as const
   },
+  // Dashboard
+  DASHBOARD: {
+    PICKUP_STATUSES: (params?: Api.Dashboard.SearchParams) => ['dashboard', 'pickupStatuses', params] as const,
+    RECONCILIATION: (params?: Api.Dashboard.SearchParams) => ['dashboard', 'reconciliation', params] as const
+  },
   // Route
   ROUTE: {
     CONSTANT_ROUTES: ['route', 'constantRoutes'] as const,

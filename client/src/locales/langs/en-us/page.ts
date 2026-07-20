@@ -362,6 +362,17 @@ const page: App.I18n.Schema['translation']['page'] = {
       title: 'Customer Tags'
     }
   },
+  dashboard: {
+    billCount: 'Customer Bills',
+    pendingAmount: 'Outstanding Amount',
+    period: 'Reporting Period',
+    periodEnd: 'End Date',
+    periodStart: 'Start Date',
+    pickupStatusSummary: 'Pickup Status Summary',
+    receivableAmount: 'Receivable Amount',
+    reconciliationSummary: 'Customer Reconciliation',
+    settledAmount: 'Settled Amount'
+  },
   function: {
     multiTab: {
       backTab: 'Back function_tab',

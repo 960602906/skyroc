@@ -724,6 +724,17 @@ declare namespace App {
               title: string;
             };
           };
+          dashboard: {
+            billCount: string;
+            pendingAmount: string;
+            period: string;
+            periodEnd: string;
+            periodStart: string;
+            pickupStatusSummary: string;
+            receivableAmount: string;
+            reconciliationSummary: string;
+            settledAmount: string;
+          };
           function: {
             multiTab: {
               backTab: string;
