@@ -100,18 +100,9 @@ public class TraceabilityService(
             report.InspectTime = dto.InspectTime;
             report.Conclusion = dto.Conclusion;
             report.Remark = Normalize(dto.Remark);
-            report.Goods.Clear();
-            report.Attachments.Clear();
-            foreach (var goods in BuildGoods(dto.Goods, stockInOrder))
-            {
-                goods.ApplyCreateAudit(currentUserService);
-                report.Goods.Add(goods);
-            }
-            foreach (var attachment in BuildAttachments(dto.Attachments))
-            {
-                attachment.ApplyCreateAudit(currentUserService);
-                report.Attachments.Add(attachment);
-            }
+
+            SyncGoods(report, dto.Goods, stockInOrder, currentUserService);
+            SyncAttachments(report, dto.Attachments, currentUserService);
             report.ApplyUpdateAudit(currentUserService);
         });
         return await GetInspectionReportByIdAsync(id);
@@ -366,6 +357,84 @@ public class TraceabilityService(
             });
         }
         return goods;
+    }
+
+    /// <summary>
+    /// 按入库明细主键同步送检商品：同明细就地更新快照与数量，缺失则删除，新增则插入，
+    /// 避免 Clear+Add 在唯一索引上触发同批 INSERT/DELETE 冲突。
+    /// </summary>
+    private static void SyncGoods(
+        InspectionReport report,
+        IEnumerable<SaveInspectionReportGoodsDto> inputs,
+        StockInOrder order,
+        ICurrentUserService currentUser)
+    {
+        var built = BuildGoods(inputs, order);
+        var existingByDetail = report.Goods.ToDictionary(item => item.StockInDetailId);
+        var incomingDetailIds = built.Select(item => item.StockInDetailId).ToHashSet();
+
+        foreach (var obsolete in report.Goods.Where(item => !incomingDetailIds.Contains(item.StockInDetailId)).ToList())
+        {
+            report.Goods.Remove(obsolete);
+        }
+
+        foreach (var candidate in built)
+        {
+            if (existingByDetail.TryGetValue(candidate.StockInDetailId, out var existing))
+            {
+                existing.GoodsId = candidate.GoodsId;
+                existing.GoodsNameSnapshot = candidate.GoodsNameSnapshot;
+                existing.GoodsCodeSnapshot = candidate.GoodsCodeSnapshot;
+                existing.GoodsTypeNameSnapshot = candidate.GoodsTypeNameSnapshot;
+                existing.GoodsUnitId = candidate.GoodsUnitId;
+                existing.GoodsUnitNameSnapshot = candidate.GoodsUnitNameSnapshot;
+                existing.SampleQuantity = candidate.SampleQuantity;
+                existing.BatchNoSnapshot = candidate.BatchNoSnapshot;
+                existing.Conclusion = candidate.Conclusion;
+                existing.Remark = candidate.Remark;
+                existing.ApplyUpdateAudit(currentUser);
+                continue;
+            }
+
+            candidate.ApplyCreateAudit(currentUser);
+            report.Goods.Add(candidate);
+        }
+    }
+
+    /// <summary>
+    /// 按展示顺序同步附件：同顺序就地更新，多余删除，新增插入。
+    /// </summary>
+    private static void SyncAttachments(
+        InspectionReport report,
+        IEnumerable<SaveInspectionAttachmentDto> inputs,
+        ICurrentUserService currentUser)
+    {
+        var built = BuildAttachments(inputs);
+        var existingBySort = report.Attachments
+            .GroupBy(item => item.Sort)
+            .ToDictionary(group => group.Key, group => group.First());
+        var incomingSorts = built.Select(item => item.Sort).ToHashSet();
+
+        foreach (var obsolete in report.Attachments.Where(item => !incomingSorts.Contains(item.Sort)).ToList())
+        {
+            report.Attachments.Remove(obsolete);
+        }
+
+        foreach (var candidate in built)
+        {
+            if (existingBySort.TryGetValue(candidate.Sort, out var existing))
+            {
+                existing.AttachmentType = candidate.AttachmentType;
+                existing.FileName = candidate.FileName;
+                existing.FileUrl = candidate.FileUrl;
+                existing.FileSize = candidate.FileSize;
+                existing.ApplyUpdateAudit(currentUser);
+                continue;
+            }
+
+            candidate.ApplyCreateAudit(currentUser);
+            report.Attachments.Add(candidate);
+        }
     }
 
     private static List<InspectionAttachment> BuildAttachments(IEnumerable<SaveInspectionAttachmentDto> inputs)
