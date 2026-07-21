@@ -59,7 +59,7 @@ public class PostgreSqlInfrastructureDocumentationTests
     }
 
     /// <summary>
-    ///     非敏感测试约定必须固定 Testing 环境、用户确认的 skyroc 白名单和报告目录。
+    ///     非敏感测试约定必须固定 Testing 环境、用户确认的 skyroc_test 白名单和报告目录。
     /// </summary>
     [Fact]
     public void TestSettings_DeclareOwnerConfirmedDatabaseAllowlist()
@@ -69,7 +69,7 @@ public class PostgreSqlInfrastructureDocumentationTests
         var root = document.RootElement;
 
         Assert.Equal("Testing", root.GetProperty("environmentName").GetString());
-        Assert.Equal("skyroc", root.GetProperty("expectedDatabaseName").GetString());
+        Assert.Equal("skyroc_test", root.GetProperty("expectedDatabaseName").GetString());
         Assert.Equal("artifacts/business-test-reports", root.GetProperty("reportDirectory").GetString());
     }
 

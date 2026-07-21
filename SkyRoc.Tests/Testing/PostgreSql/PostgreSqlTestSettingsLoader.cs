@@ -48,11 +48,18 @@ public static class PostgreSqlTestSettingsLoader
             return null;
 
         using var document = JsonDocument.Parse(File.ReadAllText(settingsPath));
-        if (!document.RootElement.TryGetProperty("ConnectionStrings", out var connectionStrings)
-            || !connectionStrings.TryGetProperty("DefaultConnection", out var defaultConnection))
-        {
+        if (!document.RootElement.TryGetProperty("ConnectionStrings", out var connectionStrings))
             return null;
+
+        // 优先使用专用测试库连接串
+        if (connectionStrings.TryGetProperty("TestConnection", out var testConnection))
+        {
+            var testValue = testConnection.GetString();
+            if (!string.IsNullOrWhiteSpace(testValue)) return testValue;
         }
+
+        if (!connectionStrings.TryGetProperty("DefaultConnection", out var defaultConnection))
+            return null;
 
         var value = defaultConnection.GetString();
         return string.IsNullOrWhiteSpace(value) ? null : value;

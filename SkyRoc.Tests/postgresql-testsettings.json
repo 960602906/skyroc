@@ -1,5 +1,5 @@
 {
   "environmentName": "Testing",
-  "expectedDatabaseName": "skyroc",
+  "expectedDatabaseName": "skyroc_test",
   "reportDirectory": "artifacts/business-test-reports"
 }

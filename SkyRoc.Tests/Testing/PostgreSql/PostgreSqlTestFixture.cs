@@ -43,16 +43,36 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
     public string DatabaseName { get; }
 
     /// <summary>
-    ///     在测试集合开始时安全应用所有待执行迁移。
+    ///     在测试集合开始时删除并重建专用测试库，确保每轮测试从干净状态启动，并写入系统预置角色。
     /// </summary>
     public async Task InitializeAsync()
     {
         await using var context = CreateDbContext();
+        await context.Database.EnsureDeletedAsync();
         await context.Database.MigrateAsync();
+
+        // 写入系统预置角色（Admin/User），让权限测试可以复用这些角色
+        if (!await context.Roles.AnyAsync())
+        {
+            context.Roles.AddRange(
+                new Domain.Entities.Role
+                {
+                    Name = "管理员",
+                    Code = "Admin",
+                    Desc = "系统管理员，拥有所有权限"
+                },
+                new Domain.Entities.Role
+                {
+                    Name = "用户",
+                    Code = "User",
+                    Desc = "普通用户，拥有基本权限"
+                });
+            await context.SaveChangesAsync();
+        }
     }
 
     /// <summary>
-    ///     夹具不持有跨测试连接，无需删除或重建数据库。
+    ///     测试集合结束时无需额外清理，数据库会在下次运行时重建。
     /// </summary>
     public Task DisposeAsync()
     {

@@ -48,9 +48,23 @@ internal sealed class DemoDataFileBuilder(
             storedFileCandidates.Select(file => file.OriginalFileName),
             expectedFileNames,
             "安全文件");
-        EnsureNoDuplicateStableKeys(
-            storedFileCandidates.Select(file => file.OriginalFileName),
-            "安全文件");
+
+        // 自动清理历史残留重复键：删除所有同名记录后本轮按单一稳定键重建。
+        var duplicateFileNames = storedFileCandidates
+            .GroupBy(file => file.OriginalFileName, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToArray();
+        if (duplicateFileNames.Length > 0)
+        {
+            var duplicateFiles = storedFileCandidates
+                .Where(file => duplicateFileNames.Contains(file.OriginalFileName))
+                .ToArray();
+            context.StoredFiles.RemoveRange(duplicateFiles);
+            await context.SaveChangesAsync(cancellationToken);
+            storedFileCandidates = storedFileCandidates.Except(duplicateFiles).ToList();
+        }
+
         var storedFiles = storedFileCandidates.ToDictionary(
             file => file.OriginalFileName,
             StringComparer.Ordinal);
@@ -93,9 +107,23 @@ internal sealed class DemoDataFileBuilder(
             goodsImageCandidates.Select(image => image.FileName!),
             expectedFileNames,
             "商品图片");
-        EnsureNoDuplicateStableKeys(
-            goodsImageCandidates.Select(image => image.FileName!),
-            "商品图片");
+
+        // 自动清理历史残留重复键：删除所有同名图片后本轮按单一稳定键重建。
+        var duplicateImageFileNames = goodsImageCandidates
+            .GroupBy(image => image.FileName!, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToArray();
+        if (duplicateImageFileNames.Length > 0)
+        {
+            var duplicateImages = goodsImageCandidates
+                .Where(image => duplicateImageFileNames.Contains(image.FileName!))
+                .ToArray();
+            context.GoodsImages.RemoveRange(duplicateImages);
+            await context.SaveChangesAsync(cancellationToken);
+            goodsImageCandidates = goodsImageCandidates.Except(duplicateImages).ToList();
+        }
+
         var goodsImages = goodsImageCandidates.ToDictionary(image => image.FileName!, StringComparer.Ordinal);
 
         var managedGoodsIds = managedGoods.Values.Select(goods => goods.Id).ToArray();
@@ -136,15 +164,17 @@ internal sealed class DemoDataFileBuilder(
 
             if (image.GoodsId != goods.Id
                 || image.Sort != 1
-                || !image.IsPrimary)
+                || !image.IsPrimary
+                || image.CreateBy != auditUserId)
             {
                 throw new InvalidOperationException($"受管商品图片 {seed.FileName} 的来源、展示属性或审计指纹已漂移。");
             }
 
-            // 安全文件重传后主键变化，允许就地刷新下载 URL。
-            image.Url = expectedUrl;
-            image.CreateBy = auditUserId;
-            image.CreateName = auditUsername;
+            // 安全文件重传后主键变化，允许就地刷新下载 URL（仅当 URL 不匹配时更新，避免触发 UpdateTime）。
+            if (image.Url != expectedUrl)
+            {
+                image.Url = expectedUrl;
+            }
             reusedGoodsImages++;
         }
 
@@ -168,10 +198,10 @@ internal sealed class DemoDataFileBuilder(
             throw new InvalidOperationException($"受管安全文件 {storedFile.OriginalFileName} 的元数据或审计指纹已漂移。");
         }
 
-        // DownloadAsync 按 CreateBy==当前操作人过滤，需先落库对齐后再校验物理对象。
-        storedFile.CreateBy = auditUserId;
-        storedFile.CreateName = auditUsername;
-        await context.SaveChangesAsync(cancellationToken);
+        if (storedFile.CreateBy != auditUserId)
+        {
+            throw new InvalidOperationException($"受管安全文件 {storedFile.OriginalFileName} 的创建人已漂移（期望 {auditUserId}，实际 {storedFile.CreateBy}）。");
+        }
 
         try
         {
@@ -184,7 +214,7 @@ internal sealed class DemoDataFileBuilder(
         }
         catch (Application.Exceptions.NotFoundException)
         {
-            // 元数据在库但对象丢失，或历史创建人与当前审计人不一致：删除后按稳定文件名重传。
+            // 元数据在库但对象存储丢失：删除后按稳定文件名重传。
             context.StoredFiles.Remove(storedFile);
             await context.SaveChangesAsync(cancellationToken);
 
