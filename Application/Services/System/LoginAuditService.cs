@@ -24,7 +24,7 @@ public class LoginAuditService(
             UserId = userId,
             IsSuccess = isSuccess,
             FailureReason = isSuccess ? null : AuditTextSanitizer.Optional(failureReason, 500),
-            IpAddress = AuditTextSanitizer.Required(source.IpAddress, 50, string.Empty),
+            IpAddress = AuditTextSanitizer.Required(source.IpAddress, 50, "未知"),
             UserAgent = AuditTextSanitizer.Optional(source.UserAgent, 500),
             LoginTime = DateTime.UtcNow,
             Status = Status.Enable

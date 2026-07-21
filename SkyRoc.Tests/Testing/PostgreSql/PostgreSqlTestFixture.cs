@@ -115,6 +115,16 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
     }
 
     /// <summary>
+    ///     清理历史轮次遗留的 <c>SKYROC-AUTOTEST-</c> 临时残留，并回填登录审计空 IP。
+    ///     仅供 T14 质量门禁收口使用。
+    /// </summary>
+    public async Task CleanupStaleAutotestBatchesAsync(CancellationToken cancellationToken = default)
+    {
+        await using var context = CreateDbContext();
+        await new PostgreSqlStaleBatchCleaner(Settings).CleanAsync(context, cancellationToken);
+    }
+
+    /// <summary>
     ///     只读扫描当前数据库并写入 JSON 与 Markdown 基础质量报告。
     /// </summary>
     public async Task<DataQualityReportResult> GenerateQualityReportAsync(string runId)
