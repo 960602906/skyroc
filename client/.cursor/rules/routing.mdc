@@ -11,8 +11,10 @@ Skyroc Admin 依赖 `@soybean-react/vite-plugin-react-router` 生成的文件系
 
 ## 生成流程
 1. 在 `src/pages` 中新增页面或布局文件（`layout.tsx`、`page.tsx`、`loading.tsx` 等）。使用文件夹 + `index.tsx` 的结构组织复杂页面。
-2. 运行 `pnpm gen-route` 触发脚本，自动产出 `src/router/elegant/routes` 下的路由声明。
-3. `src/router/index.ts` 会读取生成的配置，合并 `BaseChildrenRoutes`、鉴权信息与缓存 key，最终注入到 React Router。
+2. 运行 `pnpm dev` 或 `pnpm build`，由 Vite 路由插件扫描页面并更新 `src/router/elegant/*` 与 `src/types/elegant-router.d.ts`。
+3. `src/router/index.ts` 会读取生成的配置，合并鉴权信息与缓存 key，最终注入 React Router。
+
+> `pnpm gen-route` / `sa gen-route` 是交互式新建路由脚手架，不是刷新路由命令。禁止用它重新扫描已有页面；误用可能生成或覆盖空的 `Component` 模板。
 
 ## 命名与布局
 - 使用 **Segment 语法**：
@@ -23,9 +25,23 @@ Skyroc Admin 依赖 `@soybean-react/vite-plugin-react-router` 生成的文件系
 - 每个布局目录需要 `layout.tsx` 和 `loading.tsx`，视需要添加 `error.tsx`。
 
 ## 元数据 & 权限
-- 在页面文件导出 `handle` 对象（由插件注入）来声明菜单文案、`i18nKey`、图标以及排序；生成的配置会被 `filterRoutes` 读取。
+- 菜单图标、排序、隐藏和高亮元数据统一写在 `build/plugins/router.ts` 的 `ROUTE_META_PRESETS`；生成的配置会被菜单过滤逻辑读取。
+- `src/router/elegant/routes.ts`、`imports.ts`、`routeMap.ts` 与 `src/types/elegant-router.d.ts` 都是生成文件，禁止手改。
 - 权限列表（角色/按钮）来自接口返回的 `buttons`、`roles`，在 `filterRoutes` 过程中与路由 `meta` 对比。
 - KeepAlive 配置通过 `handle.keepAlive` 控制，缓存 key 会写入 Redux `cacheRoutes` 列表。
+
+### 详情、编辑等辅助路由（强制隐藏）
+
+详情/编辑页属于可导航路由，但不是菜单叶子项。父辅助路由与动态子路由必须同时设置：
+
+```ts
+'(base)_xxx_list_detail': { activeMenu: '/xxx/list', hideInMenu: true },
+'(base)_xxx_list_detail_[id]': { activeMenu: '/xxx/list', hideInMenu: true }
+```
+
+错误示范：只创建 `detail/[id].tsx`，却没有在 `ROUTE_META_PRESETS` 登记父、子路由；结果是“详情”出现在侧边菜单，且进入详情后列表菜单不高亮。
+
+构建后必须在生成的 `routes.ts` 中核对父/子路由均有 `hideInMenu: true` 和正确的 `activeMenu`。
 
 ## 路由扩展
 - 复用型基础路由（异常页、文档等）写在 `src/router/routes/builtin.ts`，采用 React Router 原生结构。

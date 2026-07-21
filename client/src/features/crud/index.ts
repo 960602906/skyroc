@@ -20,6 +20,8 @@ export { default as PickupTaskStatusBadge } from './PickupTaskStatusBadge';
 export { default as PickupTaskStatusSelect } from './PickupTaskStatusSelect';
 export { default as PurchasePatternBadge } from './PurchasePatternBadge';
 export { default as PurchasePatternSelect } from './PurchasePatternSelect';
+export { default as PurchasePlanStatusBadge } from './PurchasePlanStatusBadge';
+export { default as PurchasePlanStatusSelect } from './PurchasePlanStatusSelect';
 export * from './render-status';
 export {
   OrderOutStorageStatusBadge,

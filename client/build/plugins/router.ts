@@ -118,6 +118,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_purchase': { icon: 'mdi:cart-arrow-down', order: 3 },
   '(base)_purchase_orders': { icon: 'mdi:file-document-outline', order: 2 },
   '(base)_purchase_plans': { icon: 'mdi:calendar-check-outline', order: 1 },
+  '(base)_purchase_plans_detail': { activeMenu: '/purchase/plans', hideInMenu: true },
+  '(base)_purchase_plans_detail_[id]': { activeMenu: '/purchase/plans', hideInMenu: true },
   // —— 报表分析 ——
   '(base)_reports': { icon: 'mdi:chart-box-outline', order: 8 },
   '(base)_reports_after-sales': { icon: 'mdi:backup-restore', order: 2 },

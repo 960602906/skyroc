@@ -26,6 +26,23 @@ alwaysApply: true
 - 需要自定义错误提示时使用 `window.$message` 或在 `backEndFail` 中扩展。
 - 若接口需要 form-data、文件上传等特殊配置，请在调用前通过 `request` 的第二个参数或 axios config 调整。
 
+## 查询参数空值（强制）
+
+- 可选筛选项未填写时必须省略字段，禁止显式发送 `null`、`undefined` 或空字符串。
+- `transformParams` 做枚举/日期转换时，不得把已清理的空字段重新写回。
+- 页面验收必须检查浏览器 Network 中的首次查询、筛选和重置 URL，不能只看 TypeScript 类型。
+
+```ts
+// ❌ 产生 ?purchaseStatus=null
+return { ...params, purchaseStatus: params.purchaseStatus ? Number(params.purchaseStatus) : null };
+
+// ✅ 未选择不发送，选中才转换
+const next = { ...params };
+if (next.purchaseStatus == null) delete next.purchaseStatus;
+else next.purchaseStatus = Number(next.purchaseStatus);
+return next;
+```
+
 ## 日期时间（与展示联动）
 - 后端 `createTime` / `updateTime` / `auditTime` 等为 **UTC**，JSON 多为 `yyyy-MM-dd HH:mm:ss` 且**无时区后缀**。
 - UI 展示须走 `displayDateTime`（UTC→本地）；业务日历日走 `displayDate`。完整约定见 `.cursor/rules/datetime-display.mdc`。

@@ -4,6 +4,7 @@ import EnableStatusBadge from './EnableStatusBadge';
 import MenuTypeBadge from './MenuTypeBadge';
 import PickupTaskStatusBadge from './PickupTaskStatusBadge';
 import PurchasePatternBadge from './PurchasePatternBadge';
+import PurchasePlanStatusBadge from './PurchasePlanStatusBadge';
 import {
   OrderOutStorageStatusBadge,
   OrderPrintStatusBadge,
@@ -31,6 +32,11 @@ export function renderMenuType(menuType: Api.SystemManage.MenuType | null | unde
 /** 表格列等场景的采购模式渲染 */
 export function renderPurchasePattern(purchasePattern: Api.PurchaseRule.PurchasePattern | null | undefined) {
   return <PurchasePatternBadge purchasePattern={purchasePattern} />;
+}
+
+/** 表格列等场景的采购计划生成进度渲染。 */
+export function renderPurchasePlanStatus(purchaseStatus: Api.PurchasePlan.PurchaseStatus | null | undefined) {
+  return <PurchasePlanStatusBadge purchaseStatus={purchaseStatus} />;
 }
 
 /** 表格列等场景的是否渲染 */

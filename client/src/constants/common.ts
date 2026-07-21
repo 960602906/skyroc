@@ -42,6 +42,13 @@ export const PURCHASE_PATTERN_MAP: Record<Api.PurchaseRule.PurchasePattern, Badg
   2: 'default'
 };
 
+/** 采购计划生成进度：未生成 default / 部分生成 warning / 已生成 success。 */
+export const PURCHASE_PLAN_STATUS_MAP: Record<Api.PurchasePlan.PurchaseStatus, BadgeStatus> = {
+  1: 'default',
+  2: 'success',
+  3: 'warning'
+};
+
 /** 售后单状态徽标色 */
 export const AFTER_SALE_STATUS_MAP: Record<Api.AfterSale.AfterStatus, BadgeStatus> = {
   1: 'default',

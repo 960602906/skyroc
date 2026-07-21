@@ -4,7 +4,7 @@ declare namespace Api {
     type PurchasePattern = import('../enums').PurchasePatternValue;
 
     /** 采购单生成进度。 */
-    type PurchaseStatus = 1 | 2 | 3;
+    type PurchaseStatus = import('../enums').PurchasePlanStatusValue;
 
     /** 采购计划商品对应的销售订单需求。 */
     type OrderRelation = Common.CommonRecord<{

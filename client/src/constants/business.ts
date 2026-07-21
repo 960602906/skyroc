@@ -35,6 +35,14 @@ export const purchasePatternRecord: Record<Api.PurchaseRule.PurchasePattern, App
 
 export const purchasePatternOptions = transformRecordToOption(purchasePatternRecord, true);
 
+export const purchasePlanStatusRecord: Record<Api.PurchasePlan.PurchaseStatus, App.I18n.I18nKey> = {
+  1: 'page.purchase.plan.statusUnpublished',
+  2: 'page.purchase.plan.statusGenerated',
+  3: 'page.purchase.plan.statusPartiallyGenerated'
+};
+
+export const purchasePlanStatusOptions = transformRecordToOption(purchasePlanStatusRecord, true);
+
 export const afterSaleStatusRecord: Record<Api.AfterSale.AfterStatus, App.I18n.I18nKey> = {
   1: 'page.afterSale.list.statusDraft',
   2: 'page.afterSale.list.statusPendingAudit',

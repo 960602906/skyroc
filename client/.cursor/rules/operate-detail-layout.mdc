@@ -49,6 +49,7 @@ alwaysApply: false
 
 ## 详情（纯展示）
 
+- 清单或需求写“详情”时，默认实现为独立 `detail/[id].tsx` 页面；除非明确要求，禁止用列表内 Modal/Drawer 代替详情页
 - 路由建议：`.../detail/[id]`；列表点名称进详情，详情再进编辑
 - 分区字段与编辑页对齐；空值显示 `-`；状态用现有 badge/tag 渲染
 - ID 解析为名称后再展示（分类树 / 单位 / 仓库 / 供应商等）
@@ -114,6 +115,12 @@ closeTabAndNavigate(listPath);
 ## 反例
 
 ```tsx
+// ❌ 任务要求详情，却在列表中按 id 拉取后弹窗
+async function showDetail(id: string) {
+  setDetail(await fetchGetXxxDetail(id));
+  setDetailModalOpen(true);
+}
+
 // ❌ 外层大卡再嵌 size="small" 分区卡
 <ACard className="card-wrapper" title="编辑">
   <ACard size="small" title="基础信息">...</ACard>

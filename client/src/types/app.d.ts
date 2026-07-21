@@ -1357,6 +1357,51 @@ declare namespace App {
             title: string;
           };
           purchase: {
+            plan: {
+              add: string;
+              assignPurchaser: string;
+              assignSupplier: string;
+              back: string;
+              createTime: string;
+              detail: string;
+              details: string;
+              form: {
+                goodsId: string;
+                keyword: string;
+                orderIds: string;
+                planDate: string;
+                plannedQuantity: string;
+                purchasePattern: string;
+                purchaserId: string;
+                purchaseStatus: string;
+                purchaseUnitId: string;
+                saleOrderIds: string;
+                supplierId: string;
+              };
+              generate: string;
+              goods: string;
+              goodsCode: string;
+              keyword: string;
+              merge: string;
+              planDate: string;
+              plannedQuantity: string;
+              planNo: string;
+              purchasedQuantity: string;
+              purchasePattern: string;
+              purchaser: string;
+              purchaseStatus: string;
+              remark: string;
+              requiredQuantity: string;
+              splitByOrders: string;
+              splitByQuantity: string;
+              statusGenerated: string;
+              statusPartiallyGenerated: string;
+              statusUnpublished: string;
+              supplier: string;
+              title: string;
+              unit: string;
+              updateTime: string;
+            };
             purchaser: {
               addPurchaser: string;
               code: string;

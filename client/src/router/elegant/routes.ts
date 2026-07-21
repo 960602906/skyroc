@@ -1100,7 +1100,33 @@ export const generatedRoutes: ElegantConstRoute[] = [
                   title: '(base)_purchase_plans',
                   icon: 'mdi:calendar-check-outline',
                   order: 1
-                }
+                },
+                children: [
+                  {
+                    matchedFiles: [null, null, null, null],
+                    name: '(base)_purchase_plans_detail',
+                    path: '/purchase/plans/detail',
+                    handle: {
+                      i18nKey: 'route.(base)_purchase_plans_detail',
+                      title: '(base)_purchase_plans_detail',
+                      activeMenu: '/purchase/plans',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/purchase/plans/detail/[id].tsx', null, null],
+                        name: '(base)_purchase_plans_detail_[id]',
+                        path: '/purchase/plans/detail/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_purchase_plans_detail_[id]',
+                          title: '(base)_purchase_plans_detail_[id]',
+                          activeMenu: '/purchase/plans',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             ]
           },

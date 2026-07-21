@@ -61,3 +61,70 @@ pnpm lint
 1. 保留已有用户改动，执行 `git diff --check`。
 2. 完成类型与格式验证；涉及 UI 时通过本地开发服务器手动走关键交互。
 3. 更新必要的国际化、路由元数据、类型与前端开发进度记录。
+
+## 菜单页面接入错误复盘（强制检查）
+
+以下反例来自真实续接事故。新增或完善菜单页面时必须逐项排除，不能等用户在页面上发现。
+
+### 详情误做弹窗
+
+```tsx
+// ❌ 清单要求“详情”却在列表中临时拉取并弹窗
+async function showDetail(id: string) {
+  setDetail(await fetchGetXxxDetail(id));
+  setDetailModalOpen(true);
+}
+```
+
+除非任务明确要求 Drawer/Modal，菜单业务对象的“详情”必须是 `detail/[id].tsx` 独立页面：列表只传 id，目标页用 React Router `loader` 取数，返回时用 `useCloseTabAndNavigate` 关闭当前页签。
+
+### 详情路由泄漏到菜单
+
+```ts
+// ❌ 只创建 detail/[id].tsx，未配置隐藏元数据
+'(base)_xxx_list': { icon: '...' }
+
+// ✅ 父详情路由和动态详情路由都隐藏，并保持列表菜单高亮
+'(base)_xxx_list_detail': { activeMenu: '/xxx/list', hideInMenu: true },
+'(base)_xxx_list_detail_[id]': { activeMenu: '/xxx/list', hideInMenu: true }
+```
+
+元数据唯一来源是 `build/plugins/router.ts` 的 `ROUTE_META_PRESETS`。禁止把菜单元数据写在页面里或手改 `src/router/elegant/*` 生成文件。构建后必须检查生成的父/子详情路由都含 `hideInMenu: true`。
+
+### 误用路由脚手架
+
+`pnpm gen-route` / `sa gen-route` 是交互式“新建路由”脚手架，不是“重新扫描已有页面”的命令。禁止用它刷新路由，否则可能创建或覆盖 `Component` 模板。新增文件路由后运行 `pnpm dev` 或 `pnpm build`，由 Vite 路由插件同步生成文件，再检查 `routes.ts`、`imports.ts`、`routeMap.ts` 和 `elegant-router.d.ts`。
+
+### 国际化只补一半
+
+页面新增字段、按钮、状态、表单 placeholder、详情分区和路由标题时，必须同时更新：
+
+1. `locales/langs/zh-cn/page.ts` 与 `en-us/page.ts`；
+2. `locales/langs/zh-cn/route.ts` 与 `en-us/route.ts`（新增路由时）；
+3. `types/app.d.ts` 的 `App.I18n.Schema`；
+4. 业务枚举的 Record/Badge/Select 文案映射。
+
+禁止只补能通过当前页面渲染的少量字段，或复用字段标题充当“请选择/请输入”提示。交付前用 `rg` 枚举页面实际使用的 `page.*` / `route.*` key，并逐项对照两种语言。
+
+### 空筛选参数进入 URL
+
+```ts
+// ❌ 未选择时重新写入 null，最终出现 ?purchaseStatus=null
+return { ...params, purchaseStatus: params.purchaseStatus ? Number(params.purchaseStatus) : null };
+
+// ✅ 空值删除，选中时才转换并发送
+const next = { ...params };
+if (next.purchaseStatus == null) delete next.purchaseStatus;
+else next.purchaseStatus = Number(next.purchaseStatus);
+return next;
+```
+
+所有可选查询参数都遵守“无值不发送”；静态检查之外，还必须在浏览器 Network 中核对首次查询、筛选和重置后的真实 URL。
+
+### 主数据 ID 让用户手输
+
+禁止用 `AInput`、`ASelect mode="tags"` 等方式让用户输入订单、商品、单位、供应商、采购员等 GUID。必须使用有契约支撑的选项接口；存在依赖关系时做联动查询（例如选择商品后仅加载该商品的采购单位）。缺少必要选项接口时记录阻塞，不得用手输 GUID 伪装页面已完成。
+
+### 未完成运行时验收却宣称完成
+
+运行时 OpenAPI 不可访问、缺少有权限会话或主流程未手测时，只能报告“静态实现完成、运行时验收未完成”。不得更新清单为「已完成」，不得用“已接入/已完成”掩盖尚未验证的操作。
