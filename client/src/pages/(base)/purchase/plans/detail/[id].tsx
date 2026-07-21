@@ -1,4 +1,5 @@
 import type { DescriptionsProps, TableColumnsType } from 'antd';
+import { useState } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
 import {
@@ -9,9 +10,17 @@ import {
   renderPurchasePlanStatus
 } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
-import { fetchGetPurchasePlanDetail } from '@/service/api';
+import {
+  fetchGetPurchasePlanDetail,
+  fetchGetPurchasePlanSplitOrders,
+  fetchSplitOrdersPurchasePlan,
+  fetchSplitQuantityPurchasePlan
+} from '@/service/api';
+import { PurchasePlanStatus } from '@/service/enums';
 
 const LIST_PATH = '/purchase/plans';
+
+type SplitMode = 'splitOrders' | 'splitQuantity' | null;
 
 /** 路由切换前加载采购计划详情，计划不存在或加载失败时返回列表。 */
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -31,8 +40,45 @@ const PurchasePlanDetail = () => {
   const { t } = useTranslation();
   const closeTabAndNavigate = useCloseTabAndNavigate();
   const detail = useLoaderData() as Api.PurchasePlan.Entity;
+  const [form] = AForm.useForm();
+  const [mode, setMode] = useState<SplitMode>(null);
+  const [splitOrders, setSplitOrders] = useState<Api.PurchasePlan.SplittableOrder[]>([]);
 
   if (!detail) return null;
+
+  const canSplit = detail.purchaseStatus === PurchasePlanStatus.UNPUBLISHED;
+
+  async function openSplit(nextMode: 'splitOrders' | 'splitQuantity') {
+    form.resetFields();
+    if (nextMode === 'splitOrders') {
+      setSplitOrders(await fetchGetPurchasePlanSplitOrders(detail.id));
+    }
+    if (nextMode === 'splitQuantity') {
+      form.setFieldsValue({ details: detail.details.map(d => ({ detailId: d.id })) });
+    }
+    setMode(nextMode);
+  }
+
+  async function submitSplit() {
+    const values = await form.validateFields();
+    if (mode === 'splitOrders') {
+      await fetchSplitOrdersPurchasePlan({
+        planId: detail.id,
+        remark: values.remark,
+        saleOrderIds: values.saleOrderIds
+      });
+    }
+    if (mode === 'splitQuantity') {
+      await fetchSplitQuantityPurchasePlan({
+        details: values.details,
+        planId: detail.id,
+        remark: values.remark
+      });
+    }
+    window.$message?.success(t('common.updateSuccess'));
+    setMode(null);
+    closeTabAndNavigate(LIST_PATH);
+  }
 
   const summaryItems: DescriptionsProps['items'] = [
     { children: displayDate(detail.planDate), key: 'planDate', label: t('page.purchase.plan.planDate') },
@@ -120,8 +166,23 @@ const PurchasePlanDetail = () => {
     <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
       <ACard
         className="card-wrapper"
-        extra={<AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.purchase.plan.back')}</AButton>}
         variant="borderless"
+        extra={
+          <AFlex gap={8}>
+            {canSplit && (
+              <>
+                <AButton
+                  type="primary"
+                  onClick={() => openSplit('splitOrders')}
+                >
+                  {t('page.purchase.plan.splitByOrders')}
+                </AButton>
+                <AButton onClick={() => openSplit('splitQuantity')}>{t('page.purchase.plan.splitByQuantity')}</AButton>
+              </>
+            )}
+            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.purchase.plan.back')}</AButton>
+          </AFlex>
+        }
         title={
           <AFlex
             wrap
@@ -154,6 +215,73 @@ const PurchasePlanDetail = () => {
           tableLayout="fixed"
         />
       </ACard>
+      <AModal
+        destroyOnClose
+        open={mode !== null}
+        title={mode ? t(`page.purchase.plan.${mode}`) : ''}
+        onCancel={() => setMode(null)}
+        onOk={submitSplit}
+      >
+        <AForm
+          form={form}
+          layout="vertical"
+        >
+          {mode === 'splitOrders' && (
+            <AForm.Item
+              label={t('page.purchase.plan.splitByOrders')}
+              name="saleOrderIds"
+              rules={[{ required: true }]}
+            >
+              <ASelect
+                mode="multiple"
+                placeholder={t('page.purchase.plan.form.saleOrderIds')}
+                options={splitOrders.map(item => ({
+                  label: `${item.saleOrderNo} (${item.requiredQuantity})`,
+                  value: item.saleOrderId
+                }))}
+              />
+            </AForm.Item>
+          )}
+          {mode === 'splitQuantity' && (
+            <AForm.List name="details">
+              {() =>
+                detail.details.map((d, index) => (
+                  <ARow
+                    gutter={8}
+                    key={d.id}
+                  >
+                    <ACol span={14}>
+                      {d.goodsName} ({d.purchaseUnitName})
+                    </ACol>
+                    <ACol span={10}>
+                      <AForm.Item
+                        hidden
+                        initialValue={d.id}
+                        name={[index, 'detailId']}
+                      >
+                        <AInput />
+                      </AForm.Item>
+                      <AForm.Item name={[index, 'quantity']}>
+                        <AInputNumber
+                          className="w-full"
+                          max={d.plannedQuantity}
+                          min={0.0001}
+                        />
+                      </AForm.Item>
+                    </ACol>
+                  </ARow>
+                ))
+              }
+            </AForm.List>
+          )}
+          <AForm.Item
+            label={t('page.purchase.plan.remark')}
+            name="remark"
+          >
+            <AInput.TextArea />
+          </AForm.Item>
+        </AForm>
+      </AModal>
     </div>
   );
 };

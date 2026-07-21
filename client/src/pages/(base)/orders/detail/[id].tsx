@@ -1,8 +1,15 @@
+import { Modal } from 'antd';
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
 import { renderSaleOrderStatus } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
-import { fetchGetOrderDetail } from '@/service/api';
+import {
+  fetchApproveOrder,
+  fetchDeleteOrder,
+  fetchGetOrderDetail,
+  fetchRejectOrder,
+  fetchResubmitOrder
+} from '@/service/api';
 import { SaleOrderStatus } from '@/service/enums';
 
 import OrderDetailView from './modules/OrderDetailView';
@@ -32,8 +39,74 @@ const OrderDetailPage = () => {
   const nav = useNavigate();
   const closeTabAndNavigate = useCloseTabAndNavigate();
 
-  const canEdit =
-    detail.orderStatus === SaleOrderStatus.PENDING_AUDIT || detail.orderStatus === SaleOrderStatus.REJECTED;
+  const isPendingAudit = detail.orderStatus === SaleOrderStatus.PENDING_AUDIT;
+  const isRejected = detail.orderStatus === SaleOrderStatus.REJECTED;
+  const canEdit = isPendingAudit || isRejected;
+
+  function promptAuditRemark(title: string) {
+    return new Promise<string | undefined>((resolve, reject) => {
+      let remark = '';
+      Modal.confirm({
+        content: (
+          <AInput.TextArea
+            allowClear
+            autoSize={{ maxRows: 4, minRows: 2 }}
+            placeholder={t('page.order.list.form.auditRemark')}
+            onChange={e => {
+              remark = e.target.value;
+            }}
+          />
+        ),
+        onCancel: () => reject(new Error('cancelled')),
+        onOk: () => resolve(remark.trim() || undefined),
+        title
+      });
+    });
+  }
+
+  async function handleApprove() {
+    try {
+      const remark = await promptAuditRemark(t('page.order.list.approveConfirm', { orderNo: detail.orderNo }));
+      await fetchApproveOrder(detail.id, { remark });
+      window.$message?.success(t('common.updateSuccess'));
+      closeTabAndNavigate(LIST_PATH);
+    } catch {
+      /* 取消 */
+    }
+  }
+
+  async function handleReject() {
+    try {
+      const remark = await promptAuditRemark(t('page.order.list.rejectConfirm', { orderNo: detail.orderNo }));
+      await fetchRejectOrder(detail.id, { remark });
+      window.$message?.success(t('common.updateSuccess'));
+      closeTabAndNavigate(LIST_PATH);
+    } catch {
+      /* 取消 */
+    }
+  }
+
+  async function handleResubmit() {
+    try {
+      const remark = await promptAuditRemark(t('page.order.list.resubmitConfirm', { orderNo: detail.orderNo }));
+      await fetchResubmitOrder(detail.id, { remark });
+      window.$message?.success(t('common.updateSuccess'));
+      closeTabAndNavigate(LIST_PATH);
+    } catch {
+      /* 取消 */
+    }
+  }
+
+  function handleDelete() {
+    Modal.confirm({
+      onOk: async () => {
+        await fetchDeleteOrder(detail.id);
+        window.$message?.success(t('common.deleteSuccess'));
+        closeTabAndNavigate(LIST_PATH);
+      },
+      title: t('common.confirmDelete')
+    });
+  }
 
   return (
     <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
@@ -52,6 +125,36 @@ const OrderDetailPage = () => {
                 {t('common.edit')}
               </AButton>
             )}
+            {isPendingAudit && (
+              <>
+                <AButton
+                  type="primary"
+                  onClick={handleApprove}
+                >
+                  {t('page.order.list.approve')}
+                </AButton>
+                <AButton
+                  danger
+                  onClick={handleReject}
+                >
+                  {t('page.order.list.reject')}
+                </AButton>
+              </>
+            )}
+            {isRejected && (
+              <AButton
+                type="primary"
+                onClick={handleResubmit}
+              >
+                {t('page.order.list.resubmit')}
+              </AButton>
+            )}
+            <AButton
+              danger
+              onClick={handleDelete}
+            >
+              {t('common.delete')}
+            </AButton>
           </ASpace>
         }
       >

@@ -49,11 +49,125 @@ alwaysApply: false
 
 ## 详情（纯展示）
 
-- 清单或需求写“详情”时，默认实现为独立 `detail/[id].tsx` 页面；除非明确要求，禁止用列表内 Modal/Drawer 代替详情页
+- 清单或需求写”详情”时，默认实现为独立 `detail/[id].tsx` 页面；除非明确要求，禁止用列表内 Modal/Drawer 代替详情页
 - 路由建议：`.../detail/[id]`；列表点名称进详情，详情再进编辑
 - 分区字段与编辑页对齐；空值显示 `-`；状态用现有 badge/tag 渲染
 - ID 解析为名称后再展示（分类树 / 单位 / 仓库 / 供应商等）
 - **时间字段：** 审计时间戳用 `displayDateTime`（UTC→本地）；业务日历日用 `displayDate`。详见 `.cursor/rules/datetime-display.mdc`
+- **操作按钮：** 详情页顶部卡 `extra` 区域必须接入列表操作列的所有业务按钮（审核/驳回/重提/删除/状态动作等），按相同状态条件显隐；操作成功后 `useCloseTabAndNavigate` 回列表。仅放”返回”按钮不够。
+
+## 详情页操作按钮（必守）
+
+详情页必须接入列表操作列的所有业务按钮（审核/驳回/重提/删除/开始/完成/拆分等），不能只放"返回列表"或"编辑"。
+
+### 实现原则
+
+1. **列表操作列** 与 **详情页操作区** 是同一套业务按钮的两个入口，状态判断逻辑必须对齐
+2. 详情页操作按钮放在顶部卡 `extra` 区域（`<ASpace>` 包裹），按钮默认 `middle` 尺寸对齐返回按钮
+3. 操作成功后必须 `useCloseTabAndNavigate(LIST_PATH)` 回列表（不是只 `nav`）
+4. 操作失败或用户取消时停留在详情页，保留已填备注或输入内容供用户调整
+
+### 标准模式对照
+
+| 列表页 | 详情页 | 说明 |
+| --- | --- | --- |
+| 操作列 `render: (_, record) =>` | `extra={<ASpace>...</ASpace>}` | 同一套按钮，状态条件复用 |
+| `size="small"` | 默认 `middle` | 详情页按钮与返回按钮对齐 |
+| `onClick={() => handleXxx(record)}` | `onClick={handleXxx}` | 详情页已有 `detail` 变量 |
+| `await run(false)` 刷新列表 | `closeTabAndNavigate(LIST_PATH)` 关签回列表 |
+
+### 参考实现
+
+```tsx
+// 销售订单详情页 — 审核/驳回/重提/删除
+const OrderDetailPage = () => {
+  const detail = useLoaderData() as Api.Order.Entity;
+  const closeTabAndNavigate = useCloseTabAndNavigate();
+
+  const isPendingAudit = detail.orderStatus === SaleOrderStatus.PENDING_AUDIT;
+  const isRejected = detail.orderStatus === SaleOrderStatus.REJECTED;
+
+  async function handleApprove() {
+    const remark = await promptAuditRemark(...);
+    await fetchApproveOrder(detail.id, { remark });
+    window.$message?.success(t('common.updateSuccess'));
+    closeTabAndNavigate(LIST_PATH);
+  }
+
+  return (
+    <ACard
+      extra={
+        <ASpace>
+          <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>
+            {t('page.order.detail.back')}
+          </AButton>
+          {isPendingAudit && (
+            <>
+              <AButton type="primary" onClick={handleApprove}>
+                {t('page.order.list.approve')}
+              </AButton>
+              <AButton danger onClick={handleReject}>
+                {t('page.order.list.reject')}
+              </AButton>
+            </>
+          )}
+          {isRejected && (
+            <AButton type="primary" onClick={handleResubmit}>
+              {t('page.order.list.resubmit')}
+            </AButton>
+          )}
+          <AButton danger onClick={handleDelete}>
+            {t('common.delete')}
+          </AButton>
+        </ASpace>
+      }
+    >
+      ...
+    </ACard>
+  );
+};
+```
+
+```tsx
+// 采购计划详情页 — 拆分按钮（仅未发布状态显示）
+const canSplit = detail.purchaseStatus === PurchasePlanStatus.UNPUBLISHED;
+
+<ACard
+  extra={
+    <AFlex gap={8}>
+      {canSplit && (
+        <>
+          <AButton type="primary" onClick={() => openSplit('splitOrders')}>
+            {t('page.purchase.plan.splitByOrders')}
+          </AButton>
+          <AButton onClick={() => openSplit('splitQuantity')}>
+            {t('page.purchase.plan.splitByQuantity')}
+          </AButton>
+        </>
+      )}
+      <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>
+        {t('page.purchase.plan.back')}
+      </AButton>
+    </AFlex>
+  }
+/>
+```
+
+### 权威样板
+
+| 页面 | 按钮 | 文件 |
+| --- | --- | --- |
+| 销售订单详情 | 编辑/审核/驳回/重提/删除 | `src/pages/(base)/orders/detail/[id].tsx` |
+| 售后单详情 | 编辑/提交/重提/审核/驳回/完成/撤销/删除 | `src/pages/(base)/orders/after-sales/detail/[id].tsx` |
+| 取货任务详情 | 调度/开始/完成 | `src/pages/(base)/orders/pickup-tasks/detail/[id].tsx` |
+| 采购计划详情 | 按订单拆分/按数量拆分 | `src/pages/(base)/purchase/plans/detail/[id].tsx` |
+
+### 禁止
+
+- 详情页只有"返回"或"编辑"按钮，缺少列表操作列的审核/删除/状态动作等
+- 详情页按钮用 `size="small"` 导致与返回按钮大小不一致
+- 操作成功后只 `nav(LIST_PATH)` 不关签
+- 列表和详情的状态判断逻辑不一致（如列表按 A 条件显示但详情按 B 条件）
 
 ## 离开页：关闭当前页签（必守）
 

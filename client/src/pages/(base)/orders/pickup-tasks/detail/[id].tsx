@@ -2,7 +2,11 @@ import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-d
 
 import { PickupTaskStatusBadge, displayDateTime, displayText } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
-import { fetchGetAfterSalePickupTaskDetail } from '@/service/api';
+import {
+  fetchGetAfterSalePickupTaskDetail,
+  fetchPickupTasksCompleteAfterSale,
+  fetchPickupTasksStartAfterSale
+} from '@/service/api';
 import { PickupTaskStatus } from '@/service/enums';
 import { formatField } from '@/utils/common';
 
@@ -33,6 +37,30 @@ const PickupTaskDetailPage = () => {
   const closeTabAndNavigate = useCloseTabAndNavigate();
   const canSchedule =
     detail.pickupStatus === PickupTaskStatus.PENDING_ASSIGN || detail.pickupStatus === PickupTaskStatus.PENDING_PICKUP;
+  const canStart = detail.pickupStatus === PickupTaskStatus.PENDING_PICKUP;
+  const canComplete = detail.pickupStatus === PickupTaskStatus.PICKING_UP;
+
+  async function handleStart() {
+    AModal.confirm({
+      onOk: async () => {
+        await fetchPickupTasksStartAfterSale(detail.id);
+        window.$message?.success(t('common.updateSuccess'));
+        closeTabAndNavigate(LIST_PATH);
+      },
+      title: t('page.pickupTask.startConfirm', { taskNo: detail.taskNo })
+    });
+  }
+
+  async function handleComplete() {
+    AModal.confirm({
+      onOk: async () => {
+        await fetchPickupTasksCompleteAfterSale(detail.id);
+        window.$message?.success(t('common.updateSuccess'));
+        closeTabAndNavigate(LIST_PATH);
+      },
+      title: t('page.pickupTask.completeConfirm', { taskNo: detail.taskNo })
+    });
+  }
 
   return (
     <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
@@ -49,6 +77,15 @@ const PickupTaskDetailPage = () => {
                 onClick={() => nav(`/orders/pickup-tasks/operate/${detail.id}`)}
               >
                 {t('page.pickupTask.schedule')}
+              </AButton>
+            )}
+            {canStart && <AButton onClick={handleStart}>{t('page.pickupTask.start')}</AButton>}
+            {canComplete && (
+              <AButton
+                type="primary"
+                onClick={handleComplete}
+              >
+                {t('page.pickupTask.complete')}
               </AButton>
             )}
           </ASpace>
