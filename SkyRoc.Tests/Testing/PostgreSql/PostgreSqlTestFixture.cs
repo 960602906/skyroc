@@ -1,9 +1,13 @@
+using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Common;
+using Shared.Constants;
+using Shared.Utils;
 using Xunit;
+using Menu = Domain.Entities.Menu;
 
 namespace SkyRoc.Tests.Testing.PostgreSql;
 
@@ -55,13 +59,13 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
         if (!await context.Roles.AnyAsync())
         {
             context.Roles.AddRange(
-                new Domain.Entities.Role
+                new Role
                 {
                     Name = "管理员",
                     Code = "Admin",
                     Desc = "系统管理员，拥有所有权限"
                 },
-                new Domain.Entities.Role
+                new Role
                 {
                     Name = "用户",
                     Code = "User",
@@ -69,6 +73,81 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
                 });
             await context.SaveChangesAsync();
         }
+
+        // 写入初始 admin 用户，供 DemoDataGenerator 作为审计用户基础
+        if (!await context.Users.AnyAsync())
+        {
+            context.Users.Add(new User
+            {
+                Username = "admin",
+                NickName = "系统管理员",
+                Email = "admin@test.example",
+                Gender = GenderType.Male,
+                PasswordHash = PasswordHasher.Hash("Admin@123")
+            });
+            await context.SaveChangesAsync();
+        }
+
+        // 写入必需的基础菜单（home, manage, manage_role, manage_user），供 DemoDataGenerator 的角色权限关联使用
+        if (!await context.Menus.AnyAsync())
+        {
+            var now = DateTime.UtcNow;
+            var homeMenu = new Menu
+            {
+                Name = "home",
+                Path = "/home",
+                Component = "page.(base)_home",
+                Title = "home",
+                I18NKey = "route.(base)_home",
+                Order = 1,
+                Status = Status.Enable,
+                CreateTime = now
+            };
+            var manageMenu = new Menu
+            {
+                Name = "manage",
+                Path = "/manage",
+                Component = "page.(base)_manage",
+                Title = "manage",
+                I18NKey = "route.(base)_manage",
+                Order = 8,
+                Status = Status.Enable,
+                CreateTime = now
+            };
+            context.Menus.AddRange(homeMenu, manageMenu);
+            await context.SaveChangesAsync();
+
+            context.Menus.AddRange(
+                new Menu
+                {
+                    Name = "manage_user",
+                    Path = "/manage/user",
+                    Component = "page.(base)_manage_user",
+                    Title = "manage_user",
+                    I18NKey = "route.(base)_manage_user",
+                    Order = 1,
+                    KeepAlive = true,
+                    ParentId = manageMenu.Id,
+                    Status = Status.Enable,
+                    CreateTime = now
+                },
+                new Menu
+                {
+                    Name = "manage_role",
+                    Path = "/manage/role",
+                    Component = "page.(base)_manage_role",
+                    Title = "manage_role",
+                    I18NKey = "route.(base)_manage_role",
+                    Order = 2,
+                    ParentId = manageMenu.Id,
+                    Status = Status.Enable,
+                    CreateTime = now
+                });
+            await context.SaveChangesAsync();
+        }
+
+        // 预生成长期联调数据，供所有依赖受管稳定键的测试使用
+        await GenerateDemoDataAsync();
     }
 
     /// <summary>
