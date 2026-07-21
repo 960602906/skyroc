@@ -48,7 +48,7 @@ internal sealed class DemoDataImportExportJobBuilder(
                 continue;
             }
 
-            seed.Validate(job, auditUserId, auditUsername);
+            seed.Apply(job, auditUserId, auditUsername);
             reusedJobs++;
         }
 
@@ -158,6 +158,26 @@ internal sealed class DemoDataImportExportJobBuilder(
                 UpdateName = auditUsername,
                 Status = Status.Enable
             };
+        }
+
+        public void Apply(ImportExportJob job, Guid auditUserId, string auditUsername)
+        {
+            job.JobType = ImportExportJobType.Goods;
+            job.JobDirection = Direction;
+            job.JobStatus = JobStatus;
+            job.SourceFileName = SourceFileName;
+            job.TotalRows = TotalRows;
+            job.SuccessRows = SuccessRows;
+            job.FailureRows = FailureRows;
+            job.ErrorSummary = ErrorSummary;
+            job.JobStartedAt = StartedAt;
+            job.JobFinishedAt = FinishedAt;
+            job.CreateBy = auditUserId;
+            job.CreateName = auditUsername;
+            job.UpdateTime = FinishedAt ?? StartedAt;
+            job.UpdateBy = auditUserId;
+            job.UpdateName = auditUsername;
+            job.Status = Status.Enable;
         }
 
         public void Validate(ImportExportJob job, Guid auditUserId, string auditUsername)

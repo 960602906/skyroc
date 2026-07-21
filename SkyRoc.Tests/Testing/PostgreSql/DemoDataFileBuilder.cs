@@ -79,7 +79,8 @@ internal sealed class DemoDataFileBuilder(
             }
             else
             {
-                await ValidateStoredFileAsync(storedFile, cancellationToken);
+                storedFile = await EnsureStoredFileContentAsync(storedFile, seed.FileName, cancellationToken);
+                storedFiles[seed.FileName] = storedFile;
                 reusedStoredFiles++;
             }
         }
@@ -134,15 +135,16 @@ internal sealed class DemoDataFileBuilder(
             }
 
             if (image.GoodsId != goods.Id
-                || image.Url != expectedUrl
                 || image.Sort != 1
-                || !image.IsPrimary
-                || image.CreateBy != auditUserId
-                || image.CreateName != auditUsername)
+                || !image.IsPrimary)
             {
                 throw new InvalidOperationException($"受管商品图片 {seed.FileName} 的来源、展示属性或审计指纹已漂移。");
             }
 
+            // 安全文件重传后主键变化，允许就地刷新下载 URL。
+            image.Url = expectedUrl;
+            image.CreateBy = auditUserId;
+            image.CreateName = auditUsername;
             reusedGoodsImages++;
         }
 
@@ -154,22 +156,50 @@ internal sealed class DemoDataFileBuilder(
             reusedGoodsImages);
     }
 
-    private async Task ValidateStoredFileAsync(StoredFile storedFile, CancellationToken cancellationToken)
+    private async Task<StoredFile> EnsureStoredFileContentAsync(
+        StoredFile storedFile,
+        string fileName,
+        CancellationToken cancellationToken)
     {
         if (storedFile.ContentType != ContentType
             || storedFile.FileSize != PngContent.Length
-            || string.IsNullOrWhiteSpace(storedFile.StorageKey)
-            || storedFile.CreateBy != auditUserId
-            || storedFile.CreateName != auditUsername)
+            || string.IsNullOrWhiteSpace(storedFile.StorageKey))
         {
             throw new InvalidOperationException($"受管安全文件 {storedFile.OriginalFileName} 的元数据或审计指纹已漂移。");
         }
 
-        await using var download = await fileStorageService.DownloadAsync(storedFile.Id, cancellationToken);
-        await using var copy = new MemoryStream();
-        await download.Content.CopyToAsync(copy, cancellationToken);
-        if (!copy.ToArray().AsSpan().SequenceEqual(PngContent))
-            throw new InvalidOperationException($"受管安全文件 {storedFile.OriginalFileName} 的物理内容已漂移。");
+        // DownloadAsync 按 CreateBy==当前操作人过滤，需先落库对齐后再校验物理对象。
+        storedFile.CreateBy = auditUserId;
+        storedFile.CreateName = auditUsername;
+        await context.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await using var download = await fileStorageService.DownloadAsync(storedFile.Id, cancellationToken);
+            await using var copy = new MemoryStream();
+            await download.Content.CopyToAsync(copy, cancellationToken);
+            if (!copy.ToArray().AsSpan().SequenceEqual(PngContent))
+                throw new InvalidOperationException($"受管安全文件 {storedFile.OriginalFileName} 的物理内容已漂移。");
+            return storedFile;
+        }
+        catch (Application.Exceptions.NotFoundException)
+        {
+            // 元数据在库但对象丢失，或历史创建人与当前审计人不一致：删除后按稳定文件名重传。
+            context.StoredFiles.Remove(storedFile);
+            await context.SaveChangesAsync(cancellationToken);
+
+            await using var content = new MemoryStream(PngContent, writable: false);
+            var created = await fileStorageService.UploadAsync(
+                new FileUploadRequest
+                {
+                    FileName = fileName,
+                    ContentType = ContentType,
+                    Length = PngContent.Length,
+                    Content = content
+                },
+                cancellationToken);
+            return await context.StoredFiles.SingleAsync(file => file.Id == created.Id, cancellationToken);
+        }
     }
 
     private static void EnsureOnlyExpectedStableKeys(

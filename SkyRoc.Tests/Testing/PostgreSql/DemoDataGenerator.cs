@@ -595,9 +595,22 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                         continue;
                     }
 
-                    if (button.Desc != seed.Desc || button.CreateBy != auditUser.Id || button.CreateName != auditUser.Username)
+                    // 描述漂移走公开更新入口；创建审计无公开补写入口，仅修复受管稳定编码记录。
+                    if (button.Desc != seed.Desc)
                     {
-                        throw new InvalidOperationException($"受管菜单按钮 {seed.Code} 的业务字段或创建审计发生漂移。");
+                        await menuButtonService.UpdateMenuButtonAsync(managedMenuId, new UpdateMenuButtonDto
+                        {
+                            Id = button.Id,
+                            MenuId = managedMenuId,
+                            Code = seed.Code,
+                            Desc = seed.Desc
+                        });
+                    }
+
+                    if (button.CreateBy != auditUser.Id || button.CreateName != auditUser.Username)
+                    {
+                        button.CreateBy = auditUser.Id;
+                        button.CreateName = auditUser.Username;
                     }
 
                     reusedMenuButtons++;

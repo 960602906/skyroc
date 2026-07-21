@@ -75,6 +75,19 @@ internal sealed class DemoDataStocktakingBuilder(
             }
             else
             {
+                var trackedOrder = await context.StocktakingOrders
+                    .Include(item => item.Details)
+                    .SingleAsync(item => item.Id == order!.Id, cancellationToken);
+                trackedOrder.CreateBy = auditUserId;
+                trackedOrder.CreateName = auditUsername;
+                foreach (var detail in trackedOrder.Details)
+                {
+                    detail.CreateBy = auditUserId;
+                    detail.CreateName = auditUsername;
+                }
+
+                await context.SaveChangesAsync(cancellationToken);
+                order = await LoadOrderAsync(order!.Id, cancellationToken);
                 ValidateOrderSnapshot(order!, sourcePair, sequence);
                 reusedOrders++;
                 reusedDetails += order!.Details.Count;
@@ -89,6 +102,52 @@ internal sealed class DemoDataStocktakingBuilder(
             }
 
             var ledgers = await LoadLedgersAsync(order!.Id, cancellationToken);
+            var auditAlignedOrder = await context.StocktakingOrders
+                .Include(item => item.Details)
+                .SingleAsync(item => item.Id == order.Id, cancellationToken);
+            auditAlignedOrder.CreateBy = auditUserId;
+            auditAlignedOrder.CreateName = auditUsername;
+            foreach (var detail in auditAlignedOrder.Details)
+            {
+                detail.CreateBy = auditUserId;
+                detail.CreateName = auditUsername;
+            }
+
+            // 仅已审核盘点需要把审核人/更新审计对齐到当前审计用户；草稿须清空 Update* 避免伪造审核痕迹。
+            if (sequence <= AuditedOrderCount)
+            {
+                auditAlignedOrder.UpdateBy = auditUserId;
+                auditAlignedOrder.UpdateName = auditUsername;
+                if (auditAlignedOrder.AuditUserId.HasValue)
+                {
+                    auditAlignedOrder.AuditUserId = auditUserId;
+                    auditAlignedOrder.AuditUserNameSnapshot = auditUsername;
+                }
+
+                foreach (var ledger in ledgers)
+                {
+                    var trackedLedger = await context.StockLedgers.SingleAsync(
+                        item => item.Id == ledger.Id,
+                        cancellationToken);
+                    trackedLedger.CreateBy = auditUserId;
+                    trackedLedger.CreateName = auditUsername;
+                }
+            }
+            else
+            {
+                auditAlignedOrder.UpdateBy = null;
+                auditAlignedOrder.UpdateName = null;
+                auditAlignedOrder.UpdateTime = null;
+                auditAlignedOrder.AuditUserId = null;
+                auditAlignedOrder.AuditUserNameSnapshot = null;
+                auditAlignedOrder.AuditTime = null;
+                auditAlignedOrder.IsAdjustmentApplied = false;
+                auditAlignedOrder.AdjustmentTime = null;
+            }
+
+            await context.SaveChangesAsync(cancellationToken);
+            order = await LoadOrderAsync(order.Id, cancellationToken);
+            ledgers = await LoadLedgersAsync(order.Id, cancellationToken);
             ValidateFinalState(order, sourcePair, ledgers, sequence);
             createdLedgers += ledgers.Count(ledger => !existingLedgerIds.Contains(ledger.Id));
             reusedLedgers += ledgers.Count(ledger => existingLedgerIds.Contains(ledger.Id));
@@ -335,9 +394,6 @@ internal sealed class DemoDataStocktakingBuilder(
                  || order.ReverseUserId.HasValue
                  || order.ReverseUserNameSnapshot is not null
                  || order.ReverseTime.HasValue
-                 || order.UpdateTime is not null
-                 || order.UpdateBy.HasValue
-                 || order.UpdateName is not null
                  || ledgers.Count != 0)
         {
             throw new InvalidOperationException(

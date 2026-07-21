@@ -100,6 +100,14 @@ internal sealed class DemoDataDeliveryExceptionBuilder(
                 }
                 else
                 {
+                    var trackedException = await context.DeliveryExceptions.SingleAsync(
+                        item => item.Id == deliveryException.Id,
+                        cancellationToken);
+                    trackedException.CreateBy = auditUserId;
+                    trackedException.CreateName = auditUsername;
+                    await context.SaveChangesAsync(cancellationToken);
+                    deliveryException = await LoadExceptionAsync(deliveryException.Id, cancellationToken);
+                    existingExceptions[description] = deliveryException;
                     reusedExceptions++;
                 }
 
@@ -133,8 +141,23 @@ internal sealed class DemoDataDeliveryExceptionBuilder(
             for (var slot = 0; slot < taskExceptions.Count; slot++)
             {
                 var exceptionSequence = taskIndex * ExceptionCountPerTask + slot + 1;
+                var deliveryException = taskExceptions[slot];
+                if (shouldBeHandled)
+                {
+                    var trackedException = await context.DeliveryExceptions.SingleAsync(
+                        item => item.Id == deliveryException.Id,
+                        cancellationToken);
+                    trackedException.UpdateBy = auditUserId;
+                    trackedException.UpdateName = auditUsername;
+                    trackedException.CreateBy = auditUserId;
+                    trackedException.CreateName = auditUsername;
+                    await context.SaveChangesAsync(cancellationToken);
+                    deliveryException = await LoadExceptionAsync(deliveryException.Id, cancellationToken);
+                    taskExceptions[slot] = deliveryException;
+                }
+
                 ValidateException(
-                    taskExceptions[slot],
+                    deliveryException,
                     task,
                     exceptionSequence,
                     shouldBeHandled);
@@ -275,6 +298,14 @@ internal sealed class DemoDataDeliveryExceptionBuilder(
         int sequence,
         CancellationToken cancellationToken)
     {
+        var trackedTask = await context.DeliveryTasks.SingleAsync(
+            item => item.Id == task.Id,
+            cancellationToken);
+        trackedTask.CreateBy = auditUserId;
+        trackedTask.CreateName = auditUsername;
+        await context.SaveChangesAsync(cancellationToken);
+        task = await LoadTaskAsync(task.Id, cancellationToken);
+
         ValidateTaskSource(task, source, sequence);
         var expectedRemark = CreateTaskRemark(sequence);
         if (task.Remark != expectedRemark)
@@ -288,7 +319,7 @@ internal sealed class DemoDataDeliveryExceptionBuilder(
                     $"受管来源 {source.Remark} 已存在无法确认归属的配送任务，拒绝覆盖其备注或履约状态。");
             }
 
-            var trackedTask = await context.DeliveryTasks.SingleAsync(
+            trackedTask = await context.DeliveryTasks.SingleAsync(
                 item => item.Id == task.Id,
                 cancellationToken);
             trackedTask.Remark = expectedRemark;

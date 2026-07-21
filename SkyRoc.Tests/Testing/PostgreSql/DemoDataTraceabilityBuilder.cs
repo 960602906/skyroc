@@ -61,6 +61,18 @@ internal sealed class DemoDataTraceabilityBuilder(
             }
             else
             {
+                // 创建审计无公开补写入口：先对齐受管指纹，再按公开更新入口收敛业务字段漂移。
+                AlignInspectionReportCreateAudit(report);
+                if (HasInspectionReportBusinessDrift(report, stockIn, sequence))
+                {
+                    await traceabilityService.UpdateInspectionReportAsync(
+                        report.Id,
+                        CreateInspectionReportDto(stockIn, sequence));
+                    report = await LoadInspectionReportAsync(report.Id, cancellationToken);
+                    AlignInspectionReportCreateAudit(report);
+                    existingReports[expectedRemark] = report;
+                }
+
                 reusedReports++;
                 reusedReportGoods += report.Goods.Count;
                 reusedAttachments += report.Attachments.Count;
@@ -169,10 +181,17 @@ internal sealed class DemoDataTraceabilityBuilder(
             else
             {
                 order = existingOrder;
+                AlignCreateAudit(order);
+                foreach (var detail in order.Details)
+                    AlignCreateAudit(detail);
+
                 if (order.OrderStatus == SaleOrderStatus.PendingAudit)
                 {
                     await saleOrderService.ApproveAsync(order.Id, CreateTraceSaleOrderAuditRemark(sequence));
                     order = await LoadTraceSaleOrderAsync(order.Id, cancellationToken);
+                    AlignCreateAudit(order);
+                    foreach (var detail in order.Details)
+                        AlignCreateAudit(detail);
                 }
                 else if (order.OrderStatus == SaleOrderStatus.Rejected)
                 {
@@ -220,6 +239,10 @@ internal sealed class DemoDataTraceabilityBuilder(
             else
             {
                 stockOut = existingStockOut;
+                AlignCreateAudit(stockOut);
+                foreach (var detail in stockOut.Details)
+                    AlignCreateAudit(detail);
+
                 if (stockOut.BusinessStatus is StockDocumentStatus.Draft or StockDocumentStatus.PendingAudit)
                 {
                     EnsureAvailableForTraceOutbound(sourceDetail, quantity);
@@ -228,6 +251,9 @@ internal sealed class DemoDataTraceabilityBuilder(
                         stockOut.Id,
                         CreateTraceStockOutAuditRemark(sequence));
                     stockOut = await LoadTraceStockOutAsync(stockOut.Id, cancellationToken);
+                    AlignCreateAudit(stockOut);
+                    foreach (var detail in stockOut.Details)
+                        AlignCreateAudit(detail);
                 }
                 else if (stockOut.BusinessStatus != StockDocumentStatus.Audited)
                 {
@@ -273,8 +299,12 @@ internal sealed class DemoDataTraceabilityBuilder(
                     $"受管溯源记录 {orderKey} 的稳定备注已漂移，拒绝修改既有记录。");
             }
 
+            AlignCreateAudit(trace);
+            await context.SaveChangesAsync(cancellationToken);
             ValidateTraceRecord(trace, order, sourceDetail, existingReports[CreateInspectionReportRemark(sequence)], sequence);
         }
+
+        await context.SaveChangesAsync(cancellationToken);
 
         return new DemoDataTraceabilityGenerationResult(
             createdReports,
@@ -528,6 +558,87 @@ internal sealed class DemoDataTraceabilityBuilder(
                 }
             ]
         };
+    }
+
+    private void AlignCreateAudit(Domain.Entities.BaseEntity entity)
+    {
+        entity.CreateBy = auditUserId;
+        entity.CreateName = auditUsername;
+    }
+
+    private void AlignInspectionReportCreateAudit(InspectionReport report)
+    {
+        AlignCreateAudit(report);
+        foreach (var goods in report.Goods)
+            AlignCreateAudit(goods);
+
+        foreach (var attachment in report.Attachments)
+            AlignCreateAudit(attachment);
+    }
+
+    private bool HasInspectionReportBusinessDrift(InspectionReport report, StockInOrder stockIn, int sequence)
+    {
+        var expected = CreateInspectionReportDto(stockIn, sequence);
+        if (report.StockInOrderId != stockIn.Id
+            || report.InNoSnapshot != stockIn.InNo
+            || report.WareId != stockIn.WareId
+            || report.WareNameSnapshot != stockIn.WareNameSnapshot
+            || report.SupplierId != stockIn.SupplierId
+            || report.SupplierNameSnapshot != stockIn.SupplierNameSnapshot
+            || report.InspectionOrg != expected.InspectionOrg
+            || report.SampleTime != expected.SampleTime
+            || report.InspectTime != expected.InspectTime
+            || report.Conclusion != expected.Conclusion
+            || report.Remark != expected.Remark)
+        {
+            return true;
+        }
+
+        var actualGoods = report.Goods.OrderBy(goods => goods.StockInDetailId).ToArray();
+        var expectedGoods = expected.Goods.OrderBy(goods => goods.StockInDetailId).ToArray();
+        if (actualGoods.Length != expectedGoods.Length)
+            return true;
+
+        for (var index = 0; index < actualGoods.Length; index++)
+        {
+            var actual = actualGoods[index];
+            var expectedItem = expectedGoods[index];
+            var source = stockIn.Details.Single(detail => detail.Id == expectedItem.StockInDetailId);
+            if (actual.StockInDetailId != source.Id
+                || actual.GoodsId != source.GoodsId
+                || actual.GoodsNameSnapshot != source.GoodsNameSnapshot
+                || actual.GoodsCodeSnapshot != source.GoodsCodeSnapshot
+                || actual.GoodsUnitId != source.GoodsUnitId
+                || actual.GoodsUnitNameSnapshot != source.GoodsUnitNameSnapshot
+                || actual.SampleQuantity != expectedItem.SampleQuantity
+                || actual.BatchNoSnapshot != source.BatchNo
+                || actual.Conclusion != expectedItem.Conclusion
+                || actual.Remark != expectedItem.Remark)
+            {
+                return true;
+            }
+        }
+
+        var actualAttachments = report.Attachments.OrderBy(attachment => attachment.Sort).ToArray();
+        var expectedAttachments = expected.Attachments.OrderBy(attachment => attachment.Sort).ToArray();
+        if (actualAttachments.Length != expectedAttachments.Length)
+            return true;
+
+        for (var index = 0; index < actualAttachments.Length; index++)
+        {
+            var actual = actualAttachments[index];
+            var expectedItem = expectedAttachments[index];
+            if (actual.AttachmentType != expectedItem.AttachmentType
+                || actual.FileName != expectedItem.FileName
+                || actual.FileUrl != expectedItem.FileUrl
+                || actual.FileSize != expectedItem.FileSize
+                || actual.Sort != expectedItem.Sort)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void ValidateInspectionReport(InspectionReport report, StockInOrder stockIn, int sequence)

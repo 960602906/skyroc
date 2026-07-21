@@ -63,6 +63,7 @@ if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
 
 $env:SKYROC_TEST_ENVIRONMENT = 'Testing'
 $env:SKYROC_TEST_CONNECTION_STRING = $ConnectionString
+$env:SKYROC_QUERY_TEST_CONNECTION_STRING = $ConnectionString
 $env:ConnectionStrings__DefaultConnection = $ConnectionString
 
 $qualityFilter = @(

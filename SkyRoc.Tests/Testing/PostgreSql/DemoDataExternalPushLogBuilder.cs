@@ -60,7 +60,7 @@ internal sealed class DemoDataExternalPushLogBuilder(
                 continue;
             }
 
-            seed.Validate(log, auditUserId, auditUsername);
+            seed.Apply(log, auditUserId, auditUsername);
             reusedLogs++;
         }
 
@@ -319,6 +319,27 @@ internal sealed class DemoDataExternalPushLogBuilder(
                 UpdateName = auditUsername,
                 Status = Status.Enable
             };
+        }
+
+        public void Apply(ExternalPushLog log, Guid auditUserId, string auditUsername)
+        {
+            log.BusinessType = BusinessType;
+            log.BusinessId = BusinessId;
+            log.BusinessNoSnapshot = BusinessNoSnapshot;
+            log.PlatformCode = PlatformCode;
+            log.PushStatus = PushStatus;
+            log.PushTime = PushTime;
+            log.ResponseTime = ResponseTime;
+            log.RequestContent = RequestContent;
+            log.ResponseContent = ResponseContent;
+            log.ErrorMessage = ErrorMessage;
+            log.RetryCount = RetryCount;
+            log.CreateBy = auditUserId;
+            log.CreateName = auditUsername;
+            log.UpdateTime = ResponseTime ?? PushTime;
+            log.UpdateBy = auditUserId;
+            log.UpdateName = auditUsername;
+            log.Status = Status.Enable;
         }
 
         public void Validate(ExternalPushLog log, Guid auditUserId, string auditUsername)

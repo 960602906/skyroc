@@ -18,7 +18,12 @@ public partial class SourceFileOrganizationTests
     [Fact]
     public void SourceFiles_ContainOneMatchingTopLevelType()
     {
-        var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        // 从测试输出目录向上定位仓库根，兼容 artifacts/* 定向输出（相对 .. 层数不固定）。
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "SkyRoc.sln")))
+            directory = directory.Parent;
+        Assert.NotNull(directory);
+        var repositoryRoot = directory.FullName;
         var violations = new List<string>();
 
         foreach (var projectDirectory in ProjectDirectories)
