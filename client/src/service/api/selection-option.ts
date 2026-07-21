@@ -13,12 +13,14 @@ export function fetchSearchSelectionOptions(resource: string, params?: Api.Selec
 
 /** 解析已选择的业务资源，供编辑和多选场景恢复显示标签。 */
 export function fetchResolveSelectionOptions(resource: string, ids: string[]) {
-  const params = new URLSearchParams();
-  ids.forEach(id => params.append('ids', id));
+  // 全局 paramsSerializer 使用 qs.stringify，对 URLSearchParams 会序列化成空串；
+  // 也不要用 ids[] / ids[0] 形式，ASP.NET 绑定的是重复键 ids=a&ids=b。
+  const query = new URLSearchParams();
+  ids.forEach(id => query.append('ids', id));
+  const qs = query.toString();
   return request<Api.SelectionOption.Entity[]>({
     method: 'get',
-    params,
-    url: `${resource}/options/resolve`
+    url: qs ? `${resource}/options/resolve?${qs}` : `${resource}/options/resolve`
   });
 }
 
