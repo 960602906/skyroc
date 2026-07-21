@@ -112,6 +112,24 @@ public class PostgreSqlInfrastructureDocumentationTests
         Assert.DoesNotContain("SkyRocSystem", guide, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    ///     联调手册必须为主正向、逆向和运营权限场景给出完整稳定键及单据定位字段，
+    ///     使前端能够从受管数据精确进入已验收业务链路而不依赖模糊名称或临时批次。
+    /// </summary>
+    [Fact]
+    public void FrontendIntegrationGuide_IndexesMainBusinessFlowsByStableKeys()
+    {
+        var guide = File.ReadAllText(GetRepositoryFile("docs", "testing", "前端联调数据说明.md"));
+
+        Assert.Contains("销售订单 `inner_remark`", guide, StringComparison.Ordinal);
+        Assert.Contains("SKYROC-DEMO-PURCHASE-PLAN-001", guide, StringComparison.Ordinal);
+        Assert.Contains("SKYROC-DEMO-PURCHASE-STOCK-IN-001", guide, StringComparison.Ordinal);
+        Assert.Contains("SKYROC-DEMO-DELIVERY-TASK-001", guide, StringComparison.Ordinal);
+        Assert.Contains("SKYROC-DEMO-SALES-RETURN-STOCK-IN-001", guide, StringComparison.Ordinal);
+        Assert.Contains("SKYROC-DEMO-SYSTEM-ROLE-001", guide, StringComparison.Ordinal);
+        Assert.Contains("禁止以 `SKYROC-DEMO-` 前缀模糊查询后批量写入或删除", guide, StringComparison.Ordinal);
+    }
+
     private static string GetRepositoryFile(params string[] pathSegments)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
