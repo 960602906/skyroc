@@ -130,6 +130,23 @@ public class PostgreSqlInfrastructureDocumentationTests
         Assert.Contains("禁止以 `SKYROC-DEMO-` 前缀模糊查询后批量写入或删除", guide, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    ///     开发进度文档必须固定当前断点、测试数量基线、数据库基线和最近验收日期，
+    ///     以便 T14 收口时不再把测试事实回写到实现进度中。
+    /// </summary>
+    [Fact]
+    public void ProgressBaseline_DocumentsAcceptanceCountsAndDatabaseBaseline()
+    {
+        var progress = File.ReadAllText(GetRepositoryFile("docs", "开发进度.md"));
+
+        Assert.Contains("## 验收与测试基线", progress, StringComparison.Ordinal);
+        Assert.Contains("最近验收日期 | 2026-07-21", progress, StringComparison.Ordinal);
+        Assert.Contains("完整测试数量基线 | 453 通过、0 跳过（约 50 分 3 秒）", progress, StringComparison.Ordinal);
+        Assert.Contains("数据库基线 | 专用库 `skyroc`", progress, StringComparison.Ordinal);
+        Assert.Contains("T14 勾选状态 | **未勾选**", progress, StringComparison.Ordinal);
+        Assert.Contains("ProgressBaseline_DocumentsAcceptanceCountsAndDatabaseBaseline", progress, StringComparison.Ordinal);
+    }
+
     private static string GetRepositoryFile(params string[] pathSegments)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

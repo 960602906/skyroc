@@ -1,0 +1,120 @@
+---
+description: 远程搜索下拉 RemoteOptionSelect 与 selection-option 接口用法（增长型 vs 有界）
+globs:
+  - "**/components/RemoteOptionSelect.tsx"
+  - "**/service/hooks/use-remote-options.ts"
+  - "**/service/hooks/use-base-data-options.ts"
+  - "**/service/api/selection-option.ts"
+  - "**/service/types/selection-option.d.ts"
+  - "**/pages/**/*.{tsx,ts}"
+alwaysApply: false
+---
+
+# 远程搜索下拉规范 RemoteOptionSelect
+
+增长型主数据（客户、商品、供应商、报价、协议、销售订单等）**禁止**全量拉取做下拉。统一用 `RemoteOptionSelect` + 后端 `options/search` / `options/resolve`。
+
+权威实现：
+
+- 组件：`src/components/RemoteOptionSelect.tsx`
+- Hook：`src/service/hooks/use-remote-options.ts`（`SELECTION_OPTION_RESOURCES`、`useRemoteOptions`）
+- API：`src/service/api/selection-option.ts`
+- 类型：`src/service/types/selection-option.d.ts`（`Api.SelectionOption.*`）
+- 静态检查：`pnpm check:options`（`scripts/check-option-data-access.mjs`）
+
+## 何时用哪种选项控件
+
+| 场景 | 用法 | 后端 |
+| --- | --- | --- |
+| **增长型**（客户/商品/供应商/报价/协议/订单…） | `RemoteOptionSelect` + `SELECTION_OPTION_RESOURCES.*` | `GET {resource}/options/search`、`…/resolve` |
+| **有界**（公司/仓库/标签/采购员/司机/角色…，业务上明确不会爆量） | `useXxxOptions`（`use-base-data-options.ts`）+ `ASelect` + `toOptions` | `GET {resource}/options/bounded`（超过 500 条后端校验失败） |
+| **强依赖父级**（如商品单位） | 按父 id 拉专用接口（如 `fetchGetGoodsUnitsByGoods`），本地 `ASelect` | 业务专用接口，不是通用 search |
+
+禁止：`fetchGetAllCustomers` / `fetchGetAllGoods` / 固定 `size: 100` 分页伪装下拉等（见 `check:options`）。
+
+`useCustomerOptions` / `useGoodsOptions` 等标了 `@deprecated` 的 hook **不要**在新代码使用。
+
+## 页面用法（Form.Item）
+
+表单值只存业务主键 `string`（Guid），**不要**改成 `labelInValue`。
+
+```tsx
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
+
+<AForm.Item name="customerId" label={t('...')} rules={[rules.customerId]}>
+  <RemoteOptionSelect
+    placeholder={t('...')}
+    resource={SELECTION_OPTION_RESOURCES.CUSTOMER}
+  />
+</AForm.Item>
+
+<AForm.Item name="quotationId" label={t('...')}>
+  <RemoteOptionSelect
+    allowClear
+    placeholder={t('...')}
+    resource={SELECTION_OPTION_RESOURCES.QUOTATION}
+  />
+</AForm.Item>
+```
+
+常用 props：
+
+| Prop | 说明 |
+| --- | --- |
+| `resource` | **必填**。用 `SELECTION_OPTION_RESOURCES` 常量，值为 API 路径前缀（如 `'/customers'`），对应 `{resource}/options/search` |
+| `limit` | 可选，默认 20；后端最大 50 |
+| `contextKey` | 可选，仅参与 React Query cache key（例如父级切换时使缓存失效）；**当前不会传给后端** |
+| 其它 | 透传 Ant Design `Select`（`allowClear`、`disabled`、`loading`、`onChange`、`placeholder` 等）。不要传 `options` / `showSearch` / `filterOption` / `onSearch`（组件内部控制） |
+
+联动示例（选客户后回填报价 id）：`form.setFieldsValue({ quotationId })` 即可。组件在存在 `value` 时会自动调 `options/resolve` 恢复显示文案；无需页面手写 options。
+
+## 工作原理（代理必懂）
+
+```text
+打开下拉 → options/search?keyword&limit（仅 open 时请求）
+有 value  → options/resolve?ids=…&ids=…（编辑回填 / 联动写入 id）
+options = resolve ∪ search（同 id 时 search 覆盖）
+```
+
+- 搜索防抖 300ms；关闭下拉清空 keyword。
+- 展示：`label`；有 `secondaryText` 时为 `label · secondaryText`。
+- 写操作成功后：增长型资源用 `withSelectionOptionInvalidation(resource, mutationPromise)` 失效缓存。
+
+## resolve 查询参数（踩坑）
+
+后端绑定的是重复键：`?ids={guid}&ids={guid}`。
+
+`@sa/axios` 全局 `paramsSerializer` 使用 `qs.stringify`。**禁止**把 `URLSearchParams` 放进 axios `params`（会被序列化成空串，导致 resolve 一直返回 `[]`，Select 只显示 id）。
+
+正确写法见 `fetchResolveSelectionOptions`：把 `ids` 拼进 URL：
+
+```ts
+const query = new URLSearchParams();
+ids.forEach(id => query.append('ids', id));
+url: `${resource}/options/resolve?${query}`
+```
+
+也不要用 `ids[]=` / `ids[0]=` 形式（ASP.NET `List<Guid> Ids` 绑不上）。
+
+## 新增增长型资源 checklist
+
+1. 后端：`NamedCodeDataController` 或等价暴露 `options/search`、`options/resolve`（有界则再加 `bounded`）。
+2. 前端：`SELECTION_OPTION_RESOURCES` 增加常量。
+3. 页面：`RemoteOptionSelect` + `resource={SELECTION_OPTION_RESOURCES.XXX}`。
+4. 写接口：mutation 包一层 `withSelectionOptionInvalidation`。
+5. 跑 `pnpm check:options` + `pnpm typecheck`。
+
+## 反例
+
+```tsx
+// ❌ 全量当选项
+const { data } = useCustomerOptions();
+<ASelect options={toOptions(data)} />
+
+// ❌ 自己拼 search/resolve 或手写大页 list
+const list = await fetchGetOrderList({ current: 1, size: 100 });
+
+// ❌ resolve 用 params: new URLSearchParams(...)（参数会丢）
+request({ url: '.../resolve', params: new URLSearchParams(...) });
+```

@@ -47,6 +47,11 @@ return next;
 - 后端 `createTime` / `updateTime` / `auditTime` 等为 **UTC**，JSON 多为 `yyyy-MM-dd HH:mm:ss` 且**无时区后缀**。
 - UI 展示须走 `displayDateTime`（UTC→本地）；业务日历日走 `displayDate`。完整约定见 `.cursor/rules/datetime-display.mdc`。
 
+## 选择项 / 远程下拉（与页面联动）
+- 增长型主数据用 `RemoteOptionSelect` + `options/search` / `options/resolve`；有界用 `options/bounded`。
+- `resolve` 的 `ids` 必须拼进 URL（`ids=a&ids=b`），禁止把 `URLSearchParams` 交给 axios `params`（`qs.stringify` 会丢参）。
+- 完整用法与反例见 `.cursor/rules/remote-option-select.mdc`。
+
 ## 示例
 ```ts
 import { request } from '../request';

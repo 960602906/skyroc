@@ -16,6 +16,7 @@ alwaysApply: true
 - [`api.mdc`](./api.mdc)：服务层封装、`request` 客户端使用方法与类型声明。
 - [`styling.mdc`](./styling.mdc)：UnoCSS、Ant Design 主题与全局样式指引。
 - [`operate-detail-layout.mdc`](./operate-detail-layout.mdc)：档案类新增/编辑/详情的分区卡片布局，以及列表进详情链接须跟随主题色。
+- [`remote-option-select.mdc`](./remote-option-select.mdc)：增长型主数据远程搜索下拉（`RemoteOptionSelect` / `options/search` / `options/resolve`）与有界选项分工。
 - [`typescript.mdc`](./typescript.mdc)：TypeScript 配置、命名空间约定与类型定义原则。
 - [`comments.mdc`](./comments.mdc)：注释与文档说明书写风格。
 

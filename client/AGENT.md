@@ -10,6 +10,7 @@
 - API 改动：`.cursor/rules/api.mdc`。
 - 页面或路由改动：`.cursor/rules/routing.mdc`；全页新增、编辑、详情还必须读 `operate-detail-layout.mdc`。
 - 日期时间：`.cursor/rules/datetime-display.mdc`。
+- 表单/筛选里的主数据下拉（客户、商品、供应商、报价等）：`.cursor/rules/remote-option-select.mdc`（`RemoteOptionSelect`，禁止全量拉取）。
 - 状态管理：`.cursor/rules/reduxing.mdc`。
 - 样式或主题：`.cursor/rules/styling.mdc`。
 - 业务枚举：父目录 `.cursor/skills/enum-badge/SKILL.md`。
@@ -52,6 +53,7 @@ pnpm lint
 - 全页新增/编辑/详情采用分区卡片布局；取消、返回、保存成功使用 `useCloseTabAndNavigate` 关闭当前页签后回列表。
 - 新 UI 文案必须同步所有语言包；业务枚举需提供统一 Record、语义色 Badge/Select，页面不得内联枚举选项。
 - 审计时间用 `displayDateTime`，业务日期用 `displayDate`；勿在页面手写时区转换。
+- 增长型主数据下拉用 `RemoteOptionSelect` + `SELECTION_OPTION_RESOURCES`（search/resolve）；有界选项用 `options/bounded` hooks；禁止全量 list 伪装下拉。详见 `remote-option-select.mdc`。
 - UnoCSS 优先，复用主题 token 和 `card-wrapper`；链接用 `AButton type="link"` 跟随主题色，禁止硬编码颜色。
 - 路由生成文件由 Vite 插件维护；路由元数据放在 `build/plugins/router.ts` 的 `ROUTE_META_PRESETS`，不要手改生成结果。
 - 不提交真实 API token 或 `client/.cursor/mcp.json`；仅提交 `.cursor/mcp.json.example`。
