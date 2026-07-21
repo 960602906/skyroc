@@ -1,10 +1,9 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusSelect, SearchActionsCol } from '@/features/crud';
-import { useQuotationOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
 
 const ProtocolSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
-
-  const { data: quotationOptions } = useQuotationOptions();
 
   return (
     <AForm
@@ -57,10 +56,10 @@ const ProtocolSearch: FC<Page.SearchProps> = memo(({ form, reset, search, search
             label={t('page.customer.protocol.quotationId')}
             name="quotationId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              options={quotationOptions}
               placeholder={t('page.customer.protocol.form.quotationId')}
+              resource={SELECTION_OPTION_RESOURCES.QUOTATION}
             />
           </AForm.Item>
         </ACol>

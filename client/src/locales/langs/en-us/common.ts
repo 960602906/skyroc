@@ -29,6 +29,7 @@ const common: App.I18n.Schema['translation']['common'] = {
   operate: 'Operate',
   pleaseCheckValue: 'Please check whether the value is valid',
   refresh: 'Refresh',
+  remoteSelectMore: 'More results available. Keep typing to narrow the search.',
   reset: 'Reset',
   search: 'Search',
   switch: 'Switch',

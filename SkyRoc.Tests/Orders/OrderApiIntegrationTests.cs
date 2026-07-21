@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using Application.DTOs;
 using Application.DTOs.Orders;
 using Application.Interfaces;
 using Application.QueryParameters;
@@ -118,6 +119,43 @@ public class OrderApiIntegrationTests
     }
 
     [Fact]
+    public async Task OrderOptionEndpoints_EnforceReadPermissionValidationAndResolveSelectedOrder()
+    {
+        using var factory = new OrderApiFactory();
+        using var anonymousClient = factory.CreateClient();
+        await ApiHttpAssert.AssertBusinessCodeAsync(
+            await anonymousClient.GetAsync("/api/orders/options/search"),
+            ResponseCode.Unauthorized);
+
+        using var deniedClient = factory.CreateClient();
+        deniedClient.DefaultRequestHeaders.Add(TestAuthHandler.PermissionsHeader, PermissionCodes.Business.Orders.Create);
+        await ApiHttpAssert.AssertBusinessCodeAsync(
+            await deniedClient.GetAsync("/api/orders/options/search"),
+            ResponseCode.Forbidden);
+
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.PermissionsHeader, PermissionCodes.All);
+        var created = await ReadDataAsync<SaleOrderDto>(await client.PostAsJsonAsync("/api/orders", CreateRequest()));
+
+        var search = await ReadDataAsync<SelectionOptionSearchResultDto>(
+            await client.GetAsync($"/api/orders/options/search?keyword={created.OrderNo.ToLowerInvariant()}&limit=20"));
+        var option = Assert.Single(search.Items);
+        Assert.Equal(created.OrderNo, option.Label);
+        Assert.Equal(created.CustomerName, option.SecondaryText);
+
+        var resolved = await ReadDataAsync<List<SelectionOptionDto>>(
+            await client.GetAsync($"/api/orders/options/resolve?ids={created.Id}&ids={created.Id}"));
+        Assert.Equal(created.Id, Assert.Single(resolved).Id);
+
+        await ApiHttpAssert.AssertBusinessCodeAsync(
+            await client.GetAsync("/api/orders/options/search?limit=51"),
+            ResponseCode.BadRequest);
+        await ApiHttpAssert.AssertBusinessCodeAsync(
+            await client.GetAsync("/api/orders/options/resolve?ids=not-a-guid"),
+            ResponseCode.BadRequest);
+    }
+
+    [Fact]
     public async Task Swagger_DocumentsOrderRoutesAndPermissions()
     {
         using var factory = new OrderApiFactory();
@@ -129,12 +167,15 @@ public class OrderApiIntegrationTests
         var paths = document.RootElement.GetProperty("paths");
         var listOperation = paths.GetProperty("/api/orders/list").GetProperty("get");
         var approveOperation = paths.GetProperty("/api/orders/{id}/approve").GetProperty("post");
+        var optionOperation = paths.GetProperty("/api/orders/options/search").GetProperty("get");
 
         Assert.Contains(PermissionCodes.Business.Orders.Read, listOperation.GetProperty("description").GetString());
         Assert.Contains(PermissionCodes.Business.Orders.Audit, approveOperation.GetProperty("description").GetString());
         Assert.Equal("Bearer", listOperation.GetProperty("security")[0].EnumerateObject().Single().Name);
         Assert.Contains("body.code=401", listOperation.GetProperty("description").GetString());
         Assert.Contains("body.code=403", listOperation.GetProperty("description").GetString());
+        Assert.Contains(PermissionCodes.Business.Orders.Read, optionOperation.GetProperty("description").GetString());
+        Assert.Contains("SelectionOptionSearchResultDto", optionOperation.GetRawText());
     }
 
     private static CreateSaleOrderDto CreateRequest()
@@ -337,6 +378,50 @@ public class OrderApiIntegrationTests
         public Task<bool> DeleteAsync(Guid id)
         {
             return Task.FromResult(_orders.Remove(id));
+        }
+
+        public Task<SelectionOptionSearchResultDto> SearchSelectionOptionsAsync(
+            SelectionOptionSearchQueryParameters parameters)
+        {
+            var keyword = parameters.Keyword?.Trim() ?? string.Empty;
+            var matches = _orders.Values
+                .Where(order => keyword.Length == 0
+                                || order.OrderNo.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(order => keyword.Length > 0
+                                            && order.OrderNo.Equals(keyword, StringComparison.OrdinalIgnoreCase))
+                .ThenByDescending(order => keyword.Length > 0
+                                            && order.OrderNo.StartsWith(keyword, StringComparison.OrdinalIgnoreCase))
+                .ThenByDescending(order => order.OrderDate)
+                .ThenBy(order => order.Id)
+                .Take(parameters.Limit + 1)
+                .ToList();
+            var hasMore = matches.Count > parameters.Limit;
+
+            return Task.FromResult(new SelectionOptionSearchResultDto
+            {
+                Items = matches.Take(parameters.Limit).Select(order => new SelectionOptionDto
+                {
+                    Id = order.Id,
+                    Label = order.OrderNo,
+                    SecondaryText = order.CustomerName
+                }).ToList(),
+                HasMore = hasMore
+            });
+        }
+
+        public Task<List<SelectionOptionDto>> ResolveSelectionOptionsAsync(IReadOnlyCollection<Guid> ids)
+        {
+            var resolved = ids.Distinct()
+                .Where(_orders.ContainsKey)
+                .Select(id => _orders[id])
+                .Select(order => new SelectionOptionDto
+                {
+                    Id = order.Id,
+                    Label = order.OrderNo,
+                    SecondaryText = order.CustomerName
+                })
+                .ToList();
+            return Task.FromResult(resolved);
         }
 
         public Task<SaleOrderDto> ApproveAsync(Guid id, string? remark)

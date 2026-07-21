@@ -1,5 +1,7 @@
 ﻿using Domain.Entities;
 
+using Domain.ReadModels.BaseData;
+
 namespace Domain.Interfaces;
 
 /// <summary>
@@ -43,4 +45,10 @@ public interface IRoleRepository : IRepository<Role>
     /// <param name="menuIds"></param>
     /// <returns></returns>
     Task AddByRoleIdAndMenuIdsAsync(Guid roleId, IEnumerable<Guid> menuIds);
+
+    /// <summary>
+    ///     按名称和编码顺序读取有限数量的角色轻量选择项。
+    /// </summary>
+    /// <param name="take">数据库读取上限；调用方可多取一条检测越界。</param>
+    Task<List<SelectionOption>> GetBoundedSelectionOptionsAsync(int take);
 }

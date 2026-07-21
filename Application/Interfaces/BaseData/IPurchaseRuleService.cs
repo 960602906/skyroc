@@ -12,4 +12,4 @@ namespace Application.Interfaces;
 /// <summary>
 /// 定义采购规则及适用范围的维护用例。
 /// </summary>
-public interface IPurchaseRuleService : IBaseDataService<PurchaseRuleDto, CreatePurchaseRuleDto, UpdatePurchaseRuleDto, PurchaseRuleQueryParameters>;
+public interface IPurchaseRuleService : INamedCodeBaseDataService<PurchaseRuleDto, CreatePurchaseRuleDto, UpdatePurchaseRuleDto, PurchaseRuleQueryParameters>;

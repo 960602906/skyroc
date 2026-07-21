@@ -7,5 +7,6 @@
 export * from './use-auth';
 export * from './use-base-data-options';
 export * from './use-dashboard';
+export * from './use-remote-options';
 export * from './use-route';
 export * from './use-system-manage';

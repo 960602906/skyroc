@@ -4,11 +4,10 @@ import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-d
 import { useCloseTabAndNavigate } from '@/features/tab';
 import {
   fetchGetAfterSalePickupTaskDetail,
-  fetchGetAllDrivers,
+  fetchGetBoundedSelectionOptions,
   fetchUpdateAfterSalePickupTasksAssign
 } from '@/service/api';
-import { EnableStatus, PickupTaskStatus } from '@/service/enums';
-import { formatField } from '@/utils/common';
+import { PickupTaskStatus } from '@/service/enums';
 
 const LIST_PATH = '/orders/pickup-tasks';
 const BACKEND_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
@@ -31,7 +30,10 @@ export async function loader({ params }: LoaderFunctionArgs) {
   }
 
   try {
-    const [task, drivers] = await Promise.all([fetchGetAfterSalePickupTaskDetail(id), fetchGetAllDrivers()]);
+    const [task, drivers] = await Promise.all([
+      fetchGetAfterSalePickupTaskDetail(id),
+      fetchGetBoundedSelectionOptions('/drivers')
+    ]);
     const canSchedule =
       task.pickupStatus === PickupTaskStatus.PENDING_ASSIGN || task.pickupStatus === PickupTaskStatus.PENDING_PICKUP;
     if (!canSchedule) {
@@ -46,16 +48,17 @@ export async function loader({ params }: LoaderFunctionArgs) {
 /** 编辑未开始取货任务的司机、预约时间和调度备注。 */
 const PickupTaskOperatePage = () => {
   const { t } = useTranslation();
-  const { drivers, task } = useLoaderData() as { drivers: Api.Driver.AllEntity[]; task: Api.AfterSale.PickupTask };
+  const { drivers, task } = useLoaderData() as {
+    drivers: Api.SelectionOption.Entity[];
+    task: Api.AfterSale.PickupTask;
+  };
   const closeTabAndNavigate = useCloseTabAndNavigate();
   const [form] = AForm.useForm<PickupTaskScheduleFormValues>();
   const [submitting, setSubmitting] = useState(false);
-  const driverOptions = drivers
-    .filter(driver => driver.status === EnableStatus.ENABLED)
-    .map(driver => ({
-      label: formatField(driver, ['name', 'phone'], ' · ') || driver.id,
-      value: driver.id
-    }));
+  const driverOptions = drivers.map(driver => ({
+    label: driver.secondaryText ? `${driver.label} · ${driver.secondaryText}` : driver.label,
+    value: driver.id
+  }));
 
   async function handleSubmit() {
     const values = await form.validateFields();

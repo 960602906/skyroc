@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
 
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useCustomerOptions, useQuotationOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
 
 type RuleKey = 'code' | 'effectiveStart' | 'name';
 
@@ -11,9 +12,6 @@ const ProtocolOperateDrawer: FC<Page.OperateDrawerProps> = memo(
     const { t } = useTranslation();
 
     const { defaultRequiredRule } = useFormRules();
-
-    const { data: quotationOptions } = useQuotationOptions();
-    const { data: customers } = useCustomerOptions();
 
     const rules: Record<RuleKey, App.Global.FormRule> = {
       code: defaultRequiredRule,
@@ -70,10 +68,10 @@ const ProtocolOperateDrawer: FC<Page.OperateDrawerProps> = memo(
             label={t('page.customer.protocol.quotationId')}
             name="quotationId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              options={quotationOptions}
               placeholder={t('page.customer.protocol.form.quotationId')}
+              resource={SELECTION_OPTION_RESOURCES.QUOTATION}
             />
           </AForm.Item>
 
@@ -115,11 +113,12 @@ const ProtocolOperateDrawer: FC<Page.OperateDrawerProps> = memo(
             label={t('page.customer.protocol.customerIds')}
             name="customerIds"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
+              maxTagCount="responsive"
               mode="multiple"
-              options={toOptions(customers)}
               placeholder={t('page.customer.protocol.form.customerIds')}
+              resource={SELECTION_OPTION_RESOURCES.CUSTOMER}
             />
           </AForm.Item>
 

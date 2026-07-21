@@ -15,4 +15,4 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Customers.Resource)]
 public class CompaniesController(ICompanyService service)
-    : BaseDataController<CompanyDto, CreateCompanyDto, UpdateCompanyDto, CompanyQueryParameters>(service);
+    : NamedCodeDataController<CompanyDto, CreateCompanyDto, UpdateCompanyDto, CompanyQueryParameters>(service);

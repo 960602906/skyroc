@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
 
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useCustomerOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
 
 type RuleKey = 'code' | 'name' | 'status';
 
@@ -10,9 +11,6 @@ const QuotationOperateDrawer: FC<Page.OperateDrawerProps> = memo(
   ({ form, handleSubmit, onClose, open, operateType }) => {
     const { t } = useTranslation();
     const { defaultRequiredRule } = useFormRules();
-    const { data: customers } = useCustomerOptions();
-    const customerOptions = toOptions(customers);
-
     const rules: Record<RuleKey, App.Global.FormRule> = {
       code: defaultRequiredRule,
       name: defaultRequiredRule,
@@ -103,11 +101,12 @@ const QuotationOperateDrawer: FC<Page.OperateDrawerProps> = memo(
             label={t('page.goods.quotation.customerIds')}
             name="customerIds"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
+              maxTagCount="responsive"
               mode="multiple"
-              options={customerOptions}
               placeholder={t('page.goods.quotation.form.customerIds')}
+              resource={SELECTION_OPTION_RESOURCES.CUSTOMER}
             />
           </AForm.Item>
 

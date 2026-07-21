@@ -1,14 +1,13 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusSelect, SearchActionsCol } from '@/features/crud';
-import { toOptions, useGoodsTypeOptions, useSupplierOptions, useWareOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES, toOptions, useGoodsTypeOptions, useWareOptions } from '@/service/hooks';
 
 const GoodsSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
   const { data: goodsTypes } = useGoodsTypeOptions();
-  const { data: suppliers } = useSupplierOptions();
   const { data: wares } = useWareOptions();
 
   const goodsTypeOptions = toOptions(goodsTypes);
-  const supplierOptions = toOptions(suppliers);
   const wareOptions = toOptions(wares);
 
   return (
@@ -74,10 +73,10 @@ const GoodsSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
             label={t('page.goods.list.defaultSupplierId')}
             name="defaultSupplierId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              options={supplierOptions}
               placeholder={t('page.goods.list.form.defaultSupplierId')}
+              resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
             />
           </AForm.Item>
         </ACol>

@@ -69,4 +69,78 @@ public abstract class NamedCodeRepository<TEntity>(ApplicationDbContext context)
             })
             .ToListAsync();
     }
+
+    /// <inheritdoc />
+    public virtual async Task<List<SelectionOption>> SearchSelectionOptionsAsync(string? keyword, int take)
+    {
+        var query = DbSet.AsNoTracking();
+        var normalizedKeyword = string.IsNullOrWhiteSpace(keyword)
+            ? null
+            : keyword.Trim().ToLowerInvariant();
+
+        if (normalizedKeyword is not null)
+        {
+            query = query.Where(x =>
+                EF.Property<string>(x, "Name").ToLower().Contains(normalizedKeyword) ||
+                EF.Property<string>(x, "Code").ToLower().Contains(normalizedKeyword));
+
+            query = query
+                .OrderByDescending(x =>
+                    EF.Property<string>(x, "Name").ToLower() == normalizedKeyword ||
+                    EF.Property<string>(x, "Code").ToLower() == normalizedKeyword)
+                .ThenByDescending(x =>
+                    EF.Property<string>(x, "Name").ToLower().StartsWith(normalizedKeyword) ||
+                    EF.Property<string>(x, "Code").ToLower().StartsWith(normalizedKeyword))
+                .ThenBy(x => EF.Property<string>(x, "Name"))
+                .ThenBy(x => EF.Property<string>(x, "Code"))
+                .ThenBy(x => x.Id);
+        }
+        else
+        {
+            query = query
+                .OrderBy(x => EF.Property<string>(x, "Name"))
+                .ThenBy(x => EF.Property<string>(x, "Code"))
+                .ThenBy(x => x.Id);
+        }
+
+        return await ProjectSelectionOptions(query).Take(take).ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public virtual async Task<List<SelectionOption>> ResolveSelectionOptionsAsync(IReadOnlyCollection<Guid> ids)
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        return await ProjectSelectionOptions(DbSet
+                .AsNoTracking()
+                .Where(x => ids.Contains(x.Id))
+                .OrderBy(x => EF.Property<string>(x, "Name"))
+                .ThenBy(x => x.Id))
+            .ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public virtual async Task<List<SelectionOption>> GetBoundedSelectionOptionsAsync(int take)
+    {
+        return await ProjectSelectionOptions(DbSet
+                .AsNoTracking()
+                .OrderBy(x => EF.Property<string>(x, "Name"))
+                .ThenBy(x => EF.Property<string>(x, "Code"))
+                .ThenBy(x => x.Id))
+            .Take(take)
+            .ToListAsync();
+    }
+
+    private static IQueryable<SelectionOption> ProjectSelectionOptions(IQueryable<TEntity> query)
+    {
+        return query.Select(x => new SelectionOption
+        {
+            Id = x.Id,
+            Label = EF.Property<string>(x, "Name"),
+            SecondaryText = EF.Property<string>(x, "Code")
+        });
+    }
 }

@@ -15,4 +15,4 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Storage.Resource)]
 public class WaresController(IWareService service)
-    : BaseDataController<WareDto, CreateWareDto, UpdateWareDto, WareQueryParameters>(service);
+    : NamedCodeDataController<WareDto, CreateWareDto, UpdateWareDto, WareQueryParameters>(service);

@@ -15,4 +15,4 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Customers.Resource)]
 public class CustomersController(ICustomerService service)
-    : BaseDataController<CustomerDto, CreateCustomerDto, UpdateCustomerDto, CustomerQueryParameters>(service);
+    : NamedCodeDataController<CustomerDto, CreateCustomerDto, UpdateCustomerDto, CustomerQueryParameters>(service);

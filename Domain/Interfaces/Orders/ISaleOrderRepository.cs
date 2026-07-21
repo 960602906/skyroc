@@ -1,4 +1,5 @@
 using Domain.Entities.Orders;
+using Domain.ReadModels.BaseData;
 
 namespace Domain.Interfaces;
 
@@ -32,4 +33,17 @@ public interface ISaleOrderRepository : IRepository<SaleOrder>
     /// <param name="updateName">确认打印的操作人名称快照。</param>
     /// <returns>实际标记成功的订单数量。</returns>
     Task<int> MarkPrintedAsync(IReadOnlyCollection<Guid> ids, Guid? updatedBy, string? updateName);
+
+    /// <summary>
+    ///     按订单号限量搜索轻量选择项；空关键词时按最近创建顺序返回。
+    /// </summary>
+    /// <param name="keyword">订单号关键词。</param>
+    /// <param name="take">数据库读取数量，调用方可多取一条判断是否还有结果。</param>
+    Task<List<SelectionOption>> SearchSelectionOptionsAsync(string? keyword, int take);
+
+    /// <summary>
+    ///     按主键集合解析销售订单的订单号和客户名称。
+    /// </summary>
+    /// <param name="ids">已去重的销售订单主键集合。</param>
+    Task<List<SelectionOption>> ResolveSelectionOptionsAsync(IReadOnlyCollection<Guid> ids);
 }

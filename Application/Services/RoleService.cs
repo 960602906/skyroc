@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.DTOs.Menu;
 using Application.DTOs.Role;
 using Application.Exceptions;
@@ -8,6 +9,7 @@ using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Shared.Constants;
 using ValidationException = Application.Exceptions.ValidationException;
@@ -96,6 +98,23 @@ public class RoleService(
     {
         var roles = await roleRepository.GetAllAsync();
         return mapper.Map<IEnumerable<RoleDto>>(roles);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<SelectionOptionDto>> GetBoundedSelectionOptionsAsync()
+    {
+        var options = await roleRepository.GetBoundedSelectionOptionsAsync(
+            SelectionOptionConstants.MaxBoundedCount + 1);
+        if (options.Count > SelectionOptionConstants.MaxBoundedCount)
+        {
+            throw new ValidationException([
+                new ValidationFailure(
+                    "Options",
+                    $"角色选项超过 {SelectionOptionConstants.MaxBoundedCount} 条，请改用远程搜索")
+            ]);
+        }
+
+        return mapper.Map<List<SelectionOptionDto>>(options);
     }
 
     /// <summary>

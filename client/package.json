@@ -36,6 +36,7 @@
   "scripts": {
     "build": "vite build --mode prod",
     "build:test": "vite build --mode test",
+    "check:options": "node scripts/check-option-data-access.mjs",
     "cleanup": "sa cleanup",
     "commit": "sa git-commit",
     "commit:zh": "sa git-commit -l=zh-cn",

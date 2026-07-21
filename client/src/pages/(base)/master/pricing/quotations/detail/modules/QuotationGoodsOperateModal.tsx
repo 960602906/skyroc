@@ -1,5 +1,6 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { useFormRules } from '@/features/form';
-import { toOptions, useGoodsOptions, useGoodsUnitsByGoodsOptions, useQuotationOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES, useGoodsUnitsByGoodsOptions } from '@/service/hooks';
 
 type RuleKey = 'goodsId' | 'goodsUnitId' | 'quotationId' | 'unitPrice';
 
@@ -12,10 +13,6 @@ const QuotationGoodsOperateModal: FC<QuotationGoodsOperateModalProps> = memo(
   ({ form, handleSubmit, lockQuotationId = false, onClose, open, operateType }) => {
     const { t } = useTranslation();
     const { defaultRequiredRule } = useFormRules();
-    const { data: quotationOptions = [] } = useQuotationOptions();
-    const { data: goods } = useGoodsOptions();
-    const goodsOptions = toOptions(goods);
-
     const goodsId = AForm.useWatch('goodsId', form);
     const { data: goodsUnitOptions = [] } = useGoodsUnitsByGoodsOptions(goodsId);
     const prevGoodsIdRef = useRef<string | undefined>(undefined);
@@ -71,9 +68,9 @@ const QuotationGoodsOperateModal: FC<QuotationGoodsOperateModalProps> = memo(
               name="quotationId"
               rules={[rules.quotationId]}
             >
-              <ASelect
-                options={quotationOptions}
+              <RemoteOptionSelect
                 placeholder={t('page.goods.quotationGoods.form.quotationId')}
+                resource={SELECTION_OPTION_RESOURCES.QUOTATION}
               />
             </AForm.Item>
           )}
@@ -83,9 +80,9 @@ const QuotationGoodsOperateModal: FC<QuotationGoodsOperateModalProps> = memo(
             name="goodsId"
             rules={[rules.goodsId]}
           >
-            <ASelect
-              options={goodsOptions}
+            <RemoteOptionSelect
               placeholder={t('page.goods.quotationGoods.form.goodsId')}
+              resource={SELECTION_OPTION_RESOURCES.GOODS}
             />
           </AForm.Item>
 

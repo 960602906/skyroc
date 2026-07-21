@@ -1,10 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
-
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { fetchGetAllCustomerTags } from '@/service/api';
-import { toOptions, useCompanyOptions, useQuotationOptions, useWareOptions } from '@/service/hooks';
-import { QUERY_KEYS } from '@/service/keys';
+import {
+  SELECTION_OPTION_RESOURCES,
+  toOptions,
+  useCompanyOptions,
+  useCustomerTagOptions,
+  useWareOptions
+} from '@/service/hooks';
 
 type RuleKey = 'code' | 'name';
 
@@ -19,13 +22,7 @@ function CustomerOperateForm({ form }: CustomerOperateFormProps) {
 
   const { data: companies } = useCompanyOptions();
   const { data: wares } = useWareOptions();
-  const { data: quotationOptions } = useQuotationOptions();
-
-  const { data: tags } = useQuery({
-    queryFn: () => fetchGetAllCustomerTags(),
-    queryKey: QUERY_KEYS.BASE.CUSTOMER_TAGS,
-    staleTime: 60_000
-  });
+  const { data: tags } = useCustomerTagOptions();
 
   const rules: Record<RuleKey, App.Global.FormRule> = {
     code: defaultRequiredRule,
@@ -141,10 +138,10 @@ function CustomerOperateForm({ form }: CustomerOperateFormProps) {
               label={t('page.customer.operate.quotationId')}
               name="quotationId"
             >
-              <ASelect
+              <RemoteOptionSelect
                 allowClear
-                options={quotationOptions}
                 placeholder={t('page.customer.operate.form.quotationId')}
+                resource={SELECTION_OPTION_RESOURCES.QUOTATION}
               />
             </AForm.Item>
           </ACol>

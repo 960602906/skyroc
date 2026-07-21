@@ -19,14 +19,42 @@ public abstract class NamedCodeDataController<TDto, TCreateDto, TUpdateDto, TQue
     where TQuery : PagedQueryParameters
 {
     /// <summary>
-    ///     查询全部下拉选项。
+    ///     按名称或编码限量搜索选择项。
     /// </summary>
-    /// <returns>仅包含主键、名称和编码的下拉选项集合，不含明细字段。</returns>
-    [HttpGet("options")]
+    /// <param name="parameters">关键词和返回数量；空关键词默认返回前 20 条。</param>
+    /// <returns>轻量选择项和是否仍有更多匹配项。</returns>
+    [HttpGet("options/search")]
     [ResourcePermission(PermissionActions.Read)]
-    public virtual async Task<ActionResult<ApiResponse<List<NamedCodeOptionDto>>>> GetOptions()
+    public virtual async Task<ActionResult<ApiResponse<SelectionOptionSearchResultDto>>> SearchOptions(
+        [FromQuery] SelectionOptionSearchQueryParameters parameters)
     {
-        var result = await service.GetOptionsAsync();
-        return Ok(ApiResponse<List<NamedCodeOptionDto>>.Ok(result));
+        var result = await service.SearchSelectionOptionsAsync(parameters);
+        return Ok(ApiResponse<SelectionOptionSearchResultDto>.Ok(result));
+    }
+
+    /// <summary>
+    ///     按主键集合解析已选项显示文本。
+    /// </summary>
+    /// <param name="parameters">已选业务主键集合，单次最多 100 个。</param>
+    /// <returns>存在的轻量选择项。</returns>
+    [HttpGet("options/resolve")]
+    [ResourcePermission(PermissionActions.Read)]
+    public virtual async Task<ActionResult<ApiResponse<List<SelectionOptionDto>>>> ResolveOptions(
+        [FromQuery] SelectionOptionResolveQueryParameters parameters)
+    {
+        var result = await service.ResolveSelectionOptionsAsync(parameters.Ids);
+        return Ok(ApiResponse<List<SelectionOptionDto>>.Ok(result));
+    }
+
+    /// <summary>
+    ///     获取有明确业务边界的轻量选择项。
+    /// </summary>
+    /// <returns>不超过 500 条的轻量选择项；越界时返回业务校验失败。</returns>
+    [HttpGet("options/bounded")]
+    [ResourcePermission(PermissionActions.Read)]
+    public virtual async Task<ActionResult<ApiResponse<List<SelectionOptionDto>>>> GetBoundedOptions()
+    {
+        var result = await service.GetBoundedSelectionOptionsAsync();
+        return Ok(ApiResponse<List<SelectionOptionDto>>.Ok(result));
     }
 }

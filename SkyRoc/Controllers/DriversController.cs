@@ -15,4 +15,4 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Delivery.Resource)]
 public class DriversController(IDriverService service)
-    : BaseDataController<DriverDto, CreateDriverDto, UpdateDriverDto, DriverQueryParameters>(service);
+    : NamedCodeDataController<DriverDto, CreateDriverDto, UpdateDriverDto, DriverQueryParameters>(service);

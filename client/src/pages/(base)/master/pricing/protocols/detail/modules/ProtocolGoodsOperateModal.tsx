@@ -1,5 +1,6 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { useFormRules } from '@/features/form';
-import { toOptions, useGoodsOptions, useGoodsUnitsByGoodsOptions, useProtocolOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES, useGoodsUnitsByGoodsOptions } from '@/service/hooks';
 
 type RuleKey = 'customerProtocolId' | 'goodsId' | 'goodsUnitId' | 'protocolPrice';
 
@@ -13,10 +14,6 @@ const ProtocolGoodsOperateModal: FC<ProtocolGoodsOperateModalProps> = memo(
     const { t } = useTranslation();
 
     const { defaultRequiredRule } = useFormRules();
-
-    const { data: protocolOptions } = useProtocolOptions();
-    const { data: goods } = useGoodsOptions();
-    const goodsOptions = toOptions(goods);
 
     const goodsId = AForm.useWatch('goodsId', form);
     const { data: goodsUnitOptions = [] } = useGoodsUnitsByGoodsOptions(goodsId);
@@ -77,10 +74,10 @@ const ProtocolGoodsOperateModal: FC<ProtocolGoodsOperateModalProps> = memo(
               name="customerProtocolId"
               rules={[rules.customerProtocolId]}
             >
-              <ASelect
+              <RemoteOptionSelect
                 allowClear
-                options={protocolOptions}
                 placeholder={t('page.customer.protocolGoods.form.customerProtocolId')}
+                resource={SELECTION_OPTION_RESOURCES.PROTOCOL}
               />
             </AForm.Item>
           )}
@@ -90,10 +87,10 @@ const ProtocolGoodsOperateModal: FC<ProtocolGoodsOperateModalProps> = memo(
             name="goodsId"
             rules={[rules.goodsId]}
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              options={goodsOptions}
               placeholder={t('page.customer.protocolGoods.form.goodsId')}
+              resource={SELECTION_OPTION_RESOURCES.GOODS}
             />
           </AForm.Item>
 

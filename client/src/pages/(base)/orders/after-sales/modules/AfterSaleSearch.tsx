@@ -1,11 +1,10 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { afterSaleHandleTypeOptions, afterSaleTypeOptions } from '@/constants/business';
 import { AfterSaleStatusSelect, SearchActionsCol } from '@/features/crud';
-import { toOptions, useCustomerOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
 
 const AfterSaleSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
-  const { data: customers } = useCustomerOptions();
-
   const typeOptions = afterSaleTypeOptions.map(item => ({
     label: t(item.label as App.I18n.I18nKey),
     value: item.value as Api.AfterSale.AfterSaleType
@@ -83,12 +82,10 @@ const AfterSaleSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searc
             label={t('page.afterSale.list.customerId')}
             name="customerId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              showSearch
-              optionFilterProp="label"
-              options={toOptions(customers)}
               placeholder={t('page.afterSale.list.form.customerId')}
+              resource={SELECTION_OPTION_RESOURCES.CUSTOMER}
             />
           </AForm.Item>
         </ACol>

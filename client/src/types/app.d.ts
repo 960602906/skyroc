@@ -320,6 +320,7 @@ declare namespace App {
           operate: string;
           pleaseCheckValue: string;
           refresh: string;
+          remoteSelectMore: string;
           reset: string;
           search: string;
           switch: string;

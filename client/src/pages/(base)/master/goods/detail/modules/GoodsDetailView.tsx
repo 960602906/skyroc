@@ -4,7 +4,7 @@ import { DETAIL_EMPTY, displayText, renderBooleanTag, renderEnableStatus } from 
 import {
   toOptions,
   useGoodsTypeTreeOptions,
-  useGoodsUnitOptions,
+  useGoodsUnitsByGoodsOptions,
   useSupplierOptions,
   useWareOptions
 } from '@/service/hooks';
@@ -18,7 +18,7 @@ interface GoodsDetailViewProps {
 function GoodsDetailView({ detail }: GoodsDetailViewProps) {
   const { t } = useTranslation();
   const { data: goodsTypeTree } = useGoodsTypeTreeOptions();
-  const { data: unitOptions = [] } = useGoodsUnitOptions();
+  const { data: unitOptions = [] } = useGoodsUnitsByGoodsOptions(detail.id);
   const { data: suppliers } = useSupplierOptions();
   const { data: wares } = useWareOptions();
 

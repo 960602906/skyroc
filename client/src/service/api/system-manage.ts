@@ -53,6 +53,14 @@ export function fetchGetAllRoles() {
   });
 }
 
+/** 轻量加载业务数量有边界的角色选择项。 */
+export function fetchGetBoundedRoles() {
+  return request<Api.SelectionOption.Entity[]>({
+    method: 'get',
+    url: `${SYSTEM_MANAGE_URLS.BASE_ROLE_URL}/options/bounded`
+  });
+}
+
 /** 根据id获取角色 */
 export function fetchGetRoleDetail(id: string) {
   return request<Api.SystemManage.Role>({

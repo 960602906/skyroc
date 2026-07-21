@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Interfaces;
+using Domain.ReadModels.BaseData;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,5 +72,23 @@ public class RoleRepository(ApplicationDbContext context) : Repository<Role>(con
             MenuId = menuId
         });
         await _dbSetRoleMenu.AddRangeAsync(roleMenus);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<SelectionOption>> GetBoundedSelectionOptionsAsync(int take)
+    {
+        return await DbSet
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ThenBy(x => x.Code)
+            .ThenBy(x => x.Id)
+            .Take(take)
+            .Select(x => new SelectionOption
+            {
+                Id = x.Id,
+                Label = x.Name,
+                SecondaryText = x.Code
+            })
+            .ToListAsync();
     }
 }

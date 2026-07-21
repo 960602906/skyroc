@@ -16,7 +16,7 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Delivery.Resource)]
 public class RoutesController(IDeliveryRouteService service)
-    : BaseDataController<DeliveryRouteDto, CreateDeliveryRouteDto, UpdateDeliveryRouteDto, DeliveryRouteQueryParameters>(
+    : NamedCodeDataController<DeliveryRouteDto, CreateDeliveryRouteDto, UpdateDeliveryRouteDto, DeliveryRouteQueryParameters>(
         service)
 {
     /// <summary>

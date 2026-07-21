@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.DTOs.Orders;
 using Application.Interfaces;
 using Application.QueryParameters;
@@ -28,6 +29,34 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     {
         var result = await service.GetPagedAsync(parameters);
         return Ok(ApiResponse<PagedResult<SaleOrderDto>>.Ok(result));
+    }
+
+    /// <summary>
+    /// 按订单号限量搜索销售订单选择项。
+    /// </summary>
+    /// <param name="parameters">订单号关键词和返回数量；空关键词默认返回最近 20 条。</param>
+    /// <returns>轻量订单选择项和是否仍有更多匹配项。</returns>
+    [HttpGet("options/search")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<SelectionOptionSearchResultDto>>> SearchOptions(
+        [FromQuery] SelectionOptionSearchQueryParameters parameters)
+    {
+        var result = await service.SearchSelectionOptionsAsync(parameters);
+        return Ok(ApiResponse<SelectionOptionSearchResultDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// 按主键集合解析已选销售订单的订单号和客户名称。
+    /// </summary>
+    /// <param name="parameters">销售订单主键集合，单次最多 100 个。</param>
+    /// <returns>存在的轻量销售订单选择项。</returns>
+    [HttpGet("options/resolve")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<List<SelectionOptionDto>>>> ResolveOptions(
+        [FromQuery] SelectionOptionResolveQueryParameters parameters)
+    {
+        var result = await service.ResolveSelectionOptionsAsync(parameters.Ids);
+        return Ok(ApiResponse<List<SelectionOptionDto>>.Ok(result));
     }
 
     /// <summary>

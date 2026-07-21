@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import {
-  fetchGetAllRoles,
+  fetchGetBoundedRoles,
   fetchGetMenuList,
   fetchGetMenuTree,
   fetchGetRoleDetail,
@@ -33,8 +33,9 @@ export function useRoleList(params?: Api.SystemManage.RoleSearchParams) {
  */
 export function useAllRoles() {
   return useQuery({
-    queryFn: fetchGetAllRoles,
+    queryFn: fetchGetBoundedRoles,
     queryKey: QUERY_KEYS.SYSTEM_MANAGE.ALL_ROLES,
+    select: data => data.map(item => ({ code: item.secondaryText ?? '', id: item.id, name: item.label })),
     staleTime: 0
   });
 }

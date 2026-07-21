@@ -1,10 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
 import type { DescriptionsProps } from 'antd';
 
 import { DETAIL_EMPTY, displayText, renderEnableStatus } from '@/features/crud';
-import { fetchGetAllCustomerTags } from '@/service/api';
-import { toOptions, useCompanyOptions, useQuotationOptions, useWareOptions } from '@/service/hooks';
-import { QUERY_KEYS } from '@/service/keys';
+import {
+  toOptions,
+  useCompanyOptions,
+  useCustomerTagOptions,
+  useQuotationOptions,
+  useWareOptions
+} from '@/service/hooks';
 
 interface CustomerDetailViewProps {
   detail: Api.Customer.Entity;
@@ -17,11 +20,7 @@ function CustomerDetailView({ detail }: CustomerDetailViewProps) {
   const { data: wares } = useWareOptions();
   const { data: quotationOptions } = useQuotationOptions();
 
-  const { data: tags } = useQuery({
-    queryFn: () => fetchGetAllCustomerTags(),
-    queryKey: QUERY_KEYS.BASE.CUSTOMER_TAGS,
-    staleTime: 60_000
-  });
+  const { data: tags } = useCustomerTagOptions();
 
   const companyName = toOptions(companies).find(item => item.value === detail.companyId)?.label;
   const wareName = toOptions(wares).find(item => item.value === detail.defaultWareId)?.label;

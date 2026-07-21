@@ -1,22 +1,30 @@
 import { request } from '../request';
 import { ORDER_URLS } from '../urls';
 
+import { withSelectionOptionInvalidation } from './selection-option';
+
 /** 创建销售订单。 */
 export function fetchAddOrder(data: Api.Order.CreateParams) {
-  return request<Api.Order.Entity>({
-    data,
-    method: 'post',
-    url: ORDER_URLS.BASE
-  });
+  return withSelectionOptionInvalidation(
+    ORDER_URLS.BASE,
+    request<Api.Order.Entity>({
+      data,
+      method: 'post',
+      url: ORDER_URLS.BASE
+    })
+  );
 }
 
 /** 编辑销售订单及其商品明细。 */
 export function fetchUpdateOrder(data: Api.Order.UpdateParams) {
-  return request<Api.Order.Entity>({
-    data,
-    method: 'put',
-    url: ORDER_URLS.BASE
-  });
+  return withSelectionOptionInvalidation(
+    ORDER_URLS.BASE,
+    request<Api.Order.Entity>({
+      data,
+      method: 'put',
+      url: ORDER_URLS.BASE
+    })
+  );
 }
 
 /** 分页查询销售订单。 */
@@ -30,10 +38,13 @@ export function fetchGetOrderList(params?: Api.Order.SearchParams) {
 
 /** 删除销售订单。 */
 export function fetchDeleteOrder(id: string) {
-  return request<boolean>({
-    method: 'delete',
-    url: `${ORDER_URLS.BASE}/${id}`
-  });
+  return withSelectionOptionInvalidation(
+    ORDER_URLS.BASE,
+    request<boolean>({
+      method: 'delete',
+      url: `${ORDER_URLS.BASE}/${id}`
+    })
+  );
 }
 
 /** 查询销售订单详情。 */

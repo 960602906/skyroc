@@ -16,7 +16,7 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Goods.Resource)]
 public class GoodsTypesController(IGoodsTypeService service)
-    : BaseDataController<GoodsTypeDto, CreateGoodsTypeDto, UpdateGoodsTypeDto, GoodsTypeQueryParameters>(service)
+    : NamedCodeDataController<GoodsTypeDto, CreateGoodsTypeDto, UpdateGoodsTypeDto, GoodsTypeQueryParameters>(service)
 {
     /// <summary>
     ///     获取商品分类树。

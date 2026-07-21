@@ -29,6 +29,7 @@ const common: App.I18n.Schema['translation']['common'] = {
   operate: '操作',
   pleaseCheckValue: '请检查输入的值是否合法',
   refresh: '刷新',
+  remoteSelectMore: '结果较多，请继续输入关键词',
   reset: '重置',
   search: '搜索',
   switch: '切换',

@@ -12,7 +12,7 @@ namespace Application.Interfaces;
 /// <summary>
 /// 定义商品档案、上下架和供应商关系的维护用例。
 /// </summary>
-public interface IGoodsService : IBaseDataService<GoodsDto, CreateGoodsDto, UpdateGoodsDto, GoodsQueryParameters>
+public interface IGoodsService : INamedCodeBaseDataService<GoodsDto, CreateGoodsDto, UpdateGoodsDto, GoodsQueryParameters>
 {
     /// <summary>
     ///     修改商品上下架状态。

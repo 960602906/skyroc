@@ -34,6 +34,7 @@ public abstract class BaseDataController<TDto, TCreateDto, TUpdateDto, TQuery>(
     /// </summary>
     [HttpGet]
     [ResourcePermission(PermissionActions.Read)]
+    [Obsolete("全量实体接口仅保留兼容；选择控件请使用轻量选项接口。")]
     public virtual async Task<ActionResult<ApiResponse<List<TDto>>>> GetAll()
     {
         var result = await service.GetAllAsync();

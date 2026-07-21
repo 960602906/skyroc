@@ -1,11 +1,11 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusSelect, SearchActionsCol } from '@/features/crud';
-import { toOptions, useCompanyOptions, useCustomerOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES, toOptions, useCompanyOptions } from '@/service/hooks';
 
 const SubAccountSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
 
   const { data: companies } = useCompanyOptions();
-  const { data: customers } = useCustomerOptions();
 
   return (
     <AForm
@@ -48,10 +48,10 @@ const SubAccountSearch: FC<Page.SearchProps> = memo(({ form, reset, search, sear
             label={t('page.customer.subAccount.customerId')}
             name="customerId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              options={toOptions(customers)}
               placeholder={t('page.customer.subAccount.form.customerId')}
+              resource={SELECTION_OPTION_RESOURCES.CUSTOMER}
             />
           </AForm.Item>
         </ACol>

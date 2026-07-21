@@ -16,7 +16,7 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Customers.Resource)]
 public class CustomerTagsController(ICustomerTagService service)
-    : BaseDataController<CustomerTagDto, CreateCustomerTagDto, UpdateCustomerTagDto, CustomerTagQueryParameters>(service)
+    : NamedCodeDataController<CustomerTagDto, CreateCustomerTagDto, UpdateCustomerTagDto, CustomerTagQueryParameters>(service)
 {
     /// <summary>
     ///     获取客户标签树。

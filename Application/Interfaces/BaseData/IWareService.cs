@@ -12,4 +12,4 @@ namespace Application.Interfaces;
 /// <summary>
 /// 定义仓库档案的查询和维护用例。
 /// </summary>
-public interface IWareService : IBaseDataService<WareDto, CreateWareDto, UpdateWareDto, WareQueryParameters>;
+public interface IWareService : INamedCodeBaseDataService<WareDto, CreateWareDto, UpdateWareDto, WareQueryParameters>;

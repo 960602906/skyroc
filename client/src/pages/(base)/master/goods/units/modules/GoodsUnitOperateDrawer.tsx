@@ -1,6 +1,7 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useGoodsOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
 
 type RuleKey = 'conversionRate' | 'goodsId' | 'name' | 'status';
 
@@ -8,9 +9,6 @@ const GoodsUnitOperateDrawer: FC<Page.OperateDrawerProps> = memo(
   ({ form, handleSubmit, onClose, open, operateType }) => {
     const { t } = useTranslation();
     const { defaultRequiredRule } = useFormRules();
-    const { data: goods } = useGoodsOptions();
-    const goodsOptions = toOptions(goods);
-
     const rules: Record<RuleKey, App.Global.FormRule> = {
       conversionRate: defaultRequiredRule,
       goodsId: defaultRequiredRule,
@@ -50,11 +48,9 @@ const GoodsUnitOperateDrawer: FC<Page.OperateDrawerProps> = memo(
             name="goodsId"
             rules={[rules.goodsId]}
           >
-            <ASelect
-              showSearch
-              optionFilterProp="label"
-              options={goodsOptions}
+            <RemoteOptionSelect
               placeholder={t('page.goods.unit.form.goodsId')}
+              resource={SELECTION_OPTION_RESOURCES.GOODS}
             />
           </AForm.Item>
 

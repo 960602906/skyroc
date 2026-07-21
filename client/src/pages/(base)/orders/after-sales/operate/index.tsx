@@ -1,9 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-
 import { useCloseTabAndNavigate } from '@/features/tab';
-import { fetchAddAfterSale, fetchGetOrderDetail, fetchGetOrderList } from '@/service/api';
+import { fetchAddAfterSale, fetchGetOrderDetail } from '@/service/api';
 import { AfterSaleHandleType, AfterSaleReasonType, AfterSaleType } from '@/service/enums';
-import { formatField } from '@/utils/common';
 
 import AfterSaleOperateForm, {
   type AfterSaleFormValues,
@@ -34,20 +31,6 @@ const AfterSaleCreatePage = () => {
   const closeTabAndNavigate = useCloseTabAndNavigate();
   const [form] = AForm.useForm<AfterSaleFormValues>();
   const [submitting, setSubmitting] = useState(false);
-  const { data: orderList } = useQuery({
-    queryFn: () => fetchGetOrderList({ current: 1, size: 100 }),
-    queryKey: ['after-sale-source-orders']
-  });
-
-  const orderOptions = useMemo(
-    () =>
-      (orderList?.records ?? []).map(order => ({
-        label: formatField(order, ['orderNo', 'customerName'], ' · '),
-        value: order.id
-      })),
-    [orderList]
-  );
-
   async function handleSaleOrderChange(saleOrderId: string) {
     const order = await fetchGetOrderDetail(saleOrderId);
     if (!order) return;
@@ -102,7 +85,6 @@ const AfterSaleCreatePage = () => {
       <AfterSaleOperateForm
         sourceEditable
         form={form}
-        orderOptions={orderOptions}
         onSaleOrderChange={handleSaleOrderChange}
       />
     </div>

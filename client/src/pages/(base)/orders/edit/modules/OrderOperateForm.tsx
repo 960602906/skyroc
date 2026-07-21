@@ -2,10 +2,11 @@ import type { TableColumnsType } from 'antd';
 import dayjs from 'dayjs';
 import { Suspense, lazy } from 'react';
 
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { DETAIL_EMPTY, displayText } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { fetchGetCustomerDetail } from '@/service/api';
-import { toOptions, useCustomerOptions, useQuotationOptions, useWareOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES, toOptions, useWareOptions } from '@/service/hooks';
 
 import { estimateDetailTotal, formatMoney } from './order-form-utils';
 
@@ -23,9 +24,7 @@ function OrderOperateForm({ form, initialValues }: OrderOperateFormProps) {
   const { t } = useTranslation();
   const { defaultRequiredRule } = useFormRules();
 
-  const { data: customers } = useCustomerOptions();
   const { data: wares } = useWareOptions();
-  const { data: quotationOptions = [] } = useQuotationOptions();
 
   const [lineForm] = AForm.useForm<Api.Order.DetailFormItem>();
   const [lineOpen, setLineOpen] = useState(false);
@@ -268,12 +267,10 @@ function OrderOperateForm({ form, initialValues }: OrderOperateFormProps) {
                 name="customerId"
                 rules={[rules.customerId]}
               >
-                <ASelect
-                  showSearch
+                <RemoteOptionSelect
                   loading={fillingCustomer}
-                  optionFilterProp="label"
-                  options={toOptions(customers)}
                   placeholder={t('page.order.operate.form.customerId')}
+                  resource={SELECTION_OPTION_RESOURCES.CUSTOMER}
                   onChange={handleCustomerChange}
                 />
               </AForm.Item>
@@ -303,12 +300,10 @@ function OrderOperateForm({ form, initialValues }: OrderOperateFormProps) {
                 label={t('page.order.detail.quotationId')}
                 name="quotationId"
               >
-                <ASelect
+                <RemoteOptionSelect
                   allowClear
-                  showSearch
-                  optionFilterProp="label"
-                  options={quotationOptions}
                   placeholder={t('page.order.operate.form.quotationId')}
+                  resource={SELECTION_OPTION_RESOURCES.QUOTATION}
                 />
               </AForm.Item>
             </ACol>

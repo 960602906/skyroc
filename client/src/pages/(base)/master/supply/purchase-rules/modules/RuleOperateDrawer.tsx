@@ -1,10 +1,11 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusFormItem, PurchasePatternSelect } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import {
+  SELECTION_OPTION_RESOURCES,
   toOptions,
   useGoodsTypeOptions,
   usePurchaserOptions,
-  useSupplierOptions,
   useWareOptions
 } from '@/service/hooks';
 
@@ -16,7 +17,6 @@ const RuleOperateDrawer: FC<Page.OperateDrawerProps> = memo(({ form, handleSubmi
   const { defaultRequiredRule } = useFormRules();
 
   const { data: goodsTypes } = useGoodsTypeOptions();
-  const { data: suppliers } = useSupplierOptions();
   const { data: purchasers } = usePurchaserOptions();
   const { data: wares } = useWareOptions();
 
@@ -97,12 +97,10 @@ const RuleOperateDrawer: FC<Page.OperateDrawerProps> = memo(({ form, handleSubmi
           label={t('page.purchase.rule.supplierId')}
           name="supplierId"
         >
-          <ASelect
+          <RemoteOptionSelect
             allowClear
-            showSearch
-            optionFilterProp="label"
-            options={toOptions(suppliers)}
             placeholder={t('page.purchase.rule.form.supplierId')}
+            resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
           />
         </AForm.Item>
 

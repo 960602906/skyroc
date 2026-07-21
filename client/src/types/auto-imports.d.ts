@@ -84,6 +84,7 @@ declare global {
   const Outlet: typeof import('react-router-dom')['Outlet']
   const PagePlaceholder: typeof import('../components/PagePlaceholder')['default']
   const PinToggler: typeof import('../components/PinToggler')['default']
+  const RemoteOptionSelect: typeof import('../components/RemoteOptionSelect')['default']
   const Route: typeof import('react-router-dom')['Route']
   const Routes: typeof import('react-router-dom')['Routes']
   const SkyrocAvatar: typeof import('../components/SkyrocAvatar')['default']

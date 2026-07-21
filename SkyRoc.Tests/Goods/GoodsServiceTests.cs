@@ -2,6 +2,7 @@ using Application.DTOs.Goods;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Mappers;
+using Application.QueryParameters;
 using Application.Services;
 using Application.Validator;
 using AutoMapper;
@@ -19,6 +20,65 @@ namespace SkyRoc.Tests.Goods;
 public class GoodsServiceTests
 {
     private static readonly Guid CurrentUserId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+    [Fact]
+    public async Task Search_selection_options_should_return_twenty_items_without_total_count()
+    {
+        await using var context = CreateDbContext();
+        var goodsTypeId = await SeedSelectionGoodsAsync(context, 25);
+        var service = CreateGoodsService(context);
+
+        var result = await service.SearchSelectionOptionsAsync(new SelectionOptionSearchQueryParameters());
+
+        Assert.Equal(20, result.Items.Count);
+        Assert.True(result.HasMore);
+        Assert.All(result.Items, item => Assert.NotEqual(Guid.Empty, item.Id));
+        Assert.True(await context.Goods.AllAsync(x => x.GoodsTypeId == goodsTypeId));
+    }
+
+    [Fact]
+    public async Task Search_selection_options_should_match_case_insensitively_and_prioritize_exact_then_prefix()
+    {
+        await using var context = CreateDbContext();
+        var goodsType = new GoodsType { Id = Guid.NewGuid(), Name = "水果", Code = "FRUIT" };
+        await context.GoodsTypes.AddAsync(goodsType);
+        await context.Goods.AddRangeAsync(
+            new GoodsEntity { Id = Guid.NewGuid(), GoodsTypeId = goodsType.Id, Name = "Pineapple", Code = "PINE" },
+            new GoodsEntity { Id = Guid.NewGuid(), GoodsTypeId = goodsType.Id, Name = "Apple Juice", Code = "JUICE" },
+            new GoodsEntity { Id = Guid.NewGuid(), GoodsTypeId = goodsType.Id, Name = "Apple", Code = "APL" });
+        await context.SaveChangesAsync();
+
+        var result = await CreateGoodsService(context).SearchSelectionOptionsAsync(
+            new SelectionOptionSearchQueryParameters { Keyword = "aPpLe", Limit = 20 });
+
+        Assert.Equal(["Apple", "Apple Juice", "Pineapple"], result.Items.Select(x => x.Label));
+        Assert.False(result.HasMore);
+    }
+
+    [Fact]
+    public async Task Resolve_selection_options_should_deduplicate_ids_and_reject_more_than_one_hundred()
+    {
+        await using var context = CreateDbContext();
+        await SeedSelectionGoodsAsync(context, 2);
+        var service = CreateGoodsService(context);
+        var id = await context.Goods.Select(x => x.Id).FirstAsync();
+
+        var resolved = await service.ResolveSelectionOptionsAsync([id, id]);
+
+        Assert.Single(resolved);
+        await Assert.ThrowsAsync<Application.Exceptions.ValidationException>(() =>
+            service.ResolveSelectionOptionsAsync(Enumerable.Range(0, 101).Select(_ => Guid.NewGuid()).ToArray()));
+    }
+
+    [Fact]
+    public async Task Bounded_selection_options_should_fail_instead_of_truncating_more_than_five_hundred()
+    {
+        await using var context = CreateDbContext();
+        await SeedSelectionGoodsAsync(context, 501);
+
+        await Assert.ThrowsAsync<Application.Exceptions.ValidationException>(
+            () => CreateGoodsService(context).GetBoundedSelectionOptionsAsync());
+    }
 
     [Fact]
     public async Task Get_tree_should_nest_child_goods_type()
@@ -254,6 +314,26 @@ public class GoodsServiceTests
 
         await context.SaveChangesAsync();
         return new SeedResult(goodsType.Id, goods.Id, baseUnitId);
+    }
+
+    private static async Task<Guid> SeedSelectionGoodsAsync(ApplicationDbContext context, int count)
+    {
+        var goodsType = new GoodsType
+        {
+            Id = Guid.NewGuid(),
+            Name = $"选项分类-{Guid.NewGuid():N}",
+            Code = $"OPTION-{Guid.NewGuid():N}"
+        };
+        await context.GoodsTypes.AddAsync(goodsType);
+        await context.Goods.AddRangeAsync(Enumerable.Range(1, count).Select(index => new GoodsEntity
+        {
+            Id = Guid.NewGuid(),
+            GoodsTypeId = goodsType.Id,
+            Name = $"商品-{index:D4}",
+            Code = $"GOODS-{index:D4}"
+        }));
+        await context.SaveChangesAsync();
+        return goodsType.Id;
     }
 
     private sealed record SeedResult(Guid GoodsTypeId, Guid GoodsId, Guid? BaseUnitId);

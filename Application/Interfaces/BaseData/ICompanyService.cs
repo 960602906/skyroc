@@ -12,4 +12,4 @@ namespace Application.Interfaces;
 /// <summary>
 /// 定义公司档案的查询和维护用例。
 /// </summary>
-public interface ICompanyService : IBaseDataService<CompanyDto, CreateCompanyDto, UpdateCompanyDto, CompanyQueryParameters>;
+public interface ICompanyService : INamedCodeBaseDataService<CompanyDto, CreateCompanyDto, UpdateCompanyDto, CompanyQueryParameters>;

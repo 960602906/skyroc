@@ -1,6 +1,8 @@
+import type { FormListFieldData } from 'antd/es/form/FormList';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import {
   CrudPageLayout,
   PurchasePatternSelect,
@@ -25,11 +27,10 @@ import {
 } from '@/service/api';
 import { PurchasePlanStatus } from '@/service/enums';
 import {
+  SELECTION_OPTION_RESOURCES,
   toOptions,
-  useGoodsOptions,
-  useGoodsUnitOptions,
-  usePurchaserOptions,
-  useSupplierOptions
+  useGoodsUnitsByGoodsOptions,
+  usePurchaserOptions
 } from '@/service/hooks';
 
 import PurchasePlanSearch from './modules/PurchasePlanSearch';
@@ -54,6 +55,71 @@ const modalTitleKeyMap: Record<Exclude<ModalMode, null>, App.I18n.I18nKey> = {
   splitQuantity: 'page.purchase.plan.splitByQuantity'
 };
 
+interface PurchasePlanDetailRowProps {
+  field: FormListFieldData;
+  form: Page.FormInstance;
+  remove: (index: number | number[]) => void;
+}
+
+/** 采购计划明细行：商品远程搜索，单位随当前商品联动加载。 */
+function PurchasePlanDetailRow({ field, form, remove }: PurchasePlanDetailRowProps) {
+  const { t } = useTranslation();
+  const goodsId = AForm.useWatch(['details', field.name, 'goodsId'], form) as string | undefined;
+  const { data: units = [] } = useGoodsUnitsByGoodsOptions(goodsId);
+
+  return (
+    <ARow gutter={8}>
+      <ACol span={9}>
+        <AForm.Item
+          {...field}
+          name={[field.name, 'goodsId']}
+          rules={[{ required: true }]}
+        >
+          <RemoteOptionSelect
+            placeholder={t('page.purchase.plan.form.goodsId')}
+            resource={SELECTION_OPTION_RESOURCES.GOODS}
+            onChange={() => form.setFieldValue(['details', field.name, 'purchaseUnitId'], undefined)}
+          />
+        </AForm.Item>
+      </ACol>
+      <ACol span={7}>
+        <AForm.Item
+          {...field}
+          name={[field.name, 'purchaseUnitId']}
+          rules={[{ required: true }]}
+        >
+          <ASelect
+            disabled={!goodsId}
+            options={units}
+            placeholder={t('page.purchase.plan.form.purchaseUnitId')}
+          />
+        </AForm.Item>
+      </ACol>
+      <ACol span={6}>
+        <AForm.Item
+          {...field}
+          name={[field.name, 'plannedQuantity']}
+          rules={[{ required: true }]}
+        >
+          <AInputNumber
+            className="w-full"
+            min={0.0001}
+            placeholder={t('page.purchase.plan.form.plannedQuantity')}
+          />
+        </AForm.Item>
+      </ACol>
+      <ACol span={2}>
+        <AButton
+          danger
+          onClick={() => remove(field.name)}
+        >
+          -
+        </AButton>
+      </ACol>
+    </ARow>
+  );
+}
+
 /** 采购计划分页、生成、分配、合并及拆分页面。 */
 const PurchasePlanList = () => {
   const { t } = useTranslation();
@@ -63,10 +129,7 @@ const PurchasePlanList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [activePlan, setActivePlan] = useState<Api.PurchasePlan.Entity | null>(null);
   const [splitOrders, setSplitOrders] = useState<Api.PurchasePlan.SplittableOrder[]>([]);
-  const { data: suppliers } = useSupplierOptions();
   const { data: purchasers } = usePurchaserOptions();
-  const { data: goods } = useGoodsOptions();
-  const { data: units = [] } = useGoodsUnitOptions();
 
   const searchParams = useMemo(
     () => ({
@@ -238,9 +301,7 @@ const PurchasePlanList = () => {
   }
 
   const selectionRequired = selectedIds().length === 0;
-  const supplierOptions = toOptions(suppliers);
   const purchaserOptions = toOptions(purchasers);
-  const goodsOptions = toOptions(goods);
 
   return (
     <>
@@ -336,10 +397,10 @@ const PurchasePlanList = () => {
                 label={t('page.purchase.plan.supplier')}
                 name="supplierId"
               >
-                <ASelect
+                <RemoteOptionSelect
                   allowClear
-                  options={supplierOptions}
                   placeholder={t('page.purchase.plan.form.supplierId')}
+                  resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
                 />
               </AForm.Item>
               <AForm.Item
@@ -356,56 +417,12 @@ const PurchasePlanList = () => {
                 {(fields, { add, remove }) => (
                   <>
                     {fields.map(field => (
-                      <ARow
-                        gutter={8}
+                      <PurchasePlanDetailRow
+                        field={field}
+                        form={form}
                         key={field.key}
-                      >
-                        <ACol span={9}>
-                          <AForm.Item
-                            {...field}
-                            name={[field.name, 'goodsId']}
-                            rules={[{ required: true }]}
-                          >
-                            <ASelect
-                              options={goodsOptions}
-                              placeholder={t('page.purchase.plan.form.goodsId')}
-                            />
-                          </AForm.Item>
-                        </ACol>
-                        <ACol span={7}>
-                          <AForm.Item
-                            {...field}
-                            name={[field.name, 'purchaseUnitId']}
-                            rules={[{ required: true }]}
-                          >
-                            <ASelect
-                              options={units}
-                              placeholder={t('page.purchase.plan.form.purchaseUnitId')}
-                            />
-                          </AForm.Item>
-                        </ACol>
-                        <ACol span={6}>
-                          <AForm.Item
-                            {...field}
-                            name={[field.name, 'plannedQuantity']}
-                            rules={[{ required: true }]}
-                          >
-                            <AInputNumber
-                              className="w-full"
-                              min={0.0001}
-                              placeholder={t('page.purchase.plan.form.plannedQuantity')}
-                            />
-                          </AForm.Item>
-                        </ACol>
-                        <ACol span={2}>
-                          <AButton
-                            danger
-                            onClick={() => remove(field.name)}
-                          >
-                            -
-                          </AButton>
-                        </ACol>
-                      </ARow>
+                        remove={remove}
+                      />
                     ))}
                     <AButton
                       block
@@ -436,10 +453,10 @@ const PurchasePlanList = () => {
               label={t('page.purchase.plan.supplier')}
               name="supplierId"
             >
-              <ASelect
+              <RemoteOptionSelect
                 allowClear
-                options={supplierOptions}
                 placeholder={t('page.purchase.plan.form.supplierId')}
+                resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
               />
             </AForm.Item>
           )}

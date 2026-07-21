@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.Role;
+using Application.DTOs;
 using Application.QueryParameters;
 using Shared.Common;
 using Shared.Constants;
@@ -31,6 +32,11 @@ public interface IRoleService
     ///     获取所有角色
     /// </summary>
     Task<IEnumerable<RoleDto>> GetAllRolesAsync();
+
+    /// <summary>
+    ///     获取不超过业务上限的角色轻量选择项。
+    /// </summary>
+    Task<List<SelectionOptionDto>> GetBoundedSelectionOptionsAsync();
 
     /// <summary>
     ///     更新角色

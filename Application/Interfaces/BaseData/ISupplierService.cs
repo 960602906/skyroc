@@ -12,4 +12,4 @@ namespace Application.Interfaces;
 /// <summary>
 /// 定义供应商档案和供货关系的维护用例。
 /// </summary>
-public interface ISupplierService : IBaseDataService<SupplierDto, CreateSupplierDto, UpdateSupplierDto, SupplierQueryParameters>;
+public interface ISupplierService : INamedCodeBaseDataService<SupplierDto, CreateSupplierDto, UpdateSupplierDto, SupplierQueryParameters>;

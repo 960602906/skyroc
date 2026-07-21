@@ -13,7 +13,7 @@ namespace Application.Interfaces;
 ///     树形基础资料通用应用服务接口。
 /// </summary>
 public interface ITreeBaseDataService<TDto, in TCreateDto, in TUpdateDto, in TQuery>
-    : IBaseDataService<TDto, TCreateDto, TUpdateDto, TQuery>
+    : INamedCodeBaseDataService<TDto, TCreateDto, TUpdateDto, TQuery>
     where TUpdateDto : IHasId
 {
     /// <summary>

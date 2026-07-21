@@ -1,10 +1,11 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import {
+  SELECTION_OPTION_RESOURCES,
   toOptions,
   useGoodsTypeTreeOptions,
-  useGoodsUnitOptions,
-  useSupplierOptions,
+  useGoodsUnitsByGoodsOptions,
   useWareOptions
 } from '@/service/hooks';
 
@@ -18,12 +19,11 @@ function GoodsOperateForm({ form }: GoodsOperateFormProps) {
   const { t } = useTranslation();
   const { defaultRequiredRule } = useFormRules();
   const { data: goodsTypeTree } = useGoodsTypeTreeOptions();
-  const { data: unitOptions = [] } = useGoodsUnitOptions();
-  const { data: suppliers } = useSupplierOptions();
+  const goodsId = AForm.useWatch('id', form) as string | undefined;
+  const { data: unitOptions = [] } = useGoodsUnitsByGoodsOptions(goodsId);
   const { data: wares } = useWareOptions();
 
   const goodsTypeTreeOptions = useMemo(() => mapGoodsTypeTree(goodsTypeTree), [goodsTypeTree]);
-  const supplierOptions = toOptions(suppliers);
   const wareOptions = toOptions(wares);
 
   // 树数据异步到达后，重新写入 goodsTypeId，确保 TreeSelect 能解析出分类名称
@@ -210,10 +210,10 @@ function GoodsOperateForm({ form }: GoodsOperateFormProps) {
               label={t('page.goods.operate.defaultSupplierId')}
               name="defaultSupplierId"
             >
-              <ASelect
+              <RemoteOptionSelect
                 allowClear
-                options={supplierOptions}
                 placeholder={t('page.goods.operate.form.defaultSupplierId')}
+                resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
                 onChange={handleDefaultSupplierChange}
               />
             </AForm.Item>
@@ -226,11 +226,12 @@ function GoodsOperateForm({ form }: GoodsOperateFormProps) {
               label={t('page.goods.operate.supplierIds')}
               name="supplierIds"
             >
-              <ASelect
+              <RemoteOptionSelect
                 allowClear
+                maxTagCount="responsive"
                 mode="multiple"
-                options={supplierOptions}
                 placeholder={t('page.goods.operate.form.supplierIds')}
+                resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
                 onChange={handleSupplierIdsChange}
               />
             </AForm.Item>

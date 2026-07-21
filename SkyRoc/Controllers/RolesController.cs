@@ -35,10 +35,23 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// <returns></returns>
     [HttpGet]
     [Authorize(Policy = PermissionCodes.System.Roles.Read)]
+    [Obsolete("全量实体接口仅保留兼容；选择控件请使用 options/bounded。")]
     public async Task<ActionResult<ApiResponse<IEnumerable<RoleDto>>>> GetAllRoles()
     {
         var roles = await roleService.GetAllRolesAsync();
         return Ok(ApiResponse<IEnumerable<RoleDto>>.Ok(roles));
+    }
+
+    /// <summary>
+    ///     查询有明确业务边界的角色轻量选择项。
+    /// </summary>
+    /// <returns>不超过 500 条的角色主键、名称和编码。</returns>
+    [HttpGet("options/bounded")]
+    [Authorize(Policy = PermissionCodes.System.Roles.Read)]
+    public async Task<ActionResult<ApiResponse<List<Application.DTOs.SelectionOptionDto>>>> GetBoundedOptions()
+    {
+        var roles = await roleService.GetBoundedSelectionOptionsAsync();
+        return Ok(ApiResponse<List<Application.DTOs.SelectionOptionDto>>.Ok(roles));
     }
 
     /// <summary>

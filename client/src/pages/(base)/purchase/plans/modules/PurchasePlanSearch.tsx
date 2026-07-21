@@ -1,11 +1,10 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { PurchasePatternSelect, PurchasePlanStatusSelect, SearchActionsCol } from '@/features/crud';
-import { toOptions, useSupplierOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
 
 /** 采购计划列表搜索栏。 */
 const PurchasePlanSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
-  const { data: suppliers } = useSupplierOptions();
-
   return (
     <AForm
       form={form}
@@ -71,12 +70,10 @@ const PurchasePlanSearch: FC<Page.SearchProps> = memo(({ form, reset, search, se
             label={t('page.purchase.plan.supplier')}
             name="supplierId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              showSearch
-              optionFilterProp="label"
-              options={toOptions(suppliers)}
               placeholder={t('page.purchase.plan.form.supplierId')}
+              resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
             />
           </AForm.Item>
         </ACol>

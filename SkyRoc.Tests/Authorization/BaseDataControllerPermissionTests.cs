@@ -67,7 +67,12 @@ public class BaseDataControllerPermissionTests
             },
             [typeof(QuotationsController)] = new Dictionary<string, string>
             {
+                [nameof(QuotationsController.GetLegacyOptions)] = PermissionCodes.Business.Pricing.Read,
                 [nameof(QuotationsController.ToggleAudit)] = PermissionCodes.Business.Pricing.Audit
+            },
+            [typeof(CustomerProtocolsController)] = new Dictionary<string, string>
+            {
+                [nameof(CustomerProtocolsController.GetLegacyOptions)] = PermissionCodes.Business.Pricing.Read
             },
             [typeof(RoutesController)] = new Dictionary<string, string>
             {
@@ -107,6 +112,21 @@ public class BaseDataControllerPermissionTests
             var requirement = Assert.Single(action.GetCustomAttributes<ResourcePermissionAttribute>());
             Assert.Equal(expectedPermissionAction, requirement.Action);
         }
+    }
+
+    [Fact]
+    public void NamedCodeOptionActions_RequireReadPermission()
+    {
+        var actions = typeof(NamedCodeDataController<,,,>).GetMethods(
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+            .Where(action => action.GetCustomAttributes<HttpMethodAttribute>().Any())
+            .ToList();
+
+        Assert.Equal(3, actions.Count);
+        Assert.All(actions, action =>
+            Assert.Equal(
+                PermissionActions.Read,
+                Assert.Single(action.GetCustomAttributes<ResourcePermissionAttribute>()).Action));
     }
 
     [Fact]

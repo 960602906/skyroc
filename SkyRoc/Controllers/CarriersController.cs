@@ -15,4 +15,4 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Delivery.Resource)]
 public class CarriersController(ICarrierService service)
-    : BaseDataController<CarrierDto, CreateCarrierDto, UpdateCarrierDto, CarrierQueryParameters>(service);
+    : NamedCodeDataController<CarrierDto, CreateCarrierDto, UpdateCarrierDto, CarrierQueryParameters>(service);

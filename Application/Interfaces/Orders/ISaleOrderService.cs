@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.DTOs.Orders;
 using Application.QueryParameters;
 using Shared.Constants;
@@ -48,4 +49,14 @@ public interface ISaleOrderService
     /// 将已驳回销售订单重新提交审核。
     /// </summary>
     Task<SaleOrderDto> ResubmitAsync(Guid id, string? remark);
+
+    /// <summary>
+    ///     按订单号限量搜索销售订单选择项，不执行总数统计。
+    /// </summary>
+    Task<SelectionOptionSearchResultDto> SearchSelectionOptionsAsync(SelectionOptionSearchQueryParameters parameters);
+
+    /// <summary>
+    ///     按已选主键集合恢复订单号和客户名称。
+    /// </summary>
+    Task<List<SelectionOptionDto>> ResolveSelectionOptionsAsync(IReadOnlyCollection<Guid> ids);
 }

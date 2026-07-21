@@ -46,6 +46,32 @@ public class SwaggerResponseSchemaTests
     }
 
     [Fact]
+    public async Task Swagger_DocumentsSelectionOptionContracts_AndDeprecatesLegacyFullLoads()
+    {
+        using var factory = new SwaggerDocumentationWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/swagger/v1/swagger.json");
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var paths = root.GetProperty("paths");
+        var schemas = root.GetProperty("components").GetProperty("schemas");
+
+        Assert.True(schemas.TryGetProperty("SelectionOptionDto", out _));
+        Assert.True(schemas.TryGetProperty("SelectionOptionSearchResultDto", out _));
+        Assert.True(paths.TryGetProperty("/api/goods/options/search", out var searchPath));
+        Assert.True(paths.TryGetProperty("/api/goods/options/resolve", out _));
+        Assert.True(paths.TryGetProperty("/api/companies/options/bounded", out _));
+
+        var searchOperation = searchPath.GetProperty("get");
+        Assert.Contains(PermissionCodes.Business.Goods.Read, searchOperation.GetProperty("description").GetString());
+        Assert.Contains("SelectionOptionSearchResultDto", searchOperation.GetRawText());
+        Assert.True(paths.GetProperty("/api/goods").GetProperty("get").GetProperty("deprecated").GetBoolean());
+        Assert.True(paths.GetProperty("/api/quotations/options").GetProperty("get").GetProperty("deprecated").GetBoolean());
+    }
+
+    [Fact]
     public async Task Swagger_IncludesApplicationDtoDescriptions_ForCreateOrderRequest()
     {
         using var factory = new SwaggerDocumentationWebApplicationFactory();

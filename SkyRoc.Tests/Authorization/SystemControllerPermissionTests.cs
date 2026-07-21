@@ -27,6 +27,7 @@ public class SystemControllerPermissionTests
             {
                 [nameof(RolesController.GetPagedMenus)] = PermissionCodes.System.Roles.Read,
                 [nameof(RolesController.GetAllRoles)] = PermissionCodes.System.Roles.Read,
+                [nameof(RolesController.GetBoundedOptions)] = PermissionCodes.System.Roles.Read,
                 [nameof(RolesController.GetById)] = PermissionCodes.System.Roles.Read,
                 [nameof(RolesController.Create)] = PermissionCodes.System.Roles.Create,
                 [nameof(RolesController.Update)] = PermissionCodes.System.Roles.Update,

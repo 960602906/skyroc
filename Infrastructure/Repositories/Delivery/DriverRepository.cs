@@ -1,7 +1,9 @@
 using Domain.Entities.Delivery;
 using Domain.Interfaces;
+using Domain.ReadModels.BaseData;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Shared.Constants;
 
 namespace Infrastructure.Repositories;
 
@@ -15,6 +17,25 @@ public class DriverRepository(ApplicationDbContext context)
     public async Task<bool> HasDeliveryTasksAsync(Guid id)
     {
         return await Context.Set<DeliveryTask>().AnyAsync(x => x.DriverId == id);
+    }
+
+    /// <inheritdoc />
+    public override async Task<List<SelectionOption>> GetBoundedSelectionOptionsAsync(int take)
+    {
+        return await DbSet
+            .AsNoTracking()
+            .Where(x => x.Status == Status.Enable)
+            .OrderBy(x => x.Name)
+            .ThenBy(x => x.Code)
+            .ThenBy(x => x.Id)
+            .Select(x => new SelectionOption
+            {
+                Id = x.Id,
+                Label = x.Name,
+                SecondaryText = x.Phone
+            })
+            .Take(take)
+            .ToListAsync();
     }
 
     /// <inheritdoc />

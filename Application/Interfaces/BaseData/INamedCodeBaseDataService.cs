@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.QueryParameters;
 
 namespace Application.Interfaces;
 
@@ -13,4 +14,19 @@ public interface INamedCodeBaseDataService<TDto, in TCreateDto, in TUpdateDto, i
     ///     获取全部下拉选项，仅返回主键、名称和编码，不加载明细。
     /// </summary>
     Task<List<NamedCodeOptionDto>> GetOptionsAsync();
+
+    /// <summary>
+    ///     按关键词限量搜索轻量选择项，不执行总数统计。
+    /// </summary>
+    Task<SelectionOptionSearchResultDto> SearchSelectionOptionsAsync(SelectionOptionSearchQueryParameters parameters);
+
+    /// <summary>
+    ///     按已选主键集合恢复选择项显示文本。
+    /// </summary>
+    Task<List<SelectionOptionDto>> ResolveSelectionOptionsAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>
+    ///     获取轻量有界选择项；数据超过业务上限时拒绝静默截断。
+    /// </summary>
+    Task<List<SelectionOptionDto>> GetBoundedSelectionOptionsAsync();
 }

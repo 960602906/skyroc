@@ -16,7 +16,7 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Goods.Resource)]
 public class GoodsController(IGoodsService service)
-    : BaseDataController<GoodsDto, CreateGoodsDto, UpdateGoodsDto, GoodsQueryParameters>(service)
+    : NamedCodeDataController<GoodsDto, CreateGoodsDto, UpdateGoodsDto, GoodsQueryParameters>(service)
 {
     /// <summary>
     ///     修改商品上下架状态。

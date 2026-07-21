@@ -15,4 +15,4 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Purchases.Resource)]
 public class SuppliersController(ISupplierService service)
-    : BaseDataController<SupplierDto, CreateSupplierDto, UpdateSupplierDto, SupplierQueryParameters>(service);
+    : NamedCodeDataController<SupplierDto, CreateSupplierDto, UpdateSupplierDto, SupplierQueryParameters>(service);

@@ -15,4 +15,4 @@ namespace SkyRoc.Controllers;
 [Authorize]
 [PermissionResource(PermissionCodes.Business.Purchases.Resource)]
 public class PurchasersController(IPurchaserService service)
-    : BaseDataController<PurchaserDto, CreatePurchaserDto, UpdatePurchaserDto, PurchaserQueryParameters>(service);
+    : NamedCodeDataController<PurchaserDto, CreatePurchaserDto, UpdatePurchaserDto, PurchaserQueryParameters>(service);

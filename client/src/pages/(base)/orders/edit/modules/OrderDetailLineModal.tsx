@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { useFormRules } from '@/features/form';
-import { fetchGetGoodsUnitsByGoods } from '@/service/api';
-import { toOptions, useGoodsOptions } from '@/service/hooks';
+import { fetchGetGoodsDetail, fetchGetGoodsUnitsByGoods } from '@/service/api';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
 import { QUERY_KEYS } from '@/service/keys';
 
 type RuleKey = 'fixedGoodsUnitId' | 'fixedPrice' | 'goodsId' | 'goodsUnitId' | 'quantity';
@@ -19,9 +20,6 @@ interface OrderDetailLineModalProps {
 const OrderDetailLineModal: FC<OrderDetailLineModalProps> = memo(({ form, onClose, onSubmit, open, operateType }) => {
   const { t } = useTranslation();
   const { defaultRequiredRule } = useFormRules();
-  const { data: goods } = useGoodsOptions();
-  const goodsOptions = toOptions(goods);
-
   const goodsId = AForm.useWatch('goodsId', form) as string | undefined;
   const { data: unitEntities = [] } = useQuery({
     enabled: open && Boolean(goodsId),
@@ -67,11 +65,11 @@ const OrderDetailLineModal: FC<OrderDetailLineModalProps> = memo(({ form, onClos
     quantity: defaultRequiredRule
   };
 
-  function handleGoodsChange(value: string) {
-    const selected = goods?.find(item => item.id === value);
+  async function handleGoodsChange(value: string) {
+    const selected = await fetchGetGoodsDetail(value);
     form.setFieldsValue({
-      goodsCode: selected?.code,
-      goodsName: selected?.name
+      goodsCode: selected.code,
+      goodsName: selected.name
     });
   }
 
@@ -148,11 +146,9 @@ const OrderDetailLineModal: FC<OrderDetailLineModalProps> = memo(({ form, onClos
           name="goodsId"
           rules={[rules.goodsId]}
         >
-          <ASelect
-            showSearch
-            optionFilterProp="label"
-            options={goodsOptions}
+          <RemoteOptionSelect
             placeholder={t('page.order.operate.form.goodsId')}
+            resource={SELECTION_OPTION_RESOURCES.GOODS}
             onChange={handleGoodsChange}
           />
         </AForm.Item>

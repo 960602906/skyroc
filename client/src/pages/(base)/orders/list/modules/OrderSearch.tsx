@@ -1,5 +1,6 @@
 import { Form } from 'antd';
 
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { orderDateTypeOptions, orderDateTypeRecord } from '@/constants/business';
 import {
   BooleanYesNoSelect,
@@ -9,14 +10,12 @@ import {
   SearchActionsCol
 } from '@/features/crud';
 import { OrderDateType } from '@/service/enums';
-import { toOptions, useCustomerOptions, useCustomerTagOptions, useSupplierOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES, toOptions, useCustomerTagOptions } from '@/service/hooks';
 
 const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchParams }) => {
   const { t } = useTranslation();
 
-  const { data: customers } = useCustomerOptions();
   const { data: customerTags } = useCustomerTagOptions();
-  const { data: suppliers } = useSupplierOptions();
 
   const rawDateType = Form.useWatch('dateType', form);
   const dateType = (
@@ -128,12 +127,10 @@ const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
             label={t('page.order.list.customerId')}
             name="customerId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              showSearch
-              optionFilterProp="label"
-              options={toOptions(customers)}
               placeholder={t('page.order.list.form.customerId')}
+              resource={SELECTION_OPTION_RESOURCES.CUSTOMER}
             />
           </AForm.Item>
         </ACol>
@@ -221,12 +218,10 @@ const OrderSearch: FC<Page.SearchProps> = memo(({ form, reset, search, searchPar
             label={t('page.order.list.supplierId')}
             name="supplierId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              showSearch
-              optionFilterProp="label"
-              options={toOptions(suppliers)}
               placeholder={t('page.order.list.form.supplierId')}
+              resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
             />
           </AForm.Item>
         </ACol>

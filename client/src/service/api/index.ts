@@ -33,6 +33,7 @@ export * from './quotation';
 export * from './quotation-goods';
 export * from './report';
 export * from './route';
+export * from './selection-option';
 export * from './stock';
 export * from './stock-in';
 export * from './stock-out';

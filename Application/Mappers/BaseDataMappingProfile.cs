@@ -25,6 +25,7 @@ public class BaseDataMappingProfile : Profile
     public BaseDataMappingProfile()
     {
         CreateMap<NamedCodeOption, NamedCodeOptionDto>();
+        CreateMap<SelectionOption, SelectionOptionDto>();
 
 
         CreateMap<GoodsType, GoodsTypeDto>()

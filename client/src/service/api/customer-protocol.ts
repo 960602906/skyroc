@@ -1,6 +1,8 @@
 import { request } from '../request';
 import { CUSTOMER_PROTOCOL_URLS } from '../urls';
 
+import { withSelectionOptionInvalidation } from './selection-option';
+
 /** 分页查询。 */
 export function fetchGetCustomerProtocolList(params?: Api.CustomerProtocol.SearchParams) {
   return request<Api.CustomerProtocol.List>({
@@ -36,44 +38,59 @@ export function fetchGetCustomerProtocolDetail(id: string) {
 
 /** 创建。 */
 export function fetchAddCustomerProtocol(data: Api.CustomerProtocol.CreateParams) {
-  return request<Api.CustomerProtocol.Entity>({
-    data,
-    method: 'post',
-    url: CUSTOMER_PROTOCOL_URLS.BASE
-  });
+  return withSelectionOptionInvalidation(
+    CUSTOMER_PROTOCOL_URLS.BASE,
+    request<Api.CustomerProtocol.Entity>({
+      data,
+      method: 'post',
+      url: CUSTOMER_PROTOCOL_URLS.BASE
+    })
+  );
 }
 
 /** 更新。 */
 export function fetchUpdateCustomerProtocol(data: Api.CustomerProtocol.UpdateParams) {
-  return request<Api.CustomerProtocol.Entity>({
-    data,
-    method: 'put',
-    url: CUSTOMER_PROTOCOL_URLS.BASE
-  });
+  return withSelectionOptionInvalidation(
+    CUSTOMER_PROTOCOL_URLS.BASE,
+    request<Api.CustomerProtocol.Entity>({
+      data,
+      method: 'put',
+      url: CUSTOMER_PROTOCOL_URLS.BASE
+    })
+  );
 }
 
 /** 删除。 */
 export function fetchDeleteCustomerProtocol(id: string) {
-  return request<Api.CustomerProtocol.Entity>({
-    method: 'delete',
-    url: `${CUSTOMER_PROTOCOL_URLS.BASE}/${id}`
-  });
+  return withSelectionOptionInvalidation(
+    CUSTOMER_PROTOCOL_URLS.BASE,
+    request<Api.CustomerProtocol.Entity>({
+      method: 'delete',
+      url: `${CUSTOMER_PROTOCOL_URLS.BASE}/${id}`
+    })
+  );
 }
 
 /** 批量删除。 */
 export function fetchBatchDeleteCustomerProtocol(ids: string[]) {
-  return request<Api.CustomerProtocol.Entity>({
-    data: ids,
-    method: 'delete',
-    url: CUSTOMER_PROTOCOL_URLS.BATCH_DELETE
-  });
+  return withSelectionOptionInvalidation(
+    CUSTOMER_PROTOCOL_URLS.BASE,
+    request<Api.CustomerProtocol.Entity>({
+      data: ids,
+      method: 'delete',
+      url: CUSTOMER_PROTOCOL_URLS.BATCH_DELETE
+    })
+  );
 }
 
 /** 启用或禁用。 */
 export function fetchToggleCustomerProtocolStatus(params: Api.Base.ToggleStatusParams) {
-  return request<Api.CustomerProtocol.Entity>({
-    method: 'patch',
-    params: { status: params.status },
-    url: `${CUSTOMER_PROTOCOL_URLS.BASE}/${params.id}/status`
-  });
+  return withSelectionOptionInvalidation(
+    CUSTOMER_PROTOCOL_URLS.BASE,
+    request<Api.CustomerProtocol.Entity>({
+      method: 'patch',
+      params: { status: params.status },
+      url: `${CUSTOMER_PROTOCOL_URLS.BASE}/${params.id}/status`
+    })
+  );
 }

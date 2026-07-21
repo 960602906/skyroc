@@ -1,6 +1,8 @@
 import type { TableColumnsType } from 'antd';
 
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { AfterSaleHandleTypeSelect, AfterSaleReasonTypeSelect, AfterSaleTypeSelect } from '@/features/crud';
+import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
 
 export type AfterSaleGoodsFormItem = Api.AfterSale.GoodsPayload & {
   enabled: boolean;
@@ -18,17 +20,10 @@ interface AfterSaleOperateFormProps {
   form: Page.FormInstance;
   onSaleOrderChange?: (saleOrderId: string) => void;
   orderNo?: string | null;
-  orderOptions?: { label: string; value: string }[];
   sourceEditable: boolean;
 }
 
-function AfterSaleOperateForm({
-  form,
-  onSaleOrderChange,
-  orderNo,
-  orderOptions,
-  sourceEditable
-}: AfterSaleOperateFormProps) {
+function AfterSaleOperateForm({ form, onSaleOrderChange, orderNo, sourceEditable }: AfterSaleOperateFormProps) {
   const { t } = useTranslation();
 
   const columns: TableColumnsType<AfterSaleGoodsFormItem> = [
@@ -160,11 +155,9 @@ function AfterSaleOperateForm({
               rules={[{ required: true }]}
             >
               {sourceEditable ? (
-                <ASelect
-                  showSearch
-                  optionFilterProp="label"
-                  options={orderOptions}
+                <RemoteOptionSelect
                   placeholder={t('page.afterSale.operate.saleOrderPlaceholder')}
+                  resource={SELECTION_OPTION_RESOURCES.ORDER}
                   onChange={onSaleOrderChange}
                 />
               ) : (

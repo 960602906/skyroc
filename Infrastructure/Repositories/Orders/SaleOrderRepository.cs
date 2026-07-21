@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Domain.Entities.Orders;
 using Domain.Interfaces;
+using Domain.ReadModels.BaseData;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -93,6 +94,59 @@ public class SaleOrderRepository(ApplicationDbContext context)
             .SetProperty(order => order.UpdateBy, updatedBy)
             .SetProperty(order => order.UpdateName, updateName)
             .SetProperty(order => order.UpdateTime, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<List<SelectionOption>> SearchSelectionOptionsAsync(string? keyword, int take)
+    {
+        var query = DbSet.AsNoTracking();
+        var normalizedKeyword = string.IsNullOrWhiteSpace(keyword)
+            ? null
+            : keyword.Trim().ToLowerInvariant();
+
+        if (normalizedKeyword is not null)
+        {
+            query = query
+                .Where(x => x.OrderNo.ToLower().Contains(normalizedKeyword))
+                .OrderByDescending(x => x.OrderNo.ToLower() == normalizedKeyword)
+                .ThenByDescending(x => x.OrderNo.ToLower().StartsWith(normalizedKeyword))
+                .ThenByDescending(x => x.CreateTime)
+                .ThenByDescending(x => x.Id);
+        }
+        else
+        {
+            query = query
+                .OrderByDescending(x => x.CreateTime)
+                .ThenByDescending(x => x.Id);
+        }
+
+        return await ProjectSelectionOptions(query).Take(take).ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<List<SelectionOption>> ResolveSelectionOptionsAsync(IReadOnlyCollection<Guid> ids)
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        return await ProjectSelectionOptions(DbSet
+                .AsNoTracking()
+                .Where(x => ids.Contains(x.Id))
+                .OrderByDescending(x => x.CreateTime)
+                .ThenByDescending(x => x.Id))
+            .ToListAsync();
+    }
+
+    private static IQueryable<SelectionOption> ProjectSelectionOptions(IQueryable<SaleOrder> query)
+    {
+        return query.Select(x => new SelectionOption
+        {
+            Id = x.Id,
+            Label = x.OrderNo,
+            SecondaryText = x.CustomerNameSnapshot
+        });
     }
 
     private IQueryable<SaleOrder> BuildDetailQuery(IQueryable<SaleOrder>? source = null)

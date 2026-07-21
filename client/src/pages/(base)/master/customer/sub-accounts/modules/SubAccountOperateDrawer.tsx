@@ -1,6 +1,7 @@
+import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
-import { toOptions, useCompanyOptions, useCustomerOptions } from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES, toOptions, useCompanyOptions } from '@/service/hooks';
 
 type RuleKey = 'companyId' | 'username';
 
@@ -11,7 +12,6 @@ const SubAccountOperateDrawer: FC<Page.OperateDrawerProps> = memo(
     const { defaultRequiredRule } = useFormRules();
 
     const { data: companies } = useCompanyOptions();
-    const { data: customers } = useCustomerOptions();
 
     const rules: Record<RuleKey, App.Global.FormRule> = {
       companyId: defaultRequiredRule,
@@ -65,10 +65,10 @@ const SubAccountOperateDrawer: FC<Page.OperateDrawerProps> = memo(
             label={t('page.customer.subAccount.customerId')}
             name="customerId"
           >
-            <ASelect
+            <RemoteOptionSelect
               allowClear
-              options={toOptions(customers)}
               placeholder={t('page.customer.subAccount.form.customerId')}
+              resource={SELECTION_OPTION_RESOURCES.CUSTOMER}
             />
           </AForm.Item>
 
