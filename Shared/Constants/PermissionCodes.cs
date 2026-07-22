@@ -236,6 +236,17 @@ public static class PermissionCodes
         }
     }
 
+    /// <summary>AI 助手、订单草稿和个人 MCP Token 的独立权限边界。</summary>
+    public static class Ai
+    {
+        /// <summary>进入 AI 助手并发起普通问答或受限工具编排的权限。</summary>
+        public const string UseAssistant = "ai:assistant:use";
+        /// <summary>通过 AI 生成订单草稿的权限；确认正式订单仍需订单创建权限。</summary>
+        public const string CreateOrderDraft = "ai:order-draft:create";
+        /// <summary>创建、查看和撤销本人 MCP 访问 Token 的权限。</summary>
+        public const string ManageMcpTokens = "ai:mcp-token:manage";
+    }
+
     public static IReadOnlyCollection<string> Defined { get; } =
     [
         System.Users.Read,
@@ -322,6 +333,9 @@ public static class PermissionCodes
         Business.Files.Read,
         Business.Files.Create,
         Business.Printing.Read,
-        Business.Printing.Update
+        Business.Printing.Update,
+        Ai.UseAssistant,
+        Ai.CreateOrderDraft,
+        Ai.ManageMcpTokens
     ];
 }

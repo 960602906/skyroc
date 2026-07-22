@@ -19,6 +19,14 @@ public class PermissionAuthorizationHandlerTests
     }
 
     [Fact]
+    public void DefinedPermissionCodes_ContainAllAiAndMcpPermissions()
+    {
+        Assert.Contains(PermissionCodes.Ai.UseAssistant, PermissionCodes.Defined);
+        Assert.Contains(PermissionCodes.Ai.CreateOrderDraft, PermissionCodes.Defined);
+        Assert.Contains(PermissionCodes.Ai.ManageMcpTokens, PermissionCodes.Defined);
+    }
+
+    [Fact]
     public async Task HandleAsync_Succeeds_WhenUserHasRequiredPermission()
     {
         var requirement = new PermissionRequirement(PermissionCodes.System.Users.Read);
