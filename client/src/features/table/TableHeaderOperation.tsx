@@ -1,5 +1,5 @@
 import { Button, Popconfirm, Space } from 'antd';
-import type { SpaceProps } from 'antd';
+import type { SpaceProps, SpinProps } from 'antd';
 import classNames from 'classnames';
 import React from 'react';
 import type { FC } from 'react';
@@ -12,7 +12,7 @@ interface Props {
   columns: AntDesign.TableColumnCheck[];
   disabledDelete?: boolean;
   itemAlign?: SpaceProps['align'];
-  loading?: boolean;
+  loading?: boolean | SpinProps;
   onDelete: () => void;
   prefix?: React.ReactNode;
   refresh: () => void;
@@ -34,6 +34,7 @@ const TableHeaderOperation: FC<Props> = ({
   suffix
 }) => {
   const { t } = useTranslation();
+  const isLoading = typeof loading === 'boolean' ? loading : loading?.spinning;
 
   return (
     <Space
@@ -70,7 +71,7 @@ const TableHeaderOperation: FC<Props> = ({
         </>
       )}
       <Button
-        icon={<IconMdiRefresh className={classNames('text-icon', { 'animate-spin': loading })} />}
+        icon={<IconMdiRefresh className={classNames('text-icon', { 'animate-spin': isLoading })} />}
         size="small"
         onClick={refresh}
       >

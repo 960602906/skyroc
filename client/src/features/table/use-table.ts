@@ -12,11 +12,13 @@ type TableColumn<T> = AntDesign.TableColumn<T>;
 
 type Config<A extends AntDesign.TableApiFn> = AntDesign.AntDesignTableConfig<A>;
 
+const TABLE_LOADING_DELAY_MS = 200;
+
 type CustomTableProps<A extends AntDesign.TableApiFn> = Omit<
   TableProps<AntDesign.TableDataWithIndex<GetTableData<A>>>,
   'loading'
 > & {
-  loading: boolean;
+  loading: NonNullable<TableProps<AntDesign.TableDataWithIndex<GetTableData<A>>>['loading']>;
 };
 
 export function useTable<A extends AntDesign.TableApiFn>(config: Config<A>) {
@@ -189,7 +191,8 @@ export function useTable<A extends AntDesign.TableApiFn>(config: Config<A>) {
     tableProps: {
       columns,
       dataSource: data,
-      loading,
+      // 短请求不展示遮罩，避免表格透明度动画快速反转造成视觉抖动。
+      loading: { delay: TABLE_LOADING_DELAY_MS, spinning: loading },
       onChange: handleChange,
       pagination,
       rowKey,
