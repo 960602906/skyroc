@@ -1,6 +1,6 @@
 # SkyRoc 通用 AI 助手、可插拔模型层与 MCP 服务实施计划
 
-> 文档状态：计划已确认，尚未开始实现。
+> 文档状态：计划已确认；P6-00 基线、依赖和契约冻结已完成，下一阶段为 P6-01。
 >
 > 编写日期：2026-07-22。
 >
@@ -41,7 +41,7 @@ flowchart LR
 
 1. 业务代码只依赖 `IAiModelProvider` 和统一类型，不直接依赖厂商 SDK、请求 DTO 或响应 DTO。
 2. 厂商差异只能出现在对应 Provider 目录和契约样例中；“兼容各种格式”通过显式适配实现，不进行未声明格式的猜测解析。
-3. MCP 使用官方 `ModelContextProtocol.AspNetCore` 稳定 1.x SDK、无状态 Streamable HTTP，并映射到 `/mcp`；实现时先复核当前稳定版，计划基线为 `1.4.1`。
+3. MCP 使用官方 `ModelContextProtocol.AspNetCore` 稳定 1.x SDK、无状态 Streamable HTTP，并映射到 `/mcp`；2026-07-22 已复核并冻结实际采用版本为 `1.4.1`，不采用 `2.0.0-preview.*`。
 4. `/mcp` 遵循 MCP JSON-RPC 与 HTTP 规范，不套 `ApiResponse<T>`；普通 REST API 继续使用 HTTP 200 加 `body.code`。
 5. SkyRoc 项目事实必须从 MCP 知识资源或工具结果产生；系统提示不得允许模型凭记忆编造项目事实。
 6. 所有增长型查询都在数据库层限量：知识最多 5 段、订单/客户/商品最多 20 条；禁止先全量读取再在内存截断。
@@ -133,6 +133,18 @@ git diff --check
 ```
 
 通过条件：基线命令结果已记录，新增功能依赖可以还原，没有未知的仓库改动。失败则停在 P6-00。
+
+冻结结果（2026-07-22）：
+
+| 项目 | 冻结结果 |
+| --- | --- |
+| 前置与回归基线 | P5-01、前端 M07 和自动业务测试 T0–T14 均已完成；最近完整后端套件基线为发现 558 项，沿用同日已收口结果。 |
+| 工具链 | `.NET SDK 9.0.100`、`Node v22.16.0`、`pnpm 10.12.1`；前端声明的 `pnpm >=10.4.1` 约束满足。 |
+| 数据基础设施 | PostgreSQL 可读取到最新迁移 `20260721024046_AddSelectionOptionSearchIndexes`；Redis `PING` 返回 `PONG`，现有 `/health` 返回 `Healthy`。 |
+| MCP SDK | 官方 NuGet 当前稳定 1.x 为 `ModelContextProtocol.AspNetCore 1.4.1`；已在隔离的 `net9.0` Web 项目完成还原和构建，0 警告、0 错误。仓库在 P6-06 引入时必须显式固定该版本。 |
+| 最终验收能力 | Codex CLI、Claude CLI、Chrome 和 Edge 可用；MCP Inspector 未预装，P6-14 执行时再按官方发行方式获取。`SKYROC_AI_DEEPSEEK_API_KEY`、`SKYROC_AI_GLM_API_KEY`、`SKYROC_AI_CUSTOM_API_KEY`、`SKYROC_MCP_TOKEN_HASH_KEY` 当前均未配置，P6-14 前必须由环境注入。 |
+| 契约边界 | 本计划的 REST、六类 SSE 事件、无状态 `/mcp`、权限交集、30 天会话保留、30 分钟草稿有效期及“草稿后人工确认创建正式订单”边界全部冻结，本阶段无变更。 |
+| 基线门禁 | `dotnet restore`、`dotnet build --no-restore`、`dotnet format --verify-no-changes --no-restore`、前端 `pnpm typecheck`、进度基线防退化测试和 `git diff --check` 通过；后端仅保留 7 条既有 NuGet 漏洞警告。 |
 
 ### P6-01 公共契约、配置和权限骨架
 
