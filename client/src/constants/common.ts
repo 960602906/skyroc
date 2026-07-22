@@ -49,6 +49,13 @@ export const PURCHASE_PLAN_STATUS_MAP: Record<Api.PurchasePlan.PurchaseStatus, B
   3: 'warning'
 };
 
+/** 采购单执行状态：草稿 default / 已完成 success / 已取消 error。 */
+export const PURCHASE_ORDER_STATUS_MAP: Record<Api.PurchaseOrder.BusinessStatus, BadgeStatus> = {
+  1: 'default',
+  2: 'success',
+  3: 'error'
+};
+
 /** 售后单状态徽标色 */
 export const AFTER_SALE_STATUS_MAP: Record<Api.AfterSale.AfterStatus, BadgeStatus> = {
   1: 'default',

@@ -1,11 +1,9 @@
-import type { FormListFieldData } from 'antd/es/form/FormList';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { Suspense, lazy, useMemo, useState } from 'react';
 
 import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import {
   CrudPageLayout,
-  PurchasePatternSelect,
   createDefaultPagination,
   createIndexColumn,
   displayDate,
@@ -26,27 +24,15 @@ import {
   fetchUpdatePurchasePlanSupplier
 } from '@/service/api';
 import { PurchasePlanStatus } from '@/service/enums';
-import {
-  SELECTION_OPTION_RESOURCES,
-  toOptions,
-  useGoodsUnitsByGoodsOptions,
-  usePurchaserOptions
-} from '@/service/hooks';
+import { SELECTION_OPTION_RESOURCES, toOptions, usePurchaserOptions } from '@/service/hooks';
 
 import PurchasePlanSearch from './modules/PurchasePlanSearch';
 
-type ModalMode =
-  | 'add'
-  | 'assignPurchaser'
-  | 'assignSupplier'
-  | 'generate'
-  | 'merge'
-  | 'splitOrders'
-  | 'splitQuantity'
-  | null;
+const PurchasePlanOperateDrawer = lazy(() => import('./modules/PurchasePlanOperateDrawer'));
+
+type ModalMode = 'assignPurchaser' | 'assignSupplier' | 'generate' | 'merge' | 'splitOrders' | 'splitQuantity' | null;
 
 const modalTitleKeyMap: Record<Exclude<ModalMode, null>, App.I18n.I18nKey> = {
-  add: 'page.purchase.plan.add',
   assignPurchaser: 'page.purchase.plan.assignPurchaser',
   assignSupplier: 'page.purchase.plan.assignSupplier',
   generate: 'page.purchase.plan.generate',
@@ -55,77 +41,13 @@ const modalTitleKeyMap: Record<Exclude<ModalMode, null>, App.I18n.I18nKey> = {
   splitQuantity: 'page.purchase.plan.splitByQuantity'
 };
 
-interface PurchasePlanDetailRowProps {
-  field: FormListFieldData;
-  form: Page.FormInstance;
-  remove: (index: number | number[]) => void;
-}
-
-/** 采购计划明细行：商品远程搜索，单位随当前商品联动加载。 */
-function PurchasePlanDetailRow({ field, form, remove }: PurchasePlanDetailRowProps) {
-  const { t } = useTranslation();
-  const goodsId = AForm.useWatch(['details', field.name, 'goodsId'], form) as string | undefined;
-  const { data: units = [] } = useGoodsUnitsByGoodsOptions(goodsId);
-
-  return (
-    <ARow gutter={8}>
-      <ACol span={9}>
-        <AForm.Item
-          {...field}
-          name={[field.name, 'goodsId']}
-          rules={[{ required: true }]}
-        >
-          <RemoteOptionSelect
-            placeholder={t('page.purchase.plan.form.goodsId')}
-            resource={SELECTION_OPTION_RESOURCES.GOODS}
-            onChange={() => form.setFieldValue(['details', field.name, 'purchaseUnitId'], undefined)}
-          />
-        </AForm.Item>
-      </ACol>
-      <ACol span={7}>
-        <AForm.Item
-          {...field}
-          name={[field.name, 'purchaseUnitId']}
-          rules={[{ required: true }]}
-        >
-          <ASelect
-            disabled={!goodsId}
-            options={units}
-            placeholder={t('page.purchase.plan.form.purchaseUnitId')}
-          />
-        </AForm.Item>
-      </ACol>
-      <ACol span={6}>
-        <AForm.Item
-          {...field}
-          name={[field.name, 'plannedQuantity']}
-          rules={[{ required: true }]}
-        >
-          <AInputNumber
-            className="w-full"
-            min={0.0001}
-            placeholder={t('page.purchase.plan.form.plannedQuantity')}
-          />
-        </AForm.Item>
-      </ACol>
-      <ACol span={2}>
-        <AButton
-          danger
-          onClick={() => remove(field.name)}
-        >
-          -
-        </AButton>
-      </ACol>
-    </ARow>
-  );
-}
-
 /** 采购计划分页、生成、分配、合并及拆分页面。 */
 const PurchasePlanList = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
   const [form] = AForm.useForm();
   const [mode, setMode] = useState<ModalMode>(null);
+  const [addDrawerVisible, setAddDrawerVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [activePlan, setActivePlan] = useState<Api.PurchasePlan.Entity | null>(null);
   const [splitOrders, setSplitOrders] = useState<Api.PurchasePlan.SplittableOrder[]>([]);
@@ -262,8 +184,22 @@ const PurchasePlanList = () => {
 
   function openModal(nextMode: Exclude<ModalMode, 'splitOrders' | 'splitQuantity'>) {
     form.resetFields();
-    if (nextMode === 'add') form.setFieldsValue({ details: [{}], planDate: dayjs(), purchasePattern: 1 });
     setMode(nextMode);
+  }
+
+  function openAddDrawer() {
+    setAddDrawerVisible(true);
+  }
+
+  async function submitAdd(values: Record<string, any>) {
+    const payload = {
+      ...values,
+      planDate: dayjs(values.planDate).format('YYYY-MM-DD HH:mm:ss')
+    } as Api.PurchasePlan.CreateParams;
+    await fetchAddPurchasePlan(payload);
+    window.$message?.success(t('common.updateSuccess'));
+    setAddDrawerVisible(false);
+    await run(false);
   }
 
   async function openPlanAction(nextMode: 'splitOrders' | 'splitQuantity', plan: Api.PurchasePlan.Entity) {
@@ -279,8 +215,6 @@ const PurchasePlanList = () => {
   async function submit() {
     const values = await form.validateFields();
     const ids = selectedIds();
-    if (mode === 'add')
-      await fetchAddPurchasePlan({ ...values, planDate: dayjs(values.planDate).format('YYYY-MM-DD HH:mm:ss') });
     if (mode === 'generate') await fetchGeneratePurchasePlan({ orderIds: values.orderIds, remark: values.remark });
     if (mode === 'assignSupplier')
       await fetchUpdatePurchasePlanSupplier({ planIds: ids, supplierId: values.supplierId || null });
@@ -312,7 +246,7 @@ const PurchasePlanList = () => {
         extra={
           <TableHeaderOperation
             disabledDelete
-            add={() => openModal('add')}
+            add={openAddDrawer}
             columns={columnChecks}
             loading={tableProps.loading}
             refresh={run}
@@ -322,7 +256,7 @@ const PurchasePlanList = () => {
             <AButton
               size="small"
               type="primary"
-              onClick={() => openModal('add')}
+              onClick={openAddDrawer}
             >
               {t('page.purchase.plan.add')}
             </AButton>
@@ -375,66 +309,6 @@ const PurchasePlanList = () => {
           form={form}
           layout="vertical"
         >
-          {mode === 'add' && (
-            <>
-              <AForm.Item
-                label={t('page.purchase.plan.planDate')}
-                name="planDate"
-                rules={[{ required: true }]}
-              >
-                <ADatePicker
-                  className="w-full"
-                  placeholder={t('page.purchase.plan.form.planDate')}
-                />
-              </AForm.Item>
-              <AForm.Item
-                label={t('page.purchase.plan.purchasePattern')}
-                name="purchasePattern"
-              >
-                <PurchasePatternSelect allowClear={false} />
-              </AForm.Item>
-              <AForm.Item
-                label={t('page.purchase.plan.supplier')}
-                name="supplierId"
-              >
-                <RemoteOptionSelect
-                  allowClear
-                  placeholder={t('page.purchase.plan.form.supplierId')}
-                  resource={SELECTION_OPTION_RESOURCES.SUPPLIER}
-                />
-              </AForm.Item>
-              <AForm.Item
-                label={t('page.purchase.plan.purchaser')}
-                name="purchaserId"
-              >
-                <ASelect
-                  allowClear
-                  options={purchaserOptions}
-                  placeholder={t('page.purchase.plan.form.purchaserId')}
-                />
-              </AForm.Item>
-              <AForm.List name="details">
-                {(fields, { add, remove }) => (
-                  <>
-                    {fields.map(field => (
-                      <PurchasePlanDetailRow
-                        field={field}
-                        form={form}
-                        key={field.key}
-                        remove={remove}
-                      />
-                    ))}
-                    <AButton
-                      block
-                      onClick={() => add({})}
-                    >
-                      +
-                    </AButton>
-                  </>
-                )}
-              </AForm.List>
-            </>
-          )}
           {mode === 'generate' && (
             <AForm.Item
               label={t('page.purchase.plan.generate')}
@@ -520,7 +394,7 @@ const PurchasePlanList = () => {
               }
             </AForm.List>
           )}
-          {mode !== 'add' && mode !== 'assignSupplier' && mode !== 'assignPurchaser' && (
+          {mode !== 'assignSupplier' && mode !== 'assignPurchaser' && (
             <AForm.Item
               label={t('page.purchase.plan.remark')}
               name="remark"
@@ -530,6 +404,13 @@ const PurchasePlanList = () => {
           )}
         </AForm>
       </AModal>
+      <Suspense>
+        <PurchasePlanOperateDrawer
+          open={addDrawerVisible}
+          onClose={() => setAddDrawerVisible(false)}
+          onSubmit={submitAdd}
+        />
+      </Suspense>
     </>
   );
 };

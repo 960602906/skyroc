@@ -2,7 +2,7 @@ import { request } from '../request';
 import { PURCHASE_ORDER_URLS } from '../urls';
 
 /** 手工创建采购单草稿和商品明细。需要采购创建权限。 */
-export function fetchAddPurchaseOrder(data?: Api.PurchaseOrder.Payload) {
+export function fetchAddPurchaseOrder(data: Api.PurchaseOrder.CreatePayload) {
   return request<Api.PurchaseOrder.Entity>({
     data,
     method: 'post',
@@ -11,7 +11,7 @@ export function fetchAddPurchaseOrder(data?: Api.PurchaseOrder.Payload) {
 }
 
 /** 编辑采购单草稿及其全部商品明细。需要采购更新权限。 */
-export function fetchUpdatePurchaseOrder(data?: Api.PurchaseOrder.Payload) {
+export function fetchUpdatePurchaseOrder(data: Api.PurchaseOrder.UpdatePayload) {
   return request<Api.PurchaseOrder.Entity>({
     data,
     method: 'put',
@@ -20,8 +20,8 @@ export function fetchUpdatePurchaseOrder(data?: Api.PurchaseOrder.Payload) {
 }
 
 /** 从采购计划全部剩余数量批量生成采购单草稿。需要采购创建权限。 */
-export function fetchGenerateFromPlansPurchaseOrder(data?: Api.PurchaseOrder.Payload) {
-  return request<Api.PurchaseOrder.Entity>({
+export function fetchGenerateFromPlansPurchaseOrder(data: Api.PurchaseOrder.GenerateFromPlansPayload) {
+  return request<Api.PurchaseOrder.Entity[]>({
     data,
     method: 'post',
     url: PURCHASE_ORDER_URLS.GENERATE_FROM_PLANS
@@ -39,7 +39,7 @@ export function fetchGetPurchaseOrderList(params?: Api.PurchaseOrder.SearchParam
 
 /** 删除采购单草稿并释放采购计划数量占用。需要采购删除权限。 */
 export function fetchDeletePurchaseOrder(id: string) {
-  return request<Api.PurchaseOrder.Entity>({
+  return request<boolean>({
     method: 'delete',
     url: `${PURCHASE_ORDER_URLS.BASE}/${id}`
   });
@@ -54,18 +54,16 @@ export function fetchGetPurchaseOrderDetail(id: string) {
 }
 
 /** 取消采购单草稿并释放采购计划数量占用。需要采购更新权限。 */
-export function fetchCancelPurchaseOrder(id: string, data?: Api.PurchaseOrder.Payload) {
+export function fetchCancelPurchaseOrder(id: string) {
   return request<Api.PurchaseOrder.Entity>({
-    data,
     method: 'post',
     url: `${PURCHASE_ORDER_URLS.BASE}/${id}/cancel`
   });
 }
 
 /** 完成采购单草稿，使其可供后续采购入库引用。需要采购更新权限。 */
-export function fetchCompletePurchaseOrder(id: string, data?: Api.PurchaseOrder.Payload) {
+export function fetchCompletePurchaseOrder(id: string) {
   return request<Api.PurchaseOrder.Entity>({
-    data,
     method: 'post',
     url: `${PURCHASE_ORDER_URLS.BASE}/${id}/complete`
   });

@@ -3,6 +3,7 @@ import BooleanYesNoBadge from './BooleanYesNoBadge';
 import EnableStatusBadge from './EnableStatusBadge';
 import MenuTypeBadge from './MenuTypeBadge';
 import PickupTaskStatusBadge from './PickupTaskStatusBadge';
+import PurchaseOrderStatusBadge from './PurchaseOrderStatusBadge';
 import PurchasePatternBadge from './PurchasePatternBadge';
 import PurchasePlanStatusBadge from './PurchasePlanStatusBadge';
 import {
@@ -37,6 +38,11 @@ export function renderPurchasePattern(purchasePattern: Api.PurchaseRule.Purchase
 /** 表格列等场景的采购计划生成进度渲染。 */
 export function renderPurchasePlanStatus(purchaseStatus: Api.PurchasePlan.PurchaseStatus | null | undefined) {
   return <PurchasePlanStatusBadge purchaseStatus={purchaseStatus} />;
+}
+
+/** 表格列等场景的采购单执行状态渲染。 */
+export function renderPurchaseOrderStatus(businessStatus: Api.PurchaseOrder.BusinessStatus | null | undefined) {
+  return <PurchaseOrderStatusBadge businessStatus={businessStatus} />;
 }
 
 /** 表格列等场景的是否渲染 */

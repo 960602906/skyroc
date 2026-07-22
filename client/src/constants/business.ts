@@ -43,6 +43,14 @@ export const purchasePlanStatusRecord: Record<Api.PurchasePlan.PurchaseStatus, A
 
 export const purchasePlanStatusOptions = transformRecordToOption(purchasePlanStatusRecord, true);
 
+export const purchaseOrderStatusRecord: Record<Api.PurchaseOrder.BusinessStatus, App.I18n.I18nKey> = {
+  1: 'page.purchase.order.statusDraft',
+  2: 'page.purchase.order.statusCompleted',
+  3: 'page.purchase.order.statusCancelled'
+};
+
+export const purchaseOrderStatusOptions = transformRecordToOption(purchaseOrderStatusRecord, true);
+
 export const afterSaleStatusRecord: Record<Api.AfterSale.AfterStatus, App.I18n.I18nKey> = {
   1: 'page.afterSale.list.statusDraft',
   2: 'page.afterSale.list.statusPendingAudit',
