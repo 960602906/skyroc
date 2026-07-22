@@ -29,6 +29,10 @@
         <ProjectReference Include="..\Infrastructure\Infrastructure.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Content Update="appsettings.Local.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    </ItemGroup>
+
     <Target Name="CopyReferencedXmlDocumentation" AfterTargets="Build">
         <Copy SourceFiles="$(MSBuildThisFileDirectory)..\Application\bin\$(Configuration)\$(TargetFramework)\Application.xml"
               DestinationFolder="$(OutputPath)"

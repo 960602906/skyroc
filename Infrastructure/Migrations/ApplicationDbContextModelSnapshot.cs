@@ -23,6 +23,926 @@ namespace Infrastructure.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.Entities.AI.AiActionDraft", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()")
+                        .HasComment("记录主键");
+
+                    b.Property<string>("ArgumentsHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .HasColumnName("arguments_hash")
+                        .IsFixedLength()
+                        .HasComment("绑定所属用户、operationId 和规范化参数的 SHA-256 哈希");
+
+                    b.Property<string>("CanonicalArgumentsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("canonical_arguments_json")
+                        .HasComment("属性按序且无额外空白的规范化业务参数 JSON");
+
+                    b.Property<long>("ConcurrencyVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("concurrency_version")
+                        .HasComment("草稿状态流转的乐观并发版本，每次更新必须递增");
+
+                    b.Property<string>("ConfirmationSummary")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("confirmation_summary")
+                        .HasComment("展示给用户的最小业务变更摘要，不含密钥或完整敏感响应");
+
+                    b.Property<Guid?>("ConfirmedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by_user_id")
+                        .HasComment("实际确认草稿的系统用户主键，必须与草稿所属用户一致");
+
+                    b.Property<DateTime?>("ConfirmedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_time")
+                        .HasComment("草稿通过人工确认的时间（UTC）");
+
+                    b.Property<Guid?>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id")
+                        .HasComment("来源 AI 会话主键，外部 MCP 独立生成时为空");
+
+                    b.Property<Guid?>("CreateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("create_by")
+                        .HasComment("创建记录的用户主键");
+
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name")
+                        .HasComment("创建记录的用户名称");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("create_time")
+                        .HasComment("记录创建时间（UTC）");
+
+                    b.Property<int>("DraftStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("draft_status")
+                        .HasComment("草稿状态：1 待确认，2 已确认，3 执行中，4 已执行，5 失败，6 过期，7 取消");
+
+                    b.Property<DateTime?>("ExecutedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("executed_time")
+                        .HasComment("原业务接口执行结束的时间（UTC）");
+
+                    b.Property<string>("ExecutionResultReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("execution_result_reference")
+                        .HasComment("可追溯执行结果的非敏感引用，不保存完整工具响应");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP + INTERVAL '30 minutes'")
+                        .HasComment("草稿失效时间（UTC），默认自生成起 30 分钟");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("idempotency_key")
+                        .HasComment("草稿生成请求的用户级幂等键");
+
+                    b.Property<string>("OperationId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("operation_id")
+                        .HasComment("能力目录中的稳定 operationId，确认和执行时不得改变");
+
+                    b.Property<int>("RiskLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("risk_level")
+                        .HasComment("草稿风险等级：1 普通写操作，2 高风险操作");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status")
+                        .HasComment("记录启用状态");
+
+                    b.Property<Guid?>("UpdateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("update_by")
+                        .HasComment("最后修改记录的用户主键");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name")
+                        .HasComment("最后修改记录的用户名称");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("update_time")
+                        .HasComment("记录最后修改时间（UTC）");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id")
+                        .HasComment("草稿所属用户主键，也是唯一允许确认和执行的用户");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConfirmedByUserId");
+
+                    b.HasIndex("ConversationId", "UserId");
+
+                    b.HasIndex("DraftStatus", "ExpiresAt")
+                        .HasDatabaseName("idx_ai_action_draft_status_expires_at");
+
+                    b.HasIndex("UserId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("idx_ai_action_draft_user_idempotency");
+
+                    b.HasIndex("OperationId", "CreateTime", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("idx_ai_action_draft_operation_create_time");
+
+                    b.HasIndex("UserId", "DraftStatus", "ExpiresAt")
+                        .HasDatabaseName("idx_ai_action_draft_user_status_expires_at");
+
+                    b.ToTable("ai_action_draft", null, t =>
+                        {
+                            t.HasComment("AI 通用写操作草稿，绑定用户、operationId 和规范化参数并等待人工确认");
+
+                            t.HasCheckConstraint("ck_ai_action_draft_concurrency_version", "concurrency_version > 0");
+
+                            t.HasCheckConstraint("ck_ai_action_draft_confirmation", "draft_status IN (1, 6, 7) OR (confirmed_by_user_id IS NOT NULL AND confirmed_time IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_ai_action_draft_confirmed_owner", "confirmed_by_user_id IS NULL OR confirmed_by_user_id = user_id");
+
+                            t.HasCheckConstraint("ck_ai_action_draft_hash", "char_length(arguments_hash) = 64");
+
+                            t.HasCheckConstraint("ck_ai_action_draft_operation", "position('.' in operation_id) > 1");
+
+                            t.HasCheckConstraint("ck_ai_action_draft_risk", "risk_level BETWEEN 1 AND 2");
+
+                            t.HasCheckConstraint("ck_ai_action_draft_status", "draft_status BETWEEN 1 AND 7");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiConversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()")
+                        .HasComment("记录主键");
+
+                    b.Property<int>("ConversationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("conversation_status")
+                        .HasComment("会话状态：1 活动，2 用户已删除并等待清理");
+
+                    b.Property<Guid?>("CreateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("create_by")
+                        .HasComment("创建记录的用户主键");
+
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name")
+                        .HasComment("创建记录的用户名称");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("create_time")
+                        .HasComment("记录创建时间（UTC）");
+
+                    b.Property<DateTime?>("DeletedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_time")
+                        .HasComment("用户删除会话的时间（UTC），活动会话为空");
+
+                    b.Property<DateTime?>("LastMessageTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_message_time")
+                        .HasComment("最近一条会话消息写入时间（UTC）");
+
+                    b.Property<DateTime>("RetainUntil")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("retain_until")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP + INTERVAL '30 days'")
+                        .HasComment("会话及其消息最早可清理时间（UTC），默认保留 30 天");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status")
+                        .HasComment("记录启用状态");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title")
+                        .HasComment("会话列表展示标题，不包含模型推理内容");
+
+                    b.Property<Guid?>("UpdateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("update_by")
+                        .HasComment("最后修改记录的用户主键");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name")
+                        .HasComment("最后修改记录的用户名称");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("update_time")
+                        .HasComment("记录最后修改时间（UTC）");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id")
+                        .HasComment("会话所属系统用户主键，是所有会话查询的隔离边界");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("Id", "UserId")
+                        .HasName("ak_ai_conversation_id_user_id");
+
+                    b.HasIndex("ConversationStatus", "RetainUntil")
+                        .HasDatabaseName("idx_ai_conversation_status_retain_until");
+
+                    b.HasIndex("UserId", "LastMessageTime", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("idx_ai_conversation_user_last_message");
+
+                    b.ToTable("ai_conversation", null, t =>
+                        {
+                            t.HasComment("AI 助手会话，按系统用户隔离并控制消息保留期限");
+
+                            t.HasCheckConstraint("ck_ai_conversation_deleted_time", "conversation_status = 1 OR deleted_time IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_ai_conversation_status", "conversation_status IN (1, 2)");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()")
+                        .HasComment("记录主键");
+
+                    b.Property<DateTime?>("CompletedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_time")
+                        .HasComment("消息进入完成、失败或取消终态的时间（UTC）");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content")
+                        .HasComment("最终可展示文字，不得包含模型推理或完整敏感工具结果");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id")
+                        .HasComment("所属 AI 会话主键");
+
+                    b.Property<Guid?>("CreateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("create_by")
+                        .HasComment("创建记录的用户主键");
+
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name")
+                        .HasComment("创建记录的用户名称");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("create_time")
+                        .HasComment("记录创建时间（UTC）");
+
+                    b.Property<int>("MessageStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("message_status")
+                        .HasComment("消息状态：1 生成中，2 已完成，3 失败，4 已取消");
+
+                    b.Property<string>("ModelName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("model_name")
+                        .HasComment("生成助手消息所用的模型名称");
+
+                    b.Property<string>("ProviderName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("provider_name")
+                        .HasComment("生成助手消息所用的统一 Provider 名称");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role")
+                        .HasComment("消息角色：1 系统，2 用户，3 助手，4 工具摘要");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sequence")
+                        .HasComment("消息在会话内单调递增的游标序号");
+
+                    b.Property<string>("SourceReferences")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("source_references")
+                        .HasComment("知识来源 JSON 数组，只允许来源 slug 和标题");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status")
+                        .HasComment("记录启用状态");
+
+                    b.Property<string>("ToolCallId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tool_call_id")
+                        .HasComment("工具调用在当前模型回合中的标识");
+
+                    b.Property<string>("ToolName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tool_name")
+                        .HasComment("被调用的白名单工具名称");
+
+                    b.Property<string>("ToolStatus")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("tool_status")
+                        .HasComment("工具执行状态的稳定文本值");
+
+                    b.Property<string>("ToolSummary")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("tool_summary")
+                        .HasComment("工具结果的必要脱敏摘要，不保存完整业务响应");
+
+                    b.Property<Guid?>("UpdateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("update_by")
+                        .HasComment("最后修改记录的用户主键");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name")
+                        .HasComment("最后修改记录的用户名称");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("update_time")
+                        .HasComment("记录最后修改时间（UTC）");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("idx_ai_message_conversation_sequence");
+
+                    b.ToTable("ai_message", null, t =>
+                        {
+                            t.HasComment("AI 会话消息，只保存最终文字及脱敏后的工具和来源摘要");
+
+                            t.HasCheckConstraint("ck_ai_message_role", "role BETWEEN 1 AND 4");
+
+                            t.HasCheckConstraint("ck_ai_message_sequence", "sequence > 0");
+
+                            t.HasCheckConstraint("ck_ai_message_status", "message_status BETWEEN 1 AND 4");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiOrderDraft", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()")
+                        .HasComment("记录主键");
+
+                    b.Property<long>("ConcurrencyVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("concurrency_version")
+                        .HasComment("草稿状态更新的乐观并发版本，流转时必须递增");
+
+                    b.Property<DateTime?>("ConfirmedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_time")
+                        .HasComment("草稿成功创建正式订单的确认时间（UTC）");
+
+                    b.Property<string>("ContactNameSnapshot")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("contact_name_snapshot")
+                        .HasComment("草稿生成时的联系人姓名快照");
+
+                    b.Property<string>("ContactPhoneSnapshot")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("contact_phone_snapshot")
+                        .HasComment("草稿生成时的联系人电话快照");
+
+                    b.Property<Guid?>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id")
+                        .HasComment("来源 AI 会话主键，外部 MCP 独立生成时为空");
+
+                    b.Property<Guid?>("CreateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("create_by")
+                        .HasComment("创建记录的用户主键");
+
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name")
+                        .HasComment("创建记录的用户名称");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("create_time")
+                        .HasComment("记录创建时间（UTC）");
+
+                    b.Property<string>("CustomerCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("customer_code_snapshot")
+                        .HasComment("草稿生成时的客户编码快照");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id")
+                        .HasComment("草稿下单客户主键");
+
+                    b.Property<string>("CustomerNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("customer_name_snapshot")
+                        .HasComment("草稿生成时的客户名称快照");
+
+                    b.Property<string>("DeliveryAddressSnapshot")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("delivery_address_snapshot")
+                        .HasComment("草稿生成时的配送地址快照");
+
+                    b.Property<int>("DraftStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("draft_status")
+                        .HasComment("草稿状态：1 待确认，2 已确认，3 已过期，4 已取消");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP + INTERVAL '30 minutes'")
+                        .HasComment("草稿失效时间（UTC），默认自生成起 30 分钟");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("idempotency_key")
+                        .HasComment("草稿生成请求的用户级幂等键");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("order_date")
+                        .HasComment("草稿订单业务日期（UTC），用于解析有效价格");
+
+                    b.Property<Guid?>("QuotationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quotation_id")
+                        .HasComment("草稿采用的默认报价单主键");
+
+                    b.Property<DateTime?>("ReceiveDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("receive_date")
+                        .HasComment("客户要求收货时间（UTC）");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("remark")
+                        .HasComment("用户提供的订单业务备注，不保存无关内部信息");
+
+                    b.Property<Guid?>("SaleOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_order_id")
+                        .HasComment("草稿确认后创建的正式销售订单主键");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status")
+                        .HasComment("记录启用状态");
+
+                    b.Property<Guid?>("UpdateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("update_by")
+                        .HasComment("最后修改记录的用户主键");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name")
+                        .HasComment("最后修改记录的用户名称");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("update_time")
+                        .HasComment("记录最后修改时间（UTC）");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id")
+                        .HasComment("草稿所属用户主键，也是唯一允许人工确认的用户");
+
+                    b.Property<Guid?>("WareId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ware_id")
+                        .HasComment("草稿指定的履约仓库主键");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("QuotationId");
+
+                    b.HasIndex("SaleOrderId")
+                        .IsUnique()
+                        .HasDatabaseName("idx_ai_order_draft_sale_order_id");
+
+                    b.HasIndex("WareId");
+
+                    b.HasIndex("ConversationId", "UserId");
+
+                    b.HasIndex("DraftStatus", "ExpiresAt")
+                        .HasDatabaseName("idx_ai_order_draft_status_expires_at");
+
+                    b.HasIndex("UserId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("idx_ai_order_draft_user_idempotency");
+
+                    b.HasIndex("UserId", "DraftStatus", "ExpiresAt")
+                        .HasDatabaseName("idx_ai_order_draft_user_status_expires_at");
+
+                    b.ToTable("ai_order_draft", null, t =>
+                        {
+                            t.HasComment("AI 生成的销售订单草稿，必须由所属用户在有效期内人工确认");
+
+                            t.HasCheckConstraint("ck_ai_order_draft_concurrency_version", "concurrency_version > 0");
+
+                            t.HasCheckConstraint("ck_ai_order_draft_status", "draft_status BETWEEN 1 AND 4");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiOrderDraftDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()")
+                        .HasComment("记录主键");
+
+                    b.Property<Guid>("AiOrderDraftId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ai_order_draft_id")
+                        .HasComment("所属 AI 订单草稿主键");
+
+                    b.Property<decimal>("BaseQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("base_quantity")
+                        .HasComment("草稿生成时换算到商品基础单位的数量");
+
+                    b.Property<Guid?>("BaseUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("base_unit_id")
+                        .HasComment("商品基础单位主键");
+
+                    b.Property<string>("BaseUnitNameSnapshot")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("base_unit_name_snapshot")
+                        .HasComment("草稿生成时的基础单位名称快照");
+
+                    b.Property<Guid?>("CreateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("create_by")
+                        .HasComment("创建记录的用户主键");
+
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name")
+                        .HasComment("创建记录的用户名称");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("create_time")
+                        .HasComment("记录创建时间（UTC）");
+
+                    b.Property<Guid>("FixedGoodsUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("fixed_goods_unit_id")
+                        .HasComment("固定单价对应的计价单位主键");
+
+                    b.Property<string>("FixedGoodsUnitNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("fixed_goods_unit_name_snapshot")
+                        .HasComment("草稿生成时的计价单位名称快照");
+
+                    b.Property<decimal>("FixedPrice")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("fixed_price")
+                        .HasComment("草稿生成时解析或由用户提供的固定单价");
+
+                    b.Property<string>("GoodsCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("goods_code_snapshot")
+                        .HasComment("草稿生成时的商品编码快照");
+
+                    b.Property<Guid>("GoodsId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("goods_id")
+                        .HasComment("草稿下单商品主键");
+
+                    b.Property<string>("GoodsNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("goods_name_snapshot")
+                        .HasComment("草稿生成时的商品名称快照");
+
+                    b.Property<Guid>("GoodsUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("goods_unit_id")
+                        .HasComment("下单数量使用的商品单位主键");
+
+                    b.Property<string>("GoodsUnitNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("goods_unit_name_snapshot")
+                        .HasComment("草稿生成时的下单单位名称快照");
+
+                    b.Property<decimal?>("MinimumOrderQuantitySnapshot")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("minimum_order_quantity_snapshot")
+                        .HasComment("价格来源在草稿生成时要求的最小起订数量");
+
+                    b.Property<int>("PriceSource")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("price_source")
+                        .HasComment("价格来源：1 未解析，2 客户协议价，3 默认报价，4 用户提供");
+
+                    b.Property<Guid?>("PriceSourceRecordId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("price_source_record_id")
+                        .HasComment("协议价商品或报价商品来源记录主键");
+
+                    b.Property<DateTime?>("PriceSourceUpdatedTimeSnapshot")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("price_source_updated_time_snapshot")
+                        .HasComment("价格来源记录在草稿生成时的最后更新时间（UTC）");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("quantity")
+                        .HasComment("按下单商品单位计量的业务数量");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("remark")
+                        .HasComment("用户提供的当前草稿商品行业务备注");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order")
+                        .HasComment("商品行在草稿中的稳定展示顺序，从 1 开始");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status")
+                        .HasComment("记录启用状态");
+
+                    b.Property<decimal>("UnitConversion")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_conversion")
+                        .HasComment("下单单位换算为基础单位的比例快照");
+
+                    b.Property<Guid?>("UpdateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("update_by")
+                        .HasComment("最后修改记录的用户主键");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name")
+                        .HasComment("最后修改记录的用户名称");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("update_time")
+                        .HasComment("记录最后修改时间（UTC）");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BaseUnitId")
+                        .HasDatabaseName("idx_ai_order_draft_detail_base_unit_id");
+
+                    b.HasIndex("FixedGoodsUnitId")
+                        .HasDatabaseName("idx_ai_order_draft_detail_fixed_unit_id");
+
+                    b.HasIndex("GoodsId")
+                        .HasDatabaseName("idx_ai_order_draft_detail_goods_id");
+
+                    b.HasIndex("GoodsUnitId")
+                        .HasDatabaseName("idx_ai_order_draft_detail_goods_unit_id");
+
+                    b.HasIndex("AiOrderDraftId", "SortOrder")
+                        .IsUnique()
+                        .HasDatabaseName("idx_ai_order_draft_detail_draft_sort");
+
+                    b.ToTable("ai_order_draft_detail", null, t =>
+                        {
+                            t.HasComment("AI 订单草稿商品明细，保存确认前重新校验所需的价格与单位快照");
+
+                            t.HasCheckConstraint("ck_ai_order_draft_detail_price_source", "price_source BETWEEN 1 AND 4");
+
+                            t.HasCheckConstraint("ck_ai_order_draft_detail_prices", "fixed_price >= 0 AND (minimum_order_quantity_snapshot IS NULL OR minimum_order_quantity_snapshot > 0)");
+
+                            t.HasCheckConstraint("ck_ai_order_draft_detail_quantities", "quantity > 0 AND base_quantity > 0 AND unit_conversion > 0");
+
+                            t.HasCheckConstraint("ck_ai_order_draft_detail_sort", "sort_order > 0");
+
+                            t.HasCheckConstraint("ck_ai_order_draft_detail_source_record", "(price_source IN (2, 3) AND price_source_record_id IS NOT NULL) OR (price_source IN (1, 4) AND price_source_record_id IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.McpAccessToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()")
+                        .HasComment("记录主键");
+
+                    b.Property<Guid?>("CreateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("create_by")
+                        .HasComment("创建记录的用户主键");
+
+                    b.Property<string>("CreateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("create_name")
+                        .HasComment("创建记录的用户名称");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("create_time")
+                        .HasComment("记录创建时间（UTC）");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at")
+                        .HasComment("个人 MCP 令牌失效时间（UTC）");
+
+                    b.Property<DateTime?>("LastUsedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_time")
+                        .HasComment("个人 MCP 令牌最近一次通过鉴权的时间（UTC）");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name")
+                        .HasComment("用户为个人 MCP 令牌设置的用途名称");
+
+                    b.Property<string>("Prefix")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("prefix")
+                        .HasComment("用于列表识别和令牌定位的非敏感随机前缀");
+
+                    b.Property<DateTime?>("RevokedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_time")
+                        .HasComment("个人 MCP 令牌被用户撤销的时间（UTC）");
+
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("scopes")
+                        .HasComment("以空格分隔并按稳定顺序保存的授权范围集合");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status")
+                        .HasComment("记录启用状态");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .HasColumnName("token_hash")
+                        .IsFixedLength()
+                        .HasComment("使用服务端独立密钥计算的 HMAC-SHA256 十六进制哈希");
+
+                    b.Property<Guid?>("UpdateBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("update_by")
+                        .HasComment("最后修改记录的用户主键");
+
+                    b.Property<string>("UpdateName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("update_name")
+                        .HasComment("最后修改记录的用户名称");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("update_time")
+                        .HasComment("记录最后修改时间（UTC）");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id")
+                        .HasComment("个人 MCP 令牌所属系统用户主键");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Prefix")
+                        .IsUnique()
+                        .HasDatabaseName("idx_mcp_access_token_prefix");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("idx_mcp_access_token_hash");
+
+                    b.HasIndex("UserId", "ExpiresAt")
+                        .HasDatabaseName("idx_mcp_access_token_user_expires_at");
+
+                    b.HasIndex("UserId", "CreateTime", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("idx_mcp_access_token_user_create_time");
+
+                    b.ToTable("mcp_access_token", null, t =>
+                        {
+                            t.HasComment("个人 MCP 访问令牌元数据，只保存非敏感前缀和 HMAC-SHA256 哈希");
+
+                            t.HasCheckConstraint("ck_mcp_access_token_scopes", "char_length(btrim(scopes)) > 0");
+                        });
+                });
+
             modelBuilder.Entity("Domain.Entities.AfterSales.AfterSale", b =>
                 {
                     b.Property<Guid>("Id")
@@ -9619,6 +10539,155 @@ namespace Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Entities.AI.AiActionDraft", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "ConfirmedByUser")
+                        .WithMany()
+                        .HasForeignKey("ConfirmedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.AI.AiConversation", "Conversation")
+                        .WithMany("ActionDrafts")
+                        .HasForeignKey("ConversationId", "UserId")
+                        .HasPrincipalKey("Id", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ConfirmedByUser");
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiConversation", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiMessage", b =>
+                {
+                    b.HasOne("Domain.Entities.AI.AiConversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiOrderDraft", b =>
+                {
+                    b.HasOne("Domain.Entities.Customers.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Pricing.Quotation", "Quotation")
+                        .WithMany()
+                        .HasForeignKey("QuotationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.Orders.SaleOrder", "SaleOrder")
+                        .WithMany()
+                        .HasForeignKey("SaleOrderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Storage.Ware", "Ware")
+                        .WithMany()
+                        .HasForeignKey("WareId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.AI.AiConversation", "Conversation")
+                        .WithMany("OrderDrafts")
+                        .HasForeignKey("ConversationId", "UserId")
+                        .HasPrincipalKey("Id", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Quotation");
+
+                    b.Navigation("SaleOrder");
+
+                    b.Navigation("User");
+
+                    b.Navigation("Ware");
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiOrderDraftDetail", b =>
+                {
+                    b.HasOne("Domain.Entities.AI.AiOrderDraft", "AiOrderDraft")
+                        .WithMany("Details")
+                        .HasForeignKey("AiOrderDraftId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Goods.GoodsUnit", "BaseUnit")
+                        .WithMany()
+                        .HasForeignKey("BaseUnitId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.Goods.GoodsUnit", "FixedGoodsUnit")
+                        .WithMany()
+                        .HasForeignKey("FixedGoodsUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Goods.Goods", "Goods")
+                        .WithMany()
+                        .HasForeignKey("GoodsId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Goods.GoodsUnit", "GoodsUnit")
+                        .WithMany()
+                        .HasForeignKey("GoodsUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AiOrderDraft");
+
+                    b.Navigation("BaseUnit");
+
+                    b.Navigation("FixedGoodsUnit");
+
+                    b.Navigation("Goods");
+
+                    b.Navigation("GoodsUnit");
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.McpAccessToken", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.AfterSales.AfterSale", b =>
                 {
                     b.HasOne("Domain.Entities.Customers.Customer", "Customer")
@@ -11220,6 +12289,20 @@ namespace Infrastructure.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiConversation", b =>
+                {
+                    b.Navigation("ActionDrafts");
+
+                    b.Navigation("Messages");
+
+                    b.Navigation("OrderDrafts");
+                });
+
+            modelBuilder.Entity("Domain.Entities.AI.AiOrderDraft", b =>
+                {
+                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("Domain.Entities.AfterSales.AfterSale", b =>

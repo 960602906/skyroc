@@ -19,6 +19,16 @@ public static class DataQualityRuleCatalog
         "sale_order", "purchase_plan", "purchase_order", "stock_in_order", "stock_out_order", "stocktaking_order", "delivery_task", "after_sale", "customer_bill", "customer_settlement", "supplier_bill", "supplier_settlement", "inspection_report"
     ];
 
+    private static readonly HashSet<string> FeatureGatedTables =
+    [
+        "ai_conversation",
+        "ai_message",
+        "ai_action_draft",
+        "ai_order_draft",
+        "ai_order_draft_detail",
+        "mcp_access_token"
+    ];
+
     /// <summary>
     ///     为模型表返回唯一的数量分类；关系、日志与明细优先按 100–300 条验收。
     /// </summary>
@@ -27,6 +37,7 @@ public static class DataQualityRuleCatalog
         var category = table.TableName switch
         {
             "sys_setting" => DataQualityTableCategory.Constrained,
+            _ when FeatureGatedTables.Contains(table.TableName) => DataQualityTableCategory.FeatureGated,
             _ when BusinessDocumentTables.Contains(table.TableName) => DataQualityTableCategory.BusinessDocument,
             _ when MasterDataTables.Contains(table.TableName) => DataQualityTableCategory.MasterData,
             _ when table.TableName.StartsWith("sys_", StringComparison.Ordinal) => DataQualityTableCategory.PermissionOrBaseData,
@@ -44,6 +55,7 @@ public static class DataQualityRuleCatalog
             DataQualityTableCategory.BusinessDocument => new(category, 50, 100, "订单、采购、库存、配送、售后和结算主表目标 50–100 条"),
             DataQualityTableCategory.DetailRelationOrLog => new(category, 100, 300, "明细、关系、审计、流水和日志目标 100–300 条"),
             DataQualityTableCategory.Constrained => new(category, 0, null, "固定枚举、单例配置或唯一键受限表必须填满全部合法记录"),
+            DataQualityTableCategory.FeatureGated => new(category, 0, null, "功能默认关闭且当前阶段只建立持久化结构，允许业务表为空"),
             _ => new(category, 20, null, "普通业务表验收下限为 20 条")
         };
     }

@@ -23,6 +23,7 @@ public class PermissionAuthorizationHandlerTests
     {
         Assert.Contains(PermissionCodes.Ai.UseAssistant, PermissionCodes.Defined);
         Assert.Contains(PermissionCodes.Ai.CreateOrderDraft, PermissionCodes.Defined);
+        Assert.Contains(PermissionCodes.Ai.ConfirmActionDraft, PermissionCodes.Defined);
         Assert.Contains(PermissionCodes.Ai.ManageMcpTokens, PermissionCodes.Defined);
     }
 

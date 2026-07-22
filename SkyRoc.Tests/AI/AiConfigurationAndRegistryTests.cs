@@ -212,6 +212,36 @@ public class AiConfigurationAndRegistryTests
         Assert.Contains("Mcp:TokenHashKeyEnvironmentVariable", exception.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task StartupValidation_Fails_WhenExternalMcpDelegationSigningKeyIsMissing()
+    {
+        var hashKeyEnvironmentVariable = UniqueEnvironmentVariableName();
+        Environment.SetEnvironmentVariable(hashKeyEnvironmentVariable, new string('h', 32));
+        try
+        {
+            var settings = new Dictionary<string, string?>
+            {
+                ["Ai:Enabled"] = "false",
+                ["Mcp:ExternalEnabled"] = "true",
+                ["Mcp:TokenHashKeyEnvironmentVariable"] = hashKeyEnvironmentVariable,
+                ["Mcp:DelegationSigningKeyEnvironmentVariable"] = UniqueEnvironmentVariableName()
+            };
+            using var serviceProvider = BuildServiceProvider(settings);
+
+            var exception = await Assert.ThrowsAsync<OptionsValidationException>(
+                () => StartApplicationHostedServicesAsync(serviceProvider));
+
+            Assert.Contains(
+                "Mcp:DelegationSigningKeyEnvironmentVariable",
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(hashKeyEnvironmentVariable, null);
+        }
+    }
+
     private static Dictionary<string, string?> CreateEnabledSettings(string environmentVariableName) => new()
     {
         ["Ai:Enabled"] = "true",
@@ -220,6 +250,7 @@ public class AiConfigurationAndRegistryTests
         ["Ai:Providers:Test:BaseUrl"] = "https://ai.example.test/v1",
         ["Ai:Providers:Test:Model"] = "test-model",
         ["Ai:Providers:Test:ApiKeyEnvironmentVariable"] = environmentVariableName,
+        ["Ai:CapabilityGateway:InternalBaseUrl"] = "http://localhost:5293",
         ["Mcp:ExternalEnabled"] = "false"
     };
 

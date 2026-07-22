@@ -173,7 +173,7 @@ public class PostgreSqlInfrastructureDocumentationTests
         var progress = File.ReadAllText(GetRepositoryFile("docs", "开发进度.md"));
 
         Assert.Contains("## 验收与测试基线", progress, StringComparison.Ordinal);
-        Assert.Contains("最近验收日期 | 2026-07-22", progress, StringComparison.Ordinal);
+        Assert.Contains("最近验收日期 | 2026-07-23", progress, StringComparison.Ordinal);
         Assert.Contains("完整测试数量基线 | 558 项（2026-07-22 完整套件已完成运行", progress, StringComparison.Ordinal);
         Assert.Contains("数据库基线 | 专用库 `skyroc`", progress, StringComparison.Ordinal);
         Assert.Contains("T14 勾选状态 | **已勾选**", progress, StringComparison.Ordinal);

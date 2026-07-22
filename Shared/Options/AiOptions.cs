@@ -21,6 +21,8 @@ public sealed class AiOptions
     public int ConversationRetentionDays { get; set; } = 30;
     /// <summary>订单草稿自生成起允许人工确认的分钟数。</summary>
     public int DraftExpiryMinutes { get; set; } = 30;
+    /// <summary>AI 调用现有业务 API 时使用的受控网关边界。</summary>
+    public AiCapabilityGatewayOptions CapabilityGateway { get; set; } = new();
     /// <summary>按稳定名称索引的 Provider 配置集合。</summary>
     public Dictionary<string, AiProviderOptions> Providers { get; set; } =
         new(StringComparer.OrdinalIgnoreCase);

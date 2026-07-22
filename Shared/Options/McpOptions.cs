@@ -11,4 +11,6 @@ public sealed class McpOptions
     public List<string> AllowedOrigins { get; set; } = [];
     /// <summary>保存 Token HMAC-SHA256 密钥的环境变量名称。</summary>
     public string TokenHashKeyEnvironmentVariable { get; set; } = string.Empty;
+    /// <summary>保存内部委托令牌签名密钥的环境变量名称。</summary>
+    public string DelegationSigningKeyEnvironmentVariable { get; set; } = string.Empty;
 }

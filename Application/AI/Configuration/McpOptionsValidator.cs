@@ -5,7 +5,7 @@ using Shared.Options;
 
 namespace Application.AI.Configuration;
 
-/// <summary>校验 MCP 来源白名单和外部 Token HMAC 密钥环境变量。</summary>
+/// <summary>校验 MCP 来源白名单、Token 哈希和内部委托令牌签名密钥。</summary>
 internal sealed class McpOptionsValidator : IValidateOptions<McpOptions>
 {
     private static readonly Regex EnvironmentVariableNamePattern =
@@ -34,25 +34,41 @@ internal sealed class McpOptionsValidator : IValidateOptions<McpOptions>
         if (!options.ExternalEnabled)
             return Result(failures);
 
-        if (string.IsNullOrWhiteSpace(options.TokenHashKeyEnvironmentVariable))
-        {
-            failures.Add("Mcp:TokenHashKeyEnvironmentVariable 在外部 MCP 启用时不能为空。");
-            return ValidateOptionsResult.Fail(failures);
-        }
-
-        if (!EnvironmentVariableNamePattern.IsMatch(options.TokenHashKeyEnvironmentVariable))
-        {
-            failures.Add("Mcp:TokenHashKeyEnvironmentVariable 不是有效的环境变量名称。");
-            return ValidateOptionsResult.Fail(failures);
-        }
-
-        var hashKey = Environment.GetEnvironmentVariable(options.TokenHashKeyEnvironmentVariable);
-        if (string.IsNullOrWhiteSpace(hashKey))
-            failures.Add("Mcp:TokenHashKeyEnvironmentVariable 指定的环境变量未配置。");
-        else if (Encoding.UTF8.GetByteCount(hashKey) < 32)
-            failures.Add("Mcp:TokenHashKeyEnvironmentVariable 指定的密钥至少需要 32 个 UTF-8 字节。");
+        ValidateKeyEnvironmentVariable(
+            failures,
+            nameof(options.TokenHashKeyEnvironmentVariable),
+            options.TokenHashKeyEnvironmentVariable);
+        ValidateKeyEnvironmentVariable(
+            failures,
+            nameof(options.DelegationSigningKeyEnvironmentVariable),
+            options.DelegationSigningKeyEnvironmentVariable);
 
         return Result(failures);
+    }
+
+    private static void ValidateKeyEnvironmentVariable(
+        ICollection<string> failures,
+        string propertyName,
+        string environmentVariableName)
+    {
+        var path = $"Mcp:{propertyName}";
+        if (string.IsNullOrWhiteSpace(environmentVariableName))
+        {
+            failures.Add($"{path} 在外部 MCP 启用时不能为空。");
+            return;
+        }
+
+        if (!EnvironmentVariableNamePattern.IsMatch(environmentVariableName))
+        {
+            failures.Add($"{path} 不是有效的环境变量名称。");
+            return;
+        }
+
+        var key = Environment.GetEnvironmentVariable(environmentVariableName);
+        if (string.IsNullOrWhiteSpace(key))
+            failures.Add($"{path} 指定的环境变量未配置。");
+        else if (Encoding.UTF8.GetByteCount(key) < 32)
+            failures.Add($"{path} 指定的密钥至少需要 32 个 UTF-8 字节。");
     }
 
     private static ValidateOptionsResult Result(ICollection<string> failures) =>

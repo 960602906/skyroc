@@ -16,5 +16,7 @@ public enum DataQualityTableCategory
     /// <summary>明细、关系、审计、流水与日志。</summary>
     DetailRelationOrLog,
     /// <summary>固定枚举、单例或唯一键受限表。</summary>
-    Constrained
+    Constrained,
+    /// <summary>功能默认关闭、尚未进入业务造数阶段的持久化表。</summary>
+    FeatureGated
 }

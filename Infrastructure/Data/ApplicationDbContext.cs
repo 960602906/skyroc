@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Domain.Entities;
+using Domain.Entities.AI;
 using Domain.Entities.AfterSales;
 using Domain.Entities.Customers;
 using Domain.Entities.Delivery;
@@ -463,6 +464,36 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// 系统登录审计日志表。
     /// </summary>
     public DbSet<LoginLog> LoginLogs { get; set; }
+
+    /// <summary>
+    /// AI 助手会话表。
+    /// </summary>
+    public DbSet<AiConversation> AiConversations { get; set; }
+
+    /// <summary>
+    /// AI 助手会话消息表。
+    /// </summary>
+    public DbSet<AiMessage> AiMessages { get; set; }
+
+    /// <summary>
+    /// AI 通用操作草稿表。
+    /// </summary>
+    public DbSet<AiActionDraft> AiActionDrafts { get; set; }
+
+    /// <summary>
+    /// AI 订单草稿主表。
+    /// </summary>
+    public DbSet<AiOrderDraft> AiOrderDrafts { get; set; }
+
+    /// <summary>
+    /// AI 订单草稿商品明细表。
+    /// </summary>
+    public DbSet<AiOrderDraftDetail> AiOrderDraftDetails { get; set; }
+
+    /// <summary>
+    /// 个人 MCP 访问令牌元数据表。
+    /// </summary>
+    public DbSet<McpAccessToken> McpAccessTokens { get; set; }
 
     #endregion
 }
