@@ -1054,6 +1054,7 @@ const page: App.I18n.Schema['translation']['page'] = {
       supplierContactName: '供应商联系人',
       supplierContactPhone: '供应商联系电话',
       title: '采购单列表',
+      unit: '采购单位',
       updateTime: '更新时间'
     },
     plan: {

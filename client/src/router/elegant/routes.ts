@@ -1089,7 +1089,33 @@ export const generatedRoutes: ElegantConstRoute[] = [
                   title: '(base)_purchase_orders',
                   icon: 'mdi:file-document-outline',
                   order: 2
-                }
+                },
+                children: [
+                  {
+                    matchedFiles: [null, null, null, null],
+                    name: '(base)_purchase_orders_detail',
+                    path: '/purchase/orders/detail',
+                    handle: {
+                      i18nKey: 'route.(base)_purchase_orders_detail',
+                      title: '(base)_purchase_orders_detail',
+                      activeMenu: '/purchase/orders',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/purchase/orders/detail/[id].tsx', null, null],
+                        name: '(base)_purchase_orders_detail_[id]',
+                        path: '/purchase/orders/detail/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_purchase_orders_detail_[id]',
+                          title: '(base)_purchase_orders_detail_[id]',
+                          activeMenu: '/purchase/orders',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               {
                 matchedFiles: [null, '/src/pages/(base)/purchase/plans/index.tsx', null, null],

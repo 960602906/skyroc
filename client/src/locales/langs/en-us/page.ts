@@ -1050,6 +1050,7 @@ const page: App.I18n.Schema['translation']['page'] = {
       supplierContactName: 'Supplier Contact',
       supplierContactPhone: 'Supplier Phone',
       title: 'Purchase Orders',
+      unit: 'Purchase Unit',
       updateTime: 'Updated At'
     },
     plan: {

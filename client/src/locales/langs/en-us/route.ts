@@ -84,6 +84,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_orders_pickup-tasks_operate_[id]': 'Schedule Pickup',
   '(base)_purchase': 'Purchase',
   '(base)_purchase_orders': 'Purchase Orders',
+  '(base)_purchase_orders_detail': 'Purchase Order Detail',
+  '(base)_purchase_orders_detail_[id]': 'Purchase Order Detail',
   '(base)_purchase_plans': 'Purchase Plans',
   '(base)_purchase_plans_detail': 'Purchase Plan Detail',
   '(base)_purchase_plans_detail_[id]': 'Purchase Plan Detail',

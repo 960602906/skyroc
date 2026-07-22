@@ -117,6 +117,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   // —— 采购中心 ——
   '(base)_purchase': { icon: 'mdi:cart-arrow-down', order: 3 },
   '(base)_purchase_orders': { icon: 'mdi:file-document-outline', order: 2 },
+  '(base)_purchase_orders_detail': { activeMenu: '/purchase/orders', hideInMenu: true },
+  '(base)_purchase_orders_detail_[id]': { activeMenu: '/purchase/orders', hideInMenu: true },
   '(base)_purchase_plans': { icon: 'mdi:calendar-check-outline', order: 1 },
   '(base)_purchase_plans_detail': { activeMenu: '/purchase/plans', hideInMenu: true },
   '(base)_purchase_plans_detail_[id]': { activeMenu: '/purchase/plans', hideInMenu: true },

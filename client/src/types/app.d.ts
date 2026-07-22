@@ -1412,6 +1412,7 @@ declare namespace App {
               supplierContactName: string;
               supplierContactPhone: string;
               title: string;
+              unit: string;
               updateTime: string;
             };
             plan: {

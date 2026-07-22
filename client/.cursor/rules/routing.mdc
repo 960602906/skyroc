@@ -32,14 +32,20 @@ Skyroc Admin 依赖 `@soybean-react/vite-plugin-react-router` 生成的文件系
 
 ### 详情、编辑等辅助路由（强制隐藏）
 
-详情/编辑页属于可导航路由，但不是菜单叶子项。父辅助路由与动态子路由必须同时设置：
+详情/编辑页属于可导航路由，但不是菜单叶子项。**必须严格按以下顺序操作：**
+
+1. 在 `src/pages/` 下创建页面文件（如 `detail/[id].tsx`）。
+2. 启动或保持 `pnpm dev` 运行，等待 elegant-router watcher 触发，自动更新 `src/router/elegant/routes.ts`。
+3. 确认路由条目已生成后，再向 `build/plugins/router.ts` 的 `ROUTE_META_PRESETS` 写入父、子路由的配置：
 
 ```ts
 '(base)_xxx_list_detail': { activeMenu: '/xxx/list', hideInMenu: true },
 '(base)_xxx_list_detail_[id]': { activeMenu: '/xxx/list', hideInMenu: true }
 ```
 
-错误示范：只创建 `detail/[id].tsx`，却没有在 `ROUTE_META_PRESETS` 登记父、子路由；结果是“详情”出现在侧边菜单，且进入详情后列表菜单不高亮。
+**为什么顺序不能颠倒：** `src/router/elegant/routes.ts` 是生成文件，禁止手改。`build/plugins/router.ts` 的配置必须和已生成的路由 key 对应，否则配置无效。若先写配置再创建文件，dev server 启动时路由插件会忽略孤立 key，配置实际不生效。
+
+错误示范：只创建 `detail/[id].tsx`，却没有在 `ROUTE_META_PRESETS` 登记父、子路由；结果是”详情”出现在侧边菜单，且进入详情后列表菜单不高亮。
 
 构建后必须在生成的 `routes.ts` 中核对父/子路由均有 `hideInMenu: true` 和正确的 `activeMenu`。
 
