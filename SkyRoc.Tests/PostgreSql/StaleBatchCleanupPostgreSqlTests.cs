@@ -11,7 +11,7 @@ namespace SkyRoc.Tests.PostgreSql;
 public class StaleBatchCleanupPostgreSqlTests(PostgreSqlTestFixture fixture)
 {
     /// <summary>
-    ///     按外键逆序删除历史临时前缀行、回填空登录 IP，再核对最终质量报告全绿。
+    ///     按外键逆序删除历史临时前缀行，再核对最终质量报告全绿。
     /// </summary>
     [Fact]
     public async Task StaleBatchCleanup_RemovesHistoricalResidueAndRestoresQualityGate_OnPostgreSql()

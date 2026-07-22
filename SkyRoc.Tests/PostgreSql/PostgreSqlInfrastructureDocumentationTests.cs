@@ -59,7 +59,7 @@ public class PostgreSqlInfrastructureDocumentationTests
     }
 
     /// <summary>
-    ///     非敏感测试约定必须固定 Testing 环境、用户确认的 skyroc_test 白名单和报告目录。
+    ///     非敏感测试约定必须固定 Testing 环境、用户确认的 skyroc 白名单和报告目录。
     /// </summary>
     [Fact]
     public void TestSettings_DeclareOwnerConfirmedDatabaseAllowlist()
@@ -69,8 +69,41 @@ public class PostgreSqlInfrastructureDocumentationTests
         var root = document.RootElement;
 
         Assert.Equal("Testing", root.GetProperty("environmentName").GetString());
-        Assert.Equal("skyroc_test", root.GetProperty("expectedDatabaseName").GetString());
+        Assert.Equal("skyroc", root.GetProperty("expectedDatabaseName").GetString());
         Assert.Equal("artifacts/business-test-reports", root.GetProperty("reportDirectory").GetString());
+    }
+
+    /// <summary>
+    ///     PostgreSQL 共享夹具只能应用迁移；不得删除或重建长期联调库，也不得在每个测试集合初始化时隐式生成全量数据。
+    /// </summary>
+    [Fact]
+    public void PostgreSqlFixture_OnlyMigratesAndDoesNotDeleteOrImplicitlyGenerateDemoData()
+    {
+        var fixtureSource = File.ReadAllText(GetRepositoryFile(
+            "SkyRoc.Tests",
+            "Testing",
+            "PostgreSql",
+            "PostgreSqlTestFixture.cs"));
+
+        Assert.Contains("await context.Database.MigrateAsync();", fixtureSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnsureDeleted", fixtureSource, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("EnsureCreated", fixtureSource, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("await GenerateDemoDataAsync();", fixtureSource, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    ///     历史临时批次清理器只能删除带批次前缀及其外键依赖的数据，不得全表修复非受管登录日志。
+    /// </summary>
+    [Fact]
+    public void StaleBatchCleaner_DoesNotUpdateNonManagedLoginLogs()
+    {
+        var cleanerSource = File.ReadAllText(GetRepositoryFile(
+            "SkyRoc.Tests",
+            "Testing",
+            "PostgreSql",
+            "PostgreSqlStaleBatchCleaner.cs"));
+
+        Assert.DoesNotContain("UPDATE \"sys_login_log\"", cleanerSource, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

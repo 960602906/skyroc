@@ -1,13 +1,9 @@
-using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Common;
-using Shared.Constants;
-using Shared.Utils;
 using Xunit;
-using Menu = Domain.Entities.Menu;
 
 namespace SkyRoc.Tests.Testing.PostgreSql;
 
@@ -47,111 +43,16 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
     public string DatabaseName { get; }
 
     /// <summary>
-    ///     在测试集合开始时删除并重建专用测试库，确保每轮测试从干净状态启动，并写入系统预置角色。
+    ///     在测试集合开始时安全应用所有待执行迁移。
     /// </summary>
     public async Task InitializeAsync()
     {
         await using var context = CreateDbContext();
-        await context.Database.EnsureDeletedAsync();
         await context.Database.MigrateAsync();
-
-        // 写入系统预置角色（Admin/User），让权限测试可以复用这些角色
-        if (!await context.Roles.AnyAsync())
-        {
-            context.Roles.AddRange(
-                new Role
-                {
-                    Name = "管理员",
-                    Code = "Admin",
-                    Desc = "系统管理员，拥有所有权限"
-                },
-                new Role
-                {
-                    Name = "用户",
-                    Code = "User",
-                    Desc = "普通用户，拥有基本权限"
-                });
-            await context.SaveChangesAsync();
-        }
-
-        // 写入初始 admin 用户，供 DemoDataGenerator 作为审计用户基础
-        if (!await context.Users.AnyAsync())
-        {
-            context.Users.Add(new User
-            {
-                Username = "admin",
-                NickName = "系统管理员",
-                Email = "admin@test.example",
-                Gender = GenderType.Male,
-                PasswordHash = PasswordHasher.Hash("Admin@123")
-            });
-            await context.SaveChangesAsync();
-        }
-
-        // 写入必需的基础菜单（home, manage, manage_role, manage_user），供 DemoDataGenerator 的角色权限关联使用
-        if (!await context.Menus.AnyAsync())
-        {
-            var now = DateTime.UtcNow;
-            var homeMenu = new Menu
-            {
-                Name = "home",
-                Path = "/home",
-                Component = "page.(base)_home",
-                Title = "home",
-                I18NKey = "route.(base)_home",
-                Order = 1,
-                Status = Status.Enable,
-                CreateTime = now
-            };
-            var manageMenu = new Menu
-            {
-                Name = "manage",
-                Path = "/manage",
-                Component = "page.(base)_manage",
-                Title = "manage",
-                I18NKey = "route.(base)_manage",
-                Order = 8,
-                Status = Status.Enable,
-                CreateTime = now
-            };
-            context.Menus.AddRange(homeMenu, manageMenu);
-            await context.SaveChangesAsync();
-
-            context.Menus.AddRange(
-                new Menu
-                {
-                    Name = "manage_user",
-                    Path = "/manage/user",
-                    Component = "page.(base)_manage_user",
-                    Title = "manage_user",
-                    I18NKey = "route.(base)_manage_user",
-                    Order = 1,
-                    KeepAlive = true,
-                    ParentId = manageMenu.Id,
-                    Status = Status.Enable,
-                    CreateTime = now
-                },
-                new Menu
-                {
-                    Name = "manage_role",
-                    Path = "/manage/role",
-                    Component = "page.(base)_manage_role",
-                    Title = "manage_role",
-                    I18NKey = "route.(base)_manage_role",
-                    Order = 2,
-                    ParentId = manageMenu.Id,
-                    Status = Status.Enable,
-                    CreateTime = now
-                });
-            await context.SaveChangesAsync();
-        }
-
-        // 预生成长期联调数据，供所有依赖受管稳定键的测试使用
-        await GenerateDemoDataAsync();
     }
 
     /// <summary>
-    ///     测试集合结束时无需额外清理，数据库会在下次运行时重建。
+    ///     夹具不持有跨测试连接，无需删除或重建数据库。
     /// </summary>
     public Task DisposeAsync()
     {
@@ -214,7 +115,7 @@ public sealed class PostgreSqlTestFixture : IAsyncLifetime
     }
 
     /// <summary>
-    ///     清理历史轮次遗留的 <c>SKYROC-AUTOTEST-</c> 临时残留，并回填登录审计空 IP。
+    ///     清理历史轮次遗留的 <c>SKYROC-AUTOTEST-</c> 临时残留。
     ///     仅供 T14 质量门禁收口使用。
     /// </summary>
     public async Task CleanupStaleAutotestBatchesAsync(CancellationToken cancellationToken = default)

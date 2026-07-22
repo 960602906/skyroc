@@ -1908,11 +1908,26 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                 $"受管采购计划生成需要 60 张已审核销售订单，当前为 {approvedOrders.Count} 张。");
         }
 
-        var existingPlans = await context.PurchasePlans
+        await RemoveUnkeyedManagedPurchasePlansAsync(
+            context,
+            approvedOrders,
+            planRemarks,
+            auditUser,
+            cancellationToken);
+
+        var existingPlanCandidates = await context.PurchasePlans
             .Include(plan => plan.Details)
             .ThenInclude(detail => detail.OrderRelations)
+            .Include(plan => plan.Details)
+            .ThenInclude(detail => detail.PurchaseOrderRelations)
             .Where(plan => plan.Remark != null && planRemarks.Contains(plan.Remark))
-            .ToDictionaryAsync(plan => plan.Remark!, StringComparer.Ordinal, cancellationToken);
+            .OrderBy(plan => plan.CreateTime)
+            .ThenBy(plan => plan.PlanNo)
+            .ToListAsync(cancellationToken);
+        var existingPlans = await NormalizeManagedPurchasePlanDuplicatesAsync(
+            context,
+            existingPlanCandidates,
+            cancellationToken);
         var managedSuppliers = await context.Suppliers
             .Where(supplier => supplierCodes.Contains(supplier.Code))
             .ToDictionaryAsync(supplier => supplier.Code, StringComparer.Ordinal, cancellationToken);
@@ -2017,6 +2032,120 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
 
         await context.SaveChangesAsync(cancellationToken);
         return (createdPlans, reusedPlans, createdDetails, reusedDetails, createdOrderRelations, reusedOrderRelations);
+    }
+
+    /// <summary>
+    ///     恢复历史中断或跨进程重复生成留下的受管采购计划副本。
+    ///     仅删除稳定备注和来源订单完全一致、且未被采购单占用的多余副本；存在歧义时立即失败并保留数据。
+    /// </summary>
+    private static async Task<Dictionary<string, PurchasePlan>> NormalizeManagedPurchasePlanDuplicatesAsync(
+        ApplicationDbContext context,
+        IReadOnlyCollection<PurchasePlan> candidates,
+        CancellationToken cancellationToken)
+    {
+        var existingPlans = new Dictionary<string, PurchasePlan>(StringComparer.Ordinal);
+        var removedDuplicates = false;
+
+        foreach (var group in candidates.GroupBy(plan => plan.Remark!, StringComparer.Ordinal))
+        {
+            var plans = group.ToArray();
+            var referencedPlans = plans
+                .Where(plan => plan.Details.Any(detail => detail.PurchaseOrderRelations.Count > 0))
+                .ToArray();
+            if (referencedPlans.Length > 1)
+            {
+                throw new InvalidOperationException(
+                    $"受管采购计划 {group.Key} 存在多个已被采购单占用的重复副本，无法安全自动恢复。");
+            }
+
+            var canonicalPlan = referencedPlans.SingleOrDefault()
+                                ?? plans.OrderBy(plan => plan.CreateTime)
+                                    .ThenBy(plan => plan.PlanNo, StringComparer.Ordinal)
+                                    .First();
+            var canonicalSourceOrderIds = GetPurchasePlanSourceOrderIds(canonicalPlan);
+
+            foreach (var duplicate in plans.Where(plan => plan.Id != canonicalPlan.Id))
+            {
+                if (duplicate.Details.Any(detail => detail.PurchaseOrderRelations.Count > 0)
+                    || !canonicalSourceOrderIds.SequenceEqual(GetPurchasePlanSourceOrderIds(duplicate)))
+                {
+                    throw new InvalidOperationException(
+                        $"受管采购计划 {group.Key} 的重复副本存在下游占用或来源订单不一致，无法安全自动恢复。");
+                }
+
+                context.PurchasePlans.Remove(duplicate);
+                removedDuplicates = true;
+            }
+
+            existingPlans.Add(group.Key, canonicalPlan);
+        }
+
+        if (removedDuplicates)
+            await context.SaveChangesAsync(cancellationToken);
+
+        return existingPlans;
+    }
+
+    /// <summary>
+    ///     清理由受管销售订单形成、但未保存受管稳定备注的历史半成品计划，并恢复订单生成标志。
+    ///     仅处理来源全部属于本轮受管订单且没有采购单占用的计划。
+    /// </summary>
+    private static async Task RemoveUnkeyedManagedPurchasePlansAsync(
+        ApplicationDbContext context,
+        IReadOnlyCollection<SaleOrder> approvedOrders,
+        IReadOnlyCollection<string> planRemarks,
+        DemoAuditUser auditUser,
+        CancellationToken cancellationToken)
+    {
+        var managedOrderIds = approvedOrders.Select(order => order.Id).ToHashSet();
+        var unkeyedPlans = await context.PurchasePlans
+            .Include(plan => plan.Details)
+            .ThenInclude(detail => detail.OrderRelations)
+            .Include(plan => plan.Details)
+            .ThenInclude(detail => detail.PurchaseOrderRelations)
+            .Where(plan => (plan.Remark == null || !planRemarks.Contains(plan.Remark))
+                           && plan.Details.Any(detail => detail.OrderRelations.Any(
+                               relation => managedOrderIds.Contains(relation.SaleOrderId))))
+            .ToListAsync(cancellationToken);
+        if (unkeyedPlans.Count == 0)
+            return;
+
+        var affectedOrderIds = new HashSet<Guid>();
+        foreach (var plan in unkeyedPlans)
+        {
+            var sourceOrderIds = GetPurchasePlanSourceOrderIds(plan);
+            if (sourceOrderIds.Length == 0
+                || sourceOrderIds.Any(orderId => !managedOrderIds.Contains(orderId))
+                || plan.Details.Any(detail => detail.PurchaseOrderRelations.Count > 0))
+            {
+                throw new InvalidOperationException(
+                    $"采购计划 {plan.PlanNo} 同时包含非受管来源或已有采购单占用，无法安全恢复受管计划稳定键。");
+            }
+
+            affectedOrderIds.UnionWith(sourceOrderIds);
+            context.PurchasePlans.Remove(plan);
+        }
+
+        foreach (var order in approvedOrders.Where(order => affectedOrderIds.Contains(order.Id)))
+        {
+            order.HasPurchasePlan = false;
+            order.UpdateBy = auditUser.Id;
+            order.UpdateName = auditUser.Username;
+            foreach (var detail in order.Details)
+                detail.HasPurchasePlan = false;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static Guid[] GetPurchasePlanSourceOrderIds(PurchasePlan plan)
+    {
+        return plan.Details
+            .SelectMany(detail => detail.OrderRelations)
+            .Select(relation => relation.SaleOrderId)
+            .Distinct()
+            .Order()
+            .ToArray();
     }
 
     private static async Task<PurchasePlan> GetManagedPurchasePlanAsync(

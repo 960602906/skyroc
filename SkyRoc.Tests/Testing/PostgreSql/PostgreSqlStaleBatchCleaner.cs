@@ -13,10 +13,8 @@ namespace SkyRoc.Tests.Testing.PostgreSql;
 /// </summary>
 public sealed class PostgreSqlStaleBatchCleaner(PostgreSqlTestSettings settings)
 {
-    private const string EmptyLoginIpFallback = "未知";
-
     /// <summary>
-    ///     在事务中删除历史临时残留及其外键阻断子行，并规范化空登录 IP。
+    ///     在事务中删除历史临时残留及其外键阻断子行。
     /// </summary>
     public async Task CleanAsync(
         ApplicationDbContext context,
@@ -63,7 +61,6 @@ public sealed class PostgreSqlStaleBatchCleaner(PostgreSqlTestSettings settings)
                         connection, dbTransaction, tableName, pkColumns[0], ids, cancellationToken);
                 }
 
-                await NormalizeEmptyLoginIpAddressesAsync(connection, dbTransaction, cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
             }
             catch
@@ -400,23 +397,6 @@ public sealed class PostgreSqlStaleBatchCleaner(PostgreSqlTestSettings settings)
                 pair.Value.ChildCols,
                 pair.Value.ParentCols))
             .ToArray();
-    }
-
-    private static async Task NormalizeEmptyLoginIpAddressesAsync(
-        NpgsqlConnection connection,
-        NpgsqlTransaction transaction,
-        CancellationToken cancellationToken)
-    {
-        await using var command = new NpgsqlCommand(
-            """
-            UPDATE "sys_login_log"
-            SET "ip_address" = @fallback
-            WHERE "ip_address" IS NULL OR BTRIM("ip_address") = ''
-            """,
-            connection,
-            transaction);
-        command.Parameters.AddWithValue("fallback", EmptyLoginIpFallback);
-        _ = await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     private static string Quote(string identifier)
