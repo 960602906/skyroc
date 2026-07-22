@@ -9,15 +9,6 @@ using SkyRoc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 本机可使用未纳入版本控制的配置文件保存临时开发密钥；后续配置源仍可覆盖这些值。
-if (builder.Environment.IsDevelopment())
-{
-    builder.Configuration
-        .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
-        .AddEnvironmentVariables()
-        .AddCommandLine(args);
-}
-
 // 📋 获取配置
 var configuration = builder.Configuration;
 

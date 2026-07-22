@@ -138,10 +138,6 @@ publish/
 # 配置文件（包含敏感信息）
 #------------------------------------------
 
-# 本机开发密钥覆盖文件（可参考 appsettings.json 的结构）
-SkyRoc/appsettings.Local.json
-
-
 # Connection strings
 ConnectionStrings.config
 

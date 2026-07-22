@@ -61,7 +61,7 @@ flowchart LR
 10. GET/HEAD 默认为读取，可直接执行；POST/PUT/PATCH/DELETE 默认为写入，必须先保存 `AiActionDraft` 并由当前用户确认。高风险操作需要更醒目的二次确认；技术端点使用 `[AiIgnore]` 排除。
 11. 所有增长型查询必须在原业务接口的数据库查询层分页或限量；AI 网关不得通过“全量调用后截断响应”掩盖不安全接口。知识最多 5 段，能力搜索最多 20 项，单次工具结果另设字节上限。
 12. 订单创建仍使用专用草稿；正式订单只能由登录用户确认后调用现有 `ISaleOrderService.CreateAsync` 创建，并在确认时重新验证价格。
-13. 开发阶段按用户 2026-07-23 决定，模型 API Key 暂从忽略跟踪且不进入发布产物的 `appsettings.Local.json` 读取，同时保留环境变量兼容路径；生产启用前迁移到安全密钥源。个人 MCP 令牌原文只显示一次，数据库只保存 HMAC-SHA256 哈希。
+13. 开发阶段按用户 2026-07-23 最终决定，DeepSeek 与 GLM 的开发/测试 API Key 直接保存在已跟踪的 `appsettings.json`，不使用额外本地配置文件，同时保留环境变量兼容路径；生产密钥后续迁移到安全密钥源。个人 MCP 令牌原文只显示一次，数据库只保存 HMAC-SHA256 哈希。
 14. 推理内容不展示、不入库；音频不上传、不保存；完整敏感工具响应不写入会话或日志。
 15. 默认配置为 `Ai:Enabled=false`、`Mcp:ExternalEnabled=false`，模型故障不得影响普通业务接口。
 
@@ -158,7 +158,7 @@ git diff --check
 | 工具链 | `.NET SDK 9.0.100`、`Node v22.16.0`、`pnpm 10.12.1`；前端声明的 `pnpm >=10.4.1` 约束满足。 |
 | 数据基础设施 | PostgreSQL 可读取到最新迁移 `20260721024046_AddSelectionOptionSearchIndexes`；Redis `PING` 返回 `PONG`，现有 `/health` 返回 `Healthy`。 |
 | MCP SDK | 官方 NuGet 当前稳定 1.x 为 `ModelContextProtocol.AspNetCore 1.4.1`；已在隔离的 `net9.0` Web 项目完成还原和构建，0 警告、0 错误。仓库在 P6-06 引入时必须显式固定该版本。 |
-| 最终验收能力 | Codex CLI、Claude CLI、Chrome 和 Edge 可用；MCP Inspector 未预装，P6-14 执行时再按官方发行方式获取。`SKYROC_AI_DEEPSEEK_API_KEY`、`SKYROC_AI_GLM_API_KEY`、`SKYROC_AI_CUSTOM_API_KEY`、`SKYROC_MCP_TOKEN_HASH_KEY`、`SKYROC_AI_DELEGATION_SIGNING_KEY` 当前均未配置，P6-14 前必须由环境注入。 |
+| 最终验收能力 | Codex CLI、Claude CLI、Chrome 和 Edge 可用；MCP Inspector 未预装，P6-14 执行时再按官方发行方式获取。DeepSeek 与 GLM 当前使用 `appsettings.json` 中的开发/测试 Key；Custom Provider、MCP Token 哈希及委托签名密钥仍需在对应阶段配置。 |
 | 契约边界 | P6-00 当时冻结了固定工具方案；用户在 2026-07-23 明确改为“全部 JSON 业务 API 默认可调用”，本次范围修订通过 P6-01A、通用操作草稿和第七类 `action-draft.ready` SSE 事件承接，不追溯修改已完成的 P6-00/P6-01 代码结论。 |
 | 基线门禁 | `dotnet restore`、`dotnet build --no-restore`、`dotnet format --verify-no-changes --no-restore`、前端 `pnpm typecheck`、进度基线防退化测试和 `git diff --check` 通过；后端仅保留 7 条既有 NuGet 漏洞警告。 |
 
@@ -169,8 +169,8 @@ git diff --check
 - 在 `Shared` 或 `Application` 的窄层定义 `AiChatMessage`、`AiToolDefinition`、`AiToolCall`、`AiToolResult`、`AiStreamChunk`、`AiUsage`、`AiProviderError`、`AiProviderCapabilities`。
 - 定义 `IAiModelProvider`：`StreamChatAsync`、`GetCapabilitiesAsync`、`NormalizeError`、`ValidateConfiguration`。
 - 定义 `IAiModelProviderRegistry`，只由 `Ai:ActiveProvider` 选择一个已注册 Provider。
-- 增加 `AiOptions`、`AiProviderOptions`、`McpOptions`，使用启动校验检查地址、模型名、数值边界和密钥环境变量名。
-- 增加 `Ai:Enabled=false` 与 `Mcp:ExternalEnabled=false` 默认配置；示例配置只保存环境变量名称，不保存密钥。
+- 增加 `AiOptions`、`AiProviderOptions`、`McpOptions`，使用启动校验检查地址、模型名、数值边界以及直接 API Key 或密钥环境变量名。
+- 增加 `Ai:Enabled=false` 与 `Mcp:ExternalEnabled=false` 默认配置；DeepSeek 与 GLM 的开发/测试 Key 按用户决定直接保存在配置文件，并保留环境变量回退能力。
 - 在 `Shared/Constants/PermissionCodes.cs` 增加 AI 助手使用、订单草稿、MCP Token 管理权限，并纳入权限完整性测试。
 - 保持厂商类型只存在于适配器目录。
 
@@ -186,7 +186,7 @@ git diff --check
 
 必跑测试：
 
-- 配置缺少 Base URL、Model、API Key 环境变量时返回可识别启动错误。
+- 配置缺少 Base URL、Model，或同时缺少直接 API Key 与 API Key 环境变量时返回可识别启动错误。
 - AI 禁用时不解析厂商密钥、不影响普通 API 启动。
 - Provider 名称不存在或 Adapter 重复注册时启动失败。
 - 权限定义完整性测试通过。
@@ -290,7 +290,7 @@ git diff --check
 - DeepSeek 处理 `reasoning_content`，工具回合按厂商要求回放必要推理字段，但推理不展示、不入库。
 - GLM 处理思考字段、工具选择和流式工具分片。
 - OpenAI-Compatible 通过配置映射内容字段、推理字段、最大 token 字段和额外请求参数。
-- API Key 从各自环境变量读取；日志、异常和遥测不得输出请求头或密钥。
+- API Key 优先从 Provider 直接配置读取，未直接配置时回退到各自环境变量；日志、异常和遥测不得输出请求头或密钥。
 - 注册表按 Provider 名称选择 Adapter；切换 Provider 只改配置并重启。
 - 保存脱敏响应样例，样例不得包含真实 Key、客户数据或内部地址。
 
@@ -688,12 +688,14 @@ git diff --check
         "Adapter": "DeepSeek",
         "BaseUrl": "https://api.deepseek.com",
         "Model": "由环境配置",
+        "ApiKey": "开发/测试配置值",
         "ApiKeyEnvironmentVariable": "SKYROC_AI_DEEPSEEK_API_KEY"
       },
       "GLM": {
         "Adapter": "GLM",
         "BaseUrl": "https://open.bigmodel.cn/api/paas/v4",
         "Model": "由环境配置",
+        "ApiKey": "开发/测试配置值",
         "ApiKeyEnvironmentVariable": "SKYROC_AI_GLM_API_KEY"
       },
       "Custom": {
