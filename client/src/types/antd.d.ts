@@ -1,18 +1,19 @@
 declare namespace AntDesign {
+  // ==================== 基础类型（Ant Design 原生） ====================
+
   type TableColumnType<T> = import('antd').TableColumnType<T>;
   type TableColumnGroupType<T> = import('antd').TableColumnGroupType<T>;
   type TablePaginationConfig = import('antd').TablePaginationConfig;
-  type TableColumnCheck = import('@sa/hooks').TableColumnCheck;
   type TableProps = import('antd').TableProps;
-  type TableDataWithIndex<T> = import('@sa/hooks').TableDataWithIndex<T>;
-  type FlatResponseData<T> = import('@sa/axios').FlatResponseData<T>;
 
-  type TableData = Api.Common.CommonRecord<object>;
+  // ==================== 列相关类型 ====================
+
+  type TableColumnCheck = import('@sa/hooks').TableColumnCheck;
 
   /**
-   * the custom column key
+   * 自定义列的 key 枚举
    *
-   * if you want to add a custom column, you should add a key to this type
+   * 如需新增自定义列，在此联合类型中添加对应 key
    */
   type CustomColumnKey = 'operate';
 
@@ -20,21 +21,30 @@ declare namespace AntDesign {
 
   type TableColumn<T> = SetTableColumnKey<TableColumnType<T>, T> | SetTableColumnKey<TableColumnGroupType<T>, T>;
 
+  // ==================== 数据与 API 类型 ====================
+
+  type TableDataWithIndex<T> = import('@sa/hooks').TableDataWithIndex<T>;
+  type FlatResponseData<T> = import('@sa/axios').FlatResponseData<T>;
+
+  type TableData = Api.Common.CommonRecord<object>;
+
   type TableApiFn<T = any, R = Api.Common.CommonSearchParams> = (
     params: R
   ) => Promise<App.Service.Response<Api.Common.PaginatingQueryRecord<T>>['data']>;
 
+  type GetTableData<A extends TableApiFn> = A extends TableApiFn<infer T> ? T : never;
+
+  // ==================== 表格配置类型 ====================
+
   /**
-   * the type of table operation
+   * 表格操作类型
    *
-   * - add: add table item
-   * - edit: edit table item
+   * - add: 新增行
+   * - edit: 编辑行
    */
   type TableOperateType = 'add' | 'edit';
 
   type TableOnChange = Parameters<NonNullable<TableProps['onChange']>>;
-
-  type GetTableData<A extends TableApiFn> = A extends TableApiFn<infer T> ? T : never;
 
   type AntDesignTableConfig<A extends TableApiFn> = Pick<
     import('@sa/hooks').TableConfig<A, GetTableData<A>, TableColumn<TableDataWithIndex<GetTableData<A>>>>,

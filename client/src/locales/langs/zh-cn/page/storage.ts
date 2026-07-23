@@ -29,6 +29,7 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
     inTime: '入库时间',
     purchase: {
       add: '新增采购入库',
+      addDetail: '添加商品',
       audit: '确认审核吗？',
       auditTime: '审核时间',
       auditUserName: '审核人',
@@ -37,6 +38,7 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
       businessStatus: '单据状态',
       createTime: '创建时间',
       department: '部门',
+      editDetail: '编辑商品',
       expireDate: '到期日期',
       form: {
         businessStatus: '请选择单据状态',

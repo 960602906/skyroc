@@ -1380,6 +1380,30 @@ export const generatedRoutes: ElegantConstRoute[] = [
                             }
                           }
                         ]
+                      },
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/storage/in/purchase/operate/index.tsx', null, null],
+                        name: '(base)_storage_in_purchase_operate',
+                        path: '/storage/in/purchase/operate',
+                        handle: {
+                          i18nKey: 'route.(base)_storage_in_purchase_operate',
+                          title: '(base)_storage_in_purchase_operate',
+                          activeMenu: '/storage/in/purchase',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [null, '/src/pages/(base)/storage/in/purchase/operate/[id].tsx', null, null],
+                            name: '(base)_storage_in_purchase_operate_[id]',
+                            path: '/storage/in/purchase/operate/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_storage_in_purchase_operate_[id]',
+                              title: '(base)_storage_in_purchase_operate_[id]',
+                              activeMenu: '/storage/in/purchase',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
                       }
                     ]
                   },

@@ -1,0 +1,126 @@
+declare namespace App {
+  namespace I18n {
+    interface PageAfterSale {
+      detail: {
+        afterSaleType: string;
+        auditAction: string;
+        auditActionApprove: string;
+        auditActionReject: string;
+        auditActionResubmit: string;
+        auditActionReverse: string;
+        auditActionSubmit: string;
+        auditTime: string;
+        auditUserName: string;
+        back: string;
+        baseRefundQuantity: string;
+        createTime: string;
+        currentStatus: string;
+        goodsCode: string;
+        goodsName: string;
+        handleType: string;
+        pickupAddress: string;
+        previousStatus: string;
+        refundAmount: string;
+        refundQuantity: string;
+        remark: string;
+        sectionAmounts: string;
+        sectionAudit: string;
+        sectionBasic: string;
+        sectionGoods: string;
+        sectionRemark: string;
+        updateTime: string;
+        view: string;
+      };
+      list: {
+        afterSaleNo: string;
+        afterSaleType: string;
+        afterStatus: string;
+        approve: string;
+        approveConfirm: string;
+        complete: string;
+        completeConfirm: string;
+        completeTip: string;
+        contactName: string;
+        contactPhone: string;
+        createTime: string;
+        customerId: string;
+        customerName: string;
+        form: {
+          afterSaleType: string;
+          afterStatus: string;
+          customerId: string;
+          handleType: string;
+          keyword: string;
+          remark: string;
+          requiredRemark: string;
+        };
+        handleBillAdjustment: string;
+        handleCustomerCommunication: string;
+        handleExchange: string;
+        handleGoodsDiscount: string;
+        handleOther: string;
+        handleReplenishment: string;
+        handleType: string;
+        keyword: string;
+        orderPrice: string;
+        reject: string;
+        rejectConfirm: string;
+        remarkRequired: string;
+        requestAndHandle: string;
+        resubmit: string;
+        resubmitConfirm: string;
+        reverse: string;
+        reverseConfirm: string;
+        saleOrderNo: string;
+        settlementPrice: string;
+        statusCompleted: string;
+        statusDraft: string;
+        statusPendingAudit: string;
+        statusRefundPending: string;
+        statusReturnPending: string;
+        submit: string;
+        submitConfirm: string;
+        title: string;
+        totalRefundAmount: string;
+        typeRefundOnly: string;
+        typeReturnAndRefund: string;
+      };
+      operate: {
+        add: string;
+        addTitle: string;
+        apply: string;
+        contactName: string;
+        contactPhone: string;
+        editTitle: string;
+        goods: string;
+        goodsUnit: string;
+        handleType: string;
+        pickupAddress: string;
+        reasonType: string;
+        refundQuantity: string;
+        remark: string;
+        saleOrder: string;
+        saleOrderPlaceholder: string;
+        sectionBasic: string;
+        sectionGoods: string;
+        source: string;
+        type: string;
+      };
+      reason: {
+        driverLossOrDamage: string;
+        lateDelivery: string;
+        marketOutOfStock: string;
+        missingItem: string;
+        orderingError: string;
+        other: string;
+        purchaseIssue: string;
+        qualityIssue: string;
+        quantityMismatch: string;
+        specificationMismatch: string;
+        systemIssue: string;
+        unableToDeliver: string;
+        wrongItem: string;
+      };
+    }
+  }
+}

@@ -1,6 +1,3 @@
-import dayjs from 'dayjs';
-import { Suspense, lazy } from 'react';
-
 import {
   CrudPageLayout,
   createDefaultPagination,
@@ -9,22 +6,16 @@ import {
   renderPurchasePattern,
   renderStockDocumentStatus
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
+import { TableHeaderOperation, useTable } from '@/features/table';
 import {
-  fetchAddStockInPurchase,
   fetchAuditStockInPurchase,
   fetchDeleteStockInPurchase,
-  fetchGetStockInPurchaseDetail,
   fetchGetStockInPurchaseList,
-  fetchReverseAuditStockInPurchase,
-  fetchUpdateStockInPurchase
+  fetchReverseAuditStockInPurchase
 } from '@/service/api';
 import { StockDocumentStatus } from '@/service/enums';
 
-import type { PurchaseStockInDetailFormValue, PurchaseStockInFormValue } from './modules/PurchaseStockInOperateDrawer';
 import PurchaseStockInSearch from './modules/PurchaseStockInSearch';
-
-const PurchaseStockInOperateDrawer = lazy(() => import('./modules/PurchaseStockInOperateDrawer'));
 
 /** 采购入库分页、草稿维护、审核/反审核页面 */
 const PurchaseStockInList = () => {
@@ -43,7 +34,7 @@ const PurchaseStockInList = () => {
     wareId: null
   };
 
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, run, searchProps, setColumnChecks, tableProps } = useTable({
     apiFn: fetchGetStockInPurchaseList,
     apiParams: searchParams,
     columns: () => [
@@ -141,7 +132,7 @@ const PurchaseStockInList = () => {
                   ghost
                   size="small"
                   type="primary"
-                  onClick={() => edit(record.id)}
+                  onClick={() => nav(`/storage/in/purchase/operate/${record.id}`)}
                 >
                   {t('common.edit')}
                 </AButton>
@@ -192,75 +183,16 @@ const PurchaseStockInList = () => {
     scroll: { x: 'max-content' },
     transformParams: params => {
       const next = { ...params } as Api.StockIn.SearchParams;
-
       if (next.businessStatus === null || next.businessStatus === undefined) {
         delete next.businessStatus;
       }
-
       return next;
     }
   });
 
-  const { generalPopupOperation, handleAdd, handleEdit, onDeleted } = useTableOperate(data, run, async (res, type) => {
-    const values = res as unknown as PurchaseStockInFormValue;
-    const payload = {
-      departmentId: values.departmentId || null,
-      details: values.details.map(detail => toDetailPayload(detail, type === 'edit')),
-      expectedArrivalTime: values.expectedArrivalTime ? dayjs(values.expectedArrivalTime).toISOString() : null,
-      inTime: values.inTime ? dayjs(values.inTime).toISOString() : '',
-      purchaseOrderId: values.purchaseOrderId || null,
-      purchasePattern: values.purchasePattern,
-      purchaserId: values.purchaserId || null,
-      remark: values.remark || null,
-      supplierId: values.supplierId || null,
-      wareId: values.wareId
-    };
-
-    if (type === 'add') {
-      await fetchAddStockInPurchase(payload);
-    } else {
-      await fetchUpdateStockInPurchase({ ...payload, id: values.id! });
-    }
-  });
-
-  /** 编辑态把既有明细行的 id 透传给后端，便于识别既有商品行 */
-  function toDetailPayload(detail: PurchaseStockInDetailFormValue, isEdit: boolean) {
-    const base = {
-      batchNo: detail.batchNo,
-      expireDate: detail.expireDate ? dayjs(detail.expireDate).format('YYYY-MM-DD') : null,
-      goodsId: detail.goodsId,
-      goodsUnitId: detail.goodsUnitId,
-      productDate: detail.productDate ? dayjs(detail.productDate).format('YYYY-MM-DD') : null,
-      purchaseOrderDetailId: detail.purchaseOrderDetailId || null,
-      quantity: detail.quantity,
-      remark: detail.remark || null,
-      unitPrice: detail.unitPrice
-    };
-    return isEdit && detail.id ? { id: detail.id, ...base } : base;
-  }
-
-  async function edit(id: string) {
-    const detail = await fetchGetStockInPurchaseDetail(id);
-    // 日期字段需转换为 Dayjs 供表单控件回显
-    const formValue = {
-      ...detail,
-      details: detail.details.map(item => ({
-        ...item,
-        expireDate: item.expireDate ? dayjs(item.expireDate) : undefined,
-        id: item.id,
-        productDate: item.productDate ? dayjs(item.productDate) : undefined
-      })),
-      expectedArrivalTime: detail.expectedArrivalTime ? dayjs(detail.expectedArrivalTime) : undefined,
-      id: detail.id,
-      index: 0,
-      inTime: detail.inTime ? dayjs(detail.inTime) : undefined
-    };
-    handleEdit(formValue as unknown as AntDesign.TableDataWithIndex<Api.StockIn.Entity>);
-  }
-
   async function handleDelete(id: string) {
     await fetchDeleteStockInPurchase(id);
-    onDeleted();
+    await run(false);
   }
 
   async function handleAudit(id: string) {
@@ -282,7 +214,7 @@ const PurchaseStockInList = () => {
       extra={
         <TableHeaderOperation
           disabledDelete
-          add={handleAdd}
+          add={() => nav('/storage/in/purchase/operate')}
           columns={columnChecks}
           loading={tableProps.loading}
           refresh={() => run(false)}
@@ -291,16 +223,11 @@ const PurchaseStockInList = () => {
         />
       }
       table={
-        <>
-          <ATable
-            {...tableProps}
-            className="mt-16px"
-            size="small"
-          />
-          <Suspense fallback={null}>
-            <PurchaseStockInOperateDrawer {...generalPopupOperation} />
-          </Suspense>
-        </>
+        <ATable
+          {...tableProps}
+          className="mt-16px"
+          size="small"
+        />
       }
     />
   );

@@ -139,6 +139,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_storage_in_purchase": "/storage/in/purchase";
     "(base)_storage_in_purchase_detail": "/storage/in/purchase/detail";
     "(base)_storage_in_purchase_detail_[id]": "/storage/in/purchase/detail/:id";
+    "(base)_storage_in_purchase_operate": "/storage/in/purchase/operate";
+    "(base)_storage_in_purchase_operate_[id]": "/storage/in/purchase/operate/:id";
     "(base)_storage_in_sales-return": "/storage/in/sales-return";
     "(base)_storage_out": "/storage/out";
     "(base)_storage_out_other": "/storage/out/other";
@@ -353,6 +355,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_storage_in_other"
     | "(base)_storage_in_purchase_detail_[id]"
     | "(base)_storage_in_purchase"
+    | "(base)_storage_in_purchase_operate_[id]"
+    | "(base)_storage_in_purchase_operate"
     | "(base)_storage_in_sales-return"
     | "(base)_storage"
     | "(base)_storage_out"

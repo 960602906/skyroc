@@ -109,6 +109,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_storage_in_purchase': '采购入库',
   '(base)_storage_in_purchase_detail': '采购入库详情',
   '(base)_storage_in_purchase_detail_[id]': '采购入库详情',
+  '(base)_storage_in_purchase_operate': '新增采购入库',
+  '(base)_storage_in_purchase_operate_[id]': '编辑采购入库',
   '(base)_storage_in_sales-return': '销售退货入库',
   '(base)_storage_out': '出库管理',
   '(base)_storage_out_other': '其他出库',

@@ -29,6 +29,7 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
     inTime: 'In Time',
     purchase: {
       add: 'Add Purchase Stock-In',
+      addDetail: 'Add Goods',
       audit: 'Confirm audit?',
       auditTime: 'Audit Time',
       auditUserName: 'Auditor',
@@ -37,6 +38,7 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
       businessStatus: 'Status',
       createTime: 'Create Time',
       department: 'Department',
+      editDetail: 'Edit Goods',
       expireDate: 'Expiry Date',
       form: {
         businessStatus: 'Select Status',

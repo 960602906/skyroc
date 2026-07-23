@@ -109,6 +109,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_storage_in_purchase': 'Purchase Stock In',
   '(base)_storage_in_purchase_detail': 'Purchase Stock In Detail',
   '(base)_storage_in_purchase_detail_[id]': 'Purchase Stock In Detail',
+  '(base)_storage_in_purchase_operate': 'Add Purchase Stock-In',
+  '(base)_storage_in_purchase_operate_[id]': 'Edit Purchase Stock-In',
   '(base)_storage_in_sales-return': 'Sales Return Stock In',
   '(base)_storage_out': 'Stock Out',
   '(base)_storage_out_other': 'Other Stock Out',

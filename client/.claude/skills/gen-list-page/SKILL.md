@@ -12,13 +12,14 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 ## 参数格式
 
 ```
-/gen-list-page <module-name> <feature-name> [--with-drawer]
+/gen-list-page <module-name> <feature-name> [--with-drawer | --with-operate-page]
 ```
 
 **示例**：
 ```bash
-/gen-list-page warehouse product        # 生成仓库商品列表
-/gen-list-page purchase order --with-drawer  # 生成采购单列表（带抽屉）
+/gen-list-page warehouse product                     # 生成仓库商品列表（无新增/编辑）
+/gen-list-page purchase order --with-drawer          # 生成采购单列表（带抽屉，适合表单字段少的场景）
+/gen-list-page storage in-purchase --with-operate-page  # 生成采购入库列表（带 operate 页面，适合有表格明细的场景）
 ```
 
 ---
@@ -384,9 +385,13 @@ export default <FeatureName>Search;
 
 ---
 
-### 步骤 5：生成抽屉（可选，`--with-drawer`）
+### 步骤 5：生成新增/编辑（根据参数二选一）
 
-如果指定了 `--with-drawer`，生成 `src/pages/(base)/<module>/<feature>/modules/<FeatureName>OperateDrawer.tsx`：
+#### 方案 A：抽屉（`--with-drawer`）
+
+**适用场景**：表单字段较少（≤ 10 个），无需表格行明细录入。
+
+生成 `src/pages/(base)/<module>/<feature>/modules/<FeatureName>OperateDrawer.tsx`：
 
 ```typescript
 import { memo } from 'react';
@@ -441,6 +446,90 @@ export default <FeatureName>OperateDrawer;
 
 ---
 
+#### 方案 B：Operate 页面（`--with-operate-page`）
+
+**适用场景**：表单字段较多，或含商品明细等需要表格行录入的业务单据（如采购入库、销售订单）。
+
+生成以下文件结构：
+
+```
+src/pages/(base)/<module>/<feature>/operate/
+├── index.tsx                          # 新增页（路由 /<module>/<feature>/operate）
+├── [id].tsx                           # 编辑页（路由 /<module>/<feature>/operate/:id，带 loader）
+└── modules/
+    ├── <FeatureName>OperateForm.tsx   # 共享表单（分区卡片布局）
+    └── <FeatureName>DetailModal.tsx   # 明细行弹窗（若有行明细表格）
+```
+
+**`operate/modules/<FeatureName>OperateForm.tsx`**（共享表单）：
+- 分区卡片布局：基本信息卡 + 明细卡（若有）
+- 明细卡使用 Table + 弹窗模式（参考 `OrderOperateForm`）：隐藏 `details` 字段做必填校验，Table 展示行数据，卡片 `extra` 放"添加商品"按钮
+- Props：只接收 `form: Page.FormInstance`
+- 加 `// eslint-disable-next-line react/prop-types` 在组件定义行前
+
+**`operate/index.tsx`**（新增页）：
+```typescript
+export const handle = {
+  hideInMenu: true,
+  i18nKey: 'route.(base)_<module>_<feature>_operate',
+  keepAlive: false
+};
+
+const <FeatureName>CreatePage = () => {
+  const closeTabAndNavigate = useCloseTabAndNavigate();
+  const [form] = AForm.useForm();
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit() {
+    try {
+      const values = await form.validateFields();
+      setSubmitting(true);
+      try {
+        await fetchAdd<FeatureName>(toPayload(values));
+        window.$message?.success(t('common.addSuccess'));
+        closeTabAndNavigate(LIST_PATH);
+      } finally {
+        setSubmitting(false);
+      }
+    } catch { /* 校验失败不提交 */ }
+  }
+
+  return (
+    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
+      <ACard className="card-wrapper" styles={{ body: { display: 'none' } }}
+        title={t('page.<module>.<feature>.add')} variant="borderless"
+        extra={<ASpace>
+          <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('common.cancel')}</AButton>
+          <AButton loading={submitting} type="primary" onClick={handleSubmit}>{t('common.confirm')}</AButton>
+        </ASpace>}
+      />
+      <AForm form={form} initialValues={...} layout="vertical">
+        <<FeatureName>OperateForm form={form} />
+      </AForm>
+    </div>
+  );
+};
+```
+
+**`operate/[id].tsx`**（编辑页）：
+- `export async function loader({ params })` 加载详情，非草稿状态 `redirect(LIST_PATH)`
+- `useLoaderData()` 取数据，`useEffect` 中 `form.setFieldsValue(toFormValue(detail))`
+- 提交调用 `fetchUpdate<FeatureName>`
+
+**列表页改动**：
+- 移除 `useTableOperate` 及 Drawer 懒加载
+- "新增"按钮：`() => nav('/<module>/<feature>/operate')`
+- "编辑"按钮：`() => nav(\`/<module>/<feature>/operate/${record.id}\`)`
+- 删除后：`fetchDelete<FeatureName>(id).then(() => run(false))`
+
+**路由注册**：operate 页面文件创建后，运行项目（`pnpm dev`）让路由生成器自动扫描新文件并更新 `src/router/elegant/routes.ts`。之后手动在生成的路由 handle 中加 `hideInMenu: true` 和 `activeMenu: '/<module>/<feature>'`（routes.ts 的注释说明 handle 可以手动修改）。
+
+**参考实现**：
+- 新增/编辑页：`src/pages/(base)/storage/in/purchase/operate/`
+- 明细弹窗：`src/pages/(base)/orders/edit/modules/OrderDetailLineModal.tsx`
+
+---
+
 ### 步骤 6：更新国际化（提示即可）
 
 提示用户需要在语言包中添加文案（不自动生成，避免破坏 JSON 格式）：
@@ -485,7 +574,7 @@ export default <FeatureName>OperateDrawer;
 
 ## 参考实现路径
 
-**采购单列表（完整 CRUD + 抽屉）**：
+**采购单列表（CRUD + 抽屉，表单字段少）**：
 - 列表页：`src/pages/(base)/purchase/orders/index.tsx`
 - 搜索栏：`src/pages/(base)/purchase/orders/modules/PurchaseOrderSearch.tsx`
 - 抽屉：`src/pages/(base)/purchase/orders/modules/PurchaseOrderOperateDrawer.tsx`
@@ -493,10 +582,19 @@ export default <FeatureName>OperateDrawer;
 - API：`src/service/api/purchase-order.ts`
 - URL：`src/service/urls/purchase-order.ts`
 
-**订单列表（复杂筛选 + 行内操作）**：
-- 列表页：`src/pages/(base)/orders/list/index.tsx`
+**采购入库列表（CRUD + operate 页面，含商品明细表格）**：
+- 列表页：`src/pages/(base)/storage/in/purchase/index.tsx`
+- 新增页：`src/pages/(base)/storage/in/purchase/operate/index.tsx`
+- 编辑页：`src/pages/(base)/storage/in/purchase/operate/[id].tsx`
+- 共享表单：`src/pages/(base)/storage/in/purchase/operate/modules/PurchaseStockInOperateForm.tsx`
+- 明细弹窗：`src/pages/(base)/storage/in/purchase/operate/modules/PurchaseStockInDetailModal.tsx`
 
-**角色管理（简单 CRUD）**：
+**销售订单列表（复杂筛选 + operate 页面 + 明细弹窗）**：
+- 列表页：`src/pages/(base)/orders/list/index.tsx`
+- 编辑页：`src/pages/(base)/orders/edit/`
+- 明细弹窗参考：`src/pages/(base)/orders/edit/modules/OrderDetailLineModal.tsx`
+
+**角色管理（简单 CRUD + 抽屉）**：
 - 列表页：`src/pages/(base)/system/auth/roles/index.tsx`
 
 ---
@@ -530,11 +628,12 @@ export default <FeatureName>OperateDrawer;
 [- src/pages/(base)/<module>/<feature>/modules/<FeatureName>OperateDrawer.tsx]
 
 📝 后续步骤：
-1. 在 src/locales/langs/ 各语言包中添加文案（见上方提示）
-2. 运行 pnpm gen-route 生成路由声明
+1. 在 src/locales/langs/ 各语言包中添加文案（见上方提示），同步更新 src/types/i18n/ 对应的 .d.ts schema 文件
+2. 运行项目（`pnpm dev`）让路由生成器自动扫描新页面并更新 src/router/elegant/routes.ts
+   - 若使用 --with-operate-page，还需在生成的 operate 路由 handle 中手动加 `hideInMenu: true` 和 `activeMenu`
 3. 运行 pnpm typecheck 检查类型
 4. 调整列定义、搜索字段、表单字段以匹配实际业务需求
-5. 实现抽屉的提交逻辑（useTableOperate 的回调函数）
+5. 实现提交逻辑（抽屉的 useTableOperate 回调 / operate 页面的 toPayload 函数）
 
 🔍 参考规范：
 - client/AGENT.md
