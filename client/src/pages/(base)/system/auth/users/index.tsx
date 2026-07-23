@@ -1,6 +1,13 @@
 import { Suspense, lazy } from 'react';
 
-import { renderEnableStatus, renderUserGender } from '@/features/crud';
+import {
+  CrudPageLayout,
+  createDefaultPagination,
+  createDefaultSearchParams,
+  createIndexColumn,
+  renderEnableStatus,
+  renderUserGender
+} from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddUser,
@@ -20,30 +27,19 @@ const UserManage = () => {
 
   const nav = useNavigate();
 
-  const isMobile = useMobile();
-
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetUserList,
     apiParams: {
-      current: 1,
+      ...createDefaultSearchParams(),
       email: null,
       gender: null,
       nickName: null,
       phone: null,
-      size: 10,
-      // if you want to use the searchParams in Form, you need to define the following properties, and the value is null
-      // the value can not be undefined, otherwise the property in Form will not be reactive
       status: null,
       username: null
-    },
+    } satisfies Api.SystemManage.UserSearchParams,
     columns: () => [
-      {
-        align: 'center',
-        dataIndex: 'index',
-        key: 'index',
-        title: t('common.index'),
-        width: 64
-      },
+      createIndexColumn(t),
       {
         align: 'center',
         dataIndex: 'username',
@@ -124,9 +120,8 @@ const UserManage = () => {
         width: 195
       }
     ],
-    pagination: {
-      showQuickJumper: true
-    }
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const { checkedRowKeys, generalPopupOperation, handleAdd, handleEdit, onBatchDeleted, onDeleted, rowSelection } =
@@ -157,48 +152,36 @@ const UserManage = () => {
     const userDetail = await fetchGetUserDetail(id);
     handleEdit({ ...(userDetail ?? {}), index: 0 });
   }
-  return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-      <ACollapse
-        bordered={false}
-        className="card-wrapper"
-        defaultActiveKey={isMobile ? undefined : '1'}
-        items={[
-          {
-            children: <UserSearch {...searchProps} />,
-            key: '1',
-            label: t('common.search')
-          }
-        ]}
-      />
 
-      <ACard
-        className="flex-col-stretch card-wrapper sm:flex-1-hidden"
-        ref={tableWrapperRef}
-        title={t('page.manage.user.title')}
-        variant="borderless"
-        extra={
-          <TableHeaderOperation
-            add={handleAdd}
-            columns={columnChecks}
-            disabledDelete={checkedRowKeys.length === 0}
-            loading={tableProps.loading}
-            refresh={run}
-            setColumnChecks={setColumnChecks}
-            onDelete={handleBatchDelete}
-          />
-        }
-      >
-        <ATable
-          rowSelection={rowSelection}
-          size="small"
-          {...tableProps}
+  return (
+    <CrudPageLayout
+      search={<UserSearch {...searchProps} />}
+      tableWrapperRef={tableWrapperRef}
+      title={t('page.manage.user.title')}
+      extra={
+        <TableHeaderOperation
+          add={handleAdd}
+          columns={columnChecks}
+          disabledDelete={checkedRowKeys.length === 0}
+          loading={tableProps.loading}
+          refresh={run}
+          setColumnChecks={setColumnChecks}
+          onDelete={handleBatchDelete}
         />
-        <Suspense>
-          <UserOperateDrawer {...generalPopupOperation} />
-        </Suspense>
-      </ACard>
-    </div>
+      }
+      table={
+        <>
+          <ATable
+            rowSelection={rowSelection}
+            size="small"
+            {...tableProps}
+          />
+          <Suspense>
+            <UserOperateDrawer {...generalPopupOperation} />
+          </Suspense>
+        </>
+      }
+    />
   );
 };
 

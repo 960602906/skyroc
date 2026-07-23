@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo } from 'react';
+import { Suspense, lazy } from 'react';
 
 import {
   CrudPageLayout,
@@ -33,6 +33,15 @@ function resolveOptionLabel(id: string | null, options?: { id: string; name: str
   return options?.find(item => item.id === id)?.name ?? id;
 }
 
+const purchaseRuleSearchParams = {
+  ...createDefaultSearchParams(),
+  goodsTypeId: null,
+  purchasePattern: null,
+  purchaserId: null,
+  supplierId: null,
+  wareId: null
+} satisfies Api.PurchaseRule.SearchParams;
+
 const RuleManage = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
@@ -42,21 +51,9 @@ const RuleManage = () => {
   const { data: purchasers } = usePurchaserOptions();
   const { data: wares } = useWareOptions();
 
-  const searchParams = useMemo(
-    () => ({
-      ...createDefaultSearchParams(),
-      goodsTypeId: null,
-      purchasePattern: null,
-      purchaserId: null,
-      supplierId: null,
-      wareId: null
-    }),
-    []
-  );
-
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetPurchaseRuleList,
-    apiParams: searchParams,
+    apiParams: purchaseRuleSearchParams,
     columns: () => [
       createIndexColumn(t),
       {

@@ -1,11 +1,13 @@
-import dayjs from 'dayjs';
-
 import {
   CrudPageLayout,
   createDefaultPagination,
+  createDefaultSearchParams,
   createIndexColumn,
   displayDateTime,
-  renderPickupTaskStatus
+  formatUtcBoundary,
+  renderPickupTaskStatus,
+  transformDateRange,
+  transformEnumFields
 } from '@/features/crud';
 import { TableHeaderOperation, useTable } from '@/features/table';
 import {
@@ -19,27 +21,16 @@ import { formatField } from '@/utils/common';
 
 import PickupTaskSearch from './modules/PickupTaskSearch';
 
-const backendDateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
-
 const pickupTaskSearchParams = {
+  ...createDefaultSearchParams(),
   afterSaleId: null,
-  current: 1,
   driverId: null,
   keyword: null,
   pickupStatus: null,
   plannedEnd: null,
   plannedRange: null,
-  plannedStart: null,
-  size: 10
+  plannedStart: null
 } satisfies Api.AfterSale.PickupTaskSearchParams;
-
-/** 将本地日期范围边界转换为后端筛选所需的 UTC 时间。 */
-function formatUtcBoundary(value: unknown, edge: 'end' | 'start') {
-  if (!value) return null;
-  const parsed = dayjs.isDayjs(value) ? value : dayjs(String(value));
-  if (!parsed.isValid()) return null;
-  return parsed[edge === 'start' ? 'startOf' : 'endOf']('day').utc().format(backendDateTimeFormat);
-}
 
 /** 售后取货任务分页、调度和履约页面。 */
 const PickupTaskList = () => {
@@ -227,28 +218,14 @@ const PickupTaskList = () => {
     pagination: createDefaultPagination(),
     scroll: { x: 'max-content' },
     transformParams: params => {
-      const next = { ...params } as Api.AfterSale.PickupTaskSearchParams & {
-        plannedRange?: [unknown, unknown] | null;
-      };
-      const range = next.plannedRange;
-
-      if (Array.isArray(range) && range.length === 2) {
-        const plannedStart = formatUtcBoundary(range[0], 'start');
-        const plannedEnd = formatUtcBoundary(range[1], 'end');
-        if (plannedStart) next.plannedStart = plannedStart;
-        else delete next.plannedStart;
-        if (plannedEnd) next.plannedEnd = plannedEnd;
-        else delete next.plannedEnd;
-      } else {
-        delete next.plannedStart;
-        delete next.plannedEnd;
-      }
-
-      if (next.pickupStatus !== null && next.pickupStatus !== undefined) {
-        next.pickupStatus = Number(next.pickupStatus) as Api.AfterSale.PickupStatus;
-      }
-
-      delete next.plannedRange;
+      if (!params) return params;
+      let next = transformDateRange(params, {
+        endKey: 'plannedEnd',
+        formatter: formatUtcBoundary,
+        rangeKey: 'plannedRange',
+        startKey: 'plannedStart'
+      });
+      next = transformEnumFields(next, ['pickupStatus']);
       return next;
     }
   });

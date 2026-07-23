@@ -1,6 +1,7 @@
 import {
   CrudPageLayout,
   createDefaultPagination,
+  createDefaultSearchParams,
   createIndexColumn,
   displayDateTime,
   renderPurchaseOrderStatus,
@@ -17,27 +18,26 @@ import { PurchaseOrderStatus } from '@/service/enums';
 
 import PurchaseOrderSearch from './modules/PurchaseOrderSearch';
 
+const purchaseOrderSearchParams = {
+  ...createDefaultSearchParams(),
+  businessStatus: null,
+  goodsId: null,
+  keyword: null,
+  purchasePattern: null,
+  purchaserId: null,
+  receiveTimeEnd: null,
+  receiveTimeStart: null,
+  supplierId: null
+} satisfies Api.PurchaseOrder.SearchParams;
+
 /** 采购单分页、草稿维护、完成与取消页面。 */
 const PurchaseOrderList = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
 
-  const searchParams = {
-    businessStatus: null,
-    current: 1,
-    goodsId: null,
-    keyword: null,
-    purchasePattern: null,
-    purchaserId: null,
-    receiveTimeEnd: null,
-    receiveTimeStart: null,
-    size: 10,
-    supplierId: null
-  };
-
   const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetPurchaseOrderList,
-    apiParams: searchParams,
+    apiParams: purchaseOrderSearchParams,
     columns: () => [
       createIndexColumn(t),
       {

@@ -1,6 +1,12 @@
 import { Suspense } from 'react';
 
-import { renderEnableStatus } from '@/features/crud';
+import {
+  CrudPageLayout,
+  createDefaultPagination,
+  createDefaultSearchParams,
+  createIndexColumn,
+  renderEnableStatus
+} from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import { fetchAddRole, fetchBatchDeleteRole, fetchDeleteRole, fetchGetRoleList, fetchUpdateRole } from '@/service/api';
 
@@ -11,27 +17,18 @@ const RoleOperateDrawer = lazy(() => import('./modules/role-operate-drawer'));
 const Role = () => {
   const { t } = useTranslation();
 
-  const isMobile = useMobile();
-
   const nav = useNavigate();
 
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetRoleList,
     apiParams: {
-      code: undefined,
-      current: 1,
-      name: undefined,
-      size: 10,
-      status: undefined
-    },
+      ...createDefaultSearchParams(),
+      code: null,
+      name: null,
+      status: null
+    } satisfies Api.SystemManage.RoleSearchParams,
     columns: () => [
-      {
-        align: 'center',
-        dataIndex: 'index',
-        key: 'index',
-        title: t('common.index'),
-        width: 64
-      },
+      createIndexColumn(t),
       {
         align: 'center',
         dataIndex: 'name',
@@ -95,7 +92,9 @@ const Role = () => {
         title: t('common.operate'),
         width: 195
       }
-    ]
+    ],
+    pagination: createDefaultPagination(),
+    scroll: { x: 'max-content' }
   });
 
   const {
@@ -135,51 +134,38 @@ const Role = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-      <ACollapse
-        bordered={false}
-        className="card-wrapper"
-        defaultActiveKey={isMobile ? undefined : '1'}
-        items={[
-          {
-            children: <RoleSearch {...searchProps} />,
-            key: '1',
-            label: t('common.search')
-          }
-        ]}
-      />
-
-      <ACard
-        className="flex-col-stretch card-wrapper sm:flex-1-hidden"
-        ref={tableWrapperRef}
-        title={t('page.manage.role.title')}
-        variant="borderless"
-        extra={
-          <TableHeaderOperation
-            add={handleAdd}
-            columns={columnChecks}
-            disabledDelete={checkedRowKeys.length === 0}
-            loading={tableProps.loading}
-            refresh={run}
-            setColumnChecks={setColumnChecks}
-            onDelete={handleBatchDelete}
-          />
-        }
-      >
-        <ATable
-          rowSelection={rowSelection}
-          size="small"
-          {...tableProps}
+    <CrudPageLayout
+      search={<RoleSearch {...searchProps} />}
+      tableWrapperRef={tableWrapperRef}
+      title={t('page.manage.role.title')}
+      extra={
+        <TableHeaderOperation
+          add={handleAdd}
+          columns={columnChecks}
+          disabledDelete={checkedRowKeys.length === 0}
+          loading={tableProps.loading}
+          refresh={run}
+          setColumnChecks={setColumnChecks}
+          onDelete={handleBatchDelete}
         />
-
-        <Suspense>
-          <RoleOperateDrawer
-            {...generalPopupOperation}
-            rowId={editingData?.id || ''}
+      }
+      table={
+        <>
+          <ATable
+            rowSelection={rowSelection}
+            size="small"
+            {...tableProps}
           />
-        </Suspense>
-      </ACard>
-    </div>
+
+          <Suspense>
+            <RoleOperateDrawer
+              {...generalPopupOperation}
+              rowId={editingData?.id || ''}
+            />
+          </Suspense>
+        </>
+      }
+    />
   );
 };
 

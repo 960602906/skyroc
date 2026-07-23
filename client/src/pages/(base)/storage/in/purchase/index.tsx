@@ -32,7 +32,7 @@ const PurchaseStockInList = () => {
     keyword: null,
     supplierId: null,
     wareId: null
-  };
+  } satisfies Api.StockIn.SearchParams;
 
   const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetStockInPurchaseList,

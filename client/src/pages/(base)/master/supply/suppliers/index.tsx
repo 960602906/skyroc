@@ -1,6 +1,12 @@
 import { Suspense, lazy } from 'react';
 
-import { createIndexColumn, renderEnableStatus } from '@/features/crud';
+import {
+  CrudPageLayout,
+  createDefaultPagination,
+  createDefaultSearchParams,
+  createIndexColumn,
+  renderEnableStatus
+} from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import {
   fetchAddSupplier,
@@ -20,17 +26,14 @@ const SupplierManage = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
 
-  const isMobile = useMobile();
-
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetSupplierList,
     apiParams: {
+      ...createDefaultSearchParams(),
       code: null,
-      current: 1,
       name: null,
-      size: 10,
       status: null
-    },
+    } satisfies Api.Supplier.SearchParams,
     columns: () => [
       createIndexColumn(t),
       {
@@ -128,9 +131,7 @@ const SupplierManage = () => {
         width: 210
       }
     ],
-    pagination: {
-      showQuickJumper: true
-    },
+    pagination: createDefaultPagination(),
     scroll: { x: 'max-content' }
   });
 
@@ -166,48 +167,35 @@ const SupplierManage = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-      <ACollapse
-        bordered={false}
-        className="card-wrapper"
-        defaultActiveKey={isMobile ? undefined : '1'}
-        items={[
-          {
-            children: <SupplierSearch {...searchProps} />,
-            key: '1',
-            label: t('common.search')
-          }
-        ]}
-      />
-
-      <ACard
-        className="flex-col-stretch card-wrapper sm:flex-1-hidden"
-        ref={tableWrapperRef}
-        title={t('page.purchase.supplier.title')}
-        variant="borderless"
-        extra={
-          <TableHeaderOperation
-            add={handleAdd}
-            columns={columnChecks}
-            disabledDelete={checkedRowKeys.length === 0}
-            loading={tableProps.loading}
-            refresh={run}
-            setColumnChecks={setColumnChecks}
-            onDelete={handleBatchDelete}
-          />
-        }
-      >
-        <ATable
-          rowSelection={rowSelection}
-          size="small"
-          {...tableProps}
+    <CrudPageLayout
+      search={<SupplierSearch {...searchProps} />}
+      tableWrapperRef={tableWrapperRef}
+      title={t('page.purchase.supplier.title')}
+      extra={
+        <TableHeaderOperation
+          add={handleAdd}
+          columns={columnChecks}
+          disabledDelete={checkedRowKeys.length === 0}
+          loading={tableProps.loading}
+          refresh={run}
+          setColumnChecks={setColumnChecks}
+          onDelete={handleBatchDelete}
         />
+      }
+      table={
+        <>
+          <ATable
+            rowSelection={rowSelection}
+            size="small"
+            {...tableProps}
+          />
 
-        <Suspense>
-          <SupplierOperateDrawer {...generalPopupOperation} />
-        </Suspense>
-      </ACard>
-    </div>
+          <Suspense>
+            <SupplierOperateDrawer {...generalPopupOperation} />
+          </Suspense>
+        </>
+      }
+    />
   );
 };
 

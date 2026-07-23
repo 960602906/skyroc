@@ -1,9 +1,9 @@
 import { Button, Input, Modal } from 'antd';
-import dayjs from 'dayjs';
 
 import {
   CrudPageLayout,
   createDefaultPagination,
+  createDefaultSearchParams,
   createIndexColumn,
   displayDate,
   displayDateTime,
@@ -12,7 +12,9 @@ import {
   renderOrderPrintStatus,
   renderOrderReturnStatus,
   renderSaleOrderStatus,
-  toBooleanValue
+  transformBooleanFields,
+  transformDateRange,
+  transformEnumFields
 } from '@/features/crud';
 import { TableHeaderOperation, useTable } from '@/features/table';
 import {
@@ -26,18 +28,6 @@ import { OrderDateType, SaleOrderStatus } from '@/service/enums';
 
 import OrderSearch from './modules/OrderSearch';
 
-/** 后端 FixedDateTime 支持 yyyy-MM-dd / yyyy-MM-dd HH:mm:ss */
-function formatDateValue(value: unknown) {
-  if (!value) return null;
-  if (dayjs.isDayjs(value)) {
-    return value.format('YYYY-MM-DD');
-  }
-  const text = String(value).trim();
-  if (!text) return null;
-  const parsed = dayjs(text);
-  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : text;
-}
-
 function formatMoney(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
     return '-';
@@ -46,7 +36,7 @@ function formatMoney(value: number | null | undefined) {
 }
 
 const orderSearchParams = {
-  current: 1,
+  ...createDefaultSearchParams(),
   customerId: null,
   customerTagIds: null,
   dateEnd: null,
@@ -61,7 +51,6 @@ const orderSearchParams = {
   keyword: null,
   orderStatus: null,
   returnStatus: null,
-  size: 10,
   status: null,
   supplierId: null,
   updateStatus: null
@@ -304,51 +293,10 @@ const OrderListManage = () => {
     pagination: createDefaultPagination(),
     scroll: { x: 'max-content' },
     transformParams: params => {
-      const next = { ...params } as Api.Order.SearchParams & {
-        dateRange?: [unknown, unknown] | null;
-      };
-      const range = next.dateRange;
-
-      if (Array.isArray(range) && range.length === 2) {
-        const dateStart = formatDateValue(range[0]);
-        const dateEnd = formatDateValue(range[1]);
-        if (dateStart) next.dateStart = dateStart;
-        else delete next.dateStart;
-        if (dateEnd) next.dateEnd = dateEnd;
-        else delete next.dateEnd;
-      } else {
-        delete next.dateStart;
-        delete next.dateEnd;
-      }
-
-      // URL 回填多为字符串，枚举统一转 number，避免下拉显示数字、接口绑定失败
-      const asLoose = next as Record<string, unknown>;
-      if (asLoose.dateType !== null && asLoose.dateType !== undefined && asLoose.dateType !== '') {
-        next.dateType = Number(asLoose.dateType) as Api.Order.DateType;
-      }
-      if (asLoose.orderStatus !== null && asLoose.orderStatus !== undefined && asLoose.orderStatus !== '') {
-        next.orderStatus = Number(asLoose.orderStatus) as Api.Order.OrderStatus;
-      }
-      if (asLoose.returnStatus !== null && asLoose.returnStatus !== undefined && asLoose.returnStatus !== '') {
-        next.returnStatus = Number(asLoose.returnStatus) as Api.Order.ReturnStatus;
-      }
-      if (asLoose.status !== null && asLoose.status !== undefined && asLoose.status !== '') {
-        next.status = Number(asLoose.status) as Api.Common.EnableStatus;
-      }
-
-      const hasOutSale = toBooleanValue(asLoose.hasOutSale);
-      if (hasOutSale === undefined) delete next.hasOutSale;
-      else next.hasOutSale = hasOutSale;
-
-      const hasPurchasePlan = toBooleanValue(asLoose.hasPurchasePlan);
-      if (hasPurchasePlan === undefined) delete next.hasPurchasePlan;
-      else next.hasPurchasePlan = hasPurchasePlan;
-
-      const updateStatus = toBooleanValue(asLoose.updateStatus);
-      if (updateStatus === undefined) delete next.updateStatus;
-      else next.updateStatus = updateStatus;
-
-      delete next.dateRange;
+      if (!params) return params;
+      let next = transformDateRange(params, { endKey: 'dateEnd', rangeKey: 'dateRange', startKey: 'dateStart' });
+      next = transformEnumFields(next, ['dateType', 'orderStatus', 'returnStatus', 'status']);
+      next = transformBooleanFields(next, ['hasOutSale', 'hasPurchasePlan', 'updateStatus']);
       return next;
     }
   });

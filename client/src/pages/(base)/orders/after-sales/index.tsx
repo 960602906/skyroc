@@ -1,12 +1,15 @@
 import { Input, Modal } from 'antd';
-import dayjs from 'dayjs';
 
 import {
   CrudPageLayout,
   createDefaultPagination,
+  createDefaultSearchParams,
   createIndexColumn,
   displayDateTime,
-  renderAfterSaleStatus
+  formatUtcBoundary,
+  renderAfterSaleStatus,
+  transformDateRange,
+  transformEnumFields
 } from '@/features/crud';
 import { TableHeaderOperation, useTable } from '@/features/table';
 import {
@@ -23,13 +26,6 @@ import { AfterSaleAuditAction, AfterSaleStatus } from '@/service/enums';
 
 import AfterSaleSearch from './modules/AfterSaleSearch';
 
-function formatUtcBoundary(value: unknown, edge: 'end' | 'start') {
-  if (!value) return null;
-  const parsed = dayjs.isDayjs(value) ? value : dayjs(String(value));
-  if (!parsed.isValid()) return null;
-  return parsed[edge === 'start' ? 'startOf' : 'endOf']('day').utc().format('YYYY-MM-DD HH:mm:ss');
-}
-
 function formatMoney(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
     return '-';
@@ -42,17 +38,16 @@ function getDistinctValues<T>(items: T[]) {
 }
 
 const afterSaleSearchParams = {
+  ...createDefaultSearchParams(),
   afterSaleType: null,
   afterStatus: null,
-  current: 1,
   customerId: null,
   dateEnd: null,
   dateRange: null,
   dateStart: null,
   handleType: null,
   keyword: null,
-  saleOrderId: null,
-  size: 10
+  saleOrderId: null
 } satisfies Api.AfterSale.SearchParams;
 
 const AfterSaleList = () => {
@@ -294,35 +289,14 @@ const AfterSaleList = () => {
     pagination: createDefaultPagination(),
     scroll: { x: 'max-content' },
     transformParams: params => {
-      const next = { ...params } as Api.AfterSale.SearchParams & {
-        dateRange?: [unknown, unknown] | null;
-      };
-      const range = next.dateRange;
-
-      if (Array.isArray(range) && range.length === 2) {
-        const dateStart = formatUtcBoundary(range[0], 'start');
-        const dateEnd = formatUtcBoundary(range[1], 'end');
-        if (dateStart) next.dateStart = dateStart;
-        else delete next.dateStart;
-        if (dateEnd) next.dateEnd = dateEnd;
-        else delete next.dateEnd;
-      } else {
-        delete next.dateStart;
-        delete next.dateEnd;
-      }
-
-      const asLoose = next as Record<string, unknown>;
-      if (asLoose.afterStatus !== null && asLoose.afterStatus !== undefined && asLoose.afterStatus !== '') {
-        next.afterStatus = Number(asLoose.afterStatus) as Api.AfterSale.AfterStatus;
-      }
-      if (asLoose.afterSaleType !== null && asLoose.afterSaleType !== undefined && asLoose.afterSaleType !== '') {
-        next.afterSaleType = Number(asLoose.afterSaleType) as Api.AfterSale.AfterSaleType;
-      }
-      if (asLoose.handleType !== null && asLoose.handleType !== undefined && asLoose.handleType !== '') {
-        next.handleType = Number(asLoose.handleType) as Api.AfterSale.HandleType;
-      }
-
-      delete next.dateRange;
+      if (!params) return params;
+      let next = transformDateRange(params, {
+        endKey: 'dateEnd',
+        formatter: formatUtcBoundary,
+        rangeKey: 'dateRange',
+        startKey: 'dateStart'
+      });
+      next = transformEnumFields(next, ['afterStatus', 'afterSaleType', 'handleType']);
       return next;
     }
   });

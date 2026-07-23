@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { renderEnableStatus, renderMenuType, renderYesOrNo } from '@/features/crud';
+import { CrudPageLayout, renderEnableStatus, renderMenuType, renderYesOrNo } from '@/features/crud';
 import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
 import { pages } from '@/router/elegant/imports';
 import {
@@ -217,39 +217,38 @@ const Menu = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-      <ACard
-        className="flex-col-stretch card-wrapper sm:flex-1-hidden"
-        ref={tableWrapperRef}
-        title={t('page.manage.role.title')}
-        variant="borderless"
-        extra={
-          <TableHeaderOperation
-            add={onAdd}
-            columns={columnChecks}
-            disabledDelete={checkedRowKeys.length === 0}
-            loading={tableProps.loading}
-            refresh={run}
-            setColumnChecks={setColumnChecks}
-            onDelete={handleBatchDelete}
-          />
-        }
-      >
-        <ATable
-          rowSelection={rowSelection}
-          size="small"
-          {...tableProps}
+    <CrudPageLayout
+      tableWrapperRef={tableWrapperRef}
+      title={t('page.manage.role.title')}
+      extra={
+        <TableHeaderOperation
+          add={onAdd}
+          columns={columnChecks}
+          disabledDelete={checkedRowKeys.length === 0}
+          loading={tableProps.loading}
+          refresh={run}
+          setColumnChecks={setColumnChecks}
+          onDelete={handleBatchDelete}
         />
-
-        <Suspense>
-          <MenuOperateModal
-            {...Object.assign(generalPopupOperation, { operateType })}
-            allPages={allPages || []}
-            menuList={menuList || []}
+      }
+      table={
+        <>
+          <ATable
+            rowSelection={rowSelection}
+            size="small"
+            {...tableProps}
           />
-        </Suspense>
-      </ACard>
-    </div>
+
+          <Suspense>
+            <MenuOperateModal
+              {...Object.assign(generalPopupOperation, { operateType })}
+              allPages={allPages || []}
+              menuList={menuList || []}
+            />
+          </Suspense>
+        </>
+      }
+    />
   );
 };
 

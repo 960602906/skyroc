@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react';
 import {
   CrudPageLayout,
   createDefaultPagination,
+  createDefaultSearchParams,
   createIndexColumn,
   renderEnableStatus,
   toggleEntityStatus
@@ -22,15 +23,14 @@ import SubAccountSearch from './modules/SubAccountSearch';
 
 const SubAccountOperateDrawer = lazy(() => import('./modules/SubAccountOperateDrawer'));
 
-const defaultSearchParams: Api.CustomerSubAccount.SearchParams = {
+const subAccountSearchParams = {
+  ...createDefaultSearchParams(),
   companyId: null,
-  current: 1,
   customerId: null,
   nickName: null,
-  size: 10,
   status: null,
   username: null
-};
+} satisfies Api.CustomerSubAccount.SearchParams;
 
 const SubAccountManage = () => {
   const { t } = useTranslation();
@@ -38,7 +38,7 @@ const SubAccountManage = () => {
 
   const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetCustomerSubAccountList,
-    apiParams: defaultSearchParams,
+    apiParams: subAccountSearchParams,
     columns: () => [
       createIndexColumn(t),
       {

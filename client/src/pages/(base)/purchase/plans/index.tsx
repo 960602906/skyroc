@@ -4,10 +4,12 @@ import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import {
   CrudPageLayout,
   createDefaultPagination,
+  createDefaultSearchParams,
   createIndexColumn,
   displayDate,
   renderPurchasePattern,
-  renderPurchasePlanStatus
+  renderPurchasePlanStatus,
+  transformEnumFields
 } from '@/features/crud';
 import { TableHeaderOperation, useTable } from '@/features/table';
 import {
@@ -37,6 +39,18 @@ const modalTitleKeyMap: Record<Exclude<ModalMode, null>, App.I18n.I18nKey> = {
   splitQuantity: 'page.purchase.plan.splitByQuantity'
 };
 
+const purchasePlanSearchParams = {
+  ...createDefaultSearchParams(),
+  goodsId: null,
+  keyword: null,
+  planDateEnd: null,
+  planDateStart: null,
+  purchasePattern: null,
+  purchaserId: null,
+  purchaseStatus: null,
+  supplierId: null
+} satisfies Api.PurchasePlan.SearchParams;
+
 /** 采购计划分页、生成、分配、合并及拆分页面。 */
 const PurchasePlanList = () => {
   const { t } = useTranslation();
@@ -48,25 +62,9 @@ const PurchasePlanList = () => {
   const [splitOrders, setSplitOrders] = useState<Api.PurchasePlan.SplittableOrder[]>([]);
   const { data: purchasers } = usePurchaserOptions();
 
-  const searchParams = useMemo(
-    () => ({
-      current: 1,
-      goodsId: null,
-      keyword: null,
-      planDateEnd: null,
-      planDateStart: null,
-      purchasePattern: null,
-      purchaserId: null,
-      purchaseStatus: null,
-      size: 10,
-      supplierId: null
-    }),
-    []
-  );
-
   const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetPurchasePlanList,
-    apiParams: searchParams,
+    apiParams: purchasePlanSearchParams,
     columns: () => [
       createIndexColumn(t),
       {
@@ -160,17 +158,7 @@ const PurchasePlanList = () => {
     ],
     pagination: createDefaultPagination(),
     scroll: { x: 'max-content' },
-    transformParams: params => {
-      const next = { ...params } as Api.PurchasePlan.SearchParams;
-
-      if (next.purchaseStatus === null || next.purchaseStatus === undefined) {
-        delete next.purchaseStatus;
-      } else {
-        next.purchaseStatus = Number(next.purchaseStatus) as Api.PurchasePlan.PurchaseStatus;
-      }
-
-      return next;
-    }
+    transformParams: params => (params ? transformEnumFields(params, ['purchaseStatus']) : params)
   });
 
   function selectedIds() {
