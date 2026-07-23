@@ -227,7 +227,6 @@ const PurchaseStockInList = () => {
         <ATable
           size="small"
           {...tableProps}
-          className="mt-16px"
         />
       }
     />
