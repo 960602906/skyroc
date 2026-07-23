@@ -119,6 +119,7 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_purchase_plans": "/purchase/plans";
     "(base)_purchase_plans_detail": "/purchase/plans/detail";
     "(base)_purchase_plans_detail_[id]": "/purchase/plans/detail/:id";
+    "(base)_purchase_plans_operate": "/purchase/plans/operate";
     "(base)_reports": "/reports";
     "(base)_reports_after-sales": "/reports/after-sales";
     "(base)_reports_purchase": "/reports/purchase";
@@ -337,6 +338,7 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_purchase_orders"
     | "(base)_purchase_plans_detail_[id]"
     | "(base)_purchase_plans"
+    | "(base)_purchase_plans_operate"
     | "(base)_reports_after-sales"
     | "(base)_reports"
     | "(base)_reports_purchase_goods"

@@ -22,6 +22,11 @@ const LIST_PATH = '/purchase/plans';
 
 type SplitMode = 'splitOrders' | 'splitQuantity' | null;
 
+const modalTitleKeyMap: Record<Exclude<SplitMode, null>, App.I18n.I18nKey> = {
+  splitOrders: 'page.purchase.plan.splitByOrders',
+  splitQuantity: 'page.purchase.plan.splitByQuantity'
+};
+
 /** 路由切换前加载采购计划详情，计划不存在或加载失败时返回列表。 */
 export async function loader({ params }: LoaderFunctionArgs) {
   const { id } = params;
@@ -218,7 +223,7 @@ const PurchasePlanDetail = () => {
       <AModal
         destroyOnClose
         open={mode !== null}
-        title={mode ? t(`page.purchase.plan.${mode}`) : ''}
+        title={mode ? t(modalTitleKeyMap[mode]) : ''}
         onCancel={() => setMode(null)}
         onOk={submitSplit}
       >

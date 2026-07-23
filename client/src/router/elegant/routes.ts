@@ -1151,6 +1151,17 @@ export const generatedRoutes: ElegantConstRoute[] = [
                         }
                       }
                     ]
+                  },
+                  {
+                    matchedFiles: [null, '/src/pages/(base)/purchase/plans/operate/index.tsx', null, null],
+                    name: '(base)_purchase_plans_operate',
+                    path: '/purchase/plans/operate',
+                    handle: {
+                      i18nKey: 'route.(base)_purchase_plans_operate',
+                      title: '(base)_purchase_plans_operate',
+                      activeMenu: '/purchase/plans',
+                      hideInMenu: true
+                    }
                   }
                 ]
               }

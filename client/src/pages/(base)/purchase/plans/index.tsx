@@ -1,5 +1,4 @@
-import dayjs from 'dayjs';
-import { Suspense, lazy, useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import {
@@ -12,7 +11,6 @@ import {
 } from '@/features/crud';
 import { TableHeaderOperation, useTable } from '@/features/table';
 import {
-  fetchAddPurchasePlan,
   fetchGeneratePurchasePlan,
   fetchGetPurchasePlanDetail,
   fetchGetPurchasePlanList,
@@ -27,8 +25,6 @@ import { PurchasePlanStatus } from '@/service/enums';
 import { SELECTION_OPTION_RESOURCES, toOptions, usePurchaserOptions } from '@/service/hooks';
 
 import PurchasePlanSearch from './modules/PurchasePlanSearch';
-
-const PurchasePlanOperateDrawer = lazy(() => import('./modules/PurchasePlanOperateDrawer'));
 
 type ModalMode = 'assignPurchaser' | 'assignSupplier' | 'generate' | 'merge' | 'splitOrders' | 'splitQuantity' | null;
 
@@ -47,7 +43,6 @@ const PurchasePlanList = () => {
   const nav = useNavigate();
   const [form] = AForm.useForm();
   const [mode, setMode] = useState<ModalMode>(null);
-  const [addDrawerVisible, setAddDrawerVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [activePlan, setActivePlan] = useState<Api.PurchasePlan.Entity | null>(null);
   const [splitOrders, setSplitOrders] = useState<Api.PurchasePlan.SplittableOrder[]>([]);
@@ -187,21 +182,6 @@ const PurchasePlanList = () => {
     setMode(nextMode);
   }
 
-  function openAddDrawer() {
-    setAddDrawerVisible(true);
-  }
-
-  async function submitAdd(values: Record<string, any>) {
-    const payload = {
-      ...values,
-      planDate: dayjs(values.planDate).format('YYYY-MM-DD HH:mm:ss')
-    } as Api.PurchasePlan.CreateParams;
-    await fetchAddPurchasePlan(payload);
-    window.$message?.success(t('common.updateSuccess'));
-    setAddDrawerVisible(false);
-    await run(false);
-  }
-
   async function openPlanAction(nextMode: 'splitOrders' | 'splitQuantity', plan: Api.PurchasePlan.Entity) {
     form.resetFields();
     setActivePlan(await fetchGetPurchasePlanDetail(plan.id));
@@ -246,7 +226,7 @@ const PurchasePlanList = () => {
         extra={
           <TableHeaderOperation
             disabledDelete
-            add={openAddDrawer}
+            add={() => nav('/purchase/plans/operate')}
             columns={columnChecks}
             loading={tableProps.loading}
             refresh={run}
@@ -256,7 +236,7 @@ const PurchasePlanList = () => {
             <AButton
               size="small"
               type="primary"
-              onClick={openAddDrawer}
+              onClick={() => nav('/purchase/plans/operate')}
             >
               {t('page.purchase.plan.add')}
             </AButton>
@@ -404,13 +384,6 @@ const PurchasePlanList = () => {
           )}
         </AForm>
       </AModal>
-      <Suspense>
-        <PurchasePlanOperateDrawer
-          open={addDrawerVisible}
-          onClose={() => setAddDrawerVisible(false)}
-          onSubmit={submitAdd}
-        />
-      </Suspense>
     </>
   );
 };

@@ -76,6 +76,7 @@ declare namespace App {
           purchaserId: string;
           purchaseStatus: string;
           purchaseUnitId: string;
+          remark: string;
           saleOrderIds: string;
           supplierId: string;
         };
@@ -84,6 +85,14 @@ declare namespace App {
         goodsCode: string;
         keyword: string;
         merge: string;
+        operate: {
+          addDetail: string;
+          detailsRequired: string;
+          editDetail: string;
+          sectionBasic: string;
+          sectionDetails: string;
+          sectionRemark: string;
+        };
         planDate: string;
         plannedQuantity: string;
         planNo: string;

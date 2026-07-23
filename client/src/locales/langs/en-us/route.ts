@@ -89,6 +89,7 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_purchase_plans': 'Purchase Plans',
   '(base)_purchase_plans_detail': 'Purchase Plan Detail',
   '(base)_purchase_plans_detail_[id]': 'Purchase Plan Detail',
+  '(base)_purchase_plans_operate': 'Add Purchase Plan',
   '(base)_reports': 'Reports',
   '(base)_reports_after-sales': 'After-sales Summary',
   '(base)_reports_purchase': 'Purchase Reports',

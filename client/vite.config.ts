@@ -95,7 +95,7 @@ export default defineConfig(configEnv => {
     },
     server: {
       host: '0.0.0.0',
-      port: 9528,
+      port: 9530,
       proxy: createViteProxy(viteEnv, enableProxy),
       warmup: {
         clientFiles: ['./index.html', './src/{pages,components}/*']

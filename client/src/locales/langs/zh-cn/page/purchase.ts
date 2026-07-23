@@ -74,6 +74,7 @@ const purchase: App.I18n.Schema['translation']['page']['purchase'] = {
       purchaserId: '请选择采购员',
       purchaseStatus: '请选择生成进度',
       purchaseUnitId: '请选择采购单位',
+      remark: '请输入备注',
       saleOrderIds: '请选择要拆出的来源订单',
       supplierId: '请选择供应商'
     },
@@ -82,6 +83,14 @@ const purchase: App.I18n.Schema['translation']['page']['purchase'] = {
     goodsCode: '商品编码',
     keyword: '关键字',
     merge: '合并计划',
+    operate: {
+      addDetail: '添加商品',
+      detailsRequired: '请至少添加一条商品明细',
+      editDetail: '编辑明细',
+      sectionBasic: '基础信息',
+      sectionDetails: '商品明细',
+      sectionRemark: '备注信息'
+    },
     planDate: '计划交期',
     plannedQuantity: '计划数量',
     planNo: '计划编号',

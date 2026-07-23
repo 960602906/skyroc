@@ -74,6 +74,7 @@ const purchase: App.I18n.Schema['translation']['page']['purchase'] = {
       purchaserId: 'Select purchaser',
       purchaseStatus: 'Select generation progress',
       purchaseUnitId: 'Select purchase unit',
+      remark: 'Enter remark',
       saleOrderIds: 'Select source orders to split',
       supplierId: 'Select supplier'
     },
@@ -82,6 +83,14 @@ const purchase: App.I18n.Schema['translation']['page']['purchase'] = {
     goodsCode: 'Goods Code',
     keyword: 'Keyword',
     merge: 'Merge Plans',
+    operate: {
+      addDetail: 'Add Goods',
+      detailsRequired: 'Please add at least one goods line',
+      editDetail: 'Edit Detail',
+      sectionBasic: 'Basic Info',
+      sectionDetails: 'Goods Details',
+      sectionRemark: 'Remark Info'
+    },
     planDate: 'Plan Date',
     plannedQuantity: 'Planned Quantity',
     planNo: 'Plan No.',
