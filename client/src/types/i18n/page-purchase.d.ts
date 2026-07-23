@@ -35,6 +35,12 @@ declare namespace App {
         goodsInfo: string;
         goodsName: string;
         keyword: string;
+        operate: {
+          addDetail: string;
+          detailsRequired: string;
+          editDetail: string;
+          estimatedAmount: string;
+        };
         productDate: string;
         purchaseNo: string;
         purchasePattern: string;

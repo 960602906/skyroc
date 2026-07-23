@@ -86,6 +86,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_purchase_orders': '采购单',
   '(base)_purchase_orders_detail': '采购单详情',
   '(base)_purchase_orders_detail_[id]': '采购单详情',
+  '(base)_purchase_orders_operate': '新增采购单',
+  '(base)_purchase_orders_operate_[id]': '编辑采购单',
   '(base)_purchase_plans': '采购计划',
   '(base)_purchase_plans_detail': '采购计划详情',
   '(base)_purchase_plans_detail_[id]': '采购计划详情',

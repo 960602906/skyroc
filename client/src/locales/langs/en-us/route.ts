@@ -86,6 +86,8 @@ const route: App.I18n.Schema['translation']['route'] = {
   '(base)_purchase_orders': 'Purchase Orders',
   '(base)_purchase_orders_detail': 'Purchase Order Detail',
   '(base)_purchase_orders_detail_[id]': 'Purchase Order Detail',
+  '(base)_purchase_orders_operate': 'Add Purchase Order',
+  '(base)_purchase_orders_operate_[id]': 'Edit Purchase Order',
   '(base)_purchase_plans': 'Purchase Plans',
   '(base)_purchase_plans_detail': 'Purchase Plan Detail',
   '(base)_purchase_plans_detail_[id]': 'Purchase Plan Detail',

@@ -1,6 +1,3 @@
-import dayjs from 'dayjs';
-import { Suspense, lazy } from 'react';
-
 import {
   CrudPageLayout,
   createDefaultPagination,
@@ -9,22 +6,16 @@ import {
   renderPurchaseOrderStatus,
   renderPurchasePattern
 } from '@/features/crud';
-import { TableHeaderOperation, useTable, useTableOperate } from '@/features/table';
+import { TableHeaderOperation, useTable } from '@/features/table';
 import {
-  fetchAddPurchaseOrder,
   fetchCancelPurchaseOrder,
   fetchCompletePurchaseOrder,
   fetchDeletePurchaseOrder,
-  fetchGetPurchaseOrderDetail,
-  fetchGetPurchaseOrderList,
-  fetchUpdatePurchaseOrder
+  fetchGetPurchaseOrderList
 } from '@/service/api';
 import { PurchaseOrderStatus } from '@/service/enums';
 
-import type { PurchaseOrderDetailFormValue, PurchaseOrderFormValue } from './modules/PurchaseOrderOperateDrawer';
 import PurchaseOrderSearch from './modules/PurchaseOrderSearch';
-
-const PurchaseOrderOperateDrawer = lazy(() => import('./modules/PurchaseOrderOperateDrawer'));
 
 /** 采购单分页、草稿维护、完成与取消页面。 */
 const PurchaseOrderList = () => {
@@ -44,7 +35,7 @@ const PurchaseOrderList = () => {
     supplierId: null
   };
 
-  const { columnChecks, data, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
+  const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetPurchaseOrderList,
     apiParams: searchParams,
     columns: () => [
@@ -124,7 +115,7 @@ const PurchaseOrderList = () => {
                   ghost
                   size="small"
                   type="primary"
-                  onClick={() => edit(record.id)}
+                  onClick={() => nav(`/purchase/orders/operate/${record.id}`)}
                 >
                   {t('common.edit')}
                 </AButton>
@@ -173,70 +164,16 @@ const PurchaseOrderList = () => {
     scroll: { x: 'max-content' },
     transformParams: params => {
       const next = { ...params } as Api.PurchaseOrder.SearchParams;
-
       if (next.businessStatus === null || next.businessStatus === undefined) {
         delete next.businessStatus;
       }
-
       return next;
     }
   });
 
-  const { generalPopupOperation, handleAdd, handleEdit, onDeleted } = useTableOperate(data, run, async (res, type) => {
-    const values = res as unknown as PurchaseOrderFormValue;
-    const payload = {
-      details: values.details.map(detail => toDetailPayload(detail, type === 'edit')),
-      purchasePattern: values.purchasePattern,
-      purchaserId: values.purchaserId || null,
-      receiveTime: values.receiveTime ? dayjs(values.receiveTime).toISOString() : null,
-      remark: values.remark || null,
-      supplierContactName: values.supplierContactName || null,
-      supplierContactPhone: values.supplierContactPhone || null,
-      supplierId: values.supplierId || null
-    };
-
-    if (type === 'add') {
-      await fetchAddPurchaseOrder(payload);
-    } else {
-      await fetchUpdatePurchaseOrder({ ...payload, id: values.id! });
-    }
-  });
-
-  /** 编辑态把既有明细行的 id 透传给后端，便于识别既有商品行 */
-  function toDetailPayload(detail: PurchaseOrderDetailFormValue, isEdit: boolean) {
-    const base = {
-      goodsId: detail.goodsId,
-      planAllocations: [] as Api.PurchaseOrder.PlanAllocation[],
-      productDate: detail.productDate ? dayjs(detail.productDate).format('YYYY-MM-DD') : null,
-      purchasePrice: detail.purchasePrice,
-      purchaseQuantity: detail.purchaseQuantity,
-      purchaseUnitId: detail.purchaseUnitId,
-      remark: detail.remark || null,
-      requiredQuantity: detail.requiredQuantity ?? null
-    };
-    return isEdit && detail.id ? { id: detail.id, ...base } : base;
-  }
-
-  async function edit(id: string) {
-    const detail = await fetchGetPurchaseOrderDetail(id);
-    // 日期字段需转换为 Dayjs 供表单控件回显，与实体 string 类型不同，故整体视为表单值
-    const formValue = {
-      ...detail,
-      details: detail.details.map(item => ({
-        ...item,
-        id: item.id,
-        productDate: item.productDate ? dayjs(item.productDate) : undefined
-      })),
-      id: detail.id,
-      index: 0,
-      receiveTime: detail.receiveTime ? dayjs(detail.receiveTime) : undefined
-    };
-    handleEdit(formValue as unknown as AntDesign.TableDataWithIndex<Api.PurchaseOrder.Entity>);
-  }
-
   async function handleDelete(id: string) {
     await fetchDeletePurchaseOrder(id);
-    onDeleted();
+    run(false);
   }
 
   async function handleComplete(id: string) {
@@ -259,7 +196,7 @@ const PurchaseOrderList = () => {
       extra={
         <TableHeaderOperation
           disabledDelete
-          add={handleAdd}
+          add={() => nav('/purchase/orders/operate')}
           columns={columnChecks}
           loading={tableProps.loading}
           refresh={run}
@@ -268,15 +205,10 @@ const PurchaseOrderList = () => {
         />
       }
       table={
-        <>
-          <ATable
-            size="small"
-            {...tableProps}
-          />
-          <Suspense>
-            <PurchaseOrderOperateDrawer {...generalPopupOperation} />
-          </Suspense>
-        </>
+        <ATable
+          size="small"
+          {...tableProps}
+        />
       }
     />
   );

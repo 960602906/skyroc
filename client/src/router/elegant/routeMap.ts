@@ -115,6 +115,8 @@ export const routeMap: RouteMap = {
  "(base)_purchase_orders": "/purchase/orders",
  "(base)_purchase_orders_detail": "/purchase/orders/detail",
  "(base)_purchase_orders_detail_[id]": "/purchase/orders/detail/:id",
+ "(base)_purchase_orders_operate": "/purchase/orders/operate",
+ "(base)_purchase_orders_operate_[id]": "/purchase/orders/operate/:id",
  "(base)_purchase_plans": "/purchase/plans",
  "(base)_purchase_plans_detail": "/purchase/plans/detail",
  "(base)_purchase_plans_detail_[id]": "/purchase/plans/detail/:id",

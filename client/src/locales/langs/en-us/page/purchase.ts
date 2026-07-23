@@ -33,6 +33,12 @@ const purchase: App.I18n.Schema['translation']['page']['purchase'] = {
     goodsInfo: 'Goods Info',
     goodsName: 'Goods Name',
     keyword: 'Keyword',
+    operate: {
+      addDetail: 'Add Goods',
+      detailsRequired: 'Please add at least one goods line',
+      editDetail: 'Edit Detail',
+      estimatedAmount: 'Estimated Amount'
+    },
     productDate: 'Production Date',
     purchaseNo: 'Purchase No.',
     purchasePattern: 'Purchase Pattern',

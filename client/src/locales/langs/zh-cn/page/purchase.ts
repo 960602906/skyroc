@@ -33,6 +33,12 @@ const purchase: App.I18n.Schema['translation']['page']['purchase'] = {
     goodsInfo: '商品信息',
     goodsName: '商品名称',
     keyword: '关键字',
+    operate: {
+      addDetail: '添加商品',
+      detailsRequired: '请至少添加一条商品明细',
+      editDetail: '编辑明细',
+      estimatedAmount: '预计金额'
+    },
     productDate: '生产日期',
     purchaseNo: '采购单号',
     purchasePattern: '采购模式',

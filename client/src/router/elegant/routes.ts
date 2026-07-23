@@ -1114,6 +1114,30 @@ export const generatedRoutes: ElegantConstRoute[] = [
                         }
                       }
                     ]
+                  },
+                  {
+                    matchedFiles: [null, '/src/pages/(base)/purchase/orders/operate/index.tsx', null, null],
+                    name: '(base)_purchase_orders_operate',
+                    path: '/purchase/orders/operate',
+                    handle: {
+                      i18nKey: 'route.(base)_purchase_orders_operate',
+                      title: '(base)_purchase_orders_operate',
+                      activeMenu: '/purchase/orders',
+                      hideInMenu: true
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/purchase/orders/operate/[id].tsx', null, null],
+                        name: '(base)_purchase_orders_operate_[id]',
+                        path: '/purchase/orders/operate/:id',
+                        handle: {
+                          i18nKey: 'route.(base)_purchase_orders_operate_[id]',
+                          title: '(base)_purchase_orders_operate_[id]',
+                          activeMenu: '/purchase/orders',
+                          hideInMenu: true
+                        }
+                      }
+                    ]
                   }
                 ]
               },
