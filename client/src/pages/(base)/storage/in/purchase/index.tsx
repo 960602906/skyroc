@@ -34,7 +34,7 @@ const PurchaseStockInList = () => {
     wareId: null
   };
 
-  const { columnChecks, run, searchProps, setColumnChecks, tableProps } = useTable({
+  const { columnChecks, run, searchProps, setColumnChecks, tableProps, tableWrapperRef } = useTable({
     apiFn: fetchGetStockInPurchaseList,
     apiParams: searchParams,
     columns: () => [
@@ -210,6 +210,7 @@ const PurchaseStockInList = () => {
   return (
     <CrudPageLayout
       search={<PurchaseStockInSearch {...searchProps} />}
+      tableWrapperRef={tableWrapperRef}
       title={t('page.storage.in.purchase.title')}
       extra={
         <TableHeaderOperation
@@ -224,9 +225,9 @@ const PurchaseStockInList = () => {
       }
       table={
         <ATable
+          size="small"
           {...tableProps}
           className="mt-16px"
-          size="small"
         />
       }
     />
