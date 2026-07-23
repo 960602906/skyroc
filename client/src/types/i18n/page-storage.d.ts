@@ -60,6 +60,7 @@ declare namespace App {
           purchaser: string;
           quantity: string;
           reverseAudit: string;
+          reverseAuditBtn: string;
           reverseTime: string;
           reverseUserName: string;
           sectionAudit: string;

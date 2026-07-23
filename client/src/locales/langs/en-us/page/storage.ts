@@ -58,6 +58,7 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
       purchaser: 'Purchaser',
       quantity: 'Quantity',
       reverseAudit: 'Confirm reverse audit?',
+      reverseAuditBtn: 'Un-Audit',
       reverseTime: 'Reverse Time',
       reverseUserName: 'Reversed By',
       sectionAudit: 'Audit Information',

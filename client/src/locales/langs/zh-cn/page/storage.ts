@@ -58,6 +58,7 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
       purchaser: '采购员',
       quantity: '数量',
       reverseAudit: '确认反审核吗？',
+      reverseAuditBtn: '反审',
       reverseTime: '反审核时间',
       reverseUserName: '反审核人',
       sectionAudit: '审核信息',

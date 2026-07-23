@@ -169,7 +169,7 @@ const PurchaseStockInList = () => {
                   danger
                   size="small"
                 >
-                  {t('page.storage.in.purchase.reverseAudit')}
+                  {t('page.storage.in.purchase.reverseAuditBtn')}
                 </AButton>
               </APopconfirm>
             )}
