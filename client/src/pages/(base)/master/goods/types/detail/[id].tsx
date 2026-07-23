@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData, useRevalidator } from 'react-router-dom';
 
-import { useCloseTabAndNavigate } from '@/features/tab';
+import { DetailPageLayout } from '@/features/crud';
 import { fetchGetGoodsTypeDetail, fetchUpdateGoodsType } from '@/service/api';
 
 import GoodsTypeDetailView from './modules/GoodsTypeDetailView';
@@ -30,7 +30,6 @@ export async function loader({ params }: LoaderFunctionArgs) {
 const GoodsTypeDetail = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.GoodsType.Entity;
-  const closeTabAndNavigate = useCloseTabAndNavigate();
   const revalidator = useRevalidator();
   const [form] = AForm.useForm<Api.GoodsType.UpdateParams>();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -55,31 +54,27 @@ const GoodsTypeDetail = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
+    <>
+      <DetailPageLayout
+        backLabel={t('page.goods.type.detail.back')}
+        listPath={LIST_PATH}
         title={detail.name}
-        variant="borderless"
+        banner={
+          <span>
+            {t('page.goods.type.code')}：{detail.code}
+          </span>
+        }
         extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.goods.type.detail.back')}</AButton>
-            <AButton
-              type="primary"
-              onClick={openEdit}
-            >
-              {t('common.edit')}
-            </AButton>
-          </ASpace>
+          <AButton
+            type="primary"
+            onClick={openEdit}
+          >
+            {t('common.edit')}
+          </AButton>
         }
       >
-        <span className="opacity-60">
-          {t('page.goods.type.code')}：{detail.code}
-        </span>
-      </ACard>
-
-      <div className="flex-col-stretch gap-16px">
         <GoodsTypeDetailView detail={detail} />
-      </div>
+      </DetailPageLayout>
 
       <Suspense>
         <GoodsTypeOperateDrawer
@@ -90,7 +85,7 @@ const GoodsTypeDetail = () => {
           onClose={() => !submitting && setDrawerOpen(false)}
         />
       </Suspense>
-    </div>
+    </>
   );
 };
 

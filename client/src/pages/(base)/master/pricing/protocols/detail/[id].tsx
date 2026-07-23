@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { Suspense, lazy } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData, useRevalidator } from 'react-router-dom';
 
-import { useCloseTabAndNavigate } from '@/features/tab';
+import { DetailPageLayout } from '@/features/crud';
 import { fetchGetCustomerProtocolDetail, fetchUpdateCustomerProtocol } from '@/service/api';
 
 import ProtocolDetailView from './modules/ProtocolDetailView';
@@ -43,7 +43,6 @@ export async function loader({ params }: LoaderFunctionArgs) {
 const ProtocolDetail = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.CustomerProtocol.Entity;
-  const closeTabAndNavigate = useCloseTabAndNavigate();
   const revalidator = useRevalidator();
   const [form] = AForm.useForm<Api.CustomerProtocol.UpdateParams>();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -79,34 +78,30 @@ const ProtocolDetail = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
+    <>
+      <DetailPageLayout
+        backLabel={t('page.customer.protocol.detail.back')}
+        listPath={LIST_PATH}
         title={detail.name}
-        variant="borderless"
+        banner={
+          <span>
+            {t('page.customer.protocol.code')}：{detail.code}
+          </span>
+        }
         extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.customer.protocol.detail.back')}</AButton>
-            <AButton
-              type="primary"
-              onClick={openEdit}
-            >
-              {t('common.edit')}
-            </AButton>
-          </ASpace>
+          <AButton
+            type="primary"
+            onClick={openEdit}
+          >
+            {t('common.edit')}
+          </AButton>
         }
       >
-        <span className="opacity-60">
-          {t('page.customer.protocol.code')}：{detail.code}
-        </span>
-      </ACard>
-
-      <div className="flex-col-stretch gap-16px">
         <ProtocolDetailView
           detail={detail}
           onGoodsChanged={() => revalidator.revalidate()}
         />
-      </div>
+      </DetailPageLayout>
 
       <Suspense>
         <ProtocolOperateDrawer
@@ -117,7 +112,7 @@ const ProtocolDetail = () => {
           onClose={() => !submitting && setDrawerOpen(false)}
         />
       </Suspense>
-    </div>
+    </>
   );
 };
 

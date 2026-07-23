@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData, useRevalidator } from 'react-router-dom';
 
-import { useCloseTabAndNavigate } from '@/features/tab';
+import { DetailPageLayout } from '@/features/crud';
 import { fetchGetQuotationDetail, fetchUpdateQuotation } from '@/service/api';
 
 import QuotationDetailView from './modules/QuotationDetailView';
@@ -30,7 +30,6 @@ export async function loader({ params }: LoaderFunctionArgs) {
 const QuotationDetail = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.Quotation.Entity;
-  const closeTabAndNavigate = useCloseTabAndNavigate();
   const revalidator = useRevalidator();
   const [form] = AForm.useForm<Api.Quotation.UpdateParams>();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -58,34 +57,30 @@ const QuotationDetail = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
+    <>
+      <DetailPageLayout
+        backLabel={t('page.goods.quotation.detail.back')}
+        listPath={LIST_PATH}
         title={detail.name}
-        variant="borderless"
+        banner={
+          <span>
+            {t('page.goods.quotation.code')}：{detail.code}
+          </span>
+        }
         extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.goods.quotation.detail.back')}</AButton>
-            <AButton
-              type="primary"
-              onClick={openEdit}
-            >
-              {t('common.edit')}
-            </AButton>
-          </ASpace>
+          <AButton
+            type="primary"
+            onClick={openEdit}
+          >
+            {t('common.edit')}
+          </AButton>
         }
       >
-        <span className="opacity-60">
-          {t('page.goods.quotation.code')}：{detail.code}
-        </span>
-      </ACard>
-
-      <div className="flex-col-stretch gap-16px">
         <QuotationDetailView
           detail={detail}
           onGoodsChanged={() => revalidator.revalidate()}
         />
-      </div>
+      </DetailPageLayout>
 
       <Suspense>
         <QuotationOperateDrawer
@@ -96,7 +91,7 @@ const QuotationDetail = () => {
           onClose={() => !submitting && setDrawerOpen(false)}
         />
       </Suspense>
-    </div>
+    </>
   );
 };
 

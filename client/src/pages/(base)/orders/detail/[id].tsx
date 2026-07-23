@@ -1,8 +1,7 @@
 import { Modal } from 'antd';
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
-import { renderSaleOrderStatus } from '@/features/crud';
-import { useCloseTabAndNavigate } from '@/features/tab';
+import { DetailPageLayout, renderSaleOrderStatus } from '@/features/crud';
 import {
   fetchApproveOrder,
   fetchDeleteOrder,
@@ -37,7 +36,6 @@ const OrderDetailPage = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.Order.Entity;
   const nav = useNavigate();
-  const closeTabAndNavigate = useCloseTabAndNavigate();
 
   const isPendingAudit = detail.orderStatus === SaleOrderStatus.PENDING_AUDIT;
   const isRejected = detail.orderStatus === SaleOrderStatus.REJECTED;
@@ -69,7 +67,6 @@ const OrderDetailPage = () => {
       const remark = await promptAuditRemark(t('page.order.list.approveConfirm', { orderNo: detail.orderNo }));
       await fetchApproveOrder(detail.id, { remark });
       window.$message?.success(t('common.updateSuccess'));
-      closeTabAndNavigate(LIST_PATH);
     } catch {
       /* 取消 */
     }
@@ -80,7 +77,6 @@ const OrderDetailPage = () => {
       const remark = await promptAuditRemark(t('page.order.list.rejectConfirm', { orderNo: detail.orderNo }));
       await fetchRejectOrder(detail.id, { remark });
       window.$message?.success(t('common.updateSuccess'));
-      closeTabAndNavigate(LIST_PATH);
     } catch {
       /* 取消 */
     }
@@ -91,7 +87,6 @@ const OrderDetailPage = () => {
       const remark = await promptAuditRemark(t('page.order.list.resubmitConfirm', { orderNo: detail.orderNo }));
       await fetchResubmitOrder(detail.id, { remark });
       window.$message?.success(t('common.updateSuccess'));
-      closeTabAndNavigate(LIST_PATH);
     } catch {
       /* 取消 */
     }
@@ -102,74 +97,69 @@ const OrderDetailPage = () => {
       onOk: async () => {
         await fetchDeleteOrder(detail.id);
         window.$message?.success(t('common.deleteSuccess'));
-        closeTabAndNavigate(LIST_PATH);
       },
       title: t('common.confirmDelete')
     });
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        title={detail.orderNo}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.order.detail.back')}</AButton>
-            {canEdit && (
-              <AButton
-                type="primary"
-                onClick={() => nav(`/orders/edit/${detail.id}`)}
-              >
-                {t('common.edit')}
-              </AButton>
-            )}
-            {isPendingAudit && (
-              <>
-                <AButton
-                  type="primary"
-                  onClick={handleApprove}
-                >
-                  {t('page.order.list.approve')}
-                </AButton>
-                <AButton
-                  danger
-                  onClick={handleReject}
-                >
-                  {t('page.order.list.reject')}
-                </AButton>
-              </>
-            )}
-            {isRejected && (
-              <AButton
-                type="primary"
-                onClick={handleResubmit}
-              >
-                {t('page.order.list.resubmit')}
-              </AButton>
-            )}
-            <AButton
-              danger
-              onClick={handleDelete}
-            >
-              {t('common.delete')}
-            </AButton>
-          </ASpace>
-        }
-      >
+    <DetailPageLayout
+      backLabel={t('page.order.detail.back')}
+      listPath={LIST_PATH}
+      title={detail.orderNo}
+      banner={
         <ASpace size="middle">
-          <span className="opacity-60">
+          <span>
             {t('page.order.list.customerName')}：{detail.customerName}
           </span>
           {renderSaleOrderStatus(detail.orderStatus)}
         </ASpace>
-      </ACard>
-
-      <div className="flex-col-stretch gap-16px">
-        <OrderDetailView detail={detail} />
-      </div>
-    </div>
+      }
+      extra={
+        <>
+          {canEdit && (
+            <AButton
+              type="primary"
+              onClick={() => nav(`/orders/edit/${detail.id}`)}
+            >
+              {t('common.edit')}
+            </AButton>
+          )}
+          {isPendingAudit && (
+            <>
+              <AButton
+                type="primary"
+                onClick={handleApprove}
+              >
+                {t('page.order.list.approve')}
+              </AButton>
+              <AButton
+                danger
+                onClick={handleReject}
+              >
+                {t('page.order.list.reject')}
+              </AButton>
+            </>
+          )}
+          {isRejected && (
+            <AButton
+              type="primary"
+              onClick={handleResubmit}
+            >
+              {t('page.order.list.resubmit')}
+            </AButton>
+          )}
+          <AButton
+            danger
+            onClick={handleDelete}
+          >
+            {t('common.delete')}
+          </AButton>
+        </>
+      }
+    >
+      <OrderDetailView detail={detail} />
+    </DetailPageLayout>
   );
 };
 

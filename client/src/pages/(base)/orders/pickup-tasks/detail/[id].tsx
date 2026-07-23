@@ -1,7 +1,6 @@
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
-import { PickupTaskStatusBadge, displayDateTime, displayText } from '@/features/crud';
-import { useCloseTabAndNavigate } from '@/features/tab';
+import { DetailPageLayout, PickupTaskStatusBadge, displayDateTime, displayText } from '@/features/crud';
 import {
   fetchGetAfterSalePickupTaskDetail,
   fetchPickupTasksCompleteAfterSale,
@@ -34,7 +33,6 @@ const PickupTaskDetailPage = () => {
   const { t } = useTranslation();
   const nav = useNavigate();
   const detail = useLoaderData() as Api.AfterSale.PickupTask;
-  const closeTabAndNavigate = useCloseTabAndNavigate();
   const canSchedule =
     detail.pickupStatus === PickupTaskStatus.PENDING_ASSIGN || detail.pickupStatus === PickupTaskStatus.PENDING_PICKUP;
   const canStart = detail.pickupStatus === PickupTaskStatus.PENDING_PICKUP;
@@ -45,7 +43,6 @@ const PickupTaskDetailPage = () => {
       onOk: async () => {
         await fetchPickupTasksStartAfterSale(detail.id);
         window.$message?.success(t('common.updateSuccess'));
-        closeTabAndNavigate(LIST_PATH);
       },
       title: t('page.pickupTask.startConfirm', { taskNo: detail.taskNo })
     });
@@ -56,49 +53,46 @@ const PickupTaskDetailPage = () => {
       onOk: async () => {
         await fetchPickupTasksCompleteAfterSale(detail.id);
         window.$message?.success(t('common.updateSuccess'));
-        closeTabAndNavigate(LIST_PATH);
       },
       title: t('page.pickupTask.completeConfirm', { taskNo: detail.taskNo })
     });
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        title={detail.taskNo}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.pickupTask.detail.back')}</AButton>
-            {canSchedule && (
-              <AButton
-                type="primary"
-                onClick={() => nav(`/orders/pickup-tasks/operate/${detail.id}`)}
-              >
-                {t('page.pickupTask.schedule')}
-              </AButton>
-            )}
-            {canStart && <AButton onClick={handleStart}>{t('page.pickupTask.start')}</AButton>}
-            {canComplete && (
-              <AButton
-                type="primary"
-                onClick={handleComplete}
-              >
-                {t('page.pickupTask.complete')}
-              </AButton>
-            )}
-          </ASpace>
-        }
-      >
+    <DetailPageLayout
+      backLabel={t('page.pickupTask.detail.back')}
+      listPath={LIST_PATH}
+      title={detail.taskNo}
+      banner={
         <ASpace size="middle">
-          <span className="opacity-60">
+          <span>
             {t('page.pickupTask.customerName')}：{detail.customerName}
           </span>
           <PickupTaskStatusBadge pickupStatus={detail.pickupStatus} />
         </ASpace>
-      </ACard>
-
+      }
+      extra={
+        <>
+          {canSchedule && (
+            <AButton
+              type="primary"
+              onClick={() => nav(`/orders/pickup-tasks/operate/${detail.id}`)}
+            >
+              {t('page.pickupTask.schedule')}
+            </AButton>
+          )}
+          {canStart && <AButton onClick={handleStart}>{t('page.pickupTask.start')}</AButton>}
+          {canComplete && (
+            <AButton
+              type="primary"
+              onClick={handleComplete}
+            >
+              {t('page.pickupTask.complete')}
+            </AButton>
+          )}
+        </>
+      }
+    >
       <ACard
         className="card-wrapper"
         title={t('page.pickupTask.detail.basicInfo')}
@@ -211,7 +205,7 @@ const PickupTaskDetailPage = () => {
           ]}
         />
       </ACard>
-    </div>
+    </DetailPageLayout>
   );
 };
 

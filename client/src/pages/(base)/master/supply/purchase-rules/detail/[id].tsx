@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData, useRevalidator } from 'react-router-dom';
 
-import { useCloseTabAndNavigate } from '@/features/tab';
+import { DetailPageLayout } from '@/features/crud';
 import { fetchGetPurchaseRuleDetail, fetchUpdatePurchaseRule } from '@/service/api';
 
 import RuleDetailView from './modules/RuleDetailView';
@@ -29,10 +29,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 const RuleDetail = () => {
   const { t } = useTranslation();
-  // KeepAlive 离开详情时可能残留一帧旧组件树，此时 loader 数据已被卸载（运行时为 undefined），
-  // 下方空值兜底避免访问属性抛错触发 ErrorBoundary 闪错误页
   const detail = useLoaderData() as Api.PurchaseRule.Entity;
-  const closeTabAndNavigate = useCloseTabAndNavigate();
   const revalidator = useRevalidator();
   const [form] = AForm.useForm<Api.PurchaseRule.UpdateParams>();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -65,31 +62,27 @@ const RuleDetail = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
+    <>
+      <DetailPageLayout
+        backLabel={t('page.purchase.rule.detail.back')}
+        listPath={LIST_PATH}
         title={detail.name}
-        variant="borderless"
+        banner={
+          <span>
+            {t('page.purchase.rule.code')}：{detail.code}
+          </span>
+        }
         extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.purchase.rule.detail.back')}</AButton>
-            <AButton
-              type="primary"
-              onClick={openEdit}
-            >
-              {t('common.edit')}
-            </AButton>
-          </ASpace>
+          <AButton
+            type="primary"
+            onClick={openEdit}
+          >
+            {t('common.edit')}
+          </AButton>
         }
       >
-        <span className="opacity-60">
-          {t('page.purchase.rule.code')}：{detail.code}
-        </span>
-      </ACard>
-
-      <div className="flex-col-stretch gap-16px">
         <RuleDetailView detail={detail} />
-      </div>
+      </DetailPageLayout>
 
       <Suspense>
         <RuleOperateDrawer
@@ -100,7 +93,7 @@ const RuleDetail = () => {
           onClose={() => !submitting && setDrawerOpen(false)}
         />
       </Suspense>
-    </div>
+    </>
   );
 };
 

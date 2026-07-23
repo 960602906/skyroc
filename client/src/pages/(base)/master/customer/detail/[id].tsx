@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
-import { useCloseTabAndNavigate } from '@/features/tab';
+import { DetailPageLayout } from '@/features/crud';
 import { fetchGetCustomerDetail } from '@/service/api';
 
 import CustomerDetailView from './modules/CustomerDetailView';
@@ -28,35 +28,28 @@ const CustomerDetail = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.Customer.Entity;
   const nav = useNavigate();
-  const closeTabAndNavigate = useCloseTabAndNavigate();
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        title={detail.name}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.customer.detail.back')}</AButton>
-            <AButton
-              type="primary"
-              onClick={() => nav(`/master/customer/operate/${detail.id}`)}
-            >
-              {t('common.edit')}
-            </AButton>
-          </ASpace>
-        }
-      >
-        <span className="opacity-60">
+    <DetailPageLayout
+      backLabel={t('page.customer.detail.back')}
+      listPath={LIST_PATH}
+      title={detail.name}
+      banner={
+        <span>
           {t('page.customer.list.code')}：{detail.code}
         </span>
-      </ACard>
-
-      <div className="flex-col-stretch gap-16px">
-        <CustomerDetailView detail={detail} />
-      </div>
-    </div>
+      }
+      extra={
+        <AButton
+          type="primary"
+          onClick={() => nav(`/master/customer/operate/${detail.id}`)}
+        >
+          {t('common.edit')}
+        </AButton>
+      }
+    >
+      <CustomerDetailView detail={detail} />
+    </DetailPageLayout>
   );
 };
 

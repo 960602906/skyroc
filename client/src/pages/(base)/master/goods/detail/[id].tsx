@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
-import { useCloseTabAndNavigate } from '@/features/tab';
+import { DetailPageLayout } from '@/features/crud';
 import { fetchGetGoodsDetail } from '@/service/api';
 
 import GoodsDetailView from './modules/GoodsDetailView';
@@ -28,35 +28,28 @@ const GoodsDetail = () => {
   const { t } = useTranslation();
   const detail = useLoaderData() as Api.Goods.Entity;
   const nav = useNavigate();
-  const closeTabAndNavigate = useCloseTabAndNavigate();
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        title={detail.name}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('page.goods.detail.back')}</AButton>
-            <AButton
-              type="primary"
-              onClick={() => nav(`/master/goods/operate/${detail.id}`)}
-            >
-              {t('common.edit')}
-            </AButton>
-          </ASpace>
-        }
-      >
-        <span className="opacity-60">
+    <DetailPageLayout
+      backLabel={t('page.goods.detail.back')}
+      listPath={LIST_PATH}
+      title={detail.name}
+      banner={
+        <span>
           {t('page.goods.operate.code')}：{detail.code}
         </span>
-      </ACard>
-
-      <div className="flex-col-stretch gap-16px">
-        <GoodsDetailView detail={detail} />
-      </div>
-    </div>
+      }
+      extra={
+        <AButton
+          type="primary"
+          onClick={() => nav(`/master/goods/operate/${detail.id}`)}
+        >
+          {t('common.edit')}
+        </AButton>
+      }
+    >
+      <GoodsDetailView detail={detail} />
+    </DetailPageLayout>
   );
 };
 
