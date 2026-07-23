@@ -1,6 +1,7 @@
 import {
   CrudPageLayout,
   createDefaultPagination,
+  createDefaultSearchParams,
   createIndexColumn,
   displayDateTime,
   renderPurchasePattern,
@@ -23,13 +24,12 @@ const PurchaseStockInList = () => {
   const nav = useNavigate();
 
   const searchParams = {
+    ...createDefaultSearchParams(),
     businessStatus: null,
-    current: 1,
     goodsId: null,
     inTimeEnd: null,
     inTimeStart: null,
     keyword: null,
-    size: 10,
     supplierId: null,
     wareId: null
   };
