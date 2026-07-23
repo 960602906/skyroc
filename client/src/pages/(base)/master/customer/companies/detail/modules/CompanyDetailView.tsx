@@ -1,6 +1,6 @@
 import type { DescriptionsProps } from 'antd';
 
-import { displayText, renderEnableStatus } from '@/features/crud';
+import { DEFAULT_DETAIL_DESC_PROPS, displayText, renderEnableStatus } from '@/features/crud';
 
 interface CompanyDetailViewProps {
   detail: Api.Company.Entity;
@@ -54,11 +54,6 @@ function CompanyDetailView({ detail }: CompanyDetailViewProps) {
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xs: 1 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -67,7 +62,7 @@ function CompanyDetailView({ detail }: CompanyDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -78,7 +73,7 @@ function CompanyDetailView({ detail }: CompanyDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={statusItems}
         />
       </ACard>

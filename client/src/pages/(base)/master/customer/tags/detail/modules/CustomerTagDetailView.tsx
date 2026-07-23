@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { DescriptionsProps } from 'antd';
 
-import { displayText, renderEnableStatus } from '@/features/crud';
+import { DEFAULT_DETAIL_DESC_PROPS, displayText, renderEnableStatus } from '@/features/crud';
 import { fetchGetCustomerTagTree } from '@/service/api';
 import { QUERY_KEYS } from '@/service/keys';
 
@@ -74,11 +74,6 @@ function CustomerTagDetailView({ detail }: CustomerTagDetailViewProps) {
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xs: 1 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -87,7 +82,7 @@ function CustomerTagDetailView({ detail }: CustomerTagDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -98,7 +93,7 @@ function CustomerTagDetailView({ detail }: CustomerTagDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={statusItems}
         />
       </ACard>

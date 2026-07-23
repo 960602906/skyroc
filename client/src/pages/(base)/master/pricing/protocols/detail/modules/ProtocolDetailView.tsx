@@ -1,6 +1,6 @@
 import type { DescriptionsProps } from 'antd';
 
-import { DETAIL_EMPTY, displayText, renderEnableStatus } from '@/features/crud';
+import { DEFAULT_DETAIL_DESC_PROPS, DETAIL_EMPTY, displayText, renderEnableStatus } from '@/features/crud';
 import { useCustomerOptions, useQuotationOptions } from '@/service/hooks';
 
 import ProtocolGoodsSection from './ProtocolGoodsSection';
@@ -107,11 +107,6 @@ function ProtocolDetailView({ detail, onGoodsChanged }: ProtocolDetailViewProps)
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xs: 1 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -120,7 +115,7 @@ function ProtocolDetailView({ detail, onGoodsChanged }: ProtocolDetailViewProps)
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -137,7 +132,7 @@ function ProtocolDetailView({ detail, onGoodsChanged }: ProtocolDetailViewProps)
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={statusItems}
         />
       </ACard>

@@ -1,6 +1,6 @@
 import type { DescriptionsProps } from 'antd';
 
-import { DETAIL_EMPTY, displayText, renderEnableStatus } from '@/features/crud';
+import { DEFAULT_DETAIL_DESC_PROPS, DETAIL_EMPTY, displayText, renderEnableStatus } from '@/features/crud';
 import {
   toOptions,
   useCompanyOptions,
@@ -198,11 +198,6 @@ function CustomerDetailView({ detail }: CustomerDetailViewProps) {
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xs: 1 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -211,7 +206,7 @@ function CustomerDetailView({ detail }: CustomerDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -222,7 +217,7 @@ function CustomerDetailView({ detail }: CustomerDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={invoiceItems}
         />
       </ACard>
@@ -233,7 +228,7 @@ function CustomerDetailView({ detail }: CustomerDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={businessItems}
         />
       </ACard>

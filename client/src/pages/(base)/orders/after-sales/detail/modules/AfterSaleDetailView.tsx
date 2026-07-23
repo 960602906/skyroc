@@ -1,21 +1,14 @@
 import type { DescriptionsProps, TableColumnsType } from 'antd';
 
 import { afterSaleAuditActionRecord, afterSaleHandleTypeRecord, afterSaleTypeRecord } from '@/constants/business';
-import { DETAIL_EMPTY, displayDateTime, displayText, renderAfterSaleStatus } from '@/features/crud';
-
-function formatMoney(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return DETAIL_EMPTY;
-  }
-  return Number(value).toFixed(2);
-}
-
-function formatQuantity(value: number | null | undefined, unitName?: string | null) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return DETAIL_EMPTY;
-  }
-  return unitName ? `${value} ${unitName}` : String(value);
-}
+import {
+  DEFAULT_DETAIL_DESC_PROPS,
+  displayDateTime,
+  displayMoney,
+  displayQuantity,
+  displayText,
+  renderAfterSaleStatus
+} from '@/features/crud';
 
 interface AfterSaleDetailViewProps {
   detail: Api.AfterSale.Entity;
@@ -88,17 +81,17 @@ function AfterSaleDetailView({ detail }: AfterSaleDetailViewProps) {
 
   const amountItems: DescriptionsProps['items'] = [
     {
-      children: formatMoney(detail.orderPrice),
+      children: displayMoney(detail.orderPrice),
       key: 'orderPrice',
       label: t('page.afterSale.list.orderPrice')
     },
     {
-      children: formatMoney(detail.totalRefundAmount),
+      children: displayMoney(detail.totalRefundAmount),
       key: 'totalRefundAmount',
       label: t('page.afterSale.list.totalRefundAmount')
     },
     {
-      children: formatMoney(detail.settlementPrice),
+      children: displayMoney(detail.settlementPrice),
       key: 'settlementPrice',
       label: t('page.afterSale.list.settlementPrice')
     }
@@ -177,7 +170,7 @@ function AfterSaleDetailView({ detail }: AfterSaleDetailViewProps) {
       align: 'right',
       dataIndex: 'actualRefundQuantity',
       key: 'actualRefundQuantity',
-      render: (value, record) => formatQuantity(value, record.goodsUnitName),
+      render: (value, record) => displayQuantity(value, record.goodsUnitName),
       title: t('page.afterSale.detail.refundQuantity'),
       width: 130
     },
@@ -185,7 +178,7 @@ function AfterSaleDetailView({ detail }: AfterSaleDetailViewProps) {
       align: 'right',
       dataIndex: 'baseRefundQuantity',
       key: 'baseRefundQuantity',
-      render: (value, record) => formatQuantity(value, record.baseUnitName),
+      render: (value, record) => displayQuantity(value, record.baseUnitName),
       title: t('page.afterSale.detail.baseRefundQuantity'),
       width: 130
     },
@@ -193,7 +186,7 @@ function AfterSaleDetailView({ detail }: AfterSaleDetailViewProps) {
       align: 'right',
       dataIndex: 'refundAmount',
       key: 'refundAmount',
-      render: value => formatMoney(value),
+      render: value => displayMoney(value),
       title: t('page.afterSale.detail.refundAmount'),
       width: 120
     },
@@ -264,11 +257,6 @@ function AfterSaleDetailView({ detail }: AfterSaleDetailViewProps) {
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xl: 2, xs: 1, xxl: 2 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -277,7 +265,7 @@ function AfterSaleDetailView({ detail }: AfterSaleDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -303,7 +291,7 @@ function AfterSaleDetailView({ detail }: AfterSaleDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={amountItems}
         />
       </ACard>
@@ -329,7 +317,7 @@ function AfterSaleDetailView({ detail }: AfterSaleDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={remarkItems}
         />
       </ACard>

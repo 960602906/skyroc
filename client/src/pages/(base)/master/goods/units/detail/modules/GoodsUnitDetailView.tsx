@@ -1,6 +1,12 @@
 import type { DescriptionsProps } from 'antd';
 
-import { DETAIL_EMPTY, displayText, renderBooleanTag, renderEnableStatus } from '@/features/crud';
+import {
+  DEFAULT_DETAIL_DESC_PROPS,
+  DETAIL_EMPTY,
+  displayText,
+  renderBooleanTag,
+  renderEnableStatus
+} from '@/features/crud';
 
 interface GoodsUnitDetailViewProps {
   detail: Api.GoodsUnit.Entity;
@@ -73,11 +79,6 @@ function GoodsUnitDetailView({ detail }: GoodsUnitDetailViewProps) {
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xs: 1 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -86,7 +87,7 @@ function GoodsUnitDetailView({ detail }: GoodsUnitDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -97,7 +98,7 @@ function GoodsUnitDetailView({ detail }: GoodsUnitDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={statusItems}
         />
       </ACard>

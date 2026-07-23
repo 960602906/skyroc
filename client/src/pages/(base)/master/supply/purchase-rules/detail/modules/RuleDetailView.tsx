@@ -1,6 +1,6 @@
 import type { DescriptionsProps } from 'antd';
 
-import { displayText, renderEnableStatus, renderPurchasePattern } from '@/features/crud';
+import { DEFAULT_DETAIL_DESC_PROPS, displayText, renderEnableStatus, renderPurchasePattern } from '@/features/crud';
 import { useGoodsTypeOptions, usePurchaserOptions, useSupplierOptions, useWareOptions } from '@/service/hooks';
 
 interface RuleDetailViewProps {
@@ -80,11 +80,6 @@ function RuleDetailView({ detail }: RuleDetailViewProps) {
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xs: 1 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -93,7 +88,7 @@ function RuleDetailView({ detail }: RuleDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -104,7 +99,7 @@ function RuleDetailView({ detail }: RuleDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={relationItems}
         />
       </ACard>
@@ -115,7 +110,7 @@ function RuleDetailView({ detail }: RuleDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={statusItems}
         />
       </ACard>

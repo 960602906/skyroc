@@ -2,9 +2,11 @@ import type { DescriptionsProps, TableColumnsType } from 'antd';
 
 import { orderAuditActionRecord } from '@/constants/business';
 import {
-  DETAIL_EMPTY,
+  DEFAULT_DETAIL_DESC_PROPS,
   displayDate,
   displayDateTime,
+  displayMoney,
+  displayQuantity,
   displayText,
   renderBooleanYesNo,
   renderOrderOutStorageStatus,
@@ -13,13 +15,6 @@ import {
   renderSaleOrderStatus
 } from '@/features/crud';
 import { useQuotationOptions } from '@/service/hooks';
-
-function formatMoney(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return DETAIL_EMPTY;
-  }
-  return Number(value).toFixed(2);
-}
 
 interface OrderDetailViewProps {
   detail: Api.Order.Entity;
@@ -110,12 +105,12 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
 
   const amountItems: DescriptionsProps['items'] = [
     {
-      children: formatMoney(detail.orderPrice),
+      children: displayMoney(detail.orderPrice),
       key: 'orderPrice',
       label: t('page.order.list.orderPrice')
     },
     {
-      children: formatMoney(detail.settlementPrice),
+      children: displayMoney(detail.settlementPrice),
       key: 'settlementPrice',
       label: t('page.order.list.settlementPrice')
     },
@@ -227,11 +222,7 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
       align: 'right',
       dataIndex: 'baseQuantity',
       key: 'baseQuantity',
-      render: (value, record) => {
-        const qty = displayText(value);
-        const unit = record.baseUnitName ? ` ${record.baseUnitName}` : '';
-        return value === null || value === undefined ? DETAIL_EMPTY : `${qty}${unit}`;
-      },
+      render: (value, record) => displayQuantity(value as number | null | undefined, record.baseUnitName),
       title: t('page.order.detail.baseQuantity'),
       width: 120
     },
@@ -239,7 +230,7 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
       align: 'right',
       dataIndex: 'fixedPrice',
       key: 'fixedPrice',
-      render: value => formatMoney(value as number),
+      render: value => displayMoney(value as number),
       title: t('page.order.detail.fixedPrice'),
       width: 110
     },
@@ -255,7 +246,7 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
       align: 'right',
       dataIndex: 'totalPrice',
       key: 'totalPrice',
-      render: value => formatMoney(value as number),
+      render: value => displayMoney(value as number),
       title: t('page.order.detail.totalPrice'),
       width: 110
     },
@@ -336,10 +327,6 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
   ];
 
   // 必须覆盖 xxl/xl：antd 会与默认 { xxl:3, xl:3, lg:3... } 合并，漏写时大屏仍是 3 列
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xl: 2, xs: 1, xxl: 2 },
-    size: 'middle'
-  };
 
   const details = detail.details ?? [];
   const auditLogs = detail.auditLogs ?? [];
@@ -352,7 +339,7 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -378,7 +365,7 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={amountItems}
         />
       </ACard>
@@ -404,7 +391,7 @@ function OrderDetailView({ detail }: OrderDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={remarkItems}
         />
       </ACard>

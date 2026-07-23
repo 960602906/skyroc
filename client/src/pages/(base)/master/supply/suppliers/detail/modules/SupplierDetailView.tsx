@@ -1,6 +1,6 @@
 import type { DescriptionsProps } from 'antd';
 
-import { displayText, renderEnableStatus } from '@/features/crud';
+import { DEFAULT_DETAIL_DESC_PROPS, displayText, renderEnableStatus } from '@/features/crud';
 
 interface SupplierDetailViewProps {
   detail: Api.Supplier.Entity;
@@ -73,11 +73,6 @@ function SupplierDetailView({ detail }: SupplierDetailViewProps) {
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xs: 1 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -86,7 +81,7 @@ function SupplierDetailView({ detail }: SupplierDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -97,7 +92,7 @@ function SupplierDetailView({ detail }: SupplierDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={financeItems}
         />
       </ACard>
@@ -108,7 +103,7 @@ function SupplierDetailView({ detail }: SupplierDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={statusItems}
         />
       </ACard>

@@ -1,6 +1,12 @@
 import type { DescriptionsProps } from 'antd';
 
-import { DETAIL_EMPTY, displayText, renderBooleanTag, renderEnableStatus } from '@/features/crud';
+import {
+  DEFAULT_DETAIL_DESC_PROPS,
+  DETAIL_EMPTY,
+  displayText,
+  renderBooleanTag,
+  renderEnableStatus
+} from '@/features/crud';
 import { useGoodsTypeTreeOptions } from '@/service/hooks';
 
 import { findGoodsTypeName } from '../../../utils/tree';
@@ -87,11 +93,6 @@ function GoodsTypeDetailView({ detail }: GoodsTypeDetailViewProps) {
     }
   ];
 
-  const descProps: Pick<DescriptionsProps, 'column' | 'size'> = {
-    column: { lg: 2, md: 2, sm: 1, xs: 1 },
-    size: 'middle'
-  };
-
   return (
     <>
       <ACard
@@ -100,7 +101,7 @@ function GoodsTypeDetailView({ detail }: GoodsTypeDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={basicItems}
         />
       </ACard>
@@ -111,7 +112,7 @@ function GoodsTypeDetailView({ detail }: GoodsTypeDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={taxItems}
         />
       </ACard>
@@ -122,7 +123,7 @@ function GoodsTypeDetailView({ detail }: GoodsTypeDetailViewProps) {
         variant="borderless"
       >
         <ADescriptions
-          {...descProps}
+          {...DEFAULT_DETAIL_DESC_PROPS}
           items={statusItems}
         />
       </ACard>
