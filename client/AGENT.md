@@ -101,7 +101,7 @@ async function showDetail(id: string) {
 
 页面新增字段、按钮、状态、表单 placeholder、详情分区和路由标题时，必须同时更新：
 
-1. `locales/langs/zh-cn/page.ts` 与 `en-us/page.ts`；
+1. `locales/langs/zh-cn/page/` 与 `en-us/page/` 下的对应模块文件；聚合入口为各自的 `page/index.ts`；
 2. `locales/langs/zh-cn/route.ts` 与 `en-us/route.ts`（新增路由时）；
 3. `types/app.d.ts` 的 `App.I18n.Schema`；
 4. 业务枚举的 Record/Badge/Select 文案映射。
