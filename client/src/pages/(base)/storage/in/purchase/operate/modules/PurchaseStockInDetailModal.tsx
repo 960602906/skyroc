@@ -46,6 +46,14 @@ const PurchaseStockInDetailModal: FC<PurchaseStockInDetailModalProps> = memo(
           />
           <AForm.Item
             hidden
+            name="goodsName"
+          />
+          <AForm.Item
+            hidden
+            name="goodsCode"
+          />
+          <AForm.Item
+            hidden
             name="goodsUnitName"
           />
 
@@ -58,8 +66,16 @@ const PurchaseStockInDetailModal: FC<PurchaseStockInDetailModalProps> = memo(
             <RemoteOptionSelect
               placeholder={t('page.storage.in.form.goodsId')}
               resource={SELECTION_OPTION_RESOURCES.GOODS}
-              onChange={() => {
-                form.setFieldsValue({ goodsUnitId: undefined, goodsUnitName: undefined });
+              onChange={(_value, option) => {
+                const opt = Array.isArray(option) ? option[0] : option;
+                const label = typeof opt?.label === 'string' ? opt.label : '';
+                const [name, code] = label.split(' · ');
+                form.setFieldsValue({
+                  goodsCode: code?.trim() || undefined,
+                  goodsName: name?.trim() || undefined,
+                  goodsUnitId: undefined,
+                  goodsUnitName: undefined
+                });
               }}
             />
           </AForm.Item>

@@ -1,9 +1,11 @@
 import type { TableColumnsType } from 'antd';
 import type { Dayjs } from 'dayjs';
-import { Suspense, lazy } from 'react';
+import type { FC } from 'react';
+import { Suspense, lazy, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import RemoteOptionSelect from '@/components/RemoteOptionSelect';
-import { PurchasePatternSelect, displayText } from '@/features/crud';
+import { PurchasePatternSelect, displayDate, displayText } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { SELECTION_OPTION_RESOURCES, toOptions, usePurchaserOptions, useWareOptions } from '@/service/hooks';
 
@@ -13,6 +15,8 @@ const PurchaseStockInDetailModal = lazy(() => import('./PurchaseStockInDetailMod
 export interface PurchaseStockInDetailFormValue {
   /** 商品到期日期，仅记录自然日；无保质期或未知时为空（DateOnly 格式：yyyy-MM-dd） */
   expireDate?: Dayjs | null | string;
+  /** 商品编码（显示用，不提交） */
+  goodsCode?: string;
   /** 入库商品主键 */
   goodsId: string;
   /** 商品名称（显示用，不提交） */
@@ -65,7 +69,6 @@ interface PurchaseStockInOperateFormProps {
   form: Page.FormInstance;
 }
 
-// eslint-disable-next-line react/prop-types
 const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form }) => {
   const { t } = useTranslation();
   const { defaultRequiredRule } = useFormRules();
@@ -97,8 +100,10 @@ const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form 
   }
 
   async function handleLineSubmit() {
-    const values = await lineForm.validateFields();
-    const row: PurchaseStockInDetailFormValue = { ...values };
+    await lineForm.validateFields();
+    // getFieldsValue(true) 包含隐藏字段（goodsName / goodsCode / goodsUnitName / id）
+    const allValues = lineForm.getFieldsValue(true) as PurchaseStockInDetailFormValue;
+    const row: PurchaseStockInDetailFormValue = { ...allValues };
     const nextDetails = [...details];
 
     if (lineOperateType === 'edit' && editingIndex !== null) {
@@ -134,6 +139,14 @@ const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form 
     },
     {
       align: 'center',
+      dataIndex: 'goodsCode',
+      key: 'goodsCode',
+      render: value => displayText(value),
+      title: t('page.storage.in.purchase.goodsCode'),
+      width: 130
+    },
+    {
+      align: 'center',
       dataIndex: 'goodsUnitId',
       key: 'goodsUnitId',
       render: (_, record) => displayText(record.goodsUnitName || record.goodsUnitId),
@@ -160,7 +173,7 @@ const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form 
       align: 'center',
       dataIndex: 'productDate',
       key: 'productDate',
-      render: value => displayText(value),
+      render: value => displayDate(value),
       title: t('page.storage.in.purchase.productDate'),
       width: 120
     },
@@ -340,7 +353,9 @@ const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form 
               }
             }
           ]}
-        />
+        >
+          <AInput />
+        </AForm.Item>
         <ATable<PurchaseStockInDetailFormValue>
           columns={columns}
           dataSource={details}

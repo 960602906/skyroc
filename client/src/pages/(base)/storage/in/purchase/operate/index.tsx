@@ -9,13 +9,6 @@ import PurchaseStockInOperateForm from './modules/PurchaseStockInOperateForm';
 
 const LIST_PATH = '/storage/in/purchase';
 
-/** 路由元信息：新增采购入库页不显示在菜单中 */
-export const handle = {
-  hideInMenu: true,
-  i18nKey: 'route.(base)_storage_in_purchase_operate',
-  keepAlive: false
-};
-
 /** 把表单明细行转换为接口 payload */
 function toDetailPayload(detail: PurchaseStockInDetailFormValue, isEdit: boolean) {
   const base = {
@@ -88,7 +81,7 @@ const PurchaseStockInCreatePage = () => {
       />
       <AForm
         form={form}
-        initialValues={{ details: [{}], inTime: dayjs(), purchasePattern: PurchasePattern.SUPPLIER_DIRECT }}
+        initialValues={{ details: [], inTime: dayjs(), purchasePattern: PurchasePattern.SUPPLIER_DIRECT }}
         layout="vertical"
       >
         <PurchaseStockInOperateForm form={form} />

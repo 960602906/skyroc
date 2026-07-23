@@ -38,27 +38,13 @@ export function formatUtcDateTime(value: string | number | Date | null | undefin
   return parsed.local().format(DISPLAY_DATETIME);
 }
 
-/** 业务日期（下单日/收货日等）：只取日期部分，不做时区换算。 后端日期-only 会规范为 UTC 午夜再写出，若当时间戳本地化可能跨日。 */
+/** 业务日期（下单日等）：只展示日期，不做时区换算。 */
 export function formatBusinessDate(value: string | number | Date | null | undefined) {
   if (value === null || value === undefined || value === '') {
     return null;
   }
-
-  const text = String(value).trim();
-  if (!text) {
-    return null;
-  }
-
-  // 已是日期或前 10 位为 yyyy-MM-dd
-  if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
-    return text.slice(0, 10);
-  }
-
-  const parsed = dayjs(text);
-  if (!parsed.isValid()) {
-    return text;
-  }
-  return parsed.format(DISPLAY_DATE);
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format(DISPLAY_DATE) : null;
 }
 
 /** 详情/表格空值占位 */
