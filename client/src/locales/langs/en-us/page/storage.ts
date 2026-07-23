@@ -7,7 +7,6 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
     edit: 'Edit Stock-In',
     expectedArrivalTime: 'Expected Arrival Time',
     form: {
-      batchNo: 'Enter Batch No.',
       businessStatus: 'Select Status',
       detailRemark: 'Enter Detail Remark',
       expectedArrivalTime: 'Select Expected Arrival Time',

@@ -186,8 +186,6 @@ declare namespace Api {
      * 描述入库单位、批次、数量和价格
      */
     type CreateStockInDetailPayload = {
-      /** 商品批次号；同仓库同商品下用于定位或创建唯一库存批次 */
-      batchNo: string;
       /** 商品到期日期，仅记录自然日；无保质期或未知时可为空（DateOnly 格式：yyyy-MM-dd） */
       expireDate?: string | null;
       /** 入库商品主键 */

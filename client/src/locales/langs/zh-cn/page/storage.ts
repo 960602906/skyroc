@@ -7,7 +7,6 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
     edit: '编辑入库',
     expectedArrivalTime: '预计到货时间',
     form: {
-      batchNo: '请输入批次号',
       businessStatus: '请选择单据状态',
       detailRemark: '请输入明细备注',
       expectedArrivalTime: '请选择预计到货时间',

@@ -441,12 +441,15 @@ public class StockInService(
 
     private async Task BuildDetailsAsync(StockInOrder order, IEnumerable<CreateStockInDetailDto> details)
     {
+        var detailIndex = 1;
         foreach (var detailDto in details)
         {
             var prepared = await PrepareDetailAsync(detailDto);
             var detail = CreateDetail(order.Id, prepared);
+            detail.BatchNo = $"{order.InNo}-{detailIndex:D2}";
             detail.ApplyCreateAudit(currentUserService);
             order.Details.Add(detail);
+            detailIndex++;
         }
 
         RecalculateTotals(order);
@@ -527,7 +530,6 @@ public class StockInService(
         detail.BaseQuantity = baseQuantity;
         detail.UnitPrice = dto.UnitPrice;
         detail.TotalPrice = RoundMoney(dto.Quantity * dto.UnitPrice);
-        detail.BatchNo = dto.BatchNo.Trim();
         detail.ProductDate = dto.ProductDate;
         detail.ExpireDate = dto.ExpireDate;
         detail.Remark = Normalize(dto.Remark);
@@ -556,6 +558,7 @@ public class StockInService(
             else
             {
                 var detail = CreateDetail(order.Id, prepared);
+                detail.BatchNo = $"{order.InNo}-{order.Details.Count + 1:D2}";
                 detail.ApplyCreateAudit(currentUserService);
                 order.Details.Add(detail);
             }
@@ -811,7 +814,6 @@ public class StockInService(
             && detail.GoodsUnitId == item.GoodsUnitId
             && RoundQuantity(detail.Quantity) == RoundQuantity(item.Quantity)
             && RoundMoney(detail.UnitPrice) == RoundMoney(item.UnitPrice)
-            && detail.BatchNo == item.BatchNo.Trim()
             && detail.ProductDate == item.ProductDate
             && detail.ExpireDate == item.ExpireDate);
     }

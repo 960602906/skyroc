@@ -9,7 +9,6 @@ declare namespace App {
         edit: string;
         expectedArrivalTime: string;
         form: {
-          batchNo: string;
           businessStatus: string;
           detailRemark: string;
           expectedArrivalTime: string;

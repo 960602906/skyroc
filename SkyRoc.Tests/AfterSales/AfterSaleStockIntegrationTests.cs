@@ -89,17 +89,16 @@ public class AfterSaleStockIntegrationTests
                     GoodsId = seed.GoodsId,
                     GoodsUnitId = seed.GoodsUnitId,
                     Quantity = 2m,
-                    UnitPrice = 5m,
-                    BatchNo = "RETURN-20260707"
+                    UnitPrice = 5m
                 }
             ]
         };
         var stockIn = await stockInService.CreateSalesReturnAsync(request);
         var repeated = await stockInService.CreateSalesReturnAsync(request);
-        request.Details[0].BatchNo = "RETURN-CHANGED";
+        request.Details[0].Quantity = 9m;
         var divergentRetry = await Assert.ThrowsAsync<Application.Exceptions.BusinessException>(() =>
             stockInService.CreateSalesReturnAsync(request));
-        request.Details[0].BatchNo = "RETURN-20260707";
+        request.Details[0].Quantity = 2m;
         var audited = await stockInService.AuditAsync(StockInOrderType.SalesReturn, stockIn.Id, "质检通过");
         var completedAfterSale = await afterSaleService.CompleteAsync(created.Id);
         var reverseAfterCompletion = await Assert.ThrowsAsync<Application.Exceptions.BusinessException>(() =>
@@ -186,8 +185,7 @@ public class AfterSaleStockIntegrationTests
                         GoodsId = seed.GoodsId,
                         GoodsUnitId = seed.GoodsUnitId,
                         Quantity = 1m,
-                        UnitPrice = 5m,
-                        BatchNo = "INVALID"
+                        UnitPrice = 5m
                     }
                 ]
             }));
@@ -216,8 +214,7 @@ public class AfterSaleStockIntegrationTests
                         GoodsId = seed.GoodsId,
                         GoodsUnitId = seed.GoodsUnitId,
                         Quantity = 1m,
-                        UnitPrice = 5m,
-                        BatchNo = "INVALID"
+                        UnitPrice = 5m
                     }
                 ]
             }));

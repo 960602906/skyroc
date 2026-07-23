@@ -11,8 +11,6 @@ const PurchaseStockInDetailModal = lazy(() => import('./PurchaseStockInDetailMod
 
 /** 采购入库商品行表单值 */
 export interface PurchaseStockInDetailFormValue {
-  /** 商品批次号；同仓库同商品下定位唯一库存批次 */
-  batchNo: string;
   /** 商品到期日期，仅记录自然日；无保质期或未知时为空（DateOnly 格式：yyyy-MM-dd） */
   expireDate?: Dayjs | null | string;
   /** 入库商品主键 */
@@ -157,14 +155,6 @@ const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form 
       render: (value: number) => value?.toFixed(4),
       title: t('page.storage.in.purchase.unitPrice'),
       width: 110
-    },
-    {
-      align: 'center',
-      dataIndex: 'batchNo',
-      key: 'batchNo',
-      render: value => displayText(value),
-      title: t('page.storage.in.purchase.batchNo'),
-      width: 130
     },
     {
       align: 'center',

@@ -33,7 +33,7 @@ public class StockInServiceTests
         var unitOfWork = new RecordingUnitOfWork(context);
         var service = CreateService(context, unitOfWork);
 
-        var result = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var result = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
 
         Assert.StartsWith("IN", result.InNo);
         Assert.Equal(StockInOrderType.Purchase, result.OrderType);
@@ -57,7 +57,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
 
         var audited = await service.AuditAsync(StockInOrderType.Purchase, created.Id, "首次入库");
 
@@ -84,7 +84,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
 
         await service.AuditAsync(StockInOrderType.Purchase, created.Id, "首次入库");
 
@@ -102,7 +102,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
         await service.AuditAsync(StockInOrderType.Purchase, created.Id, null);
 
         await service.ReverseAuditAsync(StockInOrderType.Purchase, created.Id, "撤销入库");
@@ -111,39 +111,40 @@ public class StockInServiceTests
     }
 
     [Fact]
-    public async Task AuditAsync_merges_into_existing_batch_with_weighted_average_cost()
+    public async Task AuditAsync_creates_separate_batches_for_different_purchase_orders()
     {
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var first = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var first = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
         await service.AuditAsync(StockInOrderType.Purchase, first.Id, null);
-        var second = await service.CreatePurchaseAsync(PurchaseRequest(seed, 30m, 5m, "B001"));
+        var second = await service.CreatePurchaseAsync(PurchaseRequest(seed, 30m, 5m));
 
         await service.AuditAsync(StockInOrderType.Purchase, second.Id, null);
 
-        var batch = Assert.Single(context.StockBatches);
-        Assert.Equal(40m, batch.CurrentQuantity);
-        Assert.Equal(40m, batch.AvailableQuantity);
-        // (10*3 + 30*5) / 40 = 4.5
-        Assert.Equal(4.5m, batch.UnitCost);
+        Assert.Equal(2, await context.StockBatches.CountAsync());
+        var batches = await context.StockBatches.OrderBy(b => b.CurrentQuantity).ToListAsync();
+        Assert.Equal(10m, batches[0].CurrentQuantity);
+        Assert.Equal(3m, batches[0].UnitCost);
+        Assert.Equal(30m, batches[1].CurrentQuantity);
+        Assert.Equal(5m, batches[1].UnitCost);
         Assert.Equal(2, await context.StockLedgers.CountAsync());
     }
 
     [Fact]
-    public async Task ReverseAuditAsync_restores_weighted_cost_after_multiple_inbounds()
+    public async Task ReverseAuditAsync_rolls_back_one_batch_and_leaves_other_intact()
     {
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var first = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var first = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
         await service.AuditAsync(StockInOrderType.Purchase, first.Id, null);
-        var second = await service.CreatePurchaseAsync(PurchaseRequest(seed, 30m, 5m, "B001"));
+        var second = await service.CreatePurchaseAsync(PurchaseRequest(seed, 30m, 5m));
         await service.AuditAsync(StockInOrderType.Purchase, second.Id, null);
 
         await service.ReverseAuditAsync(StockInOrderType.Purchase, second.Id, "撤销第二次入库");
 
-        var batch = await context.StockBatches.SingleAsync();
+        var batch = await context.StockBatches.SingleAsync(b => b.CurrentQuantity > 0);
         Assert.Equal(10m, batch.CurrentQuantity);
         Assert.Equal(10m, batch.AvailableQuantity);
         Assert.Equal(3m, batch.UnitCost);
@@ -155,7 +156,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 2m, 60m, "CASE01", seed.CaseUnitId));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 2m, 60m, seed.CaseUnitId));
 
         var audited = await service.AuditAsync(StockInOrderType.Purchase, created.Id, null);
 
@@ -174,7 +175,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
         await service.AuditAsync(StockInOrderType.Purchase, created.Id, null);
 
         var reversed = await service.ReverseAuditAsync(StockInOrderType.Purchase, created.Id, "退回错误入库");
@@ -197,7 +198,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
         await service.AuditAsync(StockInOrderType.Purchase, created.Id, null);
         var batch = await context.StockBatches.SingleAsync();
         batch.AvailableQuantity = 4m;
@@ -219,7 +220,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
         await service.AuditAsync(StockInOrderType.Purchase, created.Id, null);
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() =>
@@ -235,7 +236,7 @@ public class StockInServiceTests
         var seed = await SeedCatalogAsync(context);
         var source = await SeedPurchaseOrderAsync(context, seed, PurchaseOrderStatus.Draft, 10m);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var request = PurchaseRequest(seed, 5m, 3m, "B001");
+        var request = PurchaseRequest(seed, 5m, 3m);
         request.PurchaseOrderId = source.OrderId;
         request.Details[0].PurchaseOrderDetailId = source.DetailId;
 
@@ -253,7 +254,7 @@ public class StockInServiceTests
         var source = await SeedPurchaseOrderAsync(context, seed, PurchaseOrderStatus.Completed, 10m);
         var unrelated = await SeedPurchaseOrderAsync(context, seed, PurchaseOrderStatus.Completed, 10m);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var request = PurchaseRequest(seed, 5m, 3m, "B001");
+        var request = PurchaseRequest(seed, 5m, 3m);
         request.PurchaseOrderId = source.OrderId;
         request.Details[0].PurchaseOrderDetailId = unrelated.DetailId;
 
@@ -270,10 +271,10 @@ public class StockInServiceTests
         var seed = await SeedCatalogAsync(context);
         var source = await SeedPurchaseOrderAsync(context, seed, PurchaseOrderStatus.Completed, 10m);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var firstRequest = PurchaseRequest(seed, 6m, 3m, "B001");
+        var firstRequest = PurchaseRequest(seed, 6m, 3m);
         firstRequest.PurchaseOrderId = source.OrderId;
         firstRequest.Details[0].PurchaseOrderDetailId = source.DetailId;
-        var secondRequest = PurchaseRequest(seed, 5m, 3m, "B002");
+        var secondRequest = PurchaseRequest(seed, 5m, 3m);
         secondRequest.PurchaseOrderId = source.OrderId;
         secondRequest.Details[0].PurchaseOrderDetailId = source.DetailId;
         var first = await service.CreatePurchaseAsync(firstRequest);
@@ -300,7 +301,7 @@ public class StockInServiceTests
         var repository = new TrackingStockInOrderRepository(context, () => unitOfWork.HasActiveTransaction);
         var batchRepository = new TrackingStockBatchRepository(context, () => unitOfWork.HasActiveTransaction);
         var service = CreateService(context, unitOfWork, repository, batchRepository);
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 5m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 5m, 3m));
 
         await service.AuditAsync(StockInOrderType.Purchase, created.Id, null);
 
@@ -316,7 +317,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
         var detail = Assert.Single(created.Details);
 
         var updated = await service.UpdatePurchaseAsync(new UpdatePurchaseStockInDto
@@ -335,8 +336,7 @@ public class StockInServiceTests
                     GoodsId = seed.GoodsId,
                     GoodsUnitId = seed.BaseUnitId,
                     Quantity = 12m,
-                    UnitPrice = 3m,
-                    BatchNo = "B001"
+                    UnitPrice = 3m
                 }
             ]
         });
@@ -360,7 +360,7 @@ public class StockInServiceTests
         {
             WareId = seed.WareId,
             InTime = new DateTime(2026, 7, 4, 8, 0, 0, DateTimeKind.Utc),
-            Details = [DetailRequest(seed, 5m, 2m, "OTHER01")]
+            Details = [DetailRequest(seed, 5m, 2m)]
         });
         await service.AuditAsync(StockInOrderType.Other, other.Id, null);
 
@@ -369,7 +369,7 @@ public class StockInServiceTests
             WareId = seed.WareId,
             CustomerId = seed.CustomerId,
             InTime = new DateTime(2026, 7, 4, 8, 0, 0, DateTimeKind.Utc),
-            Details = [DetailRequest(seed, 3m, 2m, "RETURN01")]
+            Details = [DetailRequest(seed, 3m, 2m)]
         });
         var auditedReturn = await service.AuditAsync(StockInOrderType.SalesReturn, salesReturn.Id, null);
 
@@ -384,7 +384,7 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        var created = await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             service.GetByIdAsync(StockInOrderType.Other, created.Id));
@@ -396,12 +396,12 @@ public class StockInServiceTests
         await using var context = CreateDbContext();
         var seed = await SeedCatalogAsync(context);
         var service = CreateService(context, new RecordingUnitOfWork(context));
-        await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m, "B001"));
+        await service.CreatePurchaseAsync(PurchaseRequest(seed, 10m, 3m));
         await service.CreateOtherAsync(new CreateOtherStockInDto
         {
             WareId = seed.WareId,
             InTime = new DateTime(2026, 7, 4, 8, 0, 0, DateTimeKind.Utc),
-            Details = [DetailRequest(seed, 5m, 2m, "OTHER01")]
+            Details = [DetailRequest(seed, 5m, 2m)]
         });
 
         var purchasePage = await service.GetPagedAsync(
@@ -416,7 +416,6 @@ public class StockInServiceTests
         CatalogSeed seed,
         decimal quantity,
         decimal unitPrice,
-        string batchNo,
         Guid? unitId = null)
     {
         return new CreatePurchaseStockInDto
@@ -427,7 +426,7 @@ public class StockInServiceTests
             PurchasePattern = PurchasePattern.SupplierDirect,
             InTime = new DateTime(2026, 7, 4, 8, 0, 0, DateTimeKind.Utc),
             Remark = "采购入库",
-            Details = [DetailRequest(seed, quantity, unitPrice, batchNo, unitId)]
+            Details = [DetailRequest(seed, quantity, unitPrice, unitId)]
         };
     }
 
@@ -435,7 +434,6 @@ public class StockInServiceTests
         CatalogSeed seed,
         decimal quantity,
         decimal unitPrice,
-        string batchNo,
         Guid? unitId = null)
     {
         return new CreateStockInDetailDto
@@ -444,7 +442,6 @@ public class StockInServiceTests
             GoodsUnitId = unitId ?? seed.BaseUnitId,
             Quantity = quantity,
             UnitPrice = unitPrice,
-            BatchNo = batchNo,
             ProductDate = new DateOnly(2026, 7, 1)
         };
     }

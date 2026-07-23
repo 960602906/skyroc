@@ -458,7 +458,6 @@ public class MainForwardBusinessFlowPostgreSqlEndToEndTests(PostgreSqlTestFixtur
                                    GoodsUnitId = managedGoodsUnitId,
                                    Quantity = orderQuantity,
                                    UnitPrice = purchaseUnitPrice,
-                                   BatchNo = batchNo,
                                    ProductDate = new DateOnly(2026, 7, 20)
                                }
                            ]

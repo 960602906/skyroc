@@ -17,7 +17,6 @@ public class CreateStockInDetailValidator : AbstractValidator<CreateStockInDetai
         RuleFor(x => x.GoodsUnitId).NotEmpty();
         RuleFor(x => x.Quantity).GreaterThan(0m);
         RuleFor(x => x.UnitPrice).GreaterThanOrEqualTo(0m);
-        RuleFor(x => x.BatchNo).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Remark).MaximumLength(500);
         RuleFor(x => x.ExpireDate)
             .GreaterThanOrEqualTo(x => x.ProductDate!.Value)

@@ -36,11 +36,6 @@ public class CreateStockInDetailDto
     public decimal UnitPrice { get; set; }
 
     /// <summary>
-    /// 商品批次号；同仓库同商品下用于定位或创建唯一库存批次。
-    /// </summary>
-    public string BatchNo { get; set; } = string.Empty;
-
-    /// <summary>
     /// 商品生产日期，仅记录自然日；未知时可为空。
     /// </summary>
     public DateOnly? ProductDate { get; set; }

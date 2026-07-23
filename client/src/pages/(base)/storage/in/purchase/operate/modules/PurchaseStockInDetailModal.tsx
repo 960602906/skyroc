@@ -113,17 +113,6 @@ const PurchaseStockInDetailModal: FC<PurchaseStockInDetailModalProps> = memo(
               </AForm.Item>
             </ACol>
 
-            {/* 批次号 */}
-            <ACol span={12}>
-              <AForm.Item
-                label={t('page.storage.in.purchase.batchNo')}
-                name="batchNo"
-                rules={[defaultRequiredRule]}
-              >
-                <AInput placeholder={t('page.storage.in.form.batchNo')} />
-              </AForm.Item>
-            </ACol>
-
             {/* 生产日期 */}
             <ACol span={12}>
               <AForm.Item

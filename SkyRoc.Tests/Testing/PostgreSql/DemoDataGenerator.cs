@@ -2862,7 +2862,6 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                         GoodsUnitId = dto.GoodsUnitId,
                         Quantity = dto.Quantity,
                         UnitPrice = dto.UnitPrice,
-                        BatchNo = dto.BatchNo,
                         ProductDate = dto.ProductDate,
                         ExpireDate = dto.ExpireDate,
                         Remark = dto.Remark
@@ -2885,7 +2884,6 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             GoodsUnitId = detail.PurchaseUnitId,
             Quantity = detail.PurchaseQuantity,
             UnitPrice = detail.PurchasePrice,
-            BatchNo = CreatePurchaseStockBatchNo(sequence, detailIndex),
             ProductDate = productDate,
             ExpireDate = productDate.AddDays(10 + detailIndex),
             Remark = CreatePurchaseStockInDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex)
@@ -3265,7 +3263,6 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                         GoodsUnitId = dto.GoodsUnitId,
                         Quantity = dto.Quantity,
                         UnitPrice = dto.UnitPrice,
-                        BatchNo = dto.BatchNo,
                         ProductDate = dto.ProductDate,
                         ExpireDate = dto.ExpireDate,
                         Remark = dto.Remark
@@ -3287,7 +3284,6 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
             GoodsUnitId = detail.GoodsUnitId,
             Quantity = detail.Quantity,
             UnitPrice = NumericPrecision.RoundMoney(detail.FixedPrice * 0.72m),
-            BatchNo = CreateSaleStockSupportBatchNo(sequence, detailIndex),
             ProductDate = productDate,
             ExpireDate = productDate.AddDays(7 + detailIndex),
             Remark = CreateSaleStockSupportInDetailRemark(sequence, detail.GoodsCodeSnapshot, detailIndex)
@@ -4238,7 +4234,6 @@ public sealed class DemoDataGenerator(PostgreSqlTestFixture fixture)
                             GoodsUnitId = goods.GoodsUnitId,
                             Quantity = goods.ActualRefundQuantity,
                             UnitPrice = goods.UnitPrice,
-                            BatchNo = CreateSalesReturnBatchNo(sequence),
                             ProductDate = CreateSalesReturnProductDate(sequence),
                             ExpireDate = CreateSalesReturnExpireDate(sequence),
                             Remark = CreateSalesReturnDetailRemark(

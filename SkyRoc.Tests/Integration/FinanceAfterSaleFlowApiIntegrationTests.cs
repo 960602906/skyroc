@@ -124,7 +124,6 @@ public class FinanceAfterSaleFlowApiIntegrationTests
                         GoodsUnitId = seed.GoodsUnitId,
                         Quantity = 6m,
                         UnitPrice = 3.2m,
-                        BatchNo = "P3-FLOW-001",
                         ProductDate = new DateOnly(2026, 7, 6)
                     }
                 ]
@@ -272,8 +271,7 @@ public class FinanceAfterSaleFlowApiIntegrationTests
                         GoodsId = seed.GoodsId,
                         GoodsUnitId = seed.GoodsUnitId,
                         Quantity = 2m,
-                        UnitPrice = 4.5m,
-                        BatchNo = "P3-RETURN-001"
+                        UnitPrice = 4.5m
                     }
                 ]
             }));

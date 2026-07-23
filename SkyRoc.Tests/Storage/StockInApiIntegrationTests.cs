@@ -139,7 +139,6 @@ public class StockInApiIntegrationTests
                     GoodsUnitId = seed.GoodsUnitId,
                     Quantity = 20m,
                     UnitPrice = 4m,
-                    BatchNo = "BATCH-IT-01",
                     ProductDate = new DateOnly(2026, 7, 1)
                 }
             ]

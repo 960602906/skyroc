@@ -138,7 +138,6 @@ public class MainBusinessFlowApiIntegrationTests
                         GoodsUnitId = seed.GoodsUnitId,
                         Quantity = 6m,
                         UnitPrice = 3.2m,
-                        BatchNo = "P2-FLOW-001",
                         ProductDate = new DateOnly(2026, 7, 4)
                     }
                 ]

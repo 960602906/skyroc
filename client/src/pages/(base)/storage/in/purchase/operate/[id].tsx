@@ -33,7 +33,6 @@ export async function loader({ params }: LoaderFunctionArgs) {
 /** 把表单明细行转换为接口 payload（编辑时透传 id） */
 function toDetailPayload(detail: PurchaseStockInDetailFormValue) {
   const base = {
-    batchNo: detail.batchNo,
     expireDate: detail.expireDate ? dayjs(detail.expireDate).format('YYYY-MM-DD') : null,
     goodsId: detail.goodsId,
     goodsUnitId: detail.goodsUnitId,

@@ -19,7 +19,6 @@ export const handle = {
 /** 把表单明细行转换为接口 payload */
 function toDetailPayload(detail: PurchaseStockInDetailFormValue, isEdit: boolean) {
   const base = {
-    batchNo: detail.batchNo,
     expireDate: detail.expireDate ? dayjs(detail.expireDate).format('YYYY-MM-DD') : null,
     goodsId: detail.goodsId,
     goodsUnitId: detail.goodsUnitId,
