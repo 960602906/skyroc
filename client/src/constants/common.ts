@@ -56,6 +56,15 @@ export const PURCHASE_ORDER_STATUS_MAP: Record<Api.PurchaseOrder.BusinessStatus,
   3: 'error'
 };
 
+/** 库存单据业务状态：已删除 error / 草稿 default / 待审核 warning / 已审核 success / 已反审核 default。 */
+export const STOCK_DOCUMENT_STATUS_MAP: Record<Api.StockIn.StockDocumentStatus, BadgeStatus> = {
+  '-1': 'error',
+  1: 'default',
+  2: 'warning',
+  3: 'success',
+  4: 'default'
+};
+
 /** 售后单状态徽标色 */
 export const AFTER_SALE_STATUS_MAP: Record<Api.AfterSale.AfterStatus, BadgeStatus> = {
   1: 'default',

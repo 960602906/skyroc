@@ -34,6 +34,8 @@ export {
 export { OrderDateTypeSelect, OrderReturnStatusSelect, SaleOrderStatusSelect } from './SaleOrderStatusSelect';
 export { getSearchActionsSpan } from './search-actions-span';
 export { default as SearchActions, SearchActionsCol } from './SearchActions';
+export { default as StockDocumentStatusBadge } from './StockDocumentStatusBadge';
+export { default as StockDocumentStatusSelect } from './StockDocumentStatusSelect';
 export * from './use-crud-table';
 export { default as UserGenderBadge } from './UserGenderBadge';
 export { default as UserGenderSelect } from './UserGenderSelect';

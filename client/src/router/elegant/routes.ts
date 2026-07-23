@@ -1355,7 +1355,33 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_storage_in_purchase',
                       icon: 'mdi:truck-check-outline',
                       order: 1
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, null, null, null],
+                        name: '(base)_storage_in_purchase_detail',
+                        path: '/storage/in/purchase/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_storage_in_purchase_detail',
+                          title: '(base)_storage_in_purchase_detail',
+                          activeMenu: '/storage/in/purchase',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [null, '/src/pages/(base)/storage/in/purchase/detail/[id].tsx', null, null],
+                            name: '(base)_storage_in_purchase_detail_[id]',
+                            path: '/storage/in/purchase/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_storage_in_purchase_detail_[id]',
+                              title: '(base)_storage_in_purchase_detail_[id]',
+                              activeMenu: '/storage/in/purchase',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/storage/in/sales-return/index.tsx', null, null],

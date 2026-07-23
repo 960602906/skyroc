@@ -51,6 +51,16 @@ export const purchaseOrderStatusRecord: Record<Api.PurchaseOrder.BusinessStatus,
 
 export const purchaseOrderStatusOptions = transformRecordToOption(purchaseOrderStatusRecord, true);
 
+export const stockDocumentStatusRecord: Record<Api.StockIn.StockDocumentStatus, App.I18n.I18nKey> = {
+  '-1': 'page.storage.in.statusDeleted',
+  1: 'page.storage.in.statusDraft',
+  2: 'page.storage.in.statusPendingAudit',
+  3: 'page.storage.in.statusAudited',
+  4: 'page.storage.in.statusReversed'
+};
+
+export const stockDocumentStatusOptions = transformRecordToOption(stockDocumentStatusRecord, true);
+
 export const afterSaleStatusRecord: Record<Api.AfterSale.AfterStatus, App.I18n.I18nKey> = {
   1: 'page.afterSale.list.statusDraft',
   2: 'page.afterSale.list.statusPendingAudit',

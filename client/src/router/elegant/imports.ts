@@ -121,6 +121,7 @@ export const pages: Record<string, () => Promise<any>> = {
 "(base)_reports_stock": () => import("@/pages/(base)/reports/stock/index.tsx"),
 "(base)_storage_in": () => import("@/pages/(base)/storage/in/index.tsx"),
 "(base)_storage_in_other": () => import("@/pages/(base)/storage/in/other/index.tsx"),
+"(base)_storage_in_purchase_detail_[id]": () => import("@/pages/(base)/storage/in/purchase/detail/[id].tsx"),
 "(base)_storage_in_purchase": () => import("@/pages/(base)/storage/in/purchase/index.tsx"),
 "(base)_storage_in_sales-return": () => import("@/pages/(base)/storage/in/sales-return/index.tsx"),
 "(base)_storage": () => import("@/pages/(base)/storage/index.tsx"),

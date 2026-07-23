@@ -12,6 +12,7 @@ import {
   OrderReturnStatusBadge,
   SaleOrderStatusBadge
 } from './SaleOrderStatusBadge';
+import StockDocumentStatusBadge from './StockDocumentStatusBadge';
 import UserGenderBadge from './UserGenderBadge';
 import YesOrNoBadge from './YesOrNoBadge';
 
@@ -43,6 +44,11 @@ export function renderPurchasePlanStatus(purchaseStatus: Api.PurchasePlan.Purcha
 /** 表格列等场景的采购单执行状态渲染。 */
 export function renderPurchaseOrderStatus(businessStatus: Api.PurchaseOrder.BusinessStatus | null | undefined) {
   return <PurchaseOrderStatusBadge businessStatus={businessStatus} />;
+}
+
+/** 表格列等场景的库存单据业务状态渲染 */
+export function renderStockDocumentStatus(businessStatus: Api.StockIn.StockDocumentStatus | null | undefined) {
+  return <StockDocumentStatusBadge businessStatus={businessStatus} />;
 }
 
 /** 表格列等场景的是否渲染 */

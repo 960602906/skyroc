@@ -8,4 +8,5 @@ export * from './after-sale';
 export * from './common';
 export * from './order';
 export * from './purchase';
+export * from './storage';
 export * from './system-manage';
