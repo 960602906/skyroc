@@ -526,7 +526,7 @@ const <FeatureName>CreatePage = () => {
 
 **参考实现**：
 - 新增/编辑页：`src/pages/(base)/storage/in/purchase/operate/`
-- 明细弹窗：`src/pages/(base)/orders/edit/modules/OrderDetailLineModal.tsx`
+- 明细弹窗：`src/pages/(base)/orders/operate/modules/OrderDetailLineModal.tsx`
 
 ---
 
@@ -591,8 +591,8 @@ const <FeatureName>CreatePage = () => {
 
 **销售订单列表（复杂筛选 + operate 页面 + 明细弹窗）**：
 - 列表页：`src/pages/(base)/orders/list/index.tsx`
-- 编辑页：`src/pages/(base)/orders/edit/`
-- 明细弹窗参考：`src/pages/(base)/orders/edit/modules/OrderDetailLineModal.tsx`
+- 编辑页：`src/pages/(base)/orders/operate/`
+- 明细弹窗参考：`src/pages/(base)/orders/operate/modules/OrderDetailLineModal.tsx`
 
 **角色管理（简单 CRUD + 抽屉）**：
 - 列表页：`src/pages/(base)/system/auth/roles/index.tsx`

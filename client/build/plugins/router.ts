@@ -105,9 +105,9 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
 
   '(base)_orders_detail': { hideInMenu: true },
   '(base)_orders_detail_[id]': { activeMenu: '/orders/list', hideInMenu: true },
-  '(base)_orders_edit': { hideInMenu: true },
-  '(base)_orders_edit_[id]': { activeMenu: '/orders/list', hideInMenu: true },
   '(base)_orders_list': { icon: 'mdi:format-list-bulleted', order: 1 },
+  '(base)_orders_operate': { hideInMenu: true },
+  '(base)_orders_operate_[id]': { activeMenu: '/orders/list', hideInMenu: true },
   '(base)_orders_pickup-tasks': { icon: 'mdi:package-variant-closed', order: 3 },
   '(base)_orders_pickup-tasks_detail': { activeMenu: '/orders/pickup-tasks', hideInMenu: true },
   '(base)_orders_pickup-tasks_detail_[id]': { activeMenu: '/orders/pickup-tasks', hideInMenu: true },

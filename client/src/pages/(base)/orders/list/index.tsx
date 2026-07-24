@@ -240,7 +240,7 @@ const OrderListManage = () => {
                   ghost
                   size="small"
                   type="primary"
-                  onClick={() => nav(`/orders/edit/${record.id}`)}
+                  onClick={() => nav(`/orders/operate/${record.id}`)}
                 >
                   {t('common.edit')}
                 </AButton>
@@ -302,7 +302,7 @@ const OrderListManage = () => {
   });
 
   function handleAdd() {
-    nav('/orders/edit');
+    nav('/orders/operate');
   }
 
   async function handleDelete(id: string) {

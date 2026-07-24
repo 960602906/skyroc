@@ -1,3 +1,4 @@
+import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddCustomer } from '@/service/api';
 
@@ -30,27 +31,14 @@ const CustomerCreatePage = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        styles={{ body: { display: 'none' } }}
-        title={t('page.customer.operate.addTitle')}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('common.cancel')}</AButton>
-            <AButton
-              loading={submitting}
-              type="primary"
-              onClick={handleSubmit}
-            >
-              {t('common.confirm')}
-            </AButton>
-          </ASpace>
-        }
-      />
+    <OperatePageLayout
+      listPath={LIST_PATH}
+      loading={submitting}
+      title={t('page.customer.operate.addTitle')}
+      onSave={handleSubmit}
+    >
       <CustomerOperateForm form={form} />
-    </div>
+    </OperatePageLayout>
   );
 };
 

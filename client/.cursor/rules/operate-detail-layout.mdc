@@ -21,17 +21,38 @@ alwaysApply: false
 
 ## 页面外壳
 
+全页新增/编辑用 `OperatePageLayout`，详情用 `DetailPageLayout`（均在 `@/features/crud`）。
+
 ```tsx
-<div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-  <ACard className="card-wrapper" title={...} extra={操作区} variant="borderless" />
-  {/* 下方为分区卡片，彼此 gap-16px */}
-</div>
+// 新增 / 编辑
+import { OperatePageLayout } from '@/features/crud';
+
+<OperatePageLayout
+  listPath={LIST_PATH}
+  loading={submitting}
+  title={t('page.xxx.operate.addTitle')}
+  onSave={handleSubmit}
+>
+  <XxxOperateForm form={form} />
+</OperatePageLayout>
+
+// 详情
+import { DetailPageLayout } from '@/features/crud';
+
+<DetailPageLayout
+  backLabel={t('page.xxx.detail.back')}
+  listPath={LIST_PATH}
+  title={displayText(detail.name)}
+  extra={/* 业务操作按钮 */}
+>
+  <XxxDetailView detail={detail} />
+</DetailPageLayout>
 ```
 
-| 页面 | 顶栏卡 | 下方分区 |
+| 页面 | 布局组件 | 下方分区 |
 | --- | --- | --- |
-| 新增/编辑 | 标题 + 取消/确认；无正文时可用 `styles={{ body: { display: 'none' } }}` | 表单内多张分区卡 |
-| 详情 | 主标题（如名称）+ 返回列表/编辑；正文可放编码等摘要 | `ADescriptions` 分区卡 |
+| 新增/编辑 | `OperatePageLayout`（内置取消/确认 + 关签） | 表单内多张分区卡 |
+| 详情 | `DetailPageLayout`（内置返回 + 关签） | `ADescriptions` 分区卡 |
 
 ## 分区卡片（必守）
 

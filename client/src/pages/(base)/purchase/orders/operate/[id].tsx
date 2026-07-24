@@ -1,5 +1,6 @@
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
+import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchGetPurchaseOrderDetail, fetchUpdatePurchaseOrder } from '@/service/api';
 import { PurchaseOrderStatus } from '@/service/enums';
@@ -55,27 +56,14 @@ const PurchaseOrderEditPage = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        styles={{ body: { display: 'none' } }}
-        title={t('page.purchase.order.edit')}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('common.cancel')}</AButton>
-            <AButton
-              loading={submitting}
-              type="primary"
-              onClick={handleSubmit}
-            >
-              {t('common.confirm')}
-            </AButton>
-          </ASpace>
-        }
-      />
+    <OperatePageLayout
+      listPath={LIST_PATH}
+      loading={submitting}
+      title={t('page.purchase.order.edit')}
+      onSave={handleSubmit}
+    >
       <PurchaseOrderOperateForm form={form} />
-    </div>
+    </OperatePageLayout>
   );
 };
 

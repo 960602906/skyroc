@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 
+import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddPurchasePlan } from '@/service/api';
 
@@ -43,30 +44,17 @@ const PurchasePlanCreatePage = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        styles={{ body: { display: 'none' } }}
-        title={t('page.purchase.plan.add')}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('common.cancel')}</AButton>
-            <AButton
-              loading={submitting}
-              type="primary"
-              onClick={handleSubmit}
-            >
-              {t('common.confirm')}
-            </AButton>
-          </ASpace>
-        }
-      />
+    <OperatePageLayout
+      listPath={LIST_PATH}
+      loading={submitting}
+      title={t('page.purchase.plan.add')}
+      onSave={handleSubmit}
+    >
       <PurchasePlanOperateForm
         form={form}
         initialValues={defaultValues}
       />
-    </div>
+    </OperatePageLayout>
   );
 };
 

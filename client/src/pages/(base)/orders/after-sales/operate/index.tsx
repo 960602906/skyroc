@@ -1,3 +1,4 @@
+import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddAfterSale, fetchGetOrderDetail } from '@/service/api';
 import { AfterSaleHandleType, AfterSaleReasonType, AfterSaleType } from '@/service/enums';
@@ -63,31 +64,18 @@ const AfterSaleCreatePage = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        styles={{ body: { display: 'none' } }}
-        title={t('page.afterSale.operate.addTitle')}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('common.cancel')}</AButton>
-            <AButton
-              loading={submitting}
-              type="primary"
-              onClick={handleSubmit}
-            >
-              {t('common.confirm')}
-            </AButton>
-          </ASpace>
-        }
-      />
+    <OperatePageLayout
+      listPath={LIST_PATH}
+      loading={submitting}
+      title={t('page.afterSale.operate.addTitle')}
+      onSave={handleSubmit}
+    >
       <AfterSaleOperateForm
         sourceEditable
         form={form}
         onSaleOrderChange={handleSaleOrderChange}
       />
-    </div>
+    </OperatePageLayout>
   );
 };
 

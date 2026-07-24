@@ -104,8 +104,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     "(base)_orders_after-sales_operate_[id]": "/orders/after-sales/operate/:id";
     "(base)_orders_detail": "/orders/detail";
     "(base)_orders_detail_[id]": "/orders/detail/:id";
-    "(base)_orders_edit": "/orders/edit";
-    "(base)_orders_edit_[id]": "/orders/edit/:id";
+    "(base)_orders_operate": "/orders/operate";
+    "(base)_orders_operate_[id]": "/orders/operate/:id";
     "(base)_orders_list": "/orders/list";
     "(base)_orders_pickup-tasks": "/orders/pickup-tasks";
     "(base)_orders_pickup-tasks_detail": "/orders/pickup-tasks/detail";
@@ -326,8 +326,8 @@ declare module "@soybean-react/vite-plugin-react-router" {
     | "(base)_orders_after-sales_operate"
     | "(base)_orders_detail_[id]"
     | "(base)_orders_detail"
-    | "(base)_orders_edit_[id]"
-    | "(base)_orders_edit"
+    | "(base)_orders_operate_[id]"
+    | "(base)_orders_operate"
     | "(base)_orders"
     | "(base)_orders_list"
     | "(base)_orders_pickup-tasks_detail_[id]"

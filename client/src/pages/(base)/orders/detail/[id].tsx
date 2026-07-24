@@ -120,7 +120,7 @@ const OrderDetailPage = () => {
           {canEdit && (
             <AButton
               type="primary"
-              onClick={() => nav(`/orders/edit/${detail.id}`)}
+              onClick={() => nav(`/orders/operate/${detail.id}`)}
             >
               {t('common.edit')}
             </AButton>

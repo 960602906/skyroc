@@ -1,5 +1,6 @@
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
+import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchGetAfterSaleDetail, fetchGetOrderDetail, fetchUpdateAfterSale } from '@/service/api';
 import { AfterSaleStatus } from '@/service/enums';
@@ -81,31 +82,18 @@ const AfterSaleEditPage = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        styles={{ body: { display: 'none' } }}
-        title={t('page.afterSale.operate.editTitle')}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('common.cancel')}</AButton>
-            <AButton
-              loading={submitting}
-              type="primary"
-              onClick={handleSubmit}
-            >
-              {t('common.confirm')}
-            </AButton>
-          </ASpace>
-        }
-      />
+    <OperatePageLayout
+      listPath={LIST_PATH}
+      loading={submitting}
+      title={t('page.afterSale.operate.editTitle')}
+      onSave={handleSubmit}
+    >
       <AfterSaleOperateForm
         form={form}
         orderNo={order.orderNo}
         sourceEditable={false}
       />
-    </div>
+    </OperatePageLayout>
   );
 };
 

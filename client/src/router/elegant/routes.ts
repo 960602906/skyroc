@@ -972,23 +972,23 @@ export const generatedRoutes: ElegantConstRoute[] = [
                 ]
               },
               {
-                matchedFiles: [null, '/src/pages/(base)/orders/edit/index.tsx', null, null],
-                name: '(base)_orders_edit',
-                path: '/orders/edit',
+                matchedFiles: [null, '/src/pages/(base)/orders/operate/index.tsx', null, null],
+                name: '(base)_orders_operate',
+                path: '/orders/operate',
                 handle: {
-                  i18nKey: 'route.(base)_orders_edit',
-                  title: '(base)_orders_edit',
+                  i18nKey: 'route.(base)_orders_operate',
+                  title: '(base)_orders_operate',
                   activeMenu: '/orders/list',
                   hideInMenu: true
                 },
                 children: [
                   {
-                    matchedFiles: [null, '/src/pages/(base)/orders/edit/[id].tsx', null, null],
-                    name: '(base)_orders_edit_[id]',
-                    path: '/orders/edit/:id',
+                    matchedFiles: [null, '/src/pages/(base)/orders/operate/[id].tsx', null, null],
+                    name: '(base)_orders_operate_[id]',
+                    path: '/orders/operate/:id',
                     handle: {
-                      i18nKey: 'route.(base)_orders_edit_[id]',
-                      title: '(base)_orders_edit_[id]',
+                      i18nKey: 'route.(base)_orders_operate_[id]',
+                      title: '(base)_orders_operate_[id]',
                       activeMenu: '/orders/list',
                       hideInMenu: true
                     }

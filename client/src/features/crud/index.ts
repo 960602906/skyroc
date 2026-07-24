@@ -26,6 +26,7 @@ export { default as EnableStatusFormItem } from './EnableStatusFormItem';
 export { default as EnableStatusSelect } from './EnableStatusSelect';
 export { default as MenuTypeBadge } from './MenuTypeBadge';
 export { default as MenuTypeSelect } from './MenuTypeSelect';
+export { default as OperatePageLayout } from './OperatePageLayout';
 export { default as PickupTaskStatusBadge } from './PickupTaskStatusBadge';
 export { default as PickupTaskStatusSelect } from './PickupTaskStatusSelect';
 export { default as PurchaseOrderStatusBadge } from './PurchaseOrderStatusBadge';

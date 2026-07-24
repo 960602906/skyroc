@@ -1,5 +1,6 @@
 import { type LoaderFunctionArgs, redirect, useLoaderData } from 'react-router-dom';
 
+import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchGetCustomerDetail, fetchUpdateCustomer } from '@/service/api';
 
@@ -53,27 +54,14 @@ const CustomerEditPage = () => {
   }
 
   return (
-    <div className="h-full min-h-500px flex-col-stretch gap-16px overflow-auto">
-      <ACard
-        className="card-wrapper"
-        styles={{ body: { display: 'none' } }}
-        title={t('page.customer.operate.editTitle')}
-        variant="borderless"
-        extra={
-          <ASpace>
-            <AButton onClick={() => closeTabAndNavigate(LIST_PATH)}>{t('common.cancel')}</AButton>
-            <AButton
-              loading={submitting}
-              type="primary"
-              onClick={handleSubmit}
-            >
-              {t('common.confirm')}
-            </AButton>
-          </ASpace>
-        }
-      />
+    <OperatePageLayout
+      listPath={LIST_PATH}
+      loading={submitting}
+      title={t('page.customer.operate.editTitle')}
+      onSave={handleSubmit}
+    >
       <CustomerOperateForm form={form} />
-    </div>
+    </OperatePageLayout>
   );
 };
 
