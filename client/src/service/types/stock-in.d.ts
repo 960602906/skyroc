@@ -123,6 +123,44 @@ declare namespace Api {
     }>;
 
     /**
+     * 其他入库创建请求
+     *
+     * 由授权人员手工增加库存，创建结果始终为草稿
+     */
+    type CreateOtherPayload = {
+      /** 发起入库业务的部门主键 */
+      departmentId?: string | null;
+      /** 其他入库商品行，至少包含一项 */
+      details: CreateStockInDetailPayload[];
+      /** 计划或实际入库时间（UTC） */
+      inTime: string;
+      /** 入库单级业务备注 */
+      remark?: string | null;
+      /** 接收入库商品的仓库主键 */
+      wareId: string;
+    };
+
+    /**
+     * 其他入库编辑请求
+     *
+     * 整单替换主单字段与商品行
+     */
+    type UpdateOtherPayload = {
+      /** 发起入库业务的部门主键 */
+      departmentId?: string | null;
+      /** 其他入库商品行完整集合，至少包含一项 */
+      details: UpdateStockInDetailPayload[];
+      /** 待编辑的其他入库单主键 */
+      id: string;
+      /** 计划或实际入库时间（UTC） */
+      inTime: string;
+      /** 入库单级业务备注 */
+      remark?: string | null;
+      /** 接收入库商品的仓库主键 */
+      wareId: string;
+    };
+
+    /**
      * 采购入库创建请求
      *
      * 创建结果始终为可编辑草稿

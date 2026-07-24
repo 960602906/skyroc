@@ -1379,7 +1379,57 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_storage_in_other',
                       icon: 'mdi:inbox-full-outline',
                       order: 2
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, null, null, null],
+                        name: '(base)_storage_in_other_detail',
+                        path: '/storage/in/other/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_storage_in_other_detail',
+                          title: '(base)_storage_in_other_detail',
+                          activeMenu: '/storage/in/other',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [null, '/src/pages/(base)/storage/in/other/detail/[id].tsx', null, null],
+                            name: '(base)_storage_in_other_detail_[id]',
+                            path: '/storage/in/other/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_storage_in_other_detail_[id]',
+                              title: '(base)_storage_in_other_detail_[id]',
+                              activeMenu: '/storage/in/other',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/storage/in/other/operate/index.tsx', null, null],
+                        name: '(base)_storage_in_other_operate',
+                        path: '/storage/in/other/operate',
+                        handle: {
+                          i18nKey: 'route.(base)_storage_in_other_operate',
+                          title: '(base)_storage_in_other_operate',
+                          activeMenu: '/storage/in/other',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [null, '/src/pages/(base)/storage/in/other/operate/[id].tsx', null, null],
+                            name: '(base)_storage_in_other_operate_[id]',
+                            path: '/storage/in/other/operate/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_storage_in_other_operate_[id]',
+                              title: '(base)_storage_in_other_operate_[id]',
+                              activeMenu: '/storage/in/other',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     matchedFiles: [null, '/src/pages/(base)/storage/in/purchase/index.tsx', null, null],

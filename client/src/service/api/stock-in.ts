@@ -2,7 +2,7 @@ import { request } from '../request';
 import { STOCK_IN_URLS } from '../urls';
 
 /** 创建其他入库草稿及商品明细。需要库存创建权限。 */
-export function fetchAddStockInOther(data?: Api.StockIn.Payload) {
+export function fetchAddStockInOther(data: Api.StockIn.CreateOtherPayload) {
   return request<Api.StockIn.Entity>({
     data,
     method: 'post',
@@ -11,7 +11,7 @@ export function fetchAddStockInOther(data?: Api.StockIn.Payload) {
 }
 
 /** 编辑其他入库草稿及其全部商品明细。需要库存更新权限。 */
-export function fetchUpdateStockInOther(data?: Api.StockIn.Payload) {
+export function fetchUpdateStockInOther(data: Api.StockIn.UpdateOtherPayload) {
   return request<Api.StockIn.Entity>({
     data,
     method: 'put',
@@ -30,7 +30,7 @@ export function fetchGetStockInOtherList(params?: Api.StockIn.SearchParams) {
 
 /** 删除其他入库草稿。需要库存删除权限。 */
 export function fetchDeleteStockInOther(id: string) {
-  return request<Api.StockIn.Entity>({
+  return request<boolean>({
     method: 'delete',
     url: `${STOCK_IN_URLS.OTHER}/${id}`
   });
@@ -45,7 +45,7 @@ export function fetchGetStockInOtherDetail(id: string) {
 }
 
 /** 审核其他入库单，增加库存批次并写入库存流水。需要库存更新权限。 */
-export function fetchAuditStockInOther(id: string, data?: Api.StockIn.Payload) {
+export function fetchAuditStockInOther(id: string, data?: Api.StockIn.AuditPayload) {
   return request<Api.StockIn.Entity>({
     data,
     method: 'post',
@@ -54,7 +54,7 @@ export function fetchAuditStockInOther(id: string, data?: Api.StockIn.Payload) {
 }
 
 /** 反审核其他入库单，回滚库存批次并写入反向流水。需要库存更新权限。 */
-export function fetchReverseAuditStockInOther(id: string, data?: Api.StockIn.Payload) {
+export function fetchReverseAuditStockInOther(id: string, data?: Api.StockIn.AuditPayload) {
   return request<Api.StockIn.Entity>({
     data,
     method: 'post',

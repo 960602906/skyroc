@@ -28,6 +28,48 @@ declare namespace App {
         goods: string;
         inNo: string;
         inTime: string;
+        other: {
+          add: string;
+          addDetail: string;
+          audit: string;
+          auditTime: string;
+          auditUserName: string;
+          back: string;
+          batchNo: string;
+          businessStatus: string;
+          createTime: string;
+          department: string;
+          edit: string;
+          editDetail: string;
+          expireDate: string;
+          form: {
+            businessStatus: string;
+            keyword: string;
+            wareId: string;
+          };
+          goods: string;
+          goodsCode: string;
+          goodsName: string;
+          goodsUnitName: string;
+          inNo: string;
+          inTime: string;
+          keyword: string;
+          productDate: string;
+          quantity: string;
+          reverseAudit: string;
+          reverseAuditBtn: string;
+          reverseTime: string;
+          reverseUserName: string;
+          sectionAudit: string;
+          sectionBasic: string;
+          sectionDetails: string;
+          title: string;
+          totalAmount: string;
+          totalPrice: string;
+          unitPrice: string;
+          updateTime: string;
+          ware: string;
+        };
         purchase: {
           add: string;
           addDetail: string;
