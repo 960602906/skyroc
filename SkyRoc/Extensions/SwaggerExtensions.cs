@@ -111,7 +111,6 @@ public static class SwaggerExtensions
                 return [tag];
             });
 
-            options.SchemaFilter<SwaggerDateTimeSchemaFilter>();
             options.SchemaFilter<SwaggerEnumSchemaFilter>();
             options.OperationFilter<SwaggerAuthorizationOperationFilter>();
         });

@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Auth;
 
 /// <summary>
@@ -9,5 +6,4 @@ namespace Application.DTOs.Auth;
 public record AccessTokenResult(
     string Token,
     string Jti,
-    [property: JsonConverter(typeof(FixedDateTimeJsonConverter))]
     DateTime ExpiresAt);

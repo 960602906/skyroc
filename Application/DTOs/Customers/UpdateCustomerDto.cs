@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Customers;
 
 /// <summary>

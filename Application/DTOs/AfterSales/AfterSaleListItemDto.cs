@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-using Application.Serialization;
 using Domain.Entities.AfterSales;
 using Shared.Constants;
 
@@ -18,7 +16,6 @@ public class AfterSaleListItemDto
     /// <summary>
     /// 售后单创建时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? CreateTime { get; set; }
 
     /// <summary>

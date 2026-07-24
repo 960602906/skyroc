@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Customers;
 
 /// <summary>
@@ -41,7 +38,6 @@ public class CreateCustomerDto : CreateNamedCodeDto
     /// <summary>
     ///     成立日期。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? EstablishDate { get; set; }
 
     /// <summary>

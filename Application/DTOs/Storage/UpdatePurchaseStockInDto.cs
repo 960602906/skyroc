@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.Purchases;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Storage;
 
 /// <summary>
@@ -47,13 +44,11 @@ public class UpdatePurchaseStockInDto
     /// <summary>
     /// 计划或实际入库时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime InTime { get; set; }
 
     /// <summary>
     /// 预计到货时间（UTC）；尚未确认时可为空。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? ExpectedArrivalTime { get; set; }
 
     /// <summary>

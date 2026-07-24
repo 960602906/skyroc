@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.Purchases;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Purchases;
 
 /// <summary>
@@ -12,7 +9,6 @@ public class CreatePurchasePlanDto
     /// <summary>
     /// 计划采购交期（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime PlanDate { get; set; }
 
     /// <summary>

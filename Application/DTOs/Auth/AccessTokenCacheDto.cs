@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Auth;
 
 /// <summary>
@@ -15,10 +12,8 @@ public class AccessTokenCacheDto
     public string[] Permissions { get; set; } = [];
     public string Jti { get; set; } = string.Empty;
 
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime LoginTime { get; set; }
 
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime ExpiresAt { get; set; }
 
     public string? IpAddress { get; set; }

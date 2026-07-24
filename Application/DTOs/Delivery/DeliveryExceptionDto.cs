@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.Delivery;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Delivery;
 
 /// <summary>
@@ -62,6 +59,5 @@ public class DeliveryExceptionDto : BaseDto
     /// <summary>
     /// 异常处理完成时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? HandleTime { get; set; }
 }

@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.Storage;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Storage;
 
 /// <summary>
@@ -32,7 +29,6 @@ public class StocktakingOrderDto : BaseDto
     /// <summary>
     /// 服务端生成批次账面快照的时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime StocktakingTime { get; set; }
 
     /// <summary>
@@ -58,7 +54,6 @@ public class StocktakingOrderDto : BaseDto
     /// <summary>
     /// 库存差异流水生成完成时间（UTC）；尚未调整时为空。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? AdjustmentTime { get; set; }
 
     /// <summary>
@@ -74,7 +69,6 @@ public class StocktakingOrderDto : BaseDto
     /// <summary>
     /// 最近一次审核通过时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? AuditTime { get; set; }
 
     /// <summary>

@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.ImportExport;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.ImportExport;
 
 /// <summary>导入导出任务响应，返回任务执行方向、数据行统计和失败摘要。</summary>
@@ -27,10 +24,8 @@ public class ImportExportJobDto
     public int FailureRows { get; set; }
     /// <summary>失败时的行号与原因摘要。</summary>
     public string? ErrorSummary { get; set; }
-    /// <summary>任务开始处理时间（UTC，格式 yyyy-MM-dd HH:mm:ss）。</summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
+    /// <summary>任务开始处理时间（UTC，ISO 8601）。</summary>
     public DateTime StartedTime { get; set; }
-    /// <summary>任务结束处理时间（UTC，格式 yyyy-MM-dd HH:mm:ss）。</summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
+    /// <summary>任务结束处理时间（UTC，ISO 8601）。</summary>
     public DateTime? FinishedTime { get; set; }
 }

@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.Orders;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Orders;
 
 /// <summary>
@@ -23,13 +20,10 @@ public class SaleOrderDto : BaseDto
 
     public string? WareName { get; set; }
 
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime OrderDate { get; set; }
 
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? ReceiveDate { get; set; }
 
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? OutDate { get; set; }
 
     public SaleOrderStatus OrderStatus { get; set; }

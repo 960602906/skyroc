@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Delivery;
 
 /// <summary>
@@ -36,7 +33,6 @@ public class OrderReceiptDto : BaseDto
     /// <summary>
     /// 客户完成签收的时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime SignedTime { get; set; }
 
     /// <summary>
@@ -52,7 +48,6 @@ public class OrderReceiptDto : BaseDto
     /// <summary>
     /// 回单资料确认归档的时间（UTC）；尚未回单时为空。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? ReturnedTime { get; set; }
 
     /// <summary>

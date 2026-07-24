@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.AfterSales;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.AfterSales;
 
 /// <summary>
@@ -61,19 +58,15 @@ public class PickupTaskDto : BaseDto
     public PickupTaskStatus PickupStatus { get; set; }
 
     /// <summary>计划上门取货时间（UTC）。</summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? PlannedPickupTime { get; set; }
 
     /// <summary>最近一次分配司机时间（UTC）。</summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? AssignedTime { get; set; }
 
     /// <summary>司机开始执行取货时间（UTC）。</summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? StartedTime { get; set; }
 
     /// <summary>退货商品取回完成时间（UTC）。</summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? CompletedTime { get; set; }
 
     /// <summary>由当前任务生成的销售退货入库单主键；尚未衔接时为空。</summary>

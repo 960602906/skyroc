@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.AfterSales;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.AfterSales;
 
 /// <summary>
@@ -25,7 +22,6 @@ public class AfterSaleAuditLogDto : BaseDto
     public string AuditUserName { get; set; } = string.Empty;
 
     /// <summary>动作发生时间（UTC），按固定日期时间格式输出。</summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime AuditTime { get; set; }
 
     /// <summary>审核意见、驳回原因或反审核说明。</summary>

@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Storage;
 
 /// <summary>
@@ -26,7 +23,6 @@ public class UpdateOtherStockInDto
     /// <summary>
     /// 计划或实际入库时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime InTime { get; set; }
 
     /// <summary>

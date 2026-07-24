@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Purchases;
 
 /// <summary>
@@ -16,7 +13,6 @@ public class GeneratePurchaseOrdersFromPlansDto
     /// <summary>
     /// 预计到货时间（UTC）；省略时每组采购单取来源计划最早交期。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? ReceiveTime { get; set; }
 
     /// <summary>

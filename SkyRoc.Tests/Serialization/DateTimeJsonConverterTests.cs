@@ -5,6 +5,9 @@ using Xunit;
 
 namespace SkyRoc.Tests.Serialization;
 
+/// <summary>
+/// 校验默认 System.Text.Json 时间序列化（UTC 输出带 Z）以及查询侧 UTC 规范化。
+/// </summary>
 public class DateTimeJsonConverterTests
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -14,7 +17,7 @@ public class DateTimeJsonConverterTests
     };
 
     [Fact]
-    public void AccessTokenCacheDto_ShouldSerialize_DateTimeFields_AsFixedFormat()
+    public void AccessTokenCacheDto_ShouldSerialize_DateTimeFields_AsIso8601Utc()
     {
         var dto = new AccessTokenCacheDto
         {
@@ -29,18 +32,18 @@ public class DateTimeJsonConverterTests
 
         var json = JsonSerializer.Serialize(dto, JsonOptions);
 
-        Assert.Contains("\"loginTime\":\"2026-05-23 14:30:45\"", json);
-        Assert.Contains("\"expiresAt\":\"2026-05-23 16:30:45\"", json);
+        Assert.Contains("\"loginTime\":\"2026-05-23T14:30:45Z\"", json);
+        Assert.Contains("\"expiresAt\":\"2026-05-23T16:30:45Z\"", json);
     }
 
     [Fact]
-    public void BaseDto_ShouldDeserialize_NullableDateTimeFields_FromFixedFormat()
+    public void BaseDto_ShouldDeserialize_NullableDateTimeFields_FromIso8601Utc()
     {
         const string json = """
                             {
                               "id":"11111111-1111-1111-1111-111111111111",
-                              "createTime":"2026-05-23 14:30:45",
-                              "updateTime":"2026-05-24 08:15:00"
+                              "createTime":"2026-05-23T14:30:45Z",
+                              "updateTime":"2026-05-24T08:15:00Z"
                             }
                             """;
 
@@ -67,7 +70,7 @@ public class DateTimeJsonConverterTests
     }
 
     [Fact]
-    public void BaseDto_ShouldDeserialize_NullableDateTimeFields_FromDateOnlyFormat_AsUtc()
+    public void BaseDto_ShouldDeserialize_NullableDateTimeFields_FromDateOnlyFormat()
     {
         const string json = """
                             {
@@ -80,18 +83,16 @@ public class DateTimeJsonConverterTests
         var dto = JsonSerializer.Deserialize<TestDto>(json, JsonOptions);
 
         Assert.NotNull(dto);
-        Assert.Equal(new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc), dto!.CreateTime);
-        Assert.Equal(DateTimeKind.Utc, dto.CreateTime!.Value.Kind);
-        Assert.Equal(new DateTime(2026, 7, 31, 0, 0, 0, DateTimeKind.Utc), dto.UpdateTime);
-        Assert.Equal(DateTimeKind.Utc, dto.UpdateTime!.Value.Kind);
+        Assert.Equal(new DateTime(2026, 7, 1), dto!.CreateTime);
+        Assert.Equal(new DateTime(2026, 7, 31), dto.UpdateTime);
     }
 
     [Fact]
-    public void RequiredDateTime_ShouldDeserialize_DateOnlyFormat_AsUtc()
+    public void RequiredDateTime_ShouldDeserialize_Iso8601Utc()
     {
         const string json = """
                             {
-                              "effectiveStart":"2026-07-01"
+                              "effectiveStart":"2026-07-01T00:00:00Z"
                             }
                             """;
 
@@ -152,7 +153,6 @@ public class DateTimeJsonConverterTests
 
     private sealed class RequiredDateDto
     {
-        [System.Text.Json.Serialization.JsonConverter(typeof(Application.Serialization.FixedDateTimeJsonConverter))]
         public DateTime EffectiveStart { get; set; }
     }
 }

@@ -1,15 +1,17 @@
 namespace Application.Serialization;
 
 /// <summary>
-/// 统一日期时间格式与 UTC 规范化（JSON / 查询绑定 / 表达式比较共用）。
+/// 统一日期时间格式与 UTC 规范化（查询绑定 / 表达式比较共用）。
+/// API JSON 使用 System.Text.Json 默认 ISO 8601 行为；前端请求须传带 Z 的 UTC。
 /// </summary>
 public static class DateTimeJsonFormats
 {
-    public const string Default = "yyyy-MM-dd HH:mm:ss";
-
+    /// <summary>
+    /// query/form 绑定可解析的时间字符串格式。
+    /// </summary>
     public static readonly string[] Supported =
     [
-        Default,
+        "yyyy-MM-dd HH:mm:ss",
         "yyyy-MM-dd",
         "yyyy-MM-dd'T'HH:mm:ss",
         "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF",

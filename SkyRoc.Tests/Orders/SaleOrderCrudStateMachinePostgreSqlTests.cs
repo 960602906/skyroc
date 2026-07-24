@@ -354,7 +354,7 @@ public class SaleOrderCrudStateMachinePostgreSqlTests(PostgreSqlTestFixture fixt
             adminClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgent);
 
             // 操作员创建目标订单：金额、客户/商品快照、提交审核轨迹
-            // HTTP JSON 日期需带 Z 后缀，避免 FixedDateTimeJsonConverter 写出无时区导致 timestamptz 写入失败
+            // HTTP JSON 日期需带 Z 后缀，保证反序列化为 UTC，避免 timestamptz 写入 Unspecified
             SaleOrderDto targetOrder;
             using (var createTargetResponse = await adminClient.PostAsJsonAsync(
                        "/api/orders",

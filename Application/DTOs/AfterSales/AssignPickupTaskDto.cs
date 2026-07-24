@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.AfterSales;
 
 /// <summary>
@@ -12,7 +9,6 @@ public class AssignPickupTaskDto
     public Guid DriverId { get; set; }
 
     /// <summary>计划上门取货时间（UTC）；未预约时可为空。</summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? PlannedPickupTime { get; set; }
 
     /// <summary>取货调度备注，最长 500 字符。</summary>

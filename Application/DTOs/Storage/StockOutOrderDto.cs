@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.Storage;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Storage;
 
 /// <summary>
@@ -72,7 +69,6 @@ public class StockOutOrderDto : BaseDto
     /// <summary>
     /// 计划或实际出库时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime OutTime { get; set; }
 
     /// <summary>
@@ -103,7 +99,6 @@ public class StockOutOrderDto : BaseDto
     /// <summary>
     /// 最近一次审核通过时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? AuditTime { get; set; }
 
     /// <summary>
@@ -119,7 +114,6 @@ public class StockOutOrderDto : BaseDto
     /// <summary>
     /// 最近一次反审核完成时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? ReverseTime { get; set; }
 
     /// <summary>

@@ -1,7 +1,4 @@
 using Application.DTOs.Goods;
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Pricing;
 
 /// <summary>

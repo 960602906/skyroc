@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Pricing;
 
 /// <summary>
@@ -26,13 +23,11 @@ public class CustomerProtocolDto : BaseDto
     /// <summary>
     ///     生效开始时间。
     /// </summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime EffectiveStart { get; set; }
 
     /// <summary>
     ///     生效结束时间。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? EffectiveEnd { get; set; }
 
     /// <summary>

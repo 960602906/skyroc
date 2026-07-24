@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.Delivery;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Delivery;
 
 /// <summary>
@@ -117,31 +114,26 @@ public class DeliveryTaskDto : BaseDto
     /// <summary>
     /// 来源销售出库时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime OutTime { get; set; }
 
     /// <summary>
     /// 最近一次分配司机时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? AssignedTime { get; set; }
 
     /// <summary>
     /// 最近一次路线规划时间（UTC）。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? PlannedTime { get; set; }
 
     /// <summary>
     /// 司机开始执行配送任务的时间（UTC）；尚未开始时为空。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? StartedTime { get; set; }
 
     /// <summary>
     /// 客户完成本任务签收的时间（UTC）；尚未签收时为空。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? SignedTime { get; set; }
 
     /// <summary>

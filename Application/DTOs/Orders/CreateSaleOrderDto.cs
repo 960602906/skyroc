@@ -1,6 +1,3 @@
-using Application.Serialization;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Orders;
 
 /// <summary>
@@ -14,10 +11,8 @@ public class CreateSaleOrderDto
 
     public Guid? WareId { get; set; }
 
-    [JsonConverter(typeof(FixedDateTimeJsonConverter))]
     public DateTime OrderDate { get; set; }
 
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? ReceiveDate { get; set; }
 
     public string? ContactName { get; set; }

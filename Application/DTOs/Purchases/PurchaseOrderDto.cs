@@ -1,7 +1,4 @@
-using Application.Serialization;
 using Domain.Entities.Purchases;
-using System.Text.Json.Serialization;
-
 namespace Application.DTOs.Purchases;
 
 /// <summary>
@@ -42,7 +39,6 @@ public class PurchaseOrderDto : BaseDto
     /// <summary>
     /// 预计到货时间（UTC）；尚未确认时为空。
     /// </summary>
-    [JsonConverter(typeof(FixedNullableDateTimeJsonConverter))]
     public DateTime? ReceiveTime { get; set; }
 
     /// <summary>
