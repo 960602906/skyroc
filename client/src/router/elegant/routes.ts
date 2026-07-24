@@ -972,6 +972,17 @@ export const generatedRoutes: ElegantConstRoute[] = [
                 ]
               },
               {
+                matchedFiles: [null, '/src/pages/(base)/orders/list/index.tsx', null, null],
+                name: '(base)_orders_list',
+                path: '/orders/list',
+                handle: {
+                  i18nKey: 'route.(base)_orders_list',
+                  title: '(base)_orders_list',
+                  icon: 'mdi:format-list-bulleted',
+                  order: 1
+                }
+              },
+              {
                 matchedFiles: [null, '/src/pages/(base)/orders/operate/index.tsx', null, null],
                 name: '(base)_orders_operate',
                 path: '/orders/operate',
@@ -994,17 +1005,6 @@ export const generatedRoutes: ElegantConstRoute[] = [
                     }
                   }
                 ]
-              },
-              {
-                matchedFiles: [null, '/src/pages/(base)/orders/list/index.tsx', null, null],
-                name: '(base)_orders_list',
-                path: '/orders/list',
-                handle: {
-                  i18nKey: 'route.(base)_orders_list',
-                  title: '(base)_orders_list',
-                  icon: 'mdi:format-list-bulleted',
-                  order: 1
-                }
               },
               {
                 matchedFiles: [null, '/src/pages/(base)/orders/pickup-tasks/index.tsx', null, null],
