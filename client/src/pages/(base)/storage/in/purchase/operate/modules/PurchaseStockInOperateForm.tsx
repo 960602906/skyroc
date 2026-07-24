@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import RemoteOptionSelect from '@/components/RemoteOptionSelect';
 import { PurchasePatternSelect, displayDate, displayText } from '@/features/crud';
 import { useFormRules } from '@/features/form';
+import { PurchasePattern } from '@/service/enums';
 import { SELECTION_OPTION_RESOURCES, toOptions, usePurchaserOptions, useWareOptions } from '@/service/hooks';
 
 const PurchaseStockInDetailModal = lazy(() => import('./PurchaseStockInDetailModal'));
@@ -84,6 +85,8 @@ const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form 
 
   const watchedDetails = AForm.useWatch('details', form) as PurchaseStockInDetailFormValue[] | undefined;
   const details = useMemo(() => watchedDetails ?? [], [watchedDetails]);
+  const purchasePattern = AForm.useWatch('purchasePattern', form) as Api.StockIn.PurchasePattern | undefined;
+  const supplierRequired = purchasePattern === PurchasePattern.SUPPLIER_DIRECT;
 
   function openAddLine() {
     setLineOperateType('add');
@@ -175,6 +178,14 @@ const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form 
       key: 'productDate',
       render: value => displayDate(value),
       title: t('page.storage.in.purchase.productDate'),
+      width: 120
+    },
+    {
+      align: 'center',
+      dataIndex: 'expireDate',
+      key: 'expireDate',
+      render: value => displayDate(value),
+      title: t('page.storage.in.purchase.expireDate'),
       width: 120
     },
     {
@@ -275,6 +286,7 @@ const PurchaseStockInOperateForm: FC<PurchaseStockInOperateFormProps> = ({ form 
             <AForm.Item
               label={t('page.storage.in.supplier')}
               name="supplierId"
+              rules={supplierRequired ? [defaultRequiredRule] : undefined}
             >
               <RemoteOptionSelect
                 allowClear

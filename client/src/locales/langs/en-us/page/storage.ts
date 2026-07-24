@@ -37,6 +37,7 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
       businessStatus: 'Status',
       createTime: 'Create Time',
       department: 'Department',
+      edit: 'Edit Purchase Stock-In',
       editDetail: 'Edit Goods',
       expireDate: 'Expiry Date',
       form: {

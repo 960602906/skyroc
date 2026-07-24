@@ -63,7 +63,7 @@ export function fetchReverseAuditStockInOther(id: string, data?: Api.StockIn.Pay
 }
 
 /** 创建采购入库草稿及商品明细。需要库存创建权限。 */
-export function fetchAddStockInPurchase(data?: Api.StockIn.Payload) {
+export function fetchAddStockInPurchase(data: Api.StockIn.CreatePurchasePayload) {
   return request<Api.StockIn.Entity>({
     data,
     method: 'post',
@@ -72,7 +72,7 @@ export function fetchAddStockInPurchase(data?: Api.StockIn.Payload) {
 }
 
 /** 编辑采购入库草稿及其全部商品明细。需要库存更新权限。 */
-export function fetchUpdateStockInPurchase(data?: Api.StockIn.Payload) {
+export function fetchUpdateStockInPurchase(data: Api.StockIn.UpdatePurchasePayload) {
   return request<Api.StockIn.Entity>({
     data,
     method: 'put',
@@ -91,7 +91,7 @@ export function fetchGetStockInPurchaseList(params?: Api.StockIn.SearchParams) {
 
 /** 删除采购入库草稿。需要库存删除权限。 */
 export function fetchDeleteStockInPurchase(id: string) {
-  return request<Api.StockIn.Entity>({
+  return request<boolean>({
     method: 'delete',
     url: `${STOCK_IN_URLS.PURCHASE}/${id}`
   });
@@ -106,7 +106,7 @@ export function fetchGetStockInPurchaseDetail(id: string) {
 }
 
 /** 审核采购入库单，增加库存批次并写入库存流水。需要库存更新权限。 */
-export function fetchAuditStockInPurchase(id: string, data?: Api.StockIn.Payload) {
+export function fetchAuditStockInPurchase(id: string, data?: Api.StockIn.AuditPayload) {
   return request<Api.StockIn.Entity>({
     data,
     method: 'post',
@@ -115,7 +115,7 @@ export function fetchAuditStockInPurchase(id: string, data?: Api.StockIn.Payload
 }
 
 /** 反审核采购入库单，回滚库存批次并写入反向流水。需要库存更新权限。 */
-export function fetchReverseAuditStockInPurchase(id: string, data?: Api.StockIn.Payload) {
+export function fetchReverseAuditStockInPurchase(id: string, data?: Api.StockIn.AuditPayload) {
   return request<Api.StockIn.Entity>({
     data,
     method: 'post',

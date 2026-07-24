@@ -37,6 +37,7 @@ const storage: App.I18n.Schema['translation']['page']['storage'] = {
       businessStatus: '单据状态',
       createTime: '创建时间',
       department: '部门',
+      edit: '编辑采购入库',
       editDetail: '编辑商品',
       expireDate: '到期日期',
       form: {

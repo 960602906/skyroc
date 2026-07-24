@@ -145,6 +145,8 @@ const ROUTE_META_PRESETS: Record<string, RouteMetaPreset> = {
   '(base)_storage_in_purchase': { icon: 'mdi:truck-check-outline', order: 1 },
   '(base)_storage_in_purchase_detail': { activeMenu: '/storage/in/purchase', hideInMenu: true },
   '(base)_storage_in_purchase_detail_[id]': { activeMenu: '/storage/in/purchase', hideInMenu: true },
+  '(base)_storage_in_purchase_operate': { activeMenu: '/storage/in/purchase', hideInMenu: true },
+  '(base)_storage_in_purchase_operate_[id]': { activeMenu: '/storage/in/purchase', hideInMenu: true },
   '(base)_storage_in_sales-return': { icon: 'mdi:keyboard-return', order: 3 },
   '(base)_storage_out': { icon: 'mdi:inbox-arrow-up', order: 2 },
   '(base)_storage_out_other': { icon: 'mdi:package-up', order: 3 },

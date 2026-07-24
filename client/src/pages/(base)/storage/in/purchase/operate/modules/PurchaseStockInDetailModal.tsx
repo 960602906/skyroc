@@ -141,6 +141,19 @@ const PurchaseStockInDetailModal: FC<PurchaseStockInDetailModalProps> = memo(
                 />
               </AForm.Item>
             </ACol>
+
+            {/* 到期日期 */}
+            <ACol span={12}>
+              <AForm.Item
+                label={t('page.storage.in.purchase.expireDate')}
+                name="expireDate"
+              >
+                <ADatePicker
+                  className="w-full"
+                  placeholder={t('page.storage.in.form.expireDate')}
+                />
+              </AForm.Item>
+            </ACol>
           </ARow>
 
           {/* 备注 */}

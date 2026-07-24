@@ -39,6 +39,7 @@ declare namespace App {
           businessStatus: string;
           createTime: string;
           department: string;
+          edit: string;
           editDetail: string;
           expireDate: string;
           form: {

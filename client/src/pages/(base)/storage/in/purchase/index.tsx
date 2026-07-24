@@ -155,7 +155,7 @@ const PurchaseStockInList = () => {
                     size="small"
                     type="primary"
                   >
-                    {t('page.storage.in.purchase.audit')}
+                    {t('page.storage.in.audit')}
                   </AButton>
                 </APopconfirm>
               </>

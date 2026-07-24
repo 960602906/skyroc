@@ -11,13 +11,6 @@ import PurchaseStockInOperateForm from './modules/PurchaseStockInOperateForm';
 
 const LIST_PATH = '/storage/in/purchase';
 
-/** 路由元信息：编辑采购入库页不显示在菜单中 */
-export const handle = {
-  hideInMenu: true,
-  i18nKey: 'route.(base)_storage_in_purchase_operate_[id]',
-  keepAlive: false
-};
-
 /** 路由切换前加载采购入库数据，非草稿或不存在时重定向列表。 */
 export async function loader({ params }: LoaderFunctionArgs) {
   const { id } = params;
@@ -113,7 +106,7 @@ const PurchaseStockInEditPage = () => {
     <OperatePageLayout
       listPath={LIST_PATH}
       loading={submitting}
-      title={t('page.storage.in.edit')}
+      title={t('page.storage.in.purchase.edit')}
       onSave={handleSubmit}
     >
       <AForm
