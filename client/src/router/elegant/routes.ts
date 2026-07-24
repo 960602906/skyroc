@@ -1501,7 +1501,67 @@ export const generatedRoutes: ElegantConstRoute[] = [
                       title: '(base)_storage_in_sales-return',
                       icon: 'mdi:keyboard-return',
                       order: 3
-                    }
+                    },
+                    children: [
+                      {
+                        matchedFiles: [null, null, null, null],
+                        name: '(base)_storage_in_sales-return_detail',
+                        path: '/storage/in/sales-return/detail',
+                        handle: {
+                          i18nKey: 'route.(base)_storage_in_sales-return_detail',
+                          title: '(base)_storage_in_sales-return_detail',
+                          activeMenu: '/storage/in/sales-return',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/storage/in/sales-return/detail/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_storage_in_sales-return_detail_[id]',
+                            path: '/storage/in/sales-return/detail/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_storage_in_sales-return_detail_[id]',
+                              title: '(base)_storage_in_sales-return_detail_[id]',
+                              activeMenu: '/storage/in/sales-return',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        matchedFiles: [null, '/src/pages/(base)/storage/in/sales-return/operate/index.tsx', null, null],
+                        name: '(base)_storage_in_sales-return_operate',
+                        path: '/storage/in/sales-return/operate',
+                        handle: {
+                          i18nKey: 'route.(base)_storage_in_sales-return_operate',
+                          title: '(base)_storage_in_sales-return_operate',
+                          activeMenu: '/storage/in/sales-return',
+                          hideInMenu: true
+                        },
+                        children: [
+                          {
+                            matchedFiles: [
+                              null,
+                              '/src/pages/(base)/storage/in/sales-return/operate/[id].tsx',
+                              null,
+                              null
+                            ],
+                            name: '(base)_storage_in_sales-return_operate_[id]',
+                            path: '/storage/in/sales-return/operate/:id',
+                            handle: {
+                              i18nKey: 'route.(base)_storage_in_sales-return_operate_[id]',
+                              title: '(base)_storage_in_sales-return_operate_[id]',
+                              activeMenu: '/storage/in/sales-return',
+                              hideInMenu: true
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               },

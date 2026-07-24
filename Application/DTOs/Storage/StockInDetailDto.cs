@@ -21,6 +21,11 @@ public class StockInDetailDto : BaseDto
     public Guid? PickupTaskId { get; set; }
 
     /// <summary>
+    /// 来源取货任务业务编号；无关联取货任务时为空。
+    /// </summary>
+    public string? PickupTaskNo { get; set; }
+
+    /// <summary>
     /// 审核入库后对应的库存批次主键；未审核时为空。
     /// </summary>
     public Guid? StockBatchId { get; set; }

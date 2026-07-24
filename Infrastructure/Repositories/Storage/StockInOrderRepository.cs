@@ -183,6 +183,8 @@ public class StockInOrderRepository(ApplicationDbContext context)
                     .ThenInclude(x => x.BaseUnit)
             .Include(x => x.Details)
                 .ThenInclude(x => x.GoodsUnit)
+            .Include(x => x.Details)
+                .ThenInclude(x => x.PickupTask)
             .AsSplitQuery();
     }
 }

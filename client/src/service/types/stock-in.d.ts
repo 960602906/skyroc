@@ -104,6 +104,8 @@ declare namespace Api {
       goodsUnitName: string;
       /** 来源售后取货任务主键；手工销售退货入库以及其他入库类型为空 */
       pickupTaskId?: string | null;
+      /** 来源取货任务业务编号；无关联取货任务时为空 */
+      pickupTaskNo?: string | null;
       /** 商品生产日期，仅记录自然日；未知时为空（DateOnly 格式：yyyy-MM-dd） */
       productDate?: string | null;
       /** 来源采购单商品明细主键；非采购入库时为空 */
@@ -157,6 +159,52 @@ declare namespace Api {
       /** 入库单级业务备注 */
       remark?: string | null;
       /** 接收入库商品的仓库主键 */
+      wareId: string;
+    };
+
+    /**
+     * 销售退货入库创建请求
+     *
+     * 可关联已完成取货任务，也可手工退货入库；创建结果始终为草稿
+     */
+    type CreateSalesReturnPayload = {
+      /** 来源售后单主键；通过已完成取货任务办理入库时必填，手工退货入库时为空 */
+      afterSaleId?: string | null;
+      /** 退货客户主键 */
+      customerId: string;
+      /** 发起入库业务的部门主键 */
+      departmentId?: string | null;
+      /** 销售退货入库商品行，至少包含一项 */
+      details: CreateStockInDetailPayload[];
+      /** 计划或实际入库时间（UTC） */
+      inTime: string;
+      /** 入库单级业务备注 */
+      remark?: string | null;
+      /** 接收退货商品的仓库主键 */
+      wareId: string;
+    };
+
+    /**
+     * 销售退货入库编辑请求
+     *
+     * 整单替换主单字段与商品行；来源售后单与取货任务不可更换
+     */
+    type UpdateSalesReturnPayload = {
+      /** 来源售后单主键；有值时不得更换，且全部商品行必须保留原取货任务来源 */
+      afterSaleId?: string | null;
+      /** 退货客户主键 */
+      customerId: string;
+      /** 发起入库业务的部门主键 */
+      departmentId?: string | null;
+      /** 销售退货入库商品行完整集合，至少包含一项 */
+      details: UpdateStockInDetailPayload[];
+      /** 待编辑的销售退货入库单主键 */
+      id: string;
+      /** 计划或实际入库时间（UTC） */
+      inTime: string;
+      /** 入库单级业务备注 */
+      remark?: string | null;
+      /** 接收退货商品的仓库主键 */
       wareId: string;
     };
 

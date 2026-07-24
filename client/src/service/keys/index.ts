@@ -5,6 +5,10 @@
  */
 
 export const QUERY_KEYS = {
+  // After-sale（销售退货入库来源选择等非分页缓存场景）
+  AFTER_SALE: {
+    OPTIONS: (keyword: string) => ['afterSale', 'options', keyword] as const
+  },
   // Auth
   AUTH: {
     USER_INFO: ['auth', 'userInfo'] as const

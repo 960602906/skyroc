@@ -26,6 +26,9 @@ public class StockInMappingProfile : Profile
         CreateMap<StockInDetail, StockInDetailDto>()
             .ForMember(x => x.GoodsName, opt => opt.MapFrom(src => src.GoodsNameSnapshot))
             .ForMember(x => x.GoodsCode, opt => opt.MapFrom(src => src.GoodsCodeSnapshot))
-            .ForMember(x => x.GoodsUnitName, opt => opt.MapFrom(src => src.GoodsUnitNameSnapshot));
+            .ForMember(x => x.GoodsUnitName, opt => opt.MapFrom(src => src.GoodsUnitNameSnapshot))
+            .ForMember(
+                x => x.PickupTaskNo,
+                opt => opt.MapFrom(src => src.PickupTask == null ? null : src.PickupTask.TaskNo));
     }
 }

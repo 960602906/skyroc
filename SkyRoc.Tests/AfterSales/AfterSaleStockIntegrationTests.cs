@@ -107,7 +107,9 @@ public class AfterSaleStockIntegrationTests
         Assert.Equal(stockIn.Id, repeated.Id);
         Assert.Contains("与原销售退货入库单不一致", divergentRetry.Message);
         Assert.Equal(created.Id, audited.AfterSaleId);
-        Assert.Equal(task.Id, Assert.Single(audited.Details).PickupTaskId);
+        var auditedDetail = Assert.Single(audited.Details);
+        Assert.Equal(task.Id, auditedDetail.PickupTaskId);
+        Assert.Equal(completedTask.TaskNo, auditedDetail.PickupTaskNo);
         Assert.Equal(StockDocumentStatus.Audited, audited.BusinessStatus);
         Assert.Equal(PickupTaskStatus.Completed, completedTask.PickupStatus);
         Assert.Equal(AfterSaleStatus.Completed, completedAfterSale.AfterStatus);
