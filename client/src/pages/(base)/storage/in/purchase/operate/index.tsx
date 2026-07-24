@@ -4,6 +4,7 @@ import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddStockInPurchase } from '@/service/api';
 import { PurchasePattern } from '@/service/enums';
+import { toBackendDate, toBackendDateTime } from '@/utils/datetime';
 
 import type { PurchaseStockInDetailFormValue, PurchaseStockInFormValue } from './modules/PurchaseStockInOperateForm';
 import PurchaseStockInOperateForm from './modules/PurchaseStockInOperateForm';
@@ -13,10 +14,10 @@ const LIST_PATH = '/storage/in/purchase';
 /** 把表单明细行转换为接口 payload */
 function toDetailPayload(detail: PurchaseStockInDetailFormValue, isEdit: boolean) {
   const base = {
-    expireDate: detail.expireDate ? dayjs(detail.expireDate).format('YYYY-MM-DD') : null,
+    expireDate: toBackendDate(detail.expireDate),
     goodsId: detail.goodsId,
     goodsUnitId: detail.goodsUnitId,
-    productDate: detail.productDate ? dayjs(detail.productDate).format('YYYY-MM-DD') : null,
+    productDate: toBackendDate(detail.productDate),
     purchaseOrderDetailId: detail.purchaseOrderDetailId || null,
     quantity: detail.quantity,
     remark: detail.remark || null,
@@ -38,8 +39,8 @@ const PurchaseStockInCreatePage = () => {
       const payload = {
         departmentId: values.departmentId || null,
         details: values.details.map(d => toDetailPayload(d, false)),
-        expectedArrivalTime: values.expectedArrivalTime ? dayjs(values.expectedArrivalTime).toISOString() : null,
-        inTime: values.inTime ? dayjs(values.inTime).toISOString() : '',
+        expectedArrivalTime: toBackendDateTime(values.expectedArrivalTime),
+        inTime: toBackendDateTime(values.inTime) || '',
         purchaseOrderId: values.purchaseOrderId || null,
         purchasePattern: values.purchasePattern,
         purchaserId: values.purchaserId || null,

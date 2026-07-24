@@ -86,7 +86,7 @@ Segments: `(base)` = main layout at `/`, `(blank)` = minimal layout (login), `_b
 - **Naming:** directories kebab-case; component files PascalCase; hooks/utils `use-xxx.ts`/camelCase; constants SCREAMING_SNAKE_CASE; API types under `Api.*`, app-global types under `App.*`.
 - **Styling:** UnoCSS-first (config in `uno.config.ts`, reuse defined shortcuts like `card-wrapper`); theme tokens in `src/theme/vars.ts`/`settings.ts`; Ant Design theme via `ConfigProvider`. Avoid inline magic numbers — extend `App.Theme.ThemeToken`. Icons via `@iconify/react` `Icon` or local svg (`vite-plugin-svg-icons`).
 - **Operate / detail layout:** 档案类新增、编辑、详情用分区卡片（一区一卡，对齐商品档案）；取消 / 返回列表 / 保存成功须 `useCloseTabAndNavigate` 关当前签再回列表。见 `.cursor/rules/operate-detail-layout.mdc`。
-- **Date / time display:** 后端审计时间（`createTime`/`updateTime`/`auditTime` 等）为 UTC、JSON 无时区后缀；列表与详情须用 `displayDateTime`（UTC→本地）。业务日历日（`orderDate`/`receiveDate` 等）用 `displayDate`（只取日期、不做时区换算）。见 `.cursor/rules/datetime-display.mdc` 与 `src/utils/datetime.ts`。
+- **Date / time display:** 后端审计时间为 UTC ISO 8601（带 `Z`）；列表与详情须用 `displayDateTime`（UTC→本地）。业务日历日用 `displayDate`。格式常量见 `src/constants/datetime.ts`，转换见 `src/utils/datetime.ts` 与 `.cursor/rules/datetime-display.mdc`。
 - **Components:** function components + hooks; single default export per component, named exports for groups; import order React/libs → third-party hooks → `@sa/*` → `@/` → relative → styles. Wrap error-prone pages in `ErrorBoundary`.
 - **i18n always on:** new UI text goes in `src/locales` language packs (`route.*`, `page.*`, `common.*`), updated across all languages.
 

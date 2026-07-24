@@ -1,8 +1,7 @@
-import dayjs from 'dayjs';
-
 import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddPurchasePlan } from '@/service/api';
+import { toBackendDateTime } from '@/utils/datetime';
 
 import PurchasePlanOperateForm from './modules/PurchasePlanOperateForm';
 
@@ -30,7 +29,7 @@ const PurchasePlanCreatePage = () => {
       try {
         const payload = {
           ...values,
-          planDate: values.planDate ? dayjs(values.planDate).format('YYYY-MM-DD HH:mm:ss') : undefined
+          planDate: values.planDate ? (toBackendDateTime(values.planDate) ?? undefined) : undefined
         } as Api.PurchasePlan.CreateParams;
         await fetchAddPurchasePlan(payload);
         window.$message?.success(t('common.addSuccess'));

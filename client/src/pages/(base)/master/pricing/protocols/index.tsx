@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import { Suspense, lazy } from 'react';
 
 import {
@@ -19,22 +19,15 @@ import {
   fetchToggleCustomerProtocolStatus,
   fetchUpdateCustomerProtocol
 } from '@/service/api';
+import { toBackendDate } from '@/utils/datetime';
 
 import ProtocolSearch from './modules/ProtocolSearch';
 
 const ProtocolOperateDrawer = lazy(() => import('./modules/ProtocolOperateDrawer'));
 
-/** 后端 FixedDateTime 支持 yyyy-MM-dd / yyyy-MM-dd HH:mm:ss；表单统一提交日期部分 */
+/** 业务日期提交：统一 YYYY-MM-DD */
 function formatDateValue(value: unknown) {
-  if (!value) return null;
-  if (dayjs.isDayjs(value)) {
-    return value.format('YYYY-MM-DD');
-  }
-  const text = String(value).trim();
-  if (!text) return null;
-  // 接口回显可能带时间，提交只保留日期，避免 dayjs 无效对象被 toString
-  const parsed = dayjs(text);
-  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : text;
+  return toBackendDate(value as Dayjs | string | number | Date | null | undefined);
 }
 
 const protocolSearchParams = {

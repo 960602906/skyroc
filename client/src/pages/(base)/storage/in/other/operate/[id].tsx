@@ -5,6 +5,7 @@ import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchGetStockInOtherDetail, fetchUpdateStockInOther } from '@/service/api';
 import { StockDocumentStatus } from '@/service/enums';
+import { toBackendDate, toBackendDateTime } from '@/utils/datetime';
 
 import type { OtherStockInDetailFormValue, OtherStockInFormValue } from './modules/OtherStockInOperateForm';
 import OtherStockInOperateForm from './modules/OtherStockInOperateForm';
@@ -27,10 +28,10 @@ export async function loader({ params }: LoaderFunctionArgs) {
 /** 把表单明细行转换为接口 payload（编辑时透传 id） */
 function toDetailPayload(detail: OtherStockInDetailFormValue) {
   const base = {
-    expireDate: detail.expireDate ? dayjs(detail.expireDate).format('YYYY-MM-DD') : null,
+    expireDate: toBackendDate(detail.expireDate),
     goodsId: detail.goodsId,
     goodsUnitId: detail.goodsUnitId,
-    productDate: detail.productDate ? dayjs(detail.productDate).format('YYYY-MM-DD') : null,
+    productDate: toBackendDate(detail.productDate),
     quantity: detail.quantity,
     remark: detail.remark || null,
     unitPrice: detail.unitPrice
@@ -81,7 +82,7 @@ const OtherStockInEditPage = () => {
         departmentId: values.departmentId || null,
         details: values.details.map(toDetailPayload),
         id: detail.id,
-        inTime: values.inTime ? dayjs(values.inTime).toISOString() : '',
+        inTime: toBackendDateTime(values.inTime) || '',
         remark: values.remark || null,
         wareId: values.wareId
       };

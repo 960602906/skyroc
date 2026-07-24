@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddStockInOther } from '@/service/api';
+import { toBackendDate, toBackendDateTime } from '@/utils/datetime';
 
 import type { OtherStockInDetailFormValue, OtherStockInFormValue } from './modules/OtherStockInOperateForm';
 import OtherStockInOperateForm from './modules/OtherStockInOperateForm';
@@ -12,10 +13,10 @@ const LIST_PATH = '/storage/in/other';
 /** 把表单明细行转换为接口 payload */
 function toDetailPayload(detail: OtherStockInDetailFormValue) {
   return {
-    expireDate: detail.expireDate ? dayjs(detail.expireDate).format('YYYY-MM-DD') : null,
+    expireDate: toBackendDate(detail.expireDate),
     goodsId: detail.goodsId,
     goodsUnitId: detail.goodsUnitId,
-    productDate: detail.productDate ? dayjs(detail.productDate).format('YYYY-MM-DD') : null,
+    productDate: toBackendDate(detail.productDate),
     quantity: detail.quantity,
     remark: detail.remark || null,
     unitPrice: detail.unitPrice
@@ -35,7 +36,7 @@ const OtherStockInCreatePage = () => {
       const payload: Api.StockIn.CreateOtherPayload = {
         departmentId: values.departmentId || null,
         details: values.details.map(toDetailPayload),
-        inTime: values.inTime ? dayjs(values.inTime).toISOString() : '',
+        inTime: toBackendDateTime(values.inTime) || '',
         remark: values.remark || null,
         wareId: values.wareId
       };

@@ -4,25 +4,27 @@ globs:
   - "**/pages/**/*.{tsx,ts}"
   - "**/features/**/*.{tsx,ts}"
   - "**/utils/datetime.ts"
+  - "**/constants/datetime.ts"
   - "**/features/crud/display-text.ts"
 alwaysApply: false
 ---
 
 # 日期时间展示规范
 
-后端审计时间存 **UTC**，JSON 经 `FixedDateTimeJsonConverter` 写成 `yyyy-MM-dd HH:mm:ss` **且不带时区后缀**。前端若原样展示，中国时区会慢约 8 小时。业务日历日期（下单日等）是另一类，不能当时间戳做本地化。
+后端审计时间存 **UTC**，JSON 为 **ISO 8601 UTC**（如 `2026-07-24T15:30:00Z`）。前端若原样展示，中国时区会慢约 8 小时。业务日历日期（下单日等）是另一类，不能当时间戳做本地化。
 
 权威实现：
 
-- `src/utils/datetime.ts` — `formatUtcDateTime` / `formatBusinessDate` / `displayUtcDateTime` / `displayBusinessDate`
-- `src/features/crud` — `displayDateTime` / `displayDate`（详情空值占位 `-`）
+- `src/constants/datetime.ts` — `DISPLAY_FORMATS` / `PICKER_FORMATS`（禁止页面硬编码格式串）
+- `src/utils/datetime.ts` — `formatUtcDateTime` / `formatBusinessDate` / `toBackendDate` / `toBackendDateTime` / `toBackendUtcBoundary`
+- `src/features/crud` — `displayDateTime` / `displayDate`（详情空值占位 `-`）；筛选区间用 `formatLocalDate` / `formatUtcBoundary` / `transformDateRange`
 
 ## 两类字段（必分清）
 
 | 类型 | 典型字段 | 后端含义 | 展示 | API |
 | --- | --- | --- | --- | --- |
-| **审计 / 事件时间戳** | `createTime`、`updateTime`、`auditTime`、实际出库/审核时刻 | UTC 时刻 | **UTC → 本地时区** 再格式化为 `YYYY-MM-DD HH:mm:ss` | `displayDateTime(value)` |
-| **业务日历日期** | `orderDate`、`receiveDate`、协议生效起止日等 | 业务选中的“哪一天”（常规范成 UTC 午夜写出） | **只取日期** `YYYY-MM-DD`，**不做时区换算**（避免跨日） | `displayDate(value)` |
+| **审计 / 事件时间戳** | `createTime`、`updateTime`、`auditTime`、实际出库/审核时刻 | UTC 时刻 | **UTC → 本地时区** 再格式化为 `DISPLAY_FORMATS.DATETIME` | `displayDateTime(value)` |
+| **业务日历日期** | `orderDate`、`receiveDate`、协议生效起止日等 | 业务选中的“哪一天”（常规范成 UTC 午夜写出） | **只取日期** `DISPLAY_FORMATS.DATE`，**不做时区换算**（避免跨日） | `displayDate(value)` |
 
 ## 列表 / 详情（必守）
 
@@ -44,12 +46,21 @@ import { displayDate, displayDateTime } from '@/features/crud';
 | 禁止 | 对 `createTime`/`updateTime`/`auditTime` 直接 `displayText` 或原样绑 `dataIndex` 不转换 |
 | 禁止 | 对业务日期用 `displayDateTime`（会把 UTC 午夜换成本地时分，甚至跨日） |
 | 禁止 | 页面内私自 `dayjs(value).format(...)` 再猜时区；有新场景先扩 `utils/datetime.ts` |
+| 禁止 | 硬编码 `YYYY-MM-DD HH:mm:ss` 等格式串；用 `DISPLAY_FORMATS` / `PICKER_FORMATS` |
 
-## 表单提交（业务日期）
+## 表单提交
 
-- DatePicker 提交业务日：统一 `YYYY-MM-DD` 字符串（可用 `getValueFromEvent={(_, s) => s || null}` + `getValueProps` 用 `dayjs(value)`）。
+- **业务日** DatePicker：统一提交 `YYYY-MM-DD`（`toBackendDate` / `getValueFromEvent={(_, s) => s || null}` + `getValueProps` 用 `dayjs(value)`）。`format={PICKER_FORMATS.DATE}`。
+- **时刻字段**（若接口要完整时刻）：用 `toBackendDateTime` 提交 ISO 8601 UTC（带 `Z`）。
+- **事件时间筛选区间**：`transformDateRange` + `formatUtcBoundary`（本地日边界 → UTC ISO）。
+- **业务日筛选区间**：`transformDateRange` 默认 `formatLocalDate`（`YYYY-MM-DD`，后端可扩整天）。
 - 不要给业务日拼本地时分秒或随意加 `Z`，除非接口明确要求时刻。
 - 回填编辑表单时业务日取日期部分即可，与 `formatBusinessDate` / 列表展示一致。
+
+## Antd DatePicker
+
+- DatePicker **默认本地时区**，项目不强制全局 UTC 模式。
+- 业务日由用户选日历日；审计时间一般只读展示，不用 DatePicker。
 
 ## 反例
 
@@ -61,6 +72,6 @@ import { displayDate, displayDateTime } from '@/features/crud';
 // ❌ 业务日当时间戳本地化 → 可能显示成前一天/带 08:00
 { children: displayDateTime(detail.orderDate) }
 
-// ❌ 页面内手写时区逻辑
-dayjs(createTime).add(8, 'hour').format('...')
+// ❌ 页面内手写时区逻辑 / 硬编码格式
+dayjs(createTime).add(8, 'hour').format('YYYY-MM-DD HH:mm:ss')
 ```

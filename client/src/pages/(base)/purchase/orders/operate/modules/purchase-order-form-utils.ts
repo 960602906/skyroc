@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import { toBackendDate, toBackendDateTime } from '@/utils/datetime';
 
 /** 明细行表单值 */
 export interface PurchaseOrderDetailFormItem {
@@ -58,7 +58,7 @@ export function toPurchaseOrderFormValues(detail: Api.PurchaseOrder.Entity): Pur
 function toCreateDetailPayload(item: PurchaseOrderDetailFormItem): Api.PurchaseOrder.CreateDetailPayload {
   return {
     goodsId: item.goodsId,
-    productDate: item.productDate ? dayjs(item.productDate).format('YYYY-MM-DD') : null,
+    productDate: toBackendDate(item.productDate),
     purchasePrice: Number(item.purchasePrice),
     purchaseQuantity: Number(item.purchaseQuantity),
     purchaseUnitId: item.purchaseUnitId,
@@ -72,7 +72,7 @@ function toUpdateDetailPayload(item: PurchaseOrderDetailFormItem): Api.PurchaseO
     goodsId: item.goodsId,
     id: item.id || null,
     planAllocations: [],
-    productDate: item.productDate ? dayjs(item.productDate).format('YYYY-MM-DD') : null,
+    productDate: toBackendDate(item.productDate),
     purchasePrice: Number(item.purchasePrice),
     purchaseQuantity: Number(item.purchaseQuantity),
     purchaseUnitId: item.purchaseUnitId,
@@ -87,7 +87,7 @@ export function normalizePurchaseOrderCreatePayload(values: PurchaseOrderFormVal
     details: values.details.map(toCreateDetailPayload),
     purchasePattern: values.purchasePattern,
     purchaserId: values.purchaserId || null,
-    receiveTime: values.receiveTime ? dayjs(values.receiveTime).toISOString() : null,
+    receiveTime: toBackendDateTime(values.receiveTime),
     remark: values.remark?.trim() || null,
     supplierContactName: values.supplierContactName?.trim() || null,
     supplierContactPhone: values.supplierContactPhone?.trim() || null,
@@ -102,7 +102,7 @@ export function normalizePurchaseOrderUpdatePayload(values: PurchaseOrderFormVal
     id: values.id!,
     purchasePattern: values.purchasePattern,
     purchaserId: values.purchaserId || null,
-    receiveTime: values.receiveTime ? dayjs(values.receiveTime).toISOString() : null,
+    receiveTime: toBackendDateTime(values.receiveTime),
     remark: values.remark?.trim() || null,
     supplierContactName: values.supplierContactName?.trim() || null,
     supplierContactPhone: values.supplierContactPhone?.trim() || null,

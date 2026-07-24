@@ -1,5 +1,8 @@
 import type { TablePaginationConfig } from 'antd';
+import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
+
+import { toBackendDate, toBackendUtcBoundary } from '@/utils/datetime';
 
 import { toBooleanValue } from './boolean-utils';
 
@@ -38,24 +41,17 @@ export function createDefaultSearchParams(): Api.Base.SearchParams {
   };
 }
 
-/** 格式化本地日期（不做时区转换） */
+/** 业务日筛选：格式化为 YYYY-MM-DD（不做时区换算） */
 export function formatLocalDate(value: unknown): string | null {
-  if (!value) return null;
-  if (dayjs.isDayjs(value)) {
-    return value.format('YYYY-MM-DD');
-  }
-  const text = String(value).trim();
-  if (!text) return null;
-  const parsed = dayjs(text);
-  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : text;
+  return toBackendDate(value as Dayjs | string | number | Date | null | undefined);
 }
 
-/** 格式化 UTC 日期边界（startOf/endOf + UTC） */
+/** 事件时间筛选边界：本地日 start/end 后转 ISO 8601 UTC */
 export function formatUtcBoundary(value: unknown, edge: 'end' | 'start'): string | null {
   if (!value) return null;
   const parsed = dayjs.isDayjs(value) ? value : dayjs(String(value));
   if (!parsed.isValid()) return null;
-  return parsed[edge === 'start' ? 'startOf' : 'endOf']('day').utc().format('YYYY-MM-DD HH:mm:ss');
+  return toBackendUtcBoundary(parsed, edge);
 }
 
 type DateRangeFormatter = (value: unknown, edge: 'end' | 'start') => string | null;

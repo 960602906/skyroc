@@ -1,17 +1,18 @@
+import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 
+import { formatBusinessDate, toBackendDate } from '@/utils/datetime';
+
 export function formatDateValue(value: unknown) {
-  if (!value) return null;
-  if (dayjs.isDayjs(value)) {
-    return value.format('YYYY-MM-DD');
-  }
-  return String(value);
+  return toBackendDate(value as Dayjs | string | number | Date | null | undefined);
 }
 
 export function toCustomerFormValues(detail: Api.Customer.Entity) {
+  const establishDate = formatBusinessDate(detail.establishDate);
   return {
     ...detail,
-    establishDate: detail.establishDate ? dayjs(detail.establishDate) : null
+    // 与 DatePicker 字符串值约定一致；getValueProps 再转 dayjs
+    establishDate: establishDate ? dayjs(establishDate) : null
   };
 }
 

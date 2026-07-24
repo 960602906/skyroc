@@ -1,15 +1,10 @@
-import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 
-/** 后端 FixedDateTime 支持 yyyy-MM-dd */
+import { toBackendDate } from '@/utils/datetime';
+
+/** 业务日期提交 / 回填：统一 YYYY-MM-DD */
 export function formatDateValue(value: unknown) {
-  if (!value) return null;
-  if (dayjs.isDayjs(value)) {
-    return value.format('YYYY-MM-DD');
-  }
-  const text = String(value).trim();
-  if (!text) return null;
-  const parsed = dayjs(text);
-  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : text;
+  return toBackendDate(value as Dayjs | string | number | Date | null | undefined);
 }
 
 /** 明细行金额预估：quantity * goodsUnitRate / fixedUnitRate * fixedPrice */

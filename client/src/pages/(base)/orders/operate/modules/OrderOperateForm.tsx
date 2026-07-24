@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { Suspense, lazy } from 'react';
 
 import RemoteOptionSelect from '@/components/RemoteOptionSelect';
+import { PICKER_FORMATS } from '@/constants/datetime';
 import { DETAIL_EMPTY, displayText } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { fetchGetCustomerDetail } from '@/service/api';
@@ -322,7 +323,7 @@ function OrderOperateForm({ form, initialValues }: OrderOperateFormProps) {
               >
                 <ADatePicker
                   className="w-full"
-                  format="YYYY-MM-DD"
+                  format={PICKER_FORMATS.DATE}
                   placeholder={t('page.order.operate.form.orderDate')}
                 />
               </AForm.Item>
@@ -341,7 +342,7 @@ function OrderOperateForm({ form, initialValues }: OrderOperateFormProps) {
               >
                 <ADatePicker
                   className="w-full"
-                  format="YYYY-MM-DD"
+                  format={PICKER_FORMATS.DATE}
                   placeholder={t('page.order.operate.form.receiveDate')}
                 />
               </AForm.Item>

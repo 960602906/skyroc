@@ -2,6 +2,7 @@ import type { TableColumnsType } from 'antd';
 import { Suspense, lazy } from 'react';
 
 import RemoteOptionSelect from '@/components/RemoteOptionSelect';
+import { PICKER_FORMATS } from '@/constants/datetime';
 import { DETAIL_EMPTY, PurchasePatternSelect, displayText } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { SELECTION_OPTION_RESOURCES, toOptions, usePurchaserOptions } from '@/service/hooks';
@@ -187,7 +188,7 @@ function PurchasePlanOperateForm({ form, initialValues }: PurchasePlanOperateFor
               >
                 <ADatePicker
                   className="w-full"
-                  format="YYYY-MM-DD"
+                  format={PICKER_FORMATS.DATE}
                   placeholder={t('page.purchase.plan.form.planDate')}
                 />
               </AForm.Item>

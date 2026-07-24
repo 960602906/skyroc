@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import RemoteOptionSelect from '@/components/RemoteOptionSelect';
+import { PICKER_FORMATS } from '@/constants/datetime';
 import { useFormRules } from '@/features/form';
 import { fetchGetGoodsDetail, fetchGetGoodsUnitsByGoods } from '@/service/api';
 import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
@@ -155,7 +156,7 @@ const PurchaseOrderDetailLineModal: FC<PurchaseOrderDetailLineModalProps> = memo
               >
                 <ADatePicker
                   className="w-full"
-                  format="YYYY-MM-DD"
+                  format={PICKER_FORMATS.DATE}
                   placeholder={t('page.purchase.order.form.productDate')}
                 />
               </AForm.Item>

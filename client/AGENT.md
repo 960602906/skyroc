@@ -52,7 +52,7 @@ pnpm lint
 - 动态编辑/详情页首屏数据用 React Router `loader` + `useLoaderData`；`useEffect` 只可回填表单，不可首屏按 id 拉详情。
 - 全页新增/编辑/详情采用分区卡片布局；取消、返回、保存成功使用 `useCloseTabAndNavigate` 关闭当前页签后回列表。
 - 新 UI 文案必须同步所有语言包；业务枚举需提供统一 Record、语义色 Badge/Select，页面不得内联枚举选项。
-- 审计时间用 `displayDateTime`，业务日期用 `displayDate`；勿在页面手写时区转换。
+- 审计时间用 `displayDateTime`，业务日期用 `displayDate`；提交用 `toBackendDate`/`toBackendDateTime`；格式用 `DISPLAY_FORMATS`/`PICKER_FORMATS`；勿在页面手写时区转换。
 - 增长型主数据下拉用 `RemoteOptionSelect` + `SELECTION_OPTION_RESOURCES`（search/resolve）；有界选项用 `options/bounded` hooks；禁止全量 list 伪装下拉。详见 `remote-option-select.mdc`。
 - UnoCSS 优先，复用主题 token 和 `card-wrapper`；链接用 `AButton type="link"` 跟随主题色，禁止硬编码颜色。
 - 路由生成文件由 Vite 插件维护；路由元数据放在 `build/plugins/router.ts` 的 `ROUTE_META_PRESETS`，不要手改生成结果。

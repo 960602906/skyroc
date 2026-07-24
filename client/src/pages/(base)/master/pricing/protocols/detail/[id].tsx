@@ -1,9 +1,10 @@
-import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import { Suspense, lazy } from 'react';
 import { type LoaderFunctionArgs, redirect, useLoaderData, useRevalidator } from 'react-router-dom';
 
 import { DetailPageLayout } from '@/features/crud';
 import { fetchGetCustomerProtocolDetail, fetchUpdateCustomerProtocol } from '@/service/api';
+import { toBackendDate } from '@/utils/datetime';
 
 import ProtocolDetailView from './modules/ProtocolDetailView';
 
@@ -11,16 +12,9 @@ const ProtocolOperateDrawer = lazy(() => import('../modules/ProtocolOperateDrawe
 
 const LIST_PATH = '/master/pricing/protocols';
 
-/** 后端 FixedDateTime 支持 yyyy-MM-dd / yyyy-MM-dd HH:mm:ss；表单统一提交日期部分 */
+/** 业务日期提交：统一 YYYY-MM-DD */
 function formatDateValue(value: unknown) {
-  if (!value) return null;
-  if (dayjs.isDayjs(value)) {
-    return value.format('YYYY-MM-DD');
-  }
-  const text = String(value).trim();
-  if (!text) return null;
-  const parsed = dayjs(text);
-  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : text;
+  return toBackendDate(value as Dayjs | string | number | Date | null | undefined);
 }
 
 export async function loader({ params }: LoaderFunctionArgs) {

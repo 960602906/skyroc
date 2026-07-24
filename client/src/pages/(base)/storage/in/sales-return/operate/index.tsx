@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { OperatePageLayout } from '@/features/crud';
 import { useCloseTabAndNavigate } from '@/features/tab';
 import { fetchAddStockInSalesReturn } from '@/service/api';
+import { toBackendDate, toBackendDateTime } from '@/utils/datetime';
 
 import type {
   SalesReturnStockInDetailFormValue,
@@ -15,11 +16,11 @@ const LIST_PATH = '/storage/in/sales-return';
 /** 把表单明细行转换为接口 payload */
 function toDetailPayload(detail: SalesReturnStockInDetailFormValue) {
   return {
-    expireDate: detail.expireDate ? dayjs(detail.expireDate).format('YYYY-MM-DD') : null,
+    expireDate: toBackendDate(detail.expireDate),
     goodsId: detail.goodsId,
     goodsUnitId: detail.goodsUnitId,
     pickupTaskId: detail.pickupTaskId || null,
-    productDate: detail.productDate ? dayjs(detail.productDate).format('YYYY-MM-DD') : null,
+    productDate: toBackendDate(detail.productDate),
     quantity: detail.quantity,
     remark: detail.remark || null,
     unitPrice: detail.unitPrice
@@ -41,7 +42,7 @@ const SalesReturnStockInCreatePage = () => {
         customerId: values.customerId,
         departmentId: values.departmentId || null,
         details: values.details.map(toDetailPayload),
-        inTime: values.inTime ? dayjs(values.inTime).toISOString() : '',
+        inTime: toBackendDateTime(values.inTime) || '',
         remark: values.remark || null,
         wareId: values.wareId
       };

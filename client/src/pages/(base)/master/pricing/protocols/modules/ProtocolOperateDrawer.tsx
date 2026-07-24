@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 
 import RemoteOptionSelect from '@/components/RemoteOptionSelect';
+import { PICKER_FORMATS } from '@/constants/datetime';
 import { EnableStatusFormItem } from '@/features/crud';
 import { useFormRules } from '@/features/form';
 import { SELECTION_OPTION_RESOURCES } from '@/service/hooks';
@@ -88,7 +89,7 @@ const ProtocolOperateDrawer: FC<Page.OperateDrawerProps> = memo(
               >
                 <ADatePicker
                   className="w-full"
-                  format="YYYY-MM-DD"
+                  format={PICKER_FORMATS.DATE}
                 />
               </AForm.Item>
             </ACol>
@@ -103,7 +104,7 @@ const ProtocolOperateDrawer: FC<Page.OperateDrawerProps> = memo(
               >
                 <ADatePicker
                   className="w-full"
-                  format="YYYY-MM-DD"
+                  format={PICKER_FORMATS.DATE}
                 />
               </AForm.Item>
             </ACol>
