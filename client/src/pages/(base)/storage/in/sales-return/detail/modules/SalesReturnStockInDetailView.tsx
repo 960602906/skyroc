@@ -1,6 +1,7 @@
 import type { DescriptionsProps, TableColumnsType } from 'antd';
 import { Card, Descriptions, Divider, Table, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { displayDate, displayDateTime, displayText } from '@/features/crud';
 
@@ -11,6 +12,7 @@ interface SalesReturnStockInDetailViewProps {
 /** 销售退货入库详情内容：基本信息、审核信息和商品明细。 */
 const SalesReturnStockInDetailView = ({ detail }: SalesReturnStockInDetailViewProps) => {
   const { t } = useTranslation();
+  const nav = useNavigate();
 
   const basicItems: DescriptionsProps['items'] = [
     { children: displayText(detail.inNo), key: 'inNo', label: t('page.storage.in.inNo') },
@@ -83,7 +85,18 @@ const SalesReturnStockInDetailView = ({ detail }: SalesReturnStockInDetailViewPr
       dataIndex: 'pickupTaskNo',
       ellipsis: true,
       key: 'pickupTaskNo',
-      render: value => displayText(value),
+      render: (value, record) =>
+        value ? (
+          <AButton
+            className="p-0"
+            type="link"
+            onClick={() => nav(`/orders/pickup-tasks/detail/${record.pickupTaskId}`)}
+          >
+            {value}
+          </AButton>
+        ) : (
+          displayText(value)
+        ),
       title: t('page.storage.in.salesReturn.taskNo'),
       width: 160
     },

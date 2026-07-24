@@ -224,9 +224,9 @@ closeTabAndNavigate(listPath);
 | 范围 | 仅全页 operate/detail；列表页上的 Drawer/Modal 编辑不关签 |
 | 详情点「编辑」 | 进入编辑页，**不**关详情签（用户可能返回对照） |
 
-## 列表 → 详情链接（必守）
+## 可点击跳转字段的颜色（必守）
 
-列表中可点击进入详情的字段（通常为名称），必须使用主题色，禁止写死蓝色或其它色值。
+**任何**可点击跳转的字段——不限于列表页，详情页、表单页、弹窗内的关联跳转（名称进详情、单号跳关联单据等）——必须使用主题色，禁止写死蓝色或其它色值。
 
 ```tsx
 // ✅ 推荐：AButton type="link"；颜色随 ConfigProvider 主题（colorLink = colorPrimary）
@@ -243,9 +243,10 @@ closeTabAndNavigate(listPath);
 | --- | --- |
 | 组件 | `AButton type="link"` + `className="p-0"`（表格内去按钮内边距） |
 | 颜色 | 跟随项目主题色；全局已在 `features/theme/shared.ts` 将 `colorLink` 对齐 `colorPrimary` |
+| 范围 | 列表名称进详情、详情页内关联单号跳转（如售后退货入库明细的取货任务号跳取货任务详情）、任何页面的"点这里跳转"字段 |
 | 禁止 | 硬编码 `#1677ff` / `color: blue`、用普通文本 + 自定义非主题色、用 `Typography.Link` 却另写色值 |
 
-切换主题色后，列表进详情链接应同步变色，无需改业务页。
+切换主题色后，所有跳转链接应同步变色，无需改业务页。
 
 ## 反例
 
