@@ -15,6 +15,10 @@ public interface IAfterSaleService
     /// <summary>读取售后单商品明细和完整审核轨迹。</summary>
     Task<AfterSaleDto> GetByIdAsync(Guid id);
 
+    /// <summary>根据售后单号读取售后单商品明细和完整审核轨迹。</summary>
+    /// <exception cref="Application.Exceptions.BusinessException">售后单号不存在时抛出。</exception>
+    Task<AfterSaleDto> GetByAfterSaleNoAsync(string afterSaleNo);
+
     /// <summary>创建待提交售后单并固化订单、客户、商品、单位和价格快照。</summary>
     Task<AfterSaleDto> CreateAsync(CreateAfterSaleDto dto);
 

@@ -59,4 +59,12 @@ public interface ISaleOrderService
     ///     按已选主键集合恢复订单号和客户名称。
     /// </summary>
     Task<List<SelectionOptionDto>> ResolveSelectionOptionsAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>
+    /// 根据销售订单号查询订单详情、商品明细和审核轨迹。
+    /// </summary>
+    /// <param name="orderNo">销售订单号。</param>
+    /// <returns>销售订单详情。</returns>
+    /// <exception cref="Application.Exceptions.BusinessException">订单号不存在时抛出。</exception>
+    Task<SaleOrderDto> GetByOrderNoAsync(string orderNo);
 }

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using Application.Exceptions;
 using Application.DTOs.Purchases;
 using Application.Interfaces;
 using Application.QueryParameters;
@@ -236,6 +237,14 @@ public class PurchasePlanApiIntegrationTests
         public Task<PurchasePlanDto> GetByIdAsync(Guid id)
         {
             return Task.FromResult(_plans[id]);
+        }
+
+        public Task<PurchasePlanDto> GetByPlanNoAsync(string planNo)
+        {
+            var plan = _plans.Values.FirstOrDefault(x =>
+                string.Equals(x.PlanNo, planNo, StringComparison.OrdinalIgnoreCase))
+                ?? throw new NotFoundException("采购计划不存在");
+            return Task.FromResult(plan);
         }
 
         public Task<PurchasePlanDto> CreateAsync(CreatePurchasePlanDto dto)

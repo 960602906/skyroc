@@ -49,4 +49,11 @@ public interface IAfterSaleRepository : IRepository<AfterSale>
     /// <param name="saleOrderId">来源销售订单主键。</param>
     /// <returns>包含售后商品明细的已完成售后单集合。</returns>
     Task<List<AfterSale>> GetCompletedBySaleOrderIdAsync(Guid saleOrderId);
+
+    /// <summary>
+    /// 根据售后单号查询售后单详情（含商品、审核轨迹和取货任务）。
+    /// </summary>
+    /// <param name="afterSaleNo">售后单号。</param>
+    /// <returns>售后单聚合；不存在时返回 <c>null</c>。</returns>
+    Task<AfterSale?> GetByAfterSaleNoAsync(string afterSaleNo);
 }

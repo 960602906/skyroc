@@ -59,4 +59,11 @@ public interface IDeliveryTaskRepository : IRepository<DeliveryTask>
     /// <param name="taskNo">配送任务业务编号。</param>
     /// <returns>存在同号任务时返回 <c>true</c>。</returns>
     Task<bool> ExistsTaskNoAsync(string taskNo);
+
+    /// <summary>
+    /// 根据配送任务号查询配送任务详情（含司机、承运商、路线和来源单据）。
+    /// </summary>
+    /// <param name="taskNo">配送任务号。</param>
+    /// <returns>配送任务聚合；不存在时返回 <c>null</c>。</returns>
+    Task<DeliveryTask?> GetByTaskNoAsync(string taskNo);
 }

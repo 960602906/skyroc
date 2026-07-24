@@ -15,6 +15,11 @@ public interface IPickupTaskService
     /// <summary>按主键查询取货任务的售后来源、商品、调度和履约详情。</summary>
     Task<PickupTaskDto> GetByIdAsync(Guid id);
 
+    /// <summary>根据取货任务号查询售后来源、商品、调度和履约详情。</summary>
+    /// <exception cref="Application.Exceptions.BusinessException">任务号为空时抛出。</exception>
+    /// <exception cref="Application.Exceptions.NotFoundException">任务号不存在时抛出。</exception>
+    Task<PickupTaskDto> GetByTaskNoAsync(string taskNo);
+
     /// <summary>为尚未开始的取货任务分配或更换启用司机。</summary>
     Task<PickupTaskDto> AssignAsync(Guid id, AssignPickupTaskDto dto);
 

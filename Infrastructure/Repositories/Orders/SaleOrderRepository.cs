@@ -139,6 +139,14 @@ public class SaleOrderRepository(ApplicationDbContext context)
             .ToListAsync();
     }
 
+    /// <inheritdoc />
+    public async Task<SaleOrder?> GetByOrderNoAsync(string orderNo)
+    {
+        var normalizedOrderNo = orderNo.Trim();
+        return await BuildDetailQuery()
+            .FirstOrDefaultAsync(x => x.OrderNo == normalizedOrderNo);
+    }
+
     private static IQueryable<SelectionOption> ProjectSelectionOptions(IQueryable<SaleOrder> query)
     {
         return query.Select(x => new SelectionOption

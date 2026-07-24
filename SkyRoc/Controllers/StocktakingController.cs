@@ -45,6 +45,19 @@ public class StocktakingController(IStocktakingService service) : ControllerBase
     }
 
     /// <summary>
+    /// 根据盘点单号查询库存盘点单完整详情。需要库存读取权限。
+    /// </summary>
+    /// <param name="stocktakingNo">盘点单号。</param>
+    /// <returns>包含批次账面、实盘和差异数量的盘点详情。</returns>
+    [HttpGet("by-no/{stocktakingNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<StocktakingOrderDto>>> GetByStocktakingNo(string stocktakingNo)
+    {
+        var result = await service.GetByStocktakingNoAsync(stocktakingNo);
+        return Ok(ApiResponse<StocktakingOrderDto>.Ok(result));
+    }
+
+    /// <summary>
     /// 创建库存盘点草稿，按当前批次余额固化账面数量和成本并计算差异。需要库存创建权限。
     /// </summary>
     /// <param name="dto">盘点仓库、批次实盘数量和差异说明。</param>

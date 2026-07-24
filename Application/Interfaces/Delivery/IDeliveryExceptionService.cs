@@ -24,6 +24,15 @@ public interface IDeliveryExceptionService
     Task<DeliveryExceptionDto> GetByIdAsync(Guid id);
 
     /// <summary>
+    /// 根据配送异常号查询配送异常详情。
+    /// </summary>
+    /// <param name="exceptionNo">配送异常号。</param>
+    /// <returns>配送异常详情。</returns>
+    /// <exception cref="Application.Exceptions.BusinessException">配送异常号为空时抛出。</exception>
+    /// <exception cref="Application.Exceptions.NotFoundException">配送异常不存在时抛出。</exception>
+    Task<DeliveryExceptionDto> GetByExceptionNoAsync(string exceptionNo);
+
+    /// <summary>
     /// 为已分配且尚未签收的任务登记异常，并将任务原子标记为配送异常。
     /// </summary>
     /// <param name="dto">异常所属任务和事实描述。</param>

@@ -54,6 +54,23 @@ public class PurchasePlanService(
     }
 
     /// <inheritdoc />
+    public async Task<PurchasePlanDto> GetByPlanNoAsync(string planNo)
+    {
+        if (string.IsNullOrWhiteSpace(planNo))
+        {
+            throw new BusinessException("采购计划编号不能为空");
+        }
+
+        var plan = await purchasePlanRepository.GetByPlanNoAsync(planNo.Trim());
+        if (plan == null)
+        {
+            throw new NotFoundException("采购计划不存在");
+        }
+
+        return mapper.Map<PurchasePlanDto>(plan);
+    }
+
+    /// <inheritdoc />
     public async Task<PurchasePlanDto> CreateAsync(CreatePurchasePlanDto dto)
     {
         await createValidator.ValidateOrThrowAsync(dto);

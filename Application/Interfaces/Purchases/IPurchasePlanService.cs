@@ -79,4 +79,12 @@ public interface IPurchasePlanService
     /// <param name="dto">原计划及各明细拆出数量。</param>
     /// <returns>拆分产生的新采购计划详情。</returns>
     Task<PurchasePlanDto> SplitByQuantityAsync(SplitPurchasePlanByQuantityDto dto);
+
+    /// <summary>
+    /// 根据采购计划编号查询采购计划详情，包含商品明细与来源订单关系。
+    /// </summary>
+    /// <param name="planNo">采购计划编号。</param>
+    /// <returns>采购计划详情。</returns>
+    /// <exception cref="Application.Exceptions.BusinessException">采购计划编号不存在时抛出。</exception>
+    Task<PurchasePlanDto> GetByPlanNoAsync(string planNo);
 }

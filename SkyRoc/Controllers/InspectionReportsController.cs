@@ -37,6 +37,16 @@ public class InspectionReportsController(ITraceabilityService service) : Control
         return Ok(ApiResponse<InspectionReportDto>.Ok(await service.GetInspectionReportByIdAsync(id)));
     }
 
+    /// <summary>根据检测报告编号读取检测报告详情。</summary>
+    /// <param name="inspectionNo">检测报告编号。</param>
+    /// <returns>包含送检商品和附件的检测报告。</returns>
+    [HttpGet("by-no/{inspectionNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<InspectionReportDto>>> GetByNo(string inspectionNo)
+    {
+        return Ok(ApiResponse<InspectionReportDto>.Ok(await service.GetInspectionReportByNoAsync(inspectionNo)));
+    }
+
     /// <summary>分页查询可创建检测报告的已审核采购入库单。</summary>
     /// <param name="parameters">标准分页参数。</param>
     /// <returns>已审核采购入库单分页结果。</returns>

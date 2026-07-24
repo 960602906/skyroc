@@ -94,6 +94,14 @@ public class AfterSaleRepository(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
+    public async Task<AfterSale?> GetByAfterSaleNoAsync(string afterSaleNo)
+    {
+        var normalizedNo = afterSaleNo.Trim();
+        return await BuildDetailQuery().AsNoTracking()
+            .FirstOrDefaultAsync(x => x.AfterSaleNo == normalizedNo);
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyDictionary<Guid, decimal>> GetReservedBaseQuantitiesAsync(
         IEnumerable<Guid> saleOrderDetailIds,
         Guid? excludeAfterSaleId = null)

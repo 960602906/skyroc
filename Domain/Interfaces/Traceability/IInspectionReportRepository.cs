@@ -33,4 +33,9 @@ public interface IInspectionReportRepository : IRepository<InspectionReport>
     /// <returns>报告主键与来源入库商品明细主键的关系集合。</returns>
     Task<IReadOnlyList<(Guid InspectionReportId, Guid StockInDetailId)>> GetLockedGoodsSourceIdsAsync(
         IReadOnlyCollection<Guid> ids);
+
+    /// <summary>根据检测报告编号查询检测报告详情（含商品明细和附件）。</summary>
+    /// <param name="inspectionNo">检测报告编号。</param>
+    /// <returns>检测报告聚合；不存在时返回 <c>null</c>。</returns>
+    Task<InspectionReport?> GetByInspectionNoAsync(string inspectionNo);
 }

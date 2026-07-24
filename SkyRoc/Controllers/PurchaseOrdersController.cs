@@ -46,6 +46,19 @@ public class PurchaseOrdersController(IPurchaseOrderService service) : Controlle
     }
 
     /// <summary>
+    /// 根据采购单号查询采购单详情及其采购计划来源。需要采购读取权限。
+    /// </summary>
+    /// <param name="purchaseNo">采购单号。</param>
+    /// <returns>采购单完整详情。</returns>
+    [HttpGet("by-no/{purchaseNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<PurchaseOrderDto>>> GetByPurchaseNo(string purchaseNo)
+    {
+        var result = await service.GetByPurchaseNoAsync(purchaseNo);
+        return Ok(ApiResponse<PurchaseOrderDto>.Ok(result));
+    }
+
+    /// <summary>
     /// 手工创建采购单草稿和商品明细。需要采购创建权限。
     /// </summary>
     /// <param name="dto">采购单创建请求。</param>

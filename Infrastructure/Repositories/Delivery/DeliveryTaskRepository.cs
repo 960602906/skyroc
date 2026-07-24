@@ -94,6 +94,13 @@ public class DeliveryTaskRepository(ApplicationDbContext context)
         return await DbSet.AnyAsync(x => x.TaskNo == normalized);
     }
 
+    /// <inheritdoc />
+    public async Task<DeliveryTask?> GetByTaskNoAsync(string taskNo)
+    {
+        var normalizedTaskNo = taskNo.Trim();
+        return await BuildDetailQuery().FirstOrDefaultAsync(x => x.TaskNo == normalizedTaskNo);
+    }
+
     /// <summary>
     /// 构建包含来源单据、客户、仓库、司机、承运商、路线和异常的配送任务查询。
     /// </summary>

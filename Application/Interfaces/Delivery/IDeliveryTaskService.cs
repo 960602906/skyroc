@@ -31,6 +31,15 @@ public interface IDeliveryTaskService
     Task<DeliveryTaskDto> GetByIdAsync(Guid id);
 
     /// <summary>
+    /// 根据配送任务号查询配送任务完整详情。
+    /// </summary>
+    /// <param name="taskNo">配送任务号。</param>
+    /// <returns>配送任务详情。</returns>
+    /// <exception cref="Application.Exceptions.BusinessException">配送任务号为空时抛出。</exception>
+    /// <exception cref="Application.Exceptions.NotFoundException">配送任务不存在时抛出。</exception>
+    Task<DeliveryTaskDto> GetByTaskNoAsync(string taskNo);
+
+    /// <summary>
     /// 从已审核销售出库单幂等生成配送任务，重复调用返回原任务。
     /// </summary>
     /// <param name="stockOutOrderId">已审核销售出库单主键。</param>

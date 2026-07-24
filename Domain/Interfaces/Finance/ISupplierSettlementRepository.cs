@@ -33,4 +33,11 @@ public interface ISupplierSettlementRepository : IRepository<SupplierSettlement>
     /// <param name="ids">待读取的供应商结算单主键集合。</param>
     /// <returns>存在的供应商结算单完整聚合集合。</returns>
     Task<IReadOnlyList<SupplierSettlement>> GetByIdsAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>
+    /// 根据结算单编号查询供应商结算单详情（含核销明细）。
+    /// </summary>
+    /// <param name="settlementNo">结算单编号。</param>
+    /// <returns>供应商结算单聚合；不存在时返回 <c>null</c>。</returns>
+    Task<SupplierSettlement?> GetBySettlementNoAsync(string settlementNo);
 }

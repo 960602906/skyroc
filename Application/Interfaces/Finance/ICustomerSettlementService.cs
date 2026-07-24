@@ -18,6 +18,11 @@ public interface ICustomerSettlementService
     /// <summary>读取客户结款凭证明细。</summary>
     Task<CustomerSettlementDto> GetByIdAsync(Guid id);
 
+    /// <summary>根据结款凭证编号读取客户结款凭证明细。</summary>
+    /// <exception cref="Application.Exceptions.BusinessException">结款凭证编号为空时抛出。</exception>
+    /// <exception cref="Application.Exceptions.NotFoundException">客户结款凭证不存在时抛出。</exception>
+    Task<CustomerSettlementDto> GetBySettlementNoAsync(string settlementNo);
+
     /// <summary>创建客户结款凭证并原子回写所选客户账单的已结金额和状态。</summary>
     Task<CustomerSettlementDto> CreateAsync(CreateCustomerSettlementDto dto);
 

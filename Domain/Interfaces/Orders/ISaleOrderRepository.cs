@@ -46,4 +46,11 @@ public interface ISaleOrderRepository : IRepository<SaleOrder>
     /// </summary>
     /// <param name="ids">已去重的销售订单主键集合。</param>
     Task<List<SelectionOption>> ResolveSelectionOptionsAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>
+    /// 根据销售订单号查询销售订单详情（含商品明细）。
+    /// </summary>
+    /// <param name="orderNo">销售订单号。</param>
+    /// <returns>销售订单聚合；不存在时返回 <c>null</c>。</returns>
+    Task<SaleOrder?> GetByOrderNoAsync(string orderNo);
 }

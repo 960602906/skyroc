@@ -81,6 +81,13 @@ public class PickupTaskRepository(ApplicationDbContext context)
             isDescending);
     }
 
+    /// <inheritdoc />
+    public async Task<PickupTask?> GetByTaskNoAsync(string taskNo)
+    {
+        var normalizedTaskNo = taskNo.Trim();
+        return await BuildDetailQuery().AsNoTracking().FirstOrDefaultAsync(x => x.TaskNo == normalizedTaskNo);
+    }
+
     /// <summary>
     /// 构建包含售后单、售后商品、司机和来源退货入库明细的取货任务查询。
     /// </summary>

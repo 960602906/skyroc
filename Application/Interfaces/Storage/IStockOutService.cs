@@ -95,4 +95,13 @@ public interface IStockOutService
     /// <param name="remark">反审核原因，写入生成流水备注。</param>
     /// <returns>反审核后的出库单详情。</returns>
     Task<StockOutOrderDto> ReverseAuditAsync(StockOutOrderType orderType, Guid id, string? remark);
+
+    /// <summary>
+    /// 根据出库单号查询出库单详情，包含商品、单位和扣减批次快照。
+    /// </summary>
+    /// <param name="orderType">出库业务类型。</param>
+    /// <param name="outNo">出库单号。</param>
+    /// <returns>出库单完整详情。</returns>
+    /// <exception cref="Application.Exceptions.BusinessException">出库单号不存在或类型不匹配时抛出。</exception>
+    Task<StockOutOrderDto> GetByOutNoAsync(StockOutOrderType orderType, string outNo);
 }

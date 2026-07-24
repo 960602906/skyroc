@@ -12,6 +12,8 @@ public interface ITraceabilityService
     Task<PagedResult<InspectionReportDto>> GetInspectionReportsAsync(InspectionReportQueryParameters parameters);
     /// <summary>读取包含商品和附件的检测报告详情。</summary>
     Task<InspectionReportDto> GetInspectionReportByIdAsync(Guid id);
+    /// <summary>根据检测报告编号读取包含商品和附件的检测报告详情。</summary>
+    Task<InspectionReportDto> GetInspectionReportByNoAsync(string inspectionNo);
     /// <summary>创建检测报告并固化已审核采购入库的商品、仓库和供应商快照。</summary>
     Task<InspectionReportDto> CreateInspectionReportAsync(SaveInspectionReportDto dto);
     /// <summary>编辑未被任何溯源记录引用的检测报告；一旦被引用，报告全文冻结以保护二维码历史。</summary>

@@ -69,6 +69,13 @@ public class DeliveryExceptionRepository(ApplicationDbContext context)
         return await query.AnyAsync();
     }
 
+    /// <inheritdoc />
+    public async Task<DeliveryException?> GetByExceptionNoAsync(string exceptionNo)
+    {
+        var normalizedExceptionNo = exceptionNo.Trim();
+        return await BuildDetailQuery().FirstOrDefaultAsync(x => x.ExceptionNo == normalizedExceptionNo);
+    }
+
     /// <summary>
     /// 构建包含配送任务、司机和客户导航的配送异常查询。
     /// </summary>

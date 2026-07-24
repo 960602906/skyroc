@@ -72,6 +72,14 @@ public class PurchaseOrderRepository(ApplicationDbContext context)
                 .ToListAsync();
     }
 
+    /// <inheritdoc />
+    public async Task<PurchaseOrder?> GetByPurchaseNoAsync(string purchaseNo)
+    {
+        var normalizedPurchaseNo = purchaseNo.Trim();
+        return await BuildDetailQuery(includePlanDetails: true)
+            .FirstOrDefaultAsync(x => x.PurchaseNo == normalizedPurchaseNo);
+    }
+
     /// <summary>
     /// 构建包含商品、单位和计划来源聚合的采购单查询。
     /// </summary>

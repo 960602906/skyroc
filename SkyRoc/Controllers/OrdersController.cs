@@ -71,6 +71,18 @@ public class OrdersController(ISaleOrderService service) : ControllerBase
     }
 
     /// <summary>
+    /// 根据订单号查询销售订单详情。
+    /// </summary>
+    /// <param name="orderNo">销售订单号。</param>
+    [HttpGet("by-no/{orderNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<SaleOrderDto>>> GetByOrderNo(string orderNo)
+    {
+        var result = await service.GetByOrderNoAsync(orderNo);
+        return Ok(ApiResponse<SaleOrderDto>.Ok(result));
+    }
+
+    /// <summary>
     /// 创建销售订单。
     /// </summary>
     [HttpPost]

@@ -46,6 +46,19 @@ public class DeliveryExceptionsController(IDeliveryExceptionService service) : C
     }
 
     /// <summary>
+    /// 根据配送异常号查询配送异常详情。需要配送读取权限。
+    /// </summary>
+    /// <param name="exceptionNo">配送异常号。</param>
+    /// <returns>配送异常详情。</returns>
+    [HttpGet("by-no/{exceptionNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<DeliveryExceptionDto>>> GetByExceptionNo(string exceptionNo)
+    {
+        var result = await service.GetByExceptionNoAsync(exceptionNo);
+        return Ok(ApiResponse<DeliveryExceptionDto>.Ok(result));
+    }
+
+    /// <summary>
     /// 为已分配且尚未签收的配送任务登记异常，并同步任务异常状态。需要配送创建权限。
     /// </summary>
     /// <param name="dto">异常所属任务和事实描述。</param>

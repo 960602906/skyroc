@@ -162,6 +162,14 @@ public class StockInOrderRepository(ApplicationDbContext context)
             .ToListAsync();
     }
 
+    /// <inheritdoc />
+    public async Task<StockInOrder?> GetByInNoAsync(string inNo)
+    {
+        var normalizedInNo = inNo.Trim();
+        return await BuildDetailQuery()
+            .FirstOrDefaultAsync(x => x.InNo == normalizedInNo);
+    }
+
     /// <summary>
     /// 构建包含仓库、业务方和商品明细聚合的入库单查询。
     /// </summary>

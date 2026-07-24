@@ -53,6 +53,17 @@ public class CustomerSettlementsController(ICustomerSettlementService service) :
         return Ok(ApiResponse<CustomerSettlementDto>.Ok(result));
     }
 
+    /// <summary>根据结款凭证编号查询客户结款凭证明细。</summary>
+    /// <param name="settlementNo">结款凭证编号。</param>
+    /// <returns>包含账单核销明细的客户结款凭证。</returns>
+    [HttpGet("by-no/{settlementNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<CustomerSettlementDto>>> GetBySettlementNo(string settlementNo)
+    {
+        var result = await service.GetBySettlementNoAsync(settlementNo);
+        return Ok(ApiResponse<CustomerSettlementDto>.Ok(result));
+    }
+
     /// <summary>创建客户结款凭证并回写客户账单余额。</summary>
     /// <param name="dto">结款日期、流水号、备注和账单核销明细。</param>
     /// <returns>创建后的客户结款凭证。</returns>

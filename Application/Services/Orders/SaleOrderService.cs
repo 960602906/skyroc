@@ -57,6 +57,23 @@ public class SaleOrderService(
     }
 
     /// <inheritdoc />
+    public async Task<SaleOrderDto> GetByOrderNoAsync(string orderNo)
+    {
+        if (string.IsNullOrWhiteSpace(orderNo))
+        {
+            throw new BusinessException("订单号不能为空");
+        }
+
+        var order = await saleOrderRepository.GetByOrderNoAsync(orderNo.Trim());
+        if (order == null)
+        {
+            throw new NotFoundException("销售订单不存在");
+        }
+
+        return mapper.Map<SaleOrderDto>(order);
+    }
+
+    /// <inheritdoc />
     public async Task<SaleOrderDto> CreateAsync(CreateSaleOrderDto dto)
     {
         await createValidator.ValidateOrThrowAsync(dto);

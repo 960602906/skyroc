@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using Application.Exceptions;
 using Application.DTOs;
 using Application.DTOs.Orders;
 using Application.Interfaces;
@@ -299,6 +300,14 @@ public class OrderApiIntegrationTests
         public Task<SaleOrderDto> GetByIdAsync(Guid id)
         {
             return Task.FromResult(_orders[id]);
+        }
+
+        public Task<SaleOrderDto> GetByOrderNoAsync(string orderNo)
+        {
+            var order = _orders.Values.FirstOrDefault(x =>
+                string.Equals(x.OrderNo, orderNo, StringComparison.OrdinalIgnoreCase))
+                ?? throw new NotFoundException("销售订单不存在");
+            return Task.FromResult(order);
         }
 
         public Task<SaleOrderDto> CreateAsync(CreateSaleOrderDto dto)

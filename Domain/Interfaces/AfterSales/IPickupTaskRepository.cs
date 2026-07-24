@@ -38,4 +38,11 @@ public interface IPickupTaskRepository : IRepository<PickupTask>
         int pageSize,
         Expression<Func<PickupTask, object>>? orderBy = null,
         bool isDescending = false);
+
+    /// <summary>
+    /// 根据取货任务号查询取货任务详情（含售后来源、商品和司机快照）。
+    /// </summary>
+    /// <param name="taskNo">取货任务号。</param>
+    /// <returns>取货任务聚合；不存在时返回 <c>null</c>。</returns>
+    Task<PickupTask?> GetByTaskNoAsync(string taskNo);
 }

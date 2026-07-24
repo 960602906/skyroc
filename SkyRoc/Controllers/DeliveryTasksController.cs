@@ -60,6 +60,19 @@ public class DeliveryTasksController(IDeliveryTaskService service) : ControllerB
     }
 
     /// <summary>
+    /// 根据配送任务号查询配送任务详情。需要配送读取权限。
+    /// </summary>
+    /// <param name="taskNo">配送任务号。</param>
+    /// <returns>配送任务完整详情。</returns>
+    [HttpGet("by-no/{taskNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<DeliveryTaskDto>>> GetByTaskNo(string taskNo)
+    {
+        var result = await service.GetByTaskNoAsync(taskNo);
+        return Ok(ApiResponse<DeliveryTaskDto>.Ok(result));
+    }
+
+    /// <summary>
     /// 从已审核销售出库单幂等生成配送任务。需要配送创建权限。
     /// </summary>
     /// <param name="stockOutOrderId">已审核销售出库单主键。</param>

@@ -46,4 +46,14 @@ public class TraceRecordsController(ITraceabilityService service) : ControllerBa
     {
         return Ok(ApiResponse<TraceQrCodeDto>.Ok(await service.GetTraceQrCodeAsync(traceNo)));
     }
+
+    /// <summary>根据溯源编号读取二维码公开详情。</summary>
+    /// <param name="traceNo">溯源业务编号。</param>
+    /// <returns>无需登录的二维码溯源详情。</returns>
+    [AllowAnonymous]
+    [HttpGet("by-no/{traceNo}")]
+    public async Task<ActionResult<ApiResponse<TraceQrCodeDto>>> GetByNo(string traceNo)
+    {
+        return Ok(ApiResponse<TraceQrCodeDto>.Ok(await service.GetTraceQrCodeAsync(traceNo)));
+    }
 }

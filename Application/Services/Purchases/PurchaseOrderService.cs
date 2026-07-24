@@ -57,6 +57,23 @@ public class PurchaseOrderService(
     }
 
     /// <inheritdoc />
+    public async Task<PurchaseOrderDto> GetByPurchaseNoAsync(string purchaseNo)
+    {
+        if (string.IsNullOrWhiteSpace(purchaseNo))
+        {
+            throw new BusinessException("采购单号不能为空");
+        }
+
+        var order = await purchaseOrderRepository.GetByPurchaseNoAsync(purchaseNo.Trim());
+        if (order == null)
+        {
+            throw new NotFoundException("采购单不存在");
+        }
+
+        return mapper.Map<PurchaseOrderDto>(order);
+    }
+
+    /// <inheritdoc />
     public async Task<PurchaseOrderDto> CreateAsync(CreatePurchaseOrderDto dto)
     {
         await createValidator.ValidateOrThrowAsync(dto);

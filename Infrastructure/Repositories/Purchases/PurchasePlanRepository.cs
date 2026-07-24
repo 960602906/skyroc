@@ -55,6 +55,13 @@ public class PurchasePlanRepository(ApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == detailId);
     }
 
+    /// <inheritdoc />
+    public async Task<PurchasePlan?> GetByPlanNoAsync(string planNo)
+    {
+        var normalizedPlanNo = planNo.Trim();
+        return await BuildDetailQuery().FirstOrDefaultAsync(x => x.PlanNo == normalizedPlanNo);
+    }
+
     /// <summary>
     /// 构建包含供应商、采购员、明细及订单来源关系的采购计划查询。
     /// </summary>

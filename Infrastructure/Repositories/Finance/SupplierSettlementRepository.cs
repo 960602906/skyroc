@@ -58,6 +58,13 @@ public class SupplierSettlementRepository(ApplicationDbContext context)
                 .ToListAsync();
     }
 
+    /// <inheritdoc />
+    public async Task<SupplierSettlement?> GetBySettlementNoAsync(string settlementNo)
+    {
+        var normalizedSettlementNo = settlementNo.Trim();
+        return await BuildDetailQuery().FirstOrDefaultAsync(x => x.SettlementNo == normalizedSettlementNo);
+    }
+
     private IQueryable<SupplierSettlement> BuildDetailQuery(IQueryable<SupplierSettlement>? source = null)
     {
         return (source ?? DbSet)

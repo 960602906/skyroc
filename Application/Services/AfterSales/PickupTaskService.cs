@@ -44,6 +44,19 @@ public class PickupTaskService(
     }
 
     /// <inheritdoc />
+    public async Task<PickupTaskDto> GetByTaskNoAsync(string taskNo)
+    {
+        if (string.IsNullOrWhiteSpace(taskNo))
+        {
+            throw new BusinessException("任务号不能为空");
+        }
+
+        var task = await pickupTaskRepository.GetByTaskNoAsync(taskNo.Trim())
+                   ?? throw new NotFoundException("取货任务不存在");
+        return mapper.Map<PickupTaskDto>(task);
+    }
+
+    /// <inheritdoc />
     public async Task<PickupTaskDto> AssignAsync(Guid id, AssignPickupTaskDto dto)
     {
         var validation = await assignValidator.ValidateAsync(dto);

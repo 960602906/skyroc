@@ -51,4 +51,11 @@ public interface IStockOutOrderRepository : IRepository<StockOutOrder>
     /// <param name="excludeId">编辑场景需要排除的出库单主键。</param>
     /// <returns>存在同号出库单时返回 <c>true</c>。</returns>
     Task<bool> ExistsOutNoAsync(string outNo, Guid? excludeId = null);
+
+    /// <summary>
+    /// 根据出库单号查询出库单详情（含商品批次明细）。
+    /// </summary>
+    /// <param name="outNo">出库单号。</param>
+    /// <returns>出库单聚合；不存在时返回 <c>null</c>。</returns>
+    Task<StockOutOrder?> GetByOutNoAsync(string outNo);
 }

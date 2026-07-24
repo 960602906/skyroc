@@ -42,6 +42,19 @@ public class TraceabilityService(
     }
 
     /// <inheritdoc />
+    public async Task<InspectionReportDto> GetInspectionReportByNoAsync(string inspectionNo)
+    {
+        if (string.IsNullOrWhiteSpace(inspectionNo))
+        {
+            throw new BusinessException("检测报告编号不能为空");
+        }
+
+        var report = await inspectionReportRepository.GetByInspectionNoAsync(inspectionNo.Trim())
+                     ?? throw new NotFoundException("检测报告不存在");
+        return ToDto(report);
+    }
+
+    /// <inheritdoc />
     public async Task<InspectionReportDto> CreateInspectionReportAsync(SaveInspectionReportDto dto)
     {
         await reportValidator.ValidateOrThrowAsync(dto);

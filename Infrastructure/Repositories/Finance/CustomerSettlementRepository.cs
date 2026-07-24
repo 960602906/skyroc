@@ -51,6 +51,13 @@ public class CustomerSettlementRepository(ApplicationDbContext context)
                 .ToListAsync();
     }
 
+    /// <inheritdoc />
+    public async Task<CustomerSettlement?> GetBySettlementNoAsync(string settlementNo)
+    {
+        var normalizedSettlementNo = settlementNo.Trim();
+        return await BuildDetailQuery().FirstOrDefaultAsync(x => x.SettlementNo == normalizedSettlementNo);
+    }
+
     private IQueryable<CustomerSettlement> BuildDetailQuery(IQueryable<CustomerSettlement>? source = null)
     {
         return (source ?? DbSet)

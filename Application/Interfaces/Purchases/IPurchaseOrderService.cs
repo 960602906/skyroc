@@ -64,4 +64,12 @@ public interface IPurchaseOrderService
     /// <param name="id">采购单主键。</param>
     /// <returns>取消后的采购单详情。</returns>
     Task<PurchaseOrderDto> CancelAsync(Guid id);
+
+    /// <summary>
+    /// 根据采购单号查询采购单详情，包含商品明细和采购计划来源。
+    /// </summary>
+    /// <param name="purchaseNo">采购单号。</param>
+    /// <returns>采购单完整详情。</returns>
+    /// <exception cref="Application.Exceptions.BusinessException">采购单号不存在时抛出。</exception>
+    Task<PurchaseOrderDto> GetByPurchaseNoAsync(string purchaseNo);
 }

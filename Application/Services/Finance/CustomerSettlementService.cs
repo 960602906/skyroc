@@ -61,6 +61,19 @@ public class CustomerSettlementService(
     }
 
     /// <inheritdoc />
+    public async Task<CustomerSettlementDto> GetBySettlementNoAsync(string settlementNo)
+    {
+        if (string.IsNullOrWhiteSpace(settlementNo))
+        {
+            throw new BusinessException("结款凭证编号不能为空");
+        }
+
+        var entity = await customerSettlementRepository.GetBySettlementNoAsync(settlementNo.Trim())
+                     ?? throw new NotFoundException("客户结款凭证不存在");
+        return mapper.Map<CustomerSettlementDto>(entity);
+    }
+
+    /// <inheritdoc />
     public async Task<CustomerSettlementDto> CreateAsync(CreateCustomerSettlementDto dto)
     {
         await createValidator.ValidateOrThrowAsync(dto);

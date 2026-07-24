@@ -20,4 +20,11 @@ public interface IStocktakingOrderRepository : IRepository<StocktakingOrder>
     /// <param name="stocktakingNo">待校验的盘点单业务编号。</param>
     /// <returns>存在同号盘点单时返回 <c>true</c>。</returns>
     Task<bool> ExistsStocktakingNoAsync(string stocktakingNo);
+
+    /// <summary>
+    /// 根据盘点单号查询盘点详情（含批次差异明细）。
+    /// </summary>
+    /// <param name="stocktakingNo">盘点单号。</param>
+    /// <returns>盘点单聚合；不存在时返回 <c>null</c>。</returns>
+    Task<StocktakingOrder?> GetByStocktakingNoAsync(string stocktakingNo);
 }

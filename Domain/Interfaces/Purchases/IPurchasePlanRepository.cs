@@ -21,4 +21,11 @@ public interface IPurchasePlanRepository : IRepository<PurchasePlan>
     /// <param name="excludeId">需要排除的采购计划主键，编辑场景传入自身。</param>
     /// <returns>存在返回 <c>true</c>，否则返回 <c>false</c>。</returns>
     Task<bool> ExistsPlanNoAsync(string planNo, Guid? excludeId = null);
+
+    /// <summary>
+    /// 根据采购计划编号查询采购计划详情（含商品明细和订单来源）。
+    /// </summary>
+    /// <param name="planNo">采购计划编号。</param>
+    /// <returns>采购计划聚合；不存在时返回 <c>null</c>。</returns>
+    Task<PurchasePlan?> GetByPlanNoAsync(string planNo);
 }

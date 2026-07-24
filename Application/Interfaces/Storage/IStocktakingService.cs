@@ -24,6 +24,14 @@ public interface IStocktakingService
     Task<StocktakingOrderDto> GetByIdAsync(Guid id);
 
     /// <summary>
+    /// 根据盘点单号查询盘点详情，包含账实数量和批次差异。
+    /// </summary>
+    /// <param name="stocktakingNo">盘点单号。</param>
+    /// <returns>包含账实数量和批次差异的盘点详情。</returns>
+    /// <exception cref="Application.Exceptions.BusinessException">盘点单号不存在时抛出。</exception>
+    Task<StocktakingOrderDto> GetByStocktakingNoAsync(string stocktakingNo);
+
+    /// <summary>
     /// 创建库存盘点草稿，以当前批次余额为账面快照并计算实盘差异。
     /// </summary>
     /// <param name="dto">仓库、实盘批次数量和差异说明。</param>

@@ -49,6 +49,23 @@ public class StocktakingService(
     }
 
     /// <inheritdoc />
+    public async Task<StocktakingOrderDto> GetByStocktakingNoAsync(string stocktakingNo)
+    {
+        if (string.IsNullOrWhiteSpace(stocktakingNo))
+        {
+            throw new BusinessException("盘点单号不能为空");
+        }
+
+        var order = await stocktakingOrderRepository.GetByStocktakingNoAsync(stocktakingNo.Trim());
+        if (order == null)
+        {
+            throw new NotFoundException("库存盘点单不存在");
+        }
+
+        return mapper.Map<StocktakingOrderDto>(order);
+    }
+
+    /// <inheritdoc />
     public async Task<StocktakingOrderDto> CreateAsync(CreateStocktakingDto dto)
     {
         await createValidator.ValidateOrThrowAsync(dto);

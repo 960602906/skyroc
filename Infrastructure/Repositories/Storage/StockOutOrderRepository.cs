@@ -137,6 +137,14 @@ public class StockOutOrderRepository(ApplicationDbContext context)
             && (!excludeId.HasValue || x.Id != excludeId.Value));
     }
 
+    /// <inheritdoc />
+    public async Task<StockOutOrder?> GetByOutNoAsync(string outNo)
+    {
+        var normalizedOutNo = outNo.Trim();
+        return await BuildDetailQuery()
+            .FirstOrDefaultAsync(x => x.OutNo == normalizedOutNo);
+    }
+
     /// <summary>
     /// 构建包含仓库、业务方、库存批次和商品明细聚合的出库单查询。
     /// </summary>

@@ -41,6 +41,17 @@ public class PickupTasksController(IPickupTaskService service) : ControllerBase
         return Ok(ApiResponse<PickupTaskDto>.Ok(result));
     }
 
+    /// <summary>根据取货任务号查询售后来源、调度和履约详情。</summary>
+    /// <param name="taskNo">取货任务号。</param>
+    /// <returns>取货任务详情。</returns>
+    [HttpGet("by-no/{taskNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<PickupTaskDto>>> GetByTaskNo(string taskNo)
+    {
+        var result = await service.GetByTaskNoAsync(taskNo);
+        return Ok(ApiResponse<PickupTaskDto>.Ok(result));
+    }
+
     /// <summary>为尚未开始的取货任务分配或更换启用司机。</summary>
     /// <param name="id">取货任务主键。</param>
     /// <param name="dto">司机、计划上门时间和调度备注。</param>

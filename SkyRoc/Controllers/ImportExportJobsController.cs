@@ -80,4 +80,16 @@ public class ImportExportJobsController(IImportExportJobService service) : Contr
         var result = await service.GetByIdAsync(id);
         return Ok(ApiResponse<ImportExportJobDto>.Ok(result));
     }
+
+    /// <summary>根据任务编号查询当前操作人创建的导入或导出任务状态。</summary>
+    /// <param name="jobNo">任务编号。</param>
+    /// <returns>任务执行方向、行数统计、完成时间和失败摘要。</returns>
+    [HttpGet("by-no/{jobNo}")]
+    [Authorize(Policy = PermissionCodes.Business.ImportExport.Read)]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<ImportExportJobDto>>> GetByJobNo(string jobNo)
+    {
+        var result = await service.GetByJobNoAsync(jobNo);
+        return Ok(ApiResponse<ImportExportJobDto>.Ok(result));
+    }
 }

@@ -48,6 +48,19 @@ public class SaleStockOutController(IStockOutService service) : ControllerBase
     }
 
     /// <summary>
+    /// 根据出库单号查询销售出库单详情。需要库存读取权限。
+    /// </summary>
+    /// <param name="outNo">出库单号。</param>
+    /// <returns>销售出库单完整详情。</returns>
+    [HttpGet("by-no/{outNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<StockOutOrderDto>>> GetByOutNo(string outNo)
+    {
+        var result = await service.GetByOutNoAsync(OrderType, outNo);
+        return Ok(ApiResponse<StockOutOrderDto>.Ok(result));
+    }
+
+    /// <summary>
     /// 创建销售出库草稿及商品批次明细。需要库存创建权限。
     /// </summary>
     /// <param name="dto">销售出库创建请求。</param>

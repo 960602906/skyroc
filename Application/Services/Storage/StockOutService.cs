@@ -70,6 +70,27 @@ public class StockOutService(
     }
 
     /// <inheritdoc />
+    public async Task<StockOutOrderDto> GetByOutNoAsync(StockOutOrderType orderType, string outNo)
+    {
+        if (string.IsNullOrWhiteSpace(outNo))
+        {
+            throw new BusinessException("出库单号不能为空");
+        }
+
+        var order = await stockOutOrderRepository.GetByOutNoAsync(outNo.Trim());
+        if (order == null)
+        {
+            throw new NotFoundException("出库单不存在");
+        }
+
+        if (order.OrderType != orderType)
+        {
+            throw new NotFoundException("出库单不存在");
+        }
+        return mapper.Map<StockOutOrderDto>(order);
+    }
+
+    /// <inheritdoc />
     public async Task<StockOutOrderDto> CreateSaleAsync(CreateSaleStockOutDto dto)
     {
         await createSaleValidator.ValidateOrThrowAsync(dto);

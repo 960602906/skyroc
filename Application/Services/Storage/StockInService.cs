@@ -75,6 +75,27 @@ public class StockInService(
     }
 
     /// <inheritdoc />
+    public async Task<StockInOrderDto> GetByInNoAsync(StockInOrderType orderType, string inNo)
+    {
+        if (string.IsNullOrWhiteSpace(inNo))
+        {
+            throw new BusinessException("入库单号不能为空");
+        }
+
+        var order = await stockInOrderRepository.GetByInNoAsync(inNo.Trim());
+        if (order == null)
+        {
+            throw new NotFoundException("入库单不存在");
+        }
+
+        if (order.OrderType != orderType)
+        {
+            throw new NotFoundException("入库单不存在");
+        }
+        return mapper.Map<StockInOrderDto>(order);
+    }
+
+    /// <inheritdoc />
     public async Task<StockInOrderDto> CreatePurchaseAsync(CreatePurchaseStockInDto dto)
     {
         await createPurchaseValidator.ValidateOrThrowAsync(dto);

@@ -66,6 +66,13 @@ public class InspectionReportRepository(ApplicationDbContext context)
         return rows.Select(x => (x.InspectionReportId, x.StockInDetailId)).ToList();
     }
 
+    /// <inheritdoc />
+    public Task<InspectionReport?> GetByInspectionNoAsync(string inspectionNo)
+    {
+        var normalizedNo = inspectionNo.Trim();
+        return BuildDetailQuery().FirstOrDefaultAsync(x => x.InspectionNo == normalizedNo);
+    }
+
     private IQueryable<InspectionReport> BuildDetailQuery(IQueryable<InspectionReport>? source = null)
     {
         return (source ?? DbSet)

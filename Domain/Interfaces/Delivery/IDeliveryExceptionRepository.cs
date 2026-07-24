@@ -46,4 +46,11 @@ public interface IDeliveryExceptionRepository : IRepository<DeliveryException>
     /// <param name="excludeId">需要排除的记录主键，通常为当前更新记录。</param>
     /// <returns>存在返回 true，否则返回 false。</returns>
     Task<bool> ExistsByExceptionNoAsync(string exceptionNo, Guid? excludeId = null);
+
+    /// <summary>
+    /// 根据配送异常号查询配送异常详情（含所属任务、司机和客户信息）。
+    /// </summary>
+    /// <param name="exceptionNo">配送异常号。</param>
+    /// <returns>配送异常聚合；不存在时返回 <c>null</c>。</returns>
+    Task<DeliveryException?> GetByExceptionNoAsync(string exceptionNo);
 }

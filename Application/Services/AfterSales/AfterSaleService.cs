@@ -64,6 +64,19 @@ public class AfterSaleService(
     }
 
     /// <inheritdoc />
+    public async Task<AfterSaleDto> GetByAfterSaleNoAsync(string afterSaleNo)
+    {
+        if (string.IsNullOrWhiteSpace(afterSaleNo))
+        {
+            throw new BusinessException("售后单号不能为空");
+        }
+
+        var entity = await afterSaleRepository.GetByAfterSaleNoAsync(afterSaleNo.Trim())
+                     ?? throw new NotFoundException("售后单不存在");
+        return mapper.Map<AfterSaleDto>(entity);
+    }
+
+    /// <inheritdoc />
     public async Task<AfterSaleDto> CreateAsync(CreateAfterSaleDto dto)
     {
         await createValidator.ValidateOrThrowAsync(dto);

@@ -41,6 +41,17 @@ public class AfterSalesController(IAfterSaleService service) : ControllerBase
         return Ok(ApiResponse<AfterSaleDto>.Ok(result));
     }
 
+    /// <summary>根据售后单号查询售后单商品明细和审核轨迹。</summary>
+    /// <param name="afterSaleNo">售后单号。</param>
+    /// <returns>售后单完整详情。</returns>
+    [HttpGet("by-no/{afterSaleNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<AfterSaleDto>>> GetByAfterSaleNo(string afterSaleNo)
+    {
+        var result = await service.GetByAfterSaleNoAsync(afterSaleNo);
+        return Ok(ApiResponse<AfterSaleDto>.Ok(result));
+    }
+
     /// <summary>创建待提交售后单并固化来源业务快照。</summary>
     /// <param name="dto">来源订单或客户、联系信息及商品申请行。</param>
     /// <returns>新建的待提交售后单。</returns>

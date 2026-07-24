@@ -49,6 +49,19 @@ public class DeliveryExceptionService(
     }
 
     /// <inheritdoc />
+    public async Task<DeliveryExceptionDto> GetByExceptionNoAsync(string exceptionNo)
+    {
+        if (string.IsNullOrWhiteSpace(exceptionNo))
+        {
+            throw new BusinessException("配送异常号不能为空");
+        }
+
+        var entity = await deliveryExceptionRepository.GetByExceptionNoAsync(exceptionNo.Trim())
+                     ?? throw new NotFoundException("配送异常不存在");
+        return mapper.Map<DeliveryExceptionDto>(entity);
+    }
+
+    /// <inheritdoc />
     public async Task<DeliveryExceptionDto> CreateAsync(CreateDeliveryExceptionDto dto)
     {
         var validation = await createValidator.ValidateAsync(dto);

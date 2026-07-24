@@ -55,6 +55,13 @@ public class StocktakingOrderRepository(ApplicationDbContext context)
         return await DbSet.AnyAsync(x => x.StocktakingNo == normalizedNo);
     }
 
+    /// <inheritdoc />
+    public async Task<StocktakingOrder?> GetByStocktakingNoAsync(string stocktakingNo)
+    {
+        var normalizedNo = stocktakingNo.Trim();
+        return await BuildDetailQuery().FirstOrDefaultAsync(x => x.StocktakingNo == normalizedNo);
+    }
+
     /// <summary>
     /// 构建包含仓库和全部批次明细的盘点聚合查询。
     /// </summary>

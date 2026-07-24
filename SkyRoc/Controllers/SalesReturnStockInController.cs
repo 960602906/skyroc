@@ -48,6 +48,19 @@ public class SalesReturnStockInController(IStockInService service) : ControllerB
     }
 
     /// <summary>
+    /// 根据入库单号查询销售退货入库单详情。需要库存读取权限。
+    /// </summary>
+    /// <param name="inNo">入库单号。</param>
+    /// <returns>销售退货入库单完整详情。</returns>
+    [HttpGet("by-no/{inNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<StockInOrderDto>>> GetByInNo(string inNo)
+    {
+        var result = await service.GetByInNoAsync(OrderType, inNo);
+        return Ok(ApiResponse<StockInOrderDto>.Ok(result));
+    }
+
+    /// <summary>
     /// 创建销售退货入库草稿及商品明细；关联已完成取货任务时按来源幂等返回。需要库存创建权限。
     /// </summary>
     /// <param name="dto">销售退货入库创建请求，可携带售后单和逐行取货任务来源。</param>

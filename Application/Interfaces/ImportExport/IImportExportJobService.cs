@@ -27,4 +27,7 @@ public interface IImportExportJobService
     /// <param name="id">任务主键。</param>
     /// <returns>任务进度、行数和错误摘要。</returns>
     Task<ImportExportJobDto> GetByIdAsync(Guid id);
+
+    /// <summary>根据任务编号查询当前操作人创建的任务状态。</summary>
+    Task<ImportExportJobDto> GetByJobNoAsync(string jobNo);
 }

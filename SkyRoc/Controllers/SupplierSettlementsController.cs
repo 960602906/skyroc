@@ -53,6 +53,17 @@ public class SupplierSettlementsController(ISupplierSettlementService service) :
         return Ok(ApiResponse<SupplierSettlementDto>.Ok(result));
     }
 
+    /// <summary>根据结算单编号查询供应商结算单明细。</summary>
+    /// <param name="settlementNo">结算单编号。</param>
+    /// <returns>包含待结单据核销明细的供应商结算单。</returns>
+    [HttpGet("by-no/{settlementNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<SupplierSettlementDto>>> GetBySettlementNo(string settlementNo)
+    {
+        var result = await service.GetBySettlementNoAsync(settlementNo);
+        return Ok(ApiResponse<SupplierSettlementDto>.Ok(result));
+    }
+
     /// <summary>创建供应商结算单并回写待结单据余额。</summary>
     /// <param name="dto">结款日期、流水号、备注和待结单据核销明细。</param>
     /// <returns>创建后的供应商结算单。</returns>

@@ -46,6 +46,19 @@ public class PurchasePlansController(IPurchasePlanService service) : ControllerB
     }
 
     /// <summary>
+    /// 根据采购计划编号查询采购计划详情，含商品明细与订单来源关系。需要采购读取权限。
+    /// </summary>
+    /// <param name="planNo">采购计划编号。</param>
+    /// <returns>采购计划详情。</returns>
+    [HttpGet("by-no/{planNo}")]
+    [ResourcePermission(PermissionActions.Read)]
+    public async Task<ActionResult<ApiResponse<PurchasePlanDto>>> GetByPlanNo(string planNo)
+    {
+        var result = await service.GetByPlanNoAsync(planNo);
+        return Ok(ApiResponse<PurchasePlanDto>.Ok(result));
+    }
+
+    /// <summary>
     /// 手工新增采购计划及其商品明细。需要采购创建权限。
     /// </summary>
     /// <param name="dto">采购计划创建请求。</param>

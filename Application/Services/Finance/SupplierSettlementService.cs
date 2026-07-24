@@ -61,6 +61,19 @@ public class SupplierSettlementService(
     }
 
     /// <inheritdoc />
+    public async Task<SupplierSettlementDto> GetBySettlementNoAsync(string settlementNo)
+    {
+        if (string.IsNullOrWhiteSpace(settlementNo))
+        {
+            throw new BusinessException("结算单编号不能为空");
+        }
+
+        var entity = await supplierSettlementRepository.GetBySettlementNoAsync(settlementNo.Trim())
+                     ?? throw new NotFoundException("供应商结算单不存在");
+        return mapper.Map<SupplierSettlementDto>(entity);
+    }
+
+    /// <inheritdoc />
     public async Task<SupplierSettlementDto> CreateAsync(CreateSupplierSettlementDto dto)
     {
         await createValidator.ValidateOrThrowAsync(dto);

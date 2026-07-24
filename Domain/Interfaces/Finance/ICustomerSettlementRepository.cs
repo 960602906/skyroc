@@ -25,4 +25,11 @@ public interface ICustomerSettlementRepository : IRepository<CustomerSettlement>
     /// <param name="ids">待读取的客户结款凭证主键集合。</param>
     /// <returns>存在的客户结款凭证完整聚合集合。</returns>
     Task<IReadOnlyList<CustomerSettlement>> GetByIdsAsync(IReadOnlyCollection<Guid> ids);
+
+    /// <summary>
+    /// 根据结款凭证编号查询客户结款凭证详情（含核销明细）。
+    /// </summary>
+    /// <param name="settlementNo">结款凭证编号。</param>
+    /// <returns>客户结款凭证聚合；不存在时返回 <c>null</c>。</returns>
+    Task<CustomerSettlement?> GetBySettlementNoAsync(string settlementNo);
 }

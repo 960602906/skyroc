@@ -130,6 +130,23 @@ public class ImportExportJobService(
         return ToDto(job);
     }
 
+    /// <inheritdoc />
+    public async Task<ImportExportJobDto> GetByJobNoAsync(string jobNo)
+    {
+        if (string.IsNullOrWhiteSpace(jobNo))
+        {
+            throw new BusinessException("任务编号不能为空");
+        }
+
+        var userId = GetCurrentUserId();
+        var job = await jobRepository.GetByJobNoAsync(jobNo.Trim());
+        if (job is null || job.CreateBy != userId)
+        {
+            throw new NotFoundException("导入导出任务不存在");
+        }
+        return ToDto(job);
+    }
+
     private async Task<ImportExportJob> CreateJobAsync(ImportExportJobType jobType, ImportExportDirection direction, string fileName)
     {
         var userId = GetCurrentUserId();

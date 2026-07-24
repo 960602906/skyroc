@@ -56,6 +56,19 @@ public class DeliveryTaskService(
     }
 
     /// <inheritdoc />
+    public async Task<DeliveryTaskDto> GetByTaskNoAsync(string taskNo)
+    {
+        if (string.IsNullOrWhiteSpace(taskNo))
+        {
+            throw new BusinessException("配送任务号不能为空");
+        }
+
+        var task = await deliveryTaskRepository.GetByTaskNoAsync(taskNo.Trim())
+                   ?? throw new NotFoundException("配送任务不存在");
+        return mapper.Map<DeliveryTaskDto>(task);
+    }
+
+    /// <inheritdoc />
     public async Task<DeliveryTaskDto> GenerateFromStockOutAsync(Guid stockOutOrderId)
     {
         if (stockOutOrderId == Guid.Empty)

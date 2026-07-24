@@ -18,6 +18,11 @@ public interface ISupplierSettlementService
     /// <summary>读取供应商结算单明细。</summary>
     Task<SupplierSettlementDto> GetByIdAsync(Guid id);
 
+    /// <summary>根据结算单编号读取供应商结算单明细。</summary>
+    /// <exception cref="Application.Exceptions.BusinessException">结算单编号为空时抛出。</exception>
+    /// <exception cref="Application.Exceptions.NotFoundException">供应商结算单不存在时抛出。</exception>
+    Task<SupplierSettlementDto> GetBySettlementNoAsync(string settlementNo);
+
     /// <summary>创建供应商结算单并原子回写所选待结单据的已结金额和状态。</summary>
     Task<SupplierSettlementDto> CreateAsync(CreateSupplierSettlementDto dto);
 

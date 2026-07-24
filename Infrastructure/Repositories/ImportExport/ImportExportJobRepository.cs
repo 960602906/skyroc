@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Domain.Entities.ImportExport;
 using Domain.Interfaces;
 using Infrastructure.Data;
@@ -10,4 +11,10 @@ namespace Infrastructure.Repositories;
 public class ImportExportJobRepository(ApplicationDbContext context)
     : Repository<ImportExportJob>(context), IImportExportJobRepository
 {
+    /// <inheritdoc />
+    public Task<ImportExportJob?> GetByJobNoAsync(string jobNo)
+    {
+        var normalizedJobNo = jobNo.Trim();
+        return DbSet.FirstOrDefaultAsync(x => x.JobNo == normalizedJobNo);
+    }
 }

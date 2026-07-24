@@ -104,4 +104,15 @@ public interface IStockInService
         Domain.Entities.Storage.StockInOrderType orderType,
         Guid id,
         string? remark);
+
+    /// <summary>
+    /// 根据入库单号查询入库单详情，包含商品明细快照。
+    /// </summary>
+    /// <param name="orderType">入库业务类型。</param>
+    /// <param name="inNo">入库单号。</param>
+    /// <returns>入库单完整详情。</returns>
+    /// <exception cref="Application.Exceptions.BusinessException">入库单号不存在或类型不匹配时抛出。</exception>
+    Task<StockInOrderDto> GetByInNoAsync(
+        Domain.Entities.Storage.StockInOrderType orderType,
+        string inNo);
 }

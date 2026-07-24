@@ -57,4 +57,11 @@ public interface IStockInOrderRepository : IRepository<StockInOrder>
     /// <param name="pickupTaskIds">来源取货任务主键集合。</param>
     /// <returns>包含任一指定任务来源的入库单聚合。</returns>
     Task<IReadOnlyList<StockInOrder>> GetByPickupTaskIdsAsync(IReadOnlyCollection<Guid> pickupTaskIds);
+
+    /// <summary>
+    /// 根据入库单号查询入库单详情（含商品明细）。
+    /// </summary>
+    /// <param name="inNo">入库单号。</param>
+    /// <returns>入库单聚合；不存在时返回 <c>null</c>。</returns>
+    Task<StockInOrder?> GetByInNoAsync(string inNo);
 }
